@@ -3960,33 +3960,45 @@
 
             const selectedTitle = filterTitle.value ? filterTitle.value.trim() : "";
 
-            // 1. 🎯 [요구사항 반영] '전체 시험 보기' 상태일 때는 기수 선택지를 완전히 가림 (안내문구 고정)
+            // 1. 🎯 '전체 시험 보기' 상태일 때는 기수 선택지를 완전히 가림 (안내문구 고정)
             if (selectedTitle === "ALL" || !selectedTitle) {
                 filterTh.innerHTML = `<option value="ALL">— 시험을 먼저 선택하세요 —</option>`;
                 filterTh.value = "ALL";
 
-                // 통계판 숫자를 리계산하고 함수 종료
                 if (typeof calculateLiveDashboardStats === "function") {
                     calculateLiveDashboardStats();
                 }
                 return;
             }
 
-            // 2. 모집공고 마스터 배열(dataStoreRecruitment) 및 대상자 대장 배열 동시 싱크 로드 (2중 가드)
+            // 2. 마스터 데이터 저장소 로드
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 3. 🎯 [특정 시험 선택 상태] 미세한 공백 버그를 방지하기 위해 trim() 처리 후 교차 필터링 추출
-            // 모집공고 대장(recruitmentDB)에서 먼저 기수를 찾습니다.
+            // 🌟 [정밀 정제 변환기]: 특수문자, 대시(-), 플러스(+), 공백을 완전히 파괴하고 순수 알맹이 글자만 추출
+            const cleanString = (str) => {
+                if (!str) return "";
+                return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+            };
+
+            const targetTitleClean = cleanString(selectedTitle);
+
+            // 3. 🎯 [텍스트 가드 장착 필터링] 알맹이 글자가 상호 교차 포함되거나 일치하는 기수들만 추출
             let matchedThs = recruitmentDB
-                .filter(row => row.title && row.title.trim() === selectedTitle)
+                .filter(row => {
+                    const rowTitleClean = cleanString(row.title);
+                    return rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean);
+                })
                 .map(row => row.th)
                 .filter(Boolean);
 
-            // 💡 [방어 코드 추가]: 만약 공고 대장에 없다면 대상자 대장(applicantDB)에서도 기수를 스캔하여 보완합니다.
+            // 💡 [2중 방어 코드]: 만약 공고 대장에 매칭이 없다면 대상자 대장에서도 유연하게 글자 스캔 추출
             if (matchedThs.length === 0) {
                 matchedThs = applicantDB
-                    .filter(item => item.title && item.title.trim() === selectedTitle)
+                    .filter(item => {
+                        const itemTitleClean = cleanString(item.title);
+                        return itemTitleClean === targetTitleClean || itemTitleClean.includes(targetTitleClean) || targetTitleClean.includes(itemTitleClean);
+                    })
                     .map(item => item.th)
                     .filter(Boolean);
             }
@@ -3997,7 +4009,7 @@
             // 4. 추출된 공고 기준 기수 데이터로 드롭다운 옵션 태그 동적 세팅 (1기~4기)
             let htmlOptions = `<option value="ALL">— 전체 기수 —</option>`;
 
-            // 자연스러운 정렬 후 옵션 추가
+            // 자연스러운 숫자식 정렬 후 옵션 추가
             availableThs.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })).forEach(th => {
                 htmlOptions += `<option value="${th}">${th}</option>`;
             });
@@ -4005,7 +4017,14 @@
             filterTh.innerHTML = htmlOptions;
             filterTh.value = "ALL"; // 시험명 변경 시 기수는 '전체 기수'가 기본 선택되도록 강제 락인
 
-            // 5. 기수 목록 빌드가 끝나면 최종 통계 스코어보드 라이브 리계산 호출
+            // 🌟 [핵심 바인딩]: innerHTML로 태그를 새로 쓸 때 유실될 수 있는 클릭 이벤트를 자바스크립트 레벨에서 강제 복구
+            filterTh.onchange = function () {
+                if (typeof calculateLiveDashboardStats === "function") {
+                    calculateLiveDashboardStats();
+                }
+            };
+
+            // 5. 기수 목록 빌드가 끝나면 최종 통계 스코어보드 라이브 리계산 호출 (요구사항 규칙에 의해 초기에는 0으로 홀딩됨)
             if (typeof calculateLiveDashboardStats === "function") {
                 calculateLiveDashboardStats();
             }
@@ -4026,22 +4045,22 @@
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // 🎯 [엄격한 잠금 규칙] 시험명이나 기수가 아직 'ALL' 상태이면 무조건 0으로 홀딩 차단
+            // 🎯 [요구사항 원칙 고수]: 기수가 아직 'ALL'(— 전체 기수 — 또는 안내창) 상태라면 무조건 0으로 락인 고정
             if (filterTitle === 'ALL' || filterTh === 'ALL' || filterTh === '') {
                 if (lblTotal) lblTotal.innerText = "0 / 0명";
                 if (lblReceived) lblReceived.innerText = "0건";
                 if (lblProcessing) lblProcessing.innerText = "0건";
                 if (lblComplete) lblComplete.innerText = "0건";
-                console.log(`🔒 [통계 락업] 기수 미선택으로 대시보드가 0으로 고정되었습니다.`);
+                console.log(`🔒 [통계 락업 활성화] 기수 미선택(ALL) 조건 충족으로 통계 수치가 0으로 홀딩 대기됩니다.`);
                 return;
             }
 
             // ----------------======================================================
-            // 💡 [안전 패스 통과 구역]: 1번, 2번 셀렉트가 모두 명확히 선택되었을 때 가동
-            // ----------------======================================================
+            // 💡 [안전 패스 통과 구역]: 1번 시험명과 2번 특정 기수가 완전하게 매칭 픽스되었을 때만 연산 개시
+            // --------------------------------======================================
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 🌟 [핵심 버그 킬러]: 문자열의 공백, 하이픈(-), 특수기호를 전부 지우고 순수 텍스트만 비교하는 정제 포맷터
+            // 공백, 기호, 특수기호 제거 포맷터 (동일 알고리즘 싱크 일치화)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4050,12 +4069,11 @@
             const targetTitleClean = cleanString(filterTitle);
             const filterThNum = filterTh.replace(/[^0-9]/g, "");
 
-            // 정밀 교차 필터링 수행
+            // 정밀 교차 필터링
             let filteredList = adminApplicantDB.filter(row => {
                 const rowTitleClean = cleanString(row.title);
                 const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
 
-                // 🎯 글자 알맹이가 포함되어 있거나 일치하고, 기수 숫자가 완벽히 같을 때만 매칭
                 const matchTitle = (rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
                 const matchTh = (rowThNum === filterThNum);
 
@@ -4090,20 +4108,18 @@
                 }
             });
 
-            // 배정 인원수 보정 가드 (목록에 데이터가 있는데 인원수가 0인 경우 폴백)
             if (totalQuotaSum === 0 && filteredList.length > 0) {
                 totalQuotaSum = parseInt(filteredList[0].count) || 60;
             }
 
-            // 최종 화면 통계판 값 갱신 반영
+            // 통계 보드 최종 렌더링 스왑 바인딩
             if (lblTotal) lblTotal.innerText = `${totalActiveCount} / ${totalQuotaSum}명`;
             if (lblReceived) lblReceived.innerText = `${receivedCount}건`;
             if (lblProcessing) lblProcessing.innerText = `${processingCount}건`;
             if (lblComplete) lblComplete.innerText = `${completeCount}건`;
 
-            console.log(`📊 [필터 해제 완료] 매칭 데이터 수: ${filteredList.length}명 처리 완료`);
+            console.log(`📊 [2단계 필터 통과 정밀 통계 완료] 필터링 매칭인원: ${filteredList.length}명`);
         }
-
 
         /**
          * 5. 생명주기 초기 구동 리스너

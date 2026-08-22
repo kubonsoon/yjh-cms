@@ -1423,6 +1423,9 @@
          * 중복 가동되던 생성 루틴을 통합 단일화하였습니다.
          */
         function initializeCMSDatabase() {
+            let isUpdated = false;
+
+            // 1. 🎯 데이터가 아예 비어있는 완전 최초 접속 시 프리셋 적재
             if (dataStoreApplicant.length === 0) {
                 dataStoreApplicant.push(
                     {
@@ -1431,16 +1434,17 @@
                         ssn: "950505",
                         phone: "01012345678",
                         title: "애드파마 로잘탄+로수+에제",
-                        th: "2기",       // 💡 누락된 기수 추가
-                        count: "60",    // 💡 누락된 인원수 추가
-                        period: "72",  // 💡 누락된 기간 추가
+                        th: "2기",
+                        count: "60",
+                        period: "72",
                         category: "내분비내과 / 2 기 모집",
                         stage: "🎁 2 기 1 차 일정 완료 (분할 허용)",
-                        result: "처리중",
-                        isDutyAgreed: "동의", // 💡 기존 isAgreed 분리 및 초기값 설정
-                        isCallAgreed: "동의", // 💡 기존 isAgreed 분리 및 초기값 설정
-                        idCard: true,   // 🌟 홍길동 신분증 제출 완료
-                        bankbook: true  // 🌟 홍길동 통장사본 제출 완료
+                        result: "대기",
+                        payStatus: "대기",
+                        isDutyAgreed: "동의",
+                        isCallAgreed: "동의",
+                        idCard: true,
+                        bankbook: true
                     },
                     {
                         uid: 202,
@@ -1448,37 +1452,58 @@
                         ssn: "980101",
                         phone: "01090956763",
                         title: "신일제약 사쿠+발사",
-                        th: "4기",       // 💡 누락된 기수 추가
-                        count: "46",    // 💡 누락된 인원수 추가
-                        period: "96",  // 💡 누락된 기간 추가
+                        th: "4기",
+                        count: "46",
+                        period: "96",
                         category: "비뇨의학과 / 4 기 모집",
                         stage: "🎁 과제 심사 완료 (종합 정산 가능)",
                         result: "접수",
-                        isDutyAgreed: "동의", // 💡 기존 isAgreed 분리 및 초기값 설정
-                        isCallAgreed: "동의", // 💡 기존 isAgreed 분리 및 초기값 설정
-                        idCard: true,   // 🌟 홍길동 신분증 제출 완료
-                        bankbook: true  // 🌟 홍길동 통장사본 제출 완료
+                        payStatus: "접수",
+                        isDutyAgreed: "동의",
+                        isCallAgreed: "동의",
+                        idCard: true,
+                        bankbook: true
                     },
                     {
                         uid: 203,
                         name: "진재영",
                         ssn: "050607",
                         phone: "01023469876",
-                        title: "경동제약 식후 임상시험",
-                        th: "4기",       // 💡 누락된 기수 추가
-                        count: "46",    // 💡 누락된 인원수 추가
-                        period: "96",  // 💡 누락된 기간 추가
+                        title: "경동제약 Mirabegron 식후 임상시험",
+                        th: "4기",
+                        count: "46",
+                        period: "96",
                         category: "비뇨의학과 / 4 기 모집",
                         stage: "🎁 과제 심사 완료 (종합 정산 가능)",
-                        result: "접수",
-                        isDutyAgreed: "동의", // 💡 기존 isAgreed 분리 및 초기값 설정
-                        isCallAgreed: "동의", // 💡 기존 isAgreed 분리 및 초기값 설정
-                        idCard: true,   // 🌟 홍길동 신분증 제출 완료
-                        bankbook: true  // 🌟 홍길동 통장사본 제출 완료
+                        result: "지급완료",
+                        payStatus: "지급완료",
+                        isDutyAgreed: "동의",
+                        isCallAgreed: "동의",
+                        idCard: true,
+                        bankbook: true
                     }
-
                 );
-                console.log("대상자 가상 DB 생성 완료");
+                isUpdated = true;
+                console.log("대상자 가상 DB 최초 생성 및 정산 초기 상태 락인 완료");
+            } else {
+                // 🌟 [핵심 캐시 킬러 가드 추가]: 이미 데이터가 세이브되어 있더라도, 과거 "미정"이나 잘못된 정산 상태가 쌓여있다면 
+                // 코드가 가동되는 순간 강제로 대표님이 지정하신 상태(대기/접수/지급완료)로 전격 업데이트 연동시킵니다.
+                dataStoreApplicant.forEach(row => {
+                    if (row.name === "홍길동" && row.title.includes("애드파마") && row.result !== "대기") {
+                        row.result = "대기"; row.payStatus = "대기"; isUpdated = true;
+                    }
+                    else if (row.name === "강남구" && row.title.includes("신일제약") && row.result !== "접수") {
+                        row.result = "접수"; row.payStatus = "접수"; isUpdated = true;
+                    }
+                    else if (row.name === "진재영" && row.title.includes("경동제약") && row.result !== "지급완료") {
+                        row.result = "지급완료"; row.payStatus = "지급완료"; isUpdated = true;
+                    }
+                });
+            }
+
+            // 2. 변경 사항이 있을 때만 로컬스토리지 영구 커밋 연동
+            if (isUpdated) {
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             }
         }
 
@@ -2634,12 +2659,17 @@
                     alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
                 } else {
                     // [수정 완료 모드]
+                    // 🌟 [안전 가드]: 수정 완료 시 상단 폼에서 바꾼 상태 값이 payload에 없다면 기존 대장의 값을 유지하거나 강제 매핑 보존
+                    if (!payload.result) payload.result = document.getElementById('form-app-result')?.value || dataStoreApplicant[editIndex].result || '접수';
+                    if (!payload.payStatus) payload.payStatus = payload.result;
+
                     dataStoreApplicant[editIndex] = payload;
                     alert(`📋 정보 갱신 완료: [${n}] 피험자의 마스터 레코드가 업데이트되었습니다.`);
                 }
 
                 // ⭐️ [버그 원천 분쇄 3]: commitToLocalStorage() 내부의 자동 "접수" 변환 오작동을 무력화하기 위해 물리 세이브 강제 주입
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
+                window.dataStoreApplicant = dataStoreApplicant; // 전역 메모리 싱크 즉시 일치화
 
                 // 원래 정의된 로컬스토리지 백업 함수 호출 (안전장치 유지)
                 if (typeof commitToLocalStorage === "function") {
@@ -2647,13 +2677,14 @@
                 }
 
                 resetForm(); // 💡 폼 초기화 및 버튼 전환
-                refreshApplicantView();
+                refreshApplicantView(); // 🌟 목록 즉시 리렌더링 반영
 
-                // 4. ⭐️ 물리 파일 세이브 안착 확인 후 통계 엔진 리프레시 가동! (원본 레이턴시 타이머 100% 보존)
+                // 4. ⭐️ 물리 파일 세이브 안착 확인 후 통계 엔진 리프레시 즉각 가동!
+                // 사용자가 체감하는 레이턴시를 줄이기 위해 타이머 시간을 100ms~200ms 정도로 살짝 당겨주면 연동이 훨씬 부드러워집니다.
                 setTimeout(() => {
                     if (typeof initDashboardFilter === "function") initDashboardFilter();
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-                }, 400);
+                }, 150); // 레이턴시 타이머 최적화 튜닝 (150ms)
 
             } catch (error) {
                 console.error("대상자 신규 마스터 등록 중 치명적 오류 발생:", error);
@@ -4347,10 +4378,11 @@
                 // 4. 알림창 알림 (시연 설명력 강화)
                 alert(`📢 상태 변환 완료: [${targetName}] 피험자의 참여비 상태가 [${newStatus}] 상태로 수동 업데이트되었습니다.`);
 
-                // 5. ⭐️ [연쇄 리프레시]: 모달창 내부의 '현재 참여비 상태' 라벨을 즉시 동기화 변경
-                const payStatusLabel = document.querySelector("#history-modal-content-slot div div:last-child span");
-                if (payStatusLabel) {
-                    payStatusLabel.textContent = newStatus;
+                // 5. ⭐️ [연쇄 리프레시]: 역순 정렬(reverse)로 인한 라벨 오작동을 원천 차단하기 위해 
+                // 텍스트 변환 필터링 포맷터를 거쳐 현재 열려있는 이력 모달 화면을 실시간으로 통째로 다시 렌더링 스왑합니다.
+                if (typeof openApplicantHistoryModal === "function") {
+                    // 이 함수가 실행되면서 모달 내부의 모든 상태 텍스트와 소집일자가 완벽한 화이트 컬러 및 최신 상태로 새로고침됩니다.
+                    openApplicantHistoryModal(index);
                 }
 
                 // 6. ⭐️ [화면 목록 동기화]: 하단 마스터 테이블 목록 tr을 최신 상태 배지 색상으로 새로 그리기 실행

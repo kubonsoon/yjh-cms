@@ -4164,7 +4164,7 @@
             const cleanName = rawName.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
             const targetSsn = row.ssn ? row.ssn.trim() : "";
 
-            // B. 모집공고 마스터 DB를 최신 로컬스토리지로부터 정밀 동기화 로드
+            // B. 모집공고 마스터 DB를 전역 변수가 아닌 최신 로컬스토리지에서 실시간 동기화 로드
             const recDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
             // C. 가변 돔(DOM) 슬롯 엘리먼트 추적
@@ -4184,7 +4184,7 @@
                 return itemCleanName === cleanName && itemSsn === targetSsn;
             }).reverse();
 
-            // 🌟 [정밀 정제 변환기]: 공백, 하이픈(-), 플러스(+) 등 문자 오염을 우회하는 텍스트 정제 엔진
+            // 🌟 [정밀 정제 변환기 장착]: 공백, 하이픈(-), 플러스(+) 등 모든 기호 오차를 원천 무력화하는 핵심 필터
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4194,17 +4194,20 @@
             let historyCardsHTML = "";
 
             matchedHistoryList.forEach((historyRow) => {
+                // 🌟 [버그 킬러]: 현재 피험자 이력의 과제명과 기수 텍스트를 알맹이 단위로 정제
                 const targetTitleClean = cleanString(historyRow.title);
                 const filterThNum = (historyRow.th || "").toString().replace(/[^0-9]/g, "");
 
-                // 🎯 [크로스 매핑 종결]: 글자 알맹이와 기수 숫자가 상호 일치하는 마스터 공고 레코드 탐색
+                // 🎯 [크로스 매핑 종결]: 엄격한 === 비교를 폐기하고, 글자 알맹이와 기수 숫자가 상호 일치하는 마스터 공고를 정밀 탐색합니다.
                 const matchedRec = recDB.find(rec => {
                     const recTitleClean = cleanString(rec.title);
                     const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
+
+                    // 공고 과제명과 대상자 과제명이 서로 포함관계이거나 일치하고, 기수 숫자가 완벽히 같을 때 매칭 성공
                     return (recTitleClean === targetTitleClean || recTitleClean.includes(targetTitleClean) || targetTitleClean.includes(recTitleClean)) && (recThNum === filterThNum);
                 });
 
-                // 🌟 자동 연산된 '지급일정 1개월 전 소집일자' 연동 (없으면 미정 폴백)
+                // 🌟 실시간 역추적 결합으로 추출된 모집공고의 소집일자 마스터 데이터를 연동 (없으면 미정 폴백)
                 const matchedScheduleDate = matchedRec && matchedRec.recDate ? matchedRec.recDate : "미정";
 
                 // 모집공고 등록 시점에 대장에 세이브된 1~3차 통합 지급일정 문자열 확보 (없으면 추후공지 폴백)
@@ -4225,7 +4228,7 @@
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700; margin-bottom: 4px;">배정 과제명: <span style="color:#ffffff; margin-left:6px;">${historyRow.title || '-'}</span></div>
                 </div>
                 
-                <!-- 모집공고 탭에서 등록한 1~3차 가변 참여비 지급일정을 카드의 수평 중간 허리에 정밀 표출 -->
+                <!-- 모집공고 탭에서 등록한 1~3차 가변 참여비 지급일정을 카드의 수평 중간 허리에 시원하게 표출 -->
                 <div class="history-grid-container" style="grid-template-columns: 1fr; margin-bottom: 12px; background: rgba(15, 23, 42, 0.3); padding: 8px 12px; border-radius: 6px; border: 1px dashed rgba(251, 191, 36, 0.3);">
                     <div style="color: #fbbf24; font-size:12.5px; font-weight:700;"><i class="fa-solid fa-sack-dollar"></i> 참여비 차수별 지급일정: <span style="color:#ffffff; margin-left:8px; font-weight:600; letter-spacing: 0.3px;">${matchedPaySchedule}</span></div>
                 </div>
@@ -4233,7 +4236,7 @@
                 <div class="history-grid-container" style="margin-bottom: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700;">참여 기수: <span style="color:#38bdf8; margin-left:6px; font-weight:800;">${historyRow.th || '-'}</span></div>
                     
-                    <!-- 🌟 [색상 연동 완료]: 실시간 매핑된 소집일자가 연동되며, 글자 색상이 다른 항목과 동일하게 순백색(#ffffff)으로 연출됩니다. -->
+                    <!-- 🌟 [색상 및 연동 버그 완전 해결]: 텍스트 정제 엔진을 통과하여 매칭된 디폴트 소집일자가 흰색(#ffffff)으로 오차 없이 실시간 연동 출력됩니다. -->
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700;">임상 소집일자: <span style="color:#ffffff !important; margin-left:6px; font-weight:800;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${matchedScheduleDate}</span></div>
                     
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700;">임상 진행시간: <span style="color:#ffffff; margin-left:6px;">${historyRow.period || '-'}h</span></div>
@@ -4262,13 +4265,9 @@
         </div>
     `;
 
-            // ==========================================================================
-            // 🎯 [이력 모달 - 2부] 4단계 정산 라이프사이클 원격 통제 액션 버튼 장착 및 마감
-            // ==========================================================================
             // E. 하단 닫기 단추 및 4단계 상태 제어 버튼 결합 마운트 [원안 프레임 100% 보존]
             actionSlot.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; flex-wrap: nowrap;">
-            <!-- 좌측: 상태 변경 통제 버튼 그룹 -->
             <div style="display: flex; gap: 8px;">
                 <button type="button" onclick="updateApplicantStatusViaModal(${index}, '접수')" 
                     style="background: rgba(14, 165, 233, 0.15); border: 1px solid #0ea5e9; color: #38bdf8; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size:12.5px; transition: all 0.2s;">
@@ -4287,15 +4286,13 @@
                     <i class="fa-solid fa-user-slash"></i> 미참석/탈락(대기)
                 </button>
             </div>
-            
-            <!-- 우측: 모달 닫기 단추 -->
             <div>
                 <button type="button" onclick="closeApplicantHistoryModal()" 
                     style="background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size:13px; height: 38px;">
                     닫기
                 </button>
             </div>
-         </div>
+        </div>
     `;
 
             // F. 모달 디스플레이 활성화 (Flexbox 정렬 투사)

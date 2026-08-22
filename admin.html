@@ -4018,58 +4018,61 @@
             const filterTitleSelect = document.getElementById('dashboard-filter-title');
             const filterThSelect = document.getElementById('dashboard-filter-th');
 
-            const filterTitle = filterTitleSelect ? filterTitleSelect.value.trim() : 'ALL';
-            const filterTh = filterThSelect ? filterThSelect.value.trim() : 'ALL';
+            const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
+            const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
 
             const lblTotal = document.getElementById('stat-total-count');
             const lblReceived = document.getElementById('stat-received-count');
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // 🎯 [요구사항 엄격 준수]: 시험명만 선택했거나('ALL' 상태), 기수가 아직 'ALL'(— 전체 기수 — 또는 시험 선택 안내) 상태인 경우
-            // 2번째 셀렉트박스까지 완전히 고르지 않았다면 무조건 통계값을 0으로 고정하고 차단합니다.
-            if (filterTitle === 'ALL' || filterTh === 'ALL') {
+            // 🎯 [엄격한 잠금 규칙] 시험명이나 기수가 아직 'ALL' 상태이면 무조건 0으로 홀딩 차단
+            if (filterTitle === 'ALL' || filterTh === 'ALL' || filterTh === '') {
                 if (lblTotal) lblTotal.innerText = "0 / 0명";
                 if (lblReceived) lblReceived.innerText = "0건";
                 if (lblProcessing) lblProcessing.innerText = "0건";
                 if (lblComplete) lblComplete.innerText = "0건";
-
-                console.log(`🔒 [통계 락업 활성화] 기수 필터 미충족(ALL 상태)으로 대시보드 수치가 무조건 0으로 홀딩 차단되었습니다.`);
-                return; // 하단 연산 구역으로 절대 넘어가지 않고 강제 탈출
+                console.log(`🔒 [통계 락업] 기수 미선택으로 대시보드가 0으로 고정되었습니다.`);
+                return;
             }
 
             // ----------------======================================================
-            // 💡 [안전 패스 통과 구역]: 시험명과 특정 기수(1기~4기 등)가 완벽히 둘 다 픽스되었을 때만 가동
+            // 💡 [안전 패스 통과 구역]: 1번, 2번 셀렉트가 모두 명확히 선택되었을 때 가동
             // ----------------======================================================
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 두 가지 드롭다운 필터가 모두 일치하는 대상자들만 정밀 필터링
+            // 🌟 [핵심 버그 킬러]: 문자열의 공백, 하이픈(-), 특수기호를 전부 지우고 순수 텍스트만 비교하는 정제 포맷터
+            const cleanString = (str) => {
+                if (!str) return "";
+                return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+            };
+
+            const targetTitleClean = cleanString(filterTitle);
+            const filterThNum = filterTh.replace(/[^0-9]/g, "");
+
+            // 정밀 교차 필터링 수행
             let filteredList = adminApplicantDB.filter(row => {
-                const rowTitleTrim = row.title ? row.title.trim() : "";
-
-                // 시험명 정밀 비교
-                const matchTitle = (rowTitleTrim === filterTitle);
-
-                // 기수 숫자만 정제하여 크로스 매칭 비교
+                const rowTitleClean = cleanString(row.title);
                 const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
-                const filterThNum = filterTh.replace(/[^0-9]/g, "");
+
+                // 🎯 글자 알맹이가 포함되어 있거나 일치하고, 기수 숫자가 완벽히 같을 때만 매칭
+                const matchTitle = (rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
                 const matchTh = (rowThNum === filterThNum);
 
                 return matchTitle && matchTh;
             });
 
             let totalQuotaSum = 0;
-            let totalActiveCount = filteredList.length; // 매칭된 실제 피험자 수
+            let totalActiveCount = filteredList.length;
 
-            let receivedCount = 0;   // 청구서 접수 현황
-            let processingCount = 0; // 재무 검토 처리중
-            let completeCount = 0;   // 정산 종결 지급완료
+            let receivedCount = 0;
+            let processingCount = 0;
+            let completeCount = 0;
 
-            // 배정 인원수(N수) 정합성 추출용 고유 맵
             let quotaMap = {};
 
             filteredList.forEach(row => {
-                const quotaKey = `${row.title ? row.title.trim() : ""}_${row.th}`;
+                const quotaKey = `${cleanString(row.title)}_${row.th}`;
                 if (!quotaMap[quotaKey]) {
                     quotaMap[quotaKey] = parseInt(row.count) || 0;
                     totalQuotaSum += quotaMap[quotaKey];
@@ -4087,18 +4090,18 @@
                 }
             });
 
-            // 예외 보정 가드
+            // 배정 인원수 보정 가드 (목록에 데이터가 있는데 인원수가 0인 경우 폴백)
             if (totalQuotaSum === 0 && filteredList.length > 0) {
                 totalQuotaSum = parseInt(filteredList[0].count) || 60;
             }
 
-            // 최종 화면 렌더링 출력 바인딩
+            // 최종 화면 통계판 값 갱신 반영
             if (lblTotal) lblTotal.innerText = `${totalActiveCount} / ${totalQuotaSum}명`;
             if (lblReceived) lblReceived.innerText = `${receivedCount}건`;
             if (lblProcessing) lblProcessing.innerText = `${processingCount}건`;
             if (lblComplete) lblComplete.innerText = `${completeCount}건`;
 
-            console.log(`📊 [2단계 필터 통과 정밀 통계] 시험명:${filterTitle} | 기수:${filterTh} ➔ 수치 출력 완료`);
+            console.log(`📊 [필터 해제 완료] 매칭 데이터 수: ${filteredList.length}명 처리 완료`);
         }
 
 

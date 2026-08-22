@@ -1908,8 +1908,17 @@
         <i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}
     </td>
     
-    <td class="exam-notice-cell" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f87171; vertical-align: middle;" title="${row.notice || '-'}">${row.notice || '없음'}</td>
-    <td style="vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openNoticeEditor(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">보기</button></td>
+   // 🎯 1. [주의사항] 구형 텍스트 출력 칸을 완전히 폐기하고 전용 '보기' 배지 버튼으로 교체
+<td style="vertical-align: middle; text-align: center;">
+    <button type="button" class="btn-inline list" onclick="openNoticeModal(${index})" 
+        style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">보기</button>
+</td>
+
+// 🎯 2. [시험일정] 기존 범용 에디터 함수 연결을 끊고 전용 '시험일정 팝업' 함수로 격리 연동
+<td style="vertical-align: middle; text-align: center;">
+    <button type="button" class="btn-inline list" onclick="openScheduleModal(${index})" 
+        style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">보기</button>
+</td>
     <td style="vertical-align: middle; padding-top: 10px; padding-bottom: 10px;">
         <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start;">
             ${multiLinePayHTML}

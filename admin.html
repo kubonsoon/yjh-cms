@@ -4026,41 +4026,40 @@
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // 🎯 [요구사항 규칙 교정] 시험명이 전체보기('ALL')이거나, 기수가 아직 '시험 선택 안내' 상태인 경우에만 차단
-            // filterTh가 'ALL'(— 전체 기수 —)일 때는 해당 시험의 전체 통계를 보여주어야 하므로 차단하지 않고 통과시킵니다.
-            if (filterTitle === 'ALL' || filterThSelect?.options[filterThSelect.selectedIndex]?.text.includes("선택하세요")) {
+            // 🎯 [요구사항 엄격 준수]: 시험명만 선택했거나('ALL' 상태), 기수가 아직 'ALL'(— 전체 기수 — 또는 시험 선택 안내) 상태인 경우
+            // 2번째 셀렉트박스까지 완전히 고르지 않았다면 무조건 통계값을 0으로 고정하고 차단합니다.
+            if (filterTitle === 'ALL' || filterTh === 'ALL') {
                 if (lblTotal) lblTotal.innerText = "0 / 0명";
                 if (lblReceived) lblReceived.innerText = "0건";
                 if (lblProcessing) lblProcessing.innerText = "0건";
                 if (lblComplete) lblComplete.innerText = "0건";
 
-                console.log(`🔒 [통계 락업 활성화] 초기 안내 상태 필터 미충족으로 대시보드 수치가 0으로 홀딩 차단되었습니다.`);
-                return;
+                console.log(`🔒 [통계 락업 활성화] 기수 필터 미충족(ALL 상태)으로 대시보드 수치가 무조건 0으로 홀딩 차단되었습니다.`);
+                return; // 하단 연산 구역으로 절대 넘어가지 않고 강제 탈출
             }
 
             // ----------------======================================================
-            // 💡 [안전 패스 통과 구역]: 시험명과 기수 필터 조건에 맞춰 정밀 연산 가동
+            // 💡 [안전 패스 통과 구역]: 시험명과 특정 기수(1기~4기 등)가 완벽히 둘 다 픽스되었을 때만 가동
             // ----------------======================================================
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 두 가지 드롭다운 필터가 정확히 매칭되는 대상자들만 정밀 2차 격리 필터링 (1기~4기 체계 싱크 완료)
+            // 두 가지 드롭다운 필터가 모두 일치하는 대상자들만 정밀 필터링
             let filteredList = adminApplicantDB.filter(row => {
-                // 공백 오차 방지용 trim() 처리
                 const rowTitleTrim = row.title ? row.title.trim() : "";
 
-                // 시험명 조건 가드
+                // 시험명 정밀 비교
                 const matchTitle = (rowTitleTrim === filterTitle);
 
-                // 기수 조건 가드: 기수 필터가 'ALL'이면 해당 시험의 모든 기수 포함, 특정 기수면 숫자만 추출하여 안전 비교
+                // 기수 숫자만 정제하여 크로스 매칭 비교
                 const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
                 const filterThNum = filterTh.replace(/[^0-9]/g, "");
-                const matchTh = (filterTh === 'ALL' || rowThNum === filterThNum);
+                const matchTh = (rowThNum === filterThNum);
 
                 return matchTitle && matchTh;
             });
 
             let totalQuotaSum = 0;
-            let totalActiveCount = filteredList.length; // 격리 매칭된 순수 실제 피험자 수
+            let totalActiveCount = filteredList.length; // 매칭된 실제 피험자 수
 
             let receivedCount = 0;   // 청구서 접수 현황
             let processingCount = 0; // 재무 검토 처리중
@@ -4076,7 +4075,6 @@
                     totalQuotaSum += quotaMap[quotaKey];
                 }
 
-                // 🎯 [변수명 싱크 버그 해결 완료]: payStatus 대신 실제 마스터 Preset 데이터 규격인 'result' 필드로 정밀 검사
                 let status = (row.result || row.payStatus || '접수').toString().trim();
                 if (status === '확인' || status === '접수완료') status = '접수';
 
@@ -4089,18 +4087,18 @@
                 }
             });
 
-            // 배정 인원수가 0으로 잡히는 예외 현상 최종 보정 가드
+            // 예외 보정 가드
             if (totalQuotaSum === 0 && filteredList.length > 0) {
                 totalQuotaSum = parseInt(filteredList[0].count) || 60;
             }
 
-            // 상단 다크 모드 현황판 레이어에 실시간 최종 출력 교정 바인딩
+            // 최종 화면 렌더링 출력 바인딩
             if (lblTotal) lblTotal.innerText = `${totalActiveCount} / ${totalQuotaSum}명`;
             if (lblReceived) lblReceived.innerText = `${receivedCount}건`;
             if (lblProcessing) lblProcessing.innerText = `${processingCount}건`;
             if (lblComplete) lblComplete.innerText = `${completeCount}건`;
 
-            console.log(`📊 [2단계 필터 통과 정밀 통계] 시험명:${filterTitle} | 기수:${filterTh} ➔ 수치 매칭 렌더링 정상 출력`);
+            console.log(`📊 [2단계 필터 통과 정밀 통계] 시험명:${filterTitle} | 기수:${filterTh} ➔ 수치 출력 완료`);
         }
 
 

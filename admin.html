@@ -1908,13 +1908,11 @@
         <i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}
     </td>
     
-   // 🎯 1. [주의사항] 구형 텍스트 출력 칸을 완전히 폐기하고 전용 '보기' 배지 버튼으로 교체
 <td style="vertical-align: middle; text-align: center;">
     <button type="button" class="btn-inline list" onclick="openNoticeModal(${index})" 
         style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">보기</button>
 </td>
 
-// 🎯 2. [시험일정] 기존 범용 에디터 함수 연결을 끊고 전용 '시험일정 팝업' 함수로 격리 연동
 <td style="vertical-align: middle; text-align: center;">
     <button type="button" class="btn-inline list" onclick="openScheduleModal(${index})" 
         style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">보기</button>

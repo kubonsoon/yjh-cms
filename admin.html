@@ -1500,35 +1500,47 @@
                     {
                         uid: 101,
                         title: "애드파마 로잘탄+로수+에제",
-                        th: "2기", // 단순 숫자 '2'에서 오피셜 규격 문자열로 변경
+                        th: "2기",
                         count: "60",
                         period: "72",
                         crc: "석정은",
                         notice: "공복 유지 필수 및 소집 10분 전 대기",
                         examSchedule: "2026-09-01",
-                        paySchedule: "2026-09-10"
+                        paySchedule: "1차: 2026-09-10",
+                        payDate1: "2026-09-10",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2026-08-10"
                     },
                     {
                         uid: 102,
-                        title: "신일제약-사쿠+발사",
+                        title: "신일제약 사쿠+발사",
                         th: "4기",
                         count: "46",
                         period: "96",
                         crc: "최미현",
                         notice: "지정식 이외 취식 금지 및 격리 규정 준수",
                         examSchedule: "2026-09-15",
-                        paySchedule: "2026-09-30"
+                        paySchedule: "1차: 2026-09-30",
+                        payDate1: "2026-09-30",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2026-08-30"
                     },
                     {
                         uid: 103,
-                        title: "경동제약 식후 임상시험",
+                        title: "경동제약 Mirabegron 식후 임상시험",
                         th: "4기",
                         count: "46",
                         period: "96",
                         crc: "강은애",
                         notice: "지정식 이외 취식 금지 및 격리 규정 준수",
                         examSchedule: "2026-10-15",
-                        paySchedule: "2026-10-30"
+                        paySchedule: "1차: 2026-10-30",
+                        payDate1: "2026-10-30",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2026-09-30"
                     }
                 );
                 isUpdated = true;
@@ -1874,29 +1886,32 @@
                         }
                     }
 
+                    // 💡 기존 color: #fbbf24; 를 color: #ffffff !important; 로 전격 교체
                     tr.innerHTML = `
-                <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px;">${row.title}</td>
-                <td style="vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span></td>
-                <td style="vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${totalQuota}명</td>
-                <td style="vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
-                <td style="vertical-align: middle; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
-                <td style="vertical-align: middle; text-align: center; color: #fbbf24; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check"></i> ${row.recDate || '미정'}</td>
-                <td class="exam-notice-cell" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f87171; vertical-align: middle;" title="${row.notice || '-'}">${row.notice || '없음'}</td>
-                <td style="vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openNoticeEditor(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">보기</button></td>
-                
-                <!-- 🎯 [출력 목록 수직 멀티라인 락업 구역]: 한 줄로 길어지던 텍스트를 위아래 2줄, 3줄 블록형태로 정밀 출력시킵니다. -->
-                <td style="vertical-align: middle; padding-top: 10px; padding-bottom: 10px;">
-                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start;">
-                        ${multiLinePayHTML}
-                    </div>
-                </td>
-                
-                <td style="vertical-align: middle; text-align: center; padding-right: 15px;">
-                    <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
-                        <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
-                        <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
-                    </div>
-                </td>
+    <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px;">${row.title}</td>
+    <td style="vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span></td>
+    <td style="vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${totalQuota}명</td>
+    <td style="vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
+    <td style="vertical-align: middle; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
+    
+    <!-- 🌟 [색상 교정]: 소집일자 항목 글자 색상을 다른 항목과 동일하게 흰색(#ffffff)으로 강제 통일 -->
+    <td style="vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;">
+        <i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}
+    </td>
+    
+    <td class="exam-notice-cell" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f87171; vertical-align: middle;" title="${row.notice || '-'}">${row.notice || '없음'}</td>
+    <td style="vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openNoticeEditor(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px;">보기</button></td>
+    <td style="vertical-align: middle; padding-top: 10px; padding-bottom: 10px;">
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start;">
+            ${multiLinePayHTML}
+        </div>
+    </td>
+    <td style="vertical-align: middle; text-align: center; padding-right: 15px;">
+        <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
+            <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
+            <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
+        </div>
+    </td>
             `;
                 }
                 tbody.appendChild(tr);
@@ -4149,8 +4164,8 @@
             const cleanName = rawName.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
             const targetSsn = row.ssn ? row.ssn.trim() : "";
 
-            // B. 모집공고 마스터 DB 안전 확보
-            const recDB = (typeof dataStoreRecruitment !== "undefined" && Array.isArray(dataStoreRecruitment)) ? dataStoreRecruitment : [];
+            // B. 모집공고 마스터 DB를 최신 로컬스토리지로부터 정밀 동기화 로드
+            const recDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
             // C. 가변 돔(DOM) 슬롯 엘리먼트 추적
             const overlay = document.getElementById("applicantHistoryModal");
@@ -4169,16 +4184,30 @@
                 return itemCleanName === cleanName && itemSsn === targetSsn;
             }).reverse();
 
+            // 🌟 [정밀 정제 변환기]: 공백, 하이픈(-), 플러스(+) 등 문자 오염을 우회하는 텍스트 정제 엔진
+            const cleanString = (str) => {
+                if (!str) return "";
+                return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+            };
+
             // 🎯 [지능형 가변 카드 루프]: 참여한 시험 개수만큼 세부 지급일정을 동적 파싱하여 복사 생성
             let historyCardsHTML = "";
 
             matchedHistoryList.forEach((historyRow) => {
-                // 🎯 [크로스 매핑 종결]: 각 참여 기록별 [시험명 + 기수]와 일치하는 공고를 찾아 소집일과 참여비 지급일정을 동적으로 추출합니다.
-                const matchedRec = recDB.find(rec => rec.title === historyRow.title && rec.th === historyRow.th);
+                const targetTitleClean = cleanString(historyRow.title);
+                const filterThNum = (historyRow.th || "").toString().replace(/[^0-9]/g, "");
 
-                const matchedScheduleDate = matchedRec && matchedRec.recDate ? matchedRec.recDate : "-";
+                // 🎯 [크로스 매핑 종결]: 글자 알맹이와 기수 숫자가 상호 일치하는 마스터 공고 레코드 탐색
+                const matchedRec = recDB.find(rec => {
+                    const recTitleClean = cleanString(rec.title);
+                    const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
+                    return (recTitleClean === targetTitleClean || recTitleClean.includes(targetTitleClean) || targetTitleClean.includes(recTitleClean)) && (recThNum === filterThNum);
+                });
 
-                // 💡 모집공고 등록 시점에 대장에 세이브된 1~3차 통합 지급일정 문자열 확보 (없으면 추후공지 폴백)
+                // 🌟 자동 연산된 '지급일정 1개월 전 소집일자' 연동 (없으면 미정 폴백)
+                const matchedScheduleDate = matchedRec && matchedRec.recDate ? matchedRec.recDate : "미정";
+
+                // 모집공고 등록 시점에 대장에 세이브된 1~3차 통합 지급일정 문자열 확보 (없으면 추후공지 폴백)
                 const matchedPaySchedule = matchedRec && matchedRec.paySchedule ? matchedRec.paySchedule : "추후공지";
 
                 let statusText = historyRow.payStatus || '대기';
@@ -4186,7 +4215,7 @@
                 if (statusText === '지급완료') statusText = '처리완료';
                 if (statusText === '처리중') statusText = '재무 검토 (처리중)';
 
-                // 💡 오리지널 [임상시험 배정 이력] 내부에 '참여비 세부 지급일정' 행을 정밀 결합 추가
+                // 오리지널 [임상시험 배정 이력] 내부에 '참여비 세부 지급일정' 행을 정밀 결합 추가
                 historyCardsHTML += `
             <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 12px; background-image: linear-gradient(to right, rgba(30, 41, 59, 0.2), transparent);">
                 <h4 style="font-size: 15px; color: #ffffff; margin-bottom: 15px; display: flex; align-items: center; gap: 6px; margin-top:0;">
@@ -4196,14 +4225,17 @@
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700; margin-bottom: 4px;">배정 과제명: <span style="color:#ffffff; margin-left:6px;">${historyRow.title || '-'}</span></div>
                 </div>
                 
-                <!-- 🎯 [신규 추가 구역]: 모집공고 탭에서 등록한 1~3차 가변 참여비 지급일정을 카드의 수평 중간 허리에 시원하게 표출시킵니다. -->
+                <!-- 모집공고 탭에서 등록한 1~3차 가변 참여비 지급일정을 카드의 수평 중간 허리에 정밀 표출 -->
                 <div class="history-grid-container" style="grid-template-columns: 1fr; margin-bottom: 12px; background: rgba(15, 23, 42, 0.3); padding: 8px 12px; border-radius: 6px; border: 1px dashed rgba(251, 191, 36, 0.3);">
                     <div style="color: #fbbf24; font-size:12.5px; font-weight:700;"><i class="fa-solid fa-sack-dollar"></i> 참여비 차수별 지급일정: <span style="color:#ffffff; margin-left:8px; font-weight:600; letter-spacing: 0.3px;">${matchedPaySchedule}</span></div>
                 </div>
 
                 <div class="history-grid-container" style="margin-bottom: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700;">참여 기수: <span style="color:#38bdf8; margin-left:6px; font-weight:800;">${historyRow.th || '-'}</span></div>
-                    <div style="color: var(--text-muted); font-size:13px; font-weight:700;">임상 소집일자: <span style="color:#fbbf24; margin-left:6px; font-weight:800;"><i class="fa-regular fa-calendar-check"></i> ${matchedScheduleDate}</span></div>
+                    
+                    <!-- 🌟 [색상 연동 완료]: 실시간 매핑된 소집일자가 연동되며, 글자 색상이 다른 항목과 동일하게 순백색(#ffffff)으로 연출됩니다. -->
+                    <div style="color: var(--text-muted); font-size:13px; font-weight:700;">임상 소집일자: <span style="color:#ffffff !important; margin-left:6px; font-weight:800;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${matchedScheduleDate}</span></div>
+                    
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700;">임상 진행시간: <span style="color:#ffffff; margin-left:6px;">${historyRow.period || '-'}h</span></div>
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700;">현재 참여비 상태: <span style="color:#4ade80; margin-left:6px; font-weight:800;">${statusText}</span></div>
                 </div>
@@ -4211,7 +4243,7 @@
         `;
             });
 
-            // D. [최종 출력 위임]: contentSlot 내부에 인포그래픽 정형 바인딩 주입
+            // D. [최종 출력 위임]: contentSlot 내부에 인포그래픽 정형 바인딩 주입 (구조 원형 보존)
             contentSlot.innerHTML = `
         <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 16px;">
             <h4 style="font-size: 15px; color: #ffffff; margin-bottom: 15px; display: flex; align-items: center; gap: 6px;">
@@ -4263,7 +4295,7 @@
                     닫기
                 </button>
             </div>
-        </div>
+         </div>
     `;
 
             // F. 모달 디스플레이 활성화 (Flexbox 정렬 투사)

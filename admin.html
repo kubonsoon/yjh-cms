@@ -3958,10 +3958,10 @@
             const filterTh = document.getElementById('dashboard-filter-th');
             if (!filterTitle || !filterTh) return;
 
-            const selectedTitle = filterTitle.value;
+            const selectedTitle = filterTitle.value ? filterTitle.value.trim() : "";
 
             // 1. 🎯 [요구사항 반영] '전체 시험 보기' 상태일 때는 기수 선택지를 완전히 가림 (안내문구 고정)
-            if (selectedTitle === "ALL") {
+            if (selectedTitle === "ALL" || !selectedTitle) {
                 filterTh.innerHTML = `<option value="ALL">— 시험을 먼저 선택하세요 —</option>`;
                 filterTh.value = "ALL";
 
@@ -3972,19 +3972,33 @@
                 return;
             }
 
-            // 2. 모집공고 마스터 배열(dataStoreRecruitment) 싱크 로드
+            // 2. 모집공고 마스터 배열(dataStoreRecruitment) 및 대상자 대장 배열 동시 싱크 로드 (2중 가드)
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 3. 🎯 [특정 시험 선택 상태] 해당 시험명과 100% 일치하는 공고의 기수만 필터링하여 추출
-            const availableThs = [...new Set(recruitmentDB
-                .filter(row => row.title === selectedTitle)
+            // 3. 🎯 [특정 시험 선택 상태] 미세한 공백 버그를 방지하기 위해 trim() 처리 후 교차 필터링 추출
+            // 모집공고 대장(recruitmentDB)에서 먼저 기수를 찾습니다.
+            let matchedThs = recruitmentDB
+                .filter(row => row.title && row.title.trim() === selectedTitle)
                 .map(row => row.th)
-                .filter(Boolean)
-            )];
+                .filter(Boolean);
+
+            // 💡 [방어 코드 추가]: 만약 공고 대장에 없다면 대상자 대장(applicantDB)에서도 기수를 스캔하여 보완합니다.
+            if (matchedThs.length === 0) {
+                matchedThs = applicantDB
+                    .filter(item => item.title && item.title.trim() === selectedTitle)
+                    .map(item => item.th)
+                    .filter(Boolean);
+            }
+
+            // 중복 제거
+            const availableThs = [...new Set(matchedThs)];
 
             // 4. 추출된 공고 기준 기수 데이터로 드롭다운 옵션 태그 동적 세팅 (1기~4기)
             let htmlOptions = `<option value="ALL">— 전체 기수 —</option>`;
-            availableThs.sort().forEach(th => {
+
+            // 자연스러운 정렬 후 옵션 추가
+            availableThs.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })).forEach(th => {
                 htmlOptions += `<option value="${th}">${th}</option>`;
             });
 
@@ -4004,37 +4018,45 @@
             const filterTitleSelect = document.getElementById('dashboard-filter-title');
             const filterThSelect = document.getElementById('dashboard-filter-th');
 
-            const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
-            const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
+            const filterTitle = filterTitleSelect ? filterTitleSelect.value.trim() : 'ALL';
+            const filterTh = filterThSelect ? filterThSelect.value.trim() : 'ALL';
 
             const lblTotal = document.getElementById('stat-total-count');
             const lblReceived = document.getElementById('stat-received-count');
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // 🎯 [요구사항 규칙 보존] 시험명이 전체보기('ALL')이거나, 기수가 아직 'ALL'(— 전체 기수 — 또는 시험 선택 안내) 상태인 경우
-            // 통계값이 미리 바뀌지 않도록 명확하게 0으로 리셋하고 차단합니다.
-            if (filterTitle === 'ALL' || filterTh === 'ALL') {
+            // 🎯 [요구사항 규칙 교정] 시험명이 전체보기('ALL')이거나, 기수가 아직 '시험 선택 안내' 상태인 경우에만 차단
+            // filterTh가 'ALL'(— 전체 기수 —)일 때는 해당 시험의 전체 통계를 보여주어야 하므로 차단하지 않고 통과시킵니다.
+            if (filterTitle === 'ALL' || filterThSelect?.options[filterThSelect.selectedIndex]?.text.includes("선택하세요")) {
                 if (lblTotal) lblTotal.innerText = "0 / 0명";
                 if (lblReceived) lblReceived.innerText = "0건";
                 if (lblProcessing) lblProcessing.innerText = "0건";
                 if (lblComplete) lblComplete.innerText = "0건";
 
-                console.log(`🔒 [통계 락업 활성화] 기수 상세 필터 미충족으로 대시보드 수치가 0으로 홀딩 차단되었습니다.`);
-                return; // 하단 연산 구역으로 넘어가지 않고 여기서 강제 탈출 차단합니다.
+                console.log(`🔒 [통계 락업 활성화] 초기 안내 상태 필터 미충족으로 대시보드 수치가 0으로 홀딩 차단되었습니다.`);
+                return;
             }
 
             // ----------------======================================================
-            // 💡 [안전 패스 통과 구역]: 시험명과 특정 기수(1기~4기)가 명확하게 픽스되었을 때만 가동
+            // 💡 [안전 패스 통과 구역]: 시험명과 기수 필터 조건에 맞춰 정밀 연산 가동
             // ----------------======================================================
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
             // 두 가지 드롭다운 필터가 정확히 매칭되는 대상자들만 정밀 2차 격리 필터링 (1기~4기 체계 싱크 완료)
             let filteredList = adminApplicantDB.filter(row => {
-                // 공고/대상자 기수 텍스트 오염 방지를 위해 숫자만 추출하여 안전하게 비교 비교
+                // 공백 오차 방지용 trim() 처리
+                const rowTitleTrim = row.title ? row.title.trim() : "";
+
+                // 시험명 조건 가드
+                const matchTitle = (rowTitleTrim === filterTitle);
+
+                // 기수 조건 가드: 기수 필터가 'ALL'이면 해당 시험의 모든 기수 포함, 특정 기수면 숫자만 추출하여 안전 비교
                 const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
                 const filterThNum = filterTh.replace(/[^0-9]/g, "");
-                return row.title === filterTitle && rowThNum === filterThNum;
+                const matchTh = (filterTh === 'ALL' || rowThNum === filterThNum);
+
+                return matchTitle && matchTh;
             });
 
             let totalQuotaSum = 0;
@@ -4048,7 +4070,7 @@
             let quotaMap = {};
 
             filteredList.forEach(row => {
-                const quotaKey = `${row.title}_${row.th}`;
+                const quotaKey = `${row.title ? row.title.trim() : ""}_${row.th}`;
                 if (!quotaMap[quotaKey]) {
                     quotaMap[quotaKey] = parseInt(row.count) || 0;
                     totalQuotaSum += quotaMap[quotaKey];

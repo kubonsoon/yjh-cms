@@ -2482,409 +2482,412 @@
                         </td>
                     `;
                 }
+                tbody.appendChild(tr);
+            });
+        }
 
 
-                /**
-                 * 🎯 원본 호출 인터페이스 매칭: 수정 버튼 클릭 처리
-                 */
-                function editApplicant(index) {
-                    currentAppEditingIndex = index;
+        /**
+         * 🎯 원본 호출 인터페이스 매칭: 수정 버튼 클릭 처리
+         */
+        function editApplicant(index) {
+            currentAppEditingIndex = index;
+            refreshApplicantView();
+        }
+
+        /**
+         * 🎯 인라인 수정 취소 처리
+         */
+        function cancelApplicantInline() {
+            currentAppEditingIndex = null;
+            refreshApplicantView();
+        }
+
+        /**
+         * 🎯 인라인 편집본 최종 유효성 검사 및 LocalStorage 원본 데이터베이스 커밋 연동 함수
+         */
+        function saveApplicantInline(index) {
+            // 1. 로컬 스토리지 원본 데이터 배열 안전하게 로드 [원본 구조 100% 영속 유지]
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            if (!adminApplicantDB[index]) {
+                alert("알림: 대장에서 해당 인덱스의 대상자를 찾을 수 없습니다.");
+                return;
+            }
+
+            try {
+                // 2. 인라인 엘리먼트 존재 여부를 검증하며 실시간 데이터 수집 (예외 오류 방지)
+                const elTitle = document.getElementById(`inline-app-title-${index}`);
+                const elTh = document.getElementById(`inline-app-th-${index}`);
+                const elCount = document.getElementById(`inline-app-count-${index}`);
+                const elPeriod = document.getElementById(`inline-app-period-${index}`);
+                const elName = document.getElementById(`inline-app-name-${index}`);
+                const elSsn = document.getElementById(`inline-app-ssn-${index}`);
+                const elPhone = document.getElementById(`inline-app-phone-${index}`);
+
+                // 🎯 [차수별 독립 셀렉터 캡처 스캔]: 1~3차 초슬림 드롭다운 박스 엘리먼트 실시간 추적 스캔
+                const elS1 = document.getElementById(`inline-app-payStatus1-${index}`);
+                const elS2 = document.getElementById(`inline-app-payStatus2-${index}`);
+                const elS3 = document.getElementById(`inline-app-payStatus3-${index}`);
+
+                const elDuty = document.getElementById(`inline-app-duty-${index}`);
+                const elCall = document.getElementById(`inline-app-call-${index}`);
+
+                if (elName && !elName.value.trim()) {
+                    alert("대상자 성명은 필수 입력사항입니다.");
+                    return;
+                }
+
+                // 3. 수집된 가변 데이터를 객체 릴레이션 스펙에 맞춰 정밀 주입 업데이트 [원본 구조 유지]
+                adminApplicantDB[index].title = elTitle ? elTitle.value.trim() : adminApplicantDB[index].title;
+                adminApplicantDB[index].th = elTh ? elTh.value.trim() : adminApplicantDB[index].th;
+                adminApplicantDB[index].count = elCount ? elCount.value.trim() : adminApplicantDB[index].count;
+                adminApplicantDB[index].period = elPeriod ? elPeriod.value.trim() : adminApplicantDB[index].period;
+                adminApplicantDB[index].name = elName ? elName.value.trim() : adminApplicantDB[index].name;
+                adminApplicantDB[index].ssn = elSsn ? elSsn.value.trim() : adminApplicantDB[index].ssn;
+                adminApplicantDB[index].phone = elPhone ? elPhone.value.trim() : adminApplicantDB[index].phone;
+
+                // 🎯 [1~3차 독립 데이터 개별 대장 적재]
+                const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
+                const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
+                const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
+
+                adminApplicantDB[index].payStatus1 = nextS1;
+                adminApplicantDB[index].payStatus2 = nextS2;
+                adminApplicantDB[index].payStatus3 = nextS3;
+
+                // 🎯 [통계 현황판 연쇄 연동] 1차~3차의 변경 상태를 조합하여 상단 4단계 통계 결과(result) 상태 자동 반영
+                let finalPipelineStatus = "접수";
+                if (nextS1 === "처리완료" && nextS2 === "처리완료" && nextS3 === "처리완료") {
+                    finalPipelineStatus = "지급완료"; // 3개 차수가 전부 마감되면 최종 정산종결(지급완료) 처리
+                } else if (nextS1 === "처리중" || nextS2 === "처리중" || nextS3 === "처리중") {
+                    finalPipelineStatus = "처리중";   // 어느 한 차수라도 검토중(처리중)이면 재무검토(처리중) 유지
+                } else if (nextS1 === "접수" || nextS2 === "접수" || nextS3 === "접수") {
+                    finalPipelineStatus = "접수";     // 대기 상태를 벗어나 접수된 건이 있다면 청구서접수(접수) 처리
+                } else {
+                    finalPipelineStatus = "접수";     // 기본 폴백 가드
+                }
+
+                adminApplicantDB[index].payStatus = finalPipelineStatus;
+                adminApplicantDB[index].result = finalPipelineStatus;
+
+                adminApplicantDB[index].isDutyAgreed = elDuty ? elDuty.value.trim() : (adminApplicantDB[index].isDutyAgreed || "동의");
+                adminApplicantDB[index].isCallAgreed = elCall ? elCall.value.trim() : (adminApplicantDB[index].isCallAgreed || "동의");
+                adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
+
+                // 4. 🌟 [메모리 폭파 방지 가드]: 로컬 스토리지뿐 아니라, 메모리 전역 대장(배열 변수 2종 모두) 강제 동기화 시켜 유실 원천 차단
+                if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = adminApplicantDB;
+                if (typeof adminApplicantDBGlobal !== 'undefined') adminApplicantDBGlobal = adminApplicantDB;
+
+                // 5. 로컬 스토리지 최종 세이브 커밋
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+
+                // 6. 🌟 [편집 스위치 완전 초기화]: 문자열 혼선 방지를 위해 인라인 편집 활성 인덱스를 완전히 비웁니다
+                window.currentAppEditingIndex = null;
+                if (typeof currentAppEditingIndex !== 'undefined') currentAppEditingIndex = undefined;
+                if (typeof currentEditingApplicantIndex !== 'undefined') currentEditingApplicantIndex = null;
+                currentEditingUid = null;
+
+                // 상단 대시보드 통계 실시간 재계산 함수 자동 리트리거 연동
+                if (typeof calculateLiveDashboardStats === 'function') {
+                    calculateLiveDashboardStats();
+                }
+
+                // 7. 🌟 [안전 분기 리렌더링]: 새로고침 없이 화면 UI 가 최상위 고대비 색상으로 정렬되도록 리플래시 가동
+                if (typeof refreshApplicantView === 'function') {
                     refreshApplicantView();
+                } else if (typeof renderApplicantTable === 'function') {
+                    renderApplicantTable();
+                } else {
+                    window.location.reload();
                 }
 
-                /**
-                 * 🎯 인라인 수정 취소 처리
-                 */
-                function cancelApplicantInline() {
-                    currentAppEditingIndex = null;
-                    refreshApplicantView();
+                alert("📢 대상자 정보 및 1~3차 참여비 정산 프로세스 상태가 대장에 완전 반영되었습니다.");
+
+            } catch (error) {
+                console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);
+                alert("시스템 오류: 저장 중 문제가 발생했습니다.");
+            }
+        }
+
+        // 💡 하방 링크 안전 포워딩 가드 매칭
+        function saveApplicantRecord(index) {
+            saveApplicantInline(index);
+        }
+
+
+
+        /**
+         * 🎯 원본 호출 인터페이스 매칭: 삭제 버튼 클릭 처리
+         */
+        function deleteApplicant(index) {
+            if (confirm("정말로 이 대상자의 전체 정산 상태와 임상 명단 데이터를 영구 삭제하시겠습니까?")) {
+                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+                // 해당 배열 요소 잘라내기 탈락
+                adminApplicantDB.splice(index, 1);
+
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+
+                if (currentAppEditingIndex === index) currentAppEditingIndex = null;
+
+                refreshApplicantView();
+            }
+        }
+
+        /** 대상자 수동 등록 및 수정을 원스톱 처리하는 마스터 함수입니다. */
+        function insertApplicantRecord() {
+            const elTitle = document.getElementById('form-app-title');
+            const elTh = document.getElementById('form-app-th');
+            const elCount = document.getElementById('form-app-count');
+            const elPeriod = document.getElementById('form-app-period');
+            const elName = document.getElementById('form-app-name');
+            const elSsn = document.getElementById('form-app-ssn');
+            const elPhone = document.getElementById('form-app-phone');
+            const editIndex = document.getElementById("editIndex").value; // 수정용 인덱스 포인터
+
+            if (!elTitle || !elTh || !elCount || !elPeriod || !elName || !elSsn || !elPhone) {
+                console.error("대상자 등록 입력 폼 중 일부 엘리먼트 ID 를 찾을 수 없습니다.");
+                return alert("알림: 시스템 화면 요소를 로드하지 못했습니다.");
+            }
+
+            const t = elTitle.value.trim(), th = elTh.value.trim(), c = elCount.value.trim();
+            const p = elPeriod.value.trim(), n = elName.value.trim(), s = elSsn.value.trim(), ph = elPhone.value.trim();
+
+            if (!t || !th || !c || !p || !n || !s || !ph) {
+                return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
+            }
+
+            // 신규 등록 및 수정 시 참여비 상태를 1차, 2차, 3차 독립 채널로 파티
+            const payload = {
+                uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
+                title: t,
+                th: th,
+                count: getOnlyNumbers(c),
+                period: getOnlyNumbers(p),
+                name: n,
+                ssn: getOnlyNumbers(s),
+                phone: getOnlyNumbers(ph),
+
+                // ⭐️ [버그 원천 분쇄 1]: 신규 등록 시 무조건 "대기" 상태로 격리 인가
+                result: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].result || "대기"),
+
+                // 🎯 [3단 분할 정산 엔진]: 1, 2, 3차 참여비 상태를 각각 독립적으로 관리하도록 신설
+                // 신규 등록 시에는 모두 "대기"로 초기화하고, 수정 시에는 기존 상태를 안전하게 보존합니다.
+                payStatus1: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus1 || "대기"),
+                payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
+                payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
+
+                // 하방 호환성 유지를 위한 기존 payStatus (필요시 전체 상태 통합용으로 활용)
+                payStatus: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus || "대기"),
+
+                isAgreed: editIndex === "" ? "동의" : dataStoreApplicant[editIndex].isAgreed,
+                category: editIndex === "" ? "내분비내과 / 대장 수동 등록" : dataStoreApplicant[editIndex].category,
+                stage: `${th} 참여(소집)`,
+
+                idCard: editIndex === "" ? false : (dataStoreApplicant[editIndex].idCard || false),
+                bankbook: editIndex === "" ? false : (dataStoreApplicant[editIndex].bankbook || false),
+                idCardImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardImg || ""),
+                bankBookImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookImg || ""),
+                idCardUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardUrl || ""),
+                bankBookUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookUrl || "")
+            };
+
+            try {
+                if (editIndex === "") {
+                    // [신규 등록 모드]
+                    // ⭐️ [버그 원천 분쇄 2]: 어떤 서브 함수가 오염을 일으켜도 무조건 "대기"가 들어가도록 저장 직전 한 번 더 강제 락
+                    payload.result = "대기";
+                    payload.payStatus = "대기";
+
+                    // 🎯 [정렬 교정 핵심]: 기존 push() 대신 unshift()를 사용하여 최신 대상자가 배열 슬롯 맨 앞(0번)에 적재되도록 처리
+                    dataStoreApplicant.unshift(payload);
+                    alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
+                } else {
+                    // [수정 완료 모드]
+                    // 🌟 [안전 가드]: 수정 완료 시 상단 폼에서 바꾼 상태 값이 payload에 없다면 기존 대장의 값을 유지하거나 강제 매핑 보존
+                    if (!payload.result) payload.result = document.getElementById('form-app-result')?.value || dataStoreApplicant[editIndex].result || '접수';
+                    if (!payload.payStatus) payload.payStatus = payload.result;
+
+                    dataStoreApplicant[editIndex] = payload;
+                    alert(`📋 정보 갱신 완료: [${n}] 피험자의 마스터 레코드가 업데이트되었습니다.`);
                 }
 
-                /**
-                 * 🎯 인라인 편집본 최종 유효성 검사 및 LocalStorage 원본 데이터베이스 커밋 연동 함수
-                 */
-                function saveApplicantInline(index) {
-                    // 1. 로컬 스토리지 원본 데이터 배열 안전하게 로드 [원본 구조 100% 영속 유지]
-                    let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                    if (!adminApplicantDB[index]) {
-                        alert("알림: 대장에서 해당 인덱스의 대상자를 찾을 수 없습니다.");
-                        return;
-                    }
+                // ⭐️ [버그 원천 분쇄 3]: commitToLocalStorage() 내부의 자동 "접수" 변환 오작동을 무력화하기 위해 물리 세이브 강제 주입
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
+                window.dataStoreApplicant = dataStoreApplicant; // 전역 메모리 싱크 즉시 일치화
 
-                    try {
-                        // 2. 인라인 엘리먼트 존재 여부를 검증하며 실시간 데이터 수집 (예외 오류 방지)
-                        const elTitle = document.getElementById(`inline-app-title-${index}`);
-                        const elTh = document.getElementById(`inline-app-th-${index}`);
-                        const elCount = document.getElementById(`inline-app-count-${index}`);
-                        const elPeriod = document.getElementById(`inline-app-period-${index}`);
-                        const elName = document.getElementById(`inline-app-name-${index}`);
-                        const elSsn = document.getElementById(`inline-app-ssn-${index}`);
-                        const elPhone = document.getElementById(`inline-app-phone-${index}`);
-
-                        // 🎯 [차수별 독립 셀렉터 캡처 스캔]: 1~3차 초슬림 드롭다운 박스 엘리먼트 실시간 추적 스캔
-                        const elS1 = document.getElementById(`inline-app-payStatus1-${index}`);
-                        const elS2 = document.getElementById(`inline-app-payStatus2-${index}`);
-                        const elS3 = document.getElementById(`inline-app-payStatus3-${index}`);
-
-                        const elDuty = document.getElementById(`inline-app-duty-${index}`);
-                        const elCall = document.getElementById(`inline-app-call-${index}`);
-
-                        if (elName && !elName.value.trim()) {
-                            alert("대상자 성명은 필수 입력사항입니다.");
-                            return;
-                        }
-
-                        // 3. 수집된 가변 데이터를 객체 릴레이션 스펙에 맞춰 정밀 주입 업데이트 [원본 구조 유지]
-                        adminApplicantDB[index].title = elTitle ? elTitle.value.trim() : adminApplicantDB[index].title;
-                        adminApplicantDB[index].th = elTh ? elTh.value.trim() : adminApplicantDB[index].th;
-                        adminApplicantDB[index].count = elCount ? elCount.value.trim() : adminApplicantDB[index].count;
-                        adminApplicantDB[index].period = elPeriod ? elPeriod.value.trim() : adminApplicantDB[index].period;
-                        adminApplicantDB[index].name = elName ? elName.value.trim() : adminApplicantDB[index].name;
-                        adminApplicantDB[index].ssn = elSsn ? elSsn.value.trim() : adminApplicantDB[index].ssn;
-                        adminApplicantDB[index].phone = elPhone ? elPhone.value.trim() : adminApplicantDB[index].phone;
-
-                        // 🎯 [1~3차 독립 데이터 개별 대장 적재]
-                        const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
-                        const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
-                        const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
-
-                        adminApplicantDB[index].payStatus1 = nextS1;
-                        adminApplicantDB[index].payStatus2 = nextS2;
-                        adminApplicantDB[index].payStatus3 = nextS3;
-
-                        // 🎯 [통계 현황판 연쇄 연동] 1차~3차의 변경 상태를 조합하여 상단 4단계 통계 결과(result) 상태 자동 반영
-                        let finalPipelineStatus = "접수";
-                        if (nextS1 === "처리완료" && nextS2 === "처리완료" && nextS3 === "처리완료") {
-                            finalPipelineStatus = "지급완료"; // 3개 차수가 전부 마감되면 최종 정산종결(지급완료) 처리
-                        } else if (nextS1 === "처리중" || nextS2 === "처리중" || nextS3 === "처리중") {
-                            finalPipelineStatus = "처리중";   // 어느 한 차수라도 검토중(처리중)이면 재무검토(처리중) 유지
-                        } else if (nextS1 === "접수" || nextS2 === "접수" || nextS3 === "접수") {
-                            finalPipelineStatus = "접수";     // 대기 상태를 벗어나 접수된 건이 있다면 청구서접수(접수) 처리
-                        } else {
-                            finalPipelineStatus = "접수";     // 기본 폴백 가드
-                        }
-
-                        adminApplicantDB[index].payStatus = finalPipelineStatus;
-                        adminApplicantDB[index].result = finalPipelineStatus;
-
-                        adminApplicantDB[index].isDutyAgreed = elDuty ? elDuty.value.trim() : (adminApplicantDB[index].isDutyAgreed || "동의");
-                        adminApplicantDB[index].isCallAgreed = elCall ? elCall.value.trim() : (adminApplicantDB[index].isCallAgreed || "동의");
-                        adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
-
-                        // 4. 🌟 [메모리 폭파 방지 가드]: 로컬 스토리지뿐 아니라, 메모리 전역 대장(배열 변수 2종 모두) 강제 동기화 시켜 유실 원천 차단
-                        if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = adminApplicantDB;
-                        if (typeof adminApplicantDBGlobal !== 'undefined') adminApplicantDBGlobal = adminApplicantDB;
-
-                        // 5. 로컬 스토리지 최종 세이브 커밋
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-
-                        // 6. 🌟 [편집 스위치 완전 초기화]: 문자열 혼선 방지를 위해 인라인 편집 활성 인덱스를 완전히 비웁니다
-                        window.currentAppEditingIndex = null;
-                        if (typeof currentAppEditingIndex !== 'undefined') currentAppEditingIndex = undefined;
-                        if (typeof currentEditingApplicantIndex !== 'undefined') currentEditingApplicantIndex = null;
-                        currentEditingUid = null;
-
-                        // 상단 대시보드 통계 실시간 재계산 함수 자동 리트리거 연동
-                        if (typeof calculateLiveDashboardStats === 'function') {
-                            calculateLiveDashboardStats();
-                        }
-
-                        // 7. 🌟 [안전 분기 리렌더링]: 새로고침 없이 화면 UI 가 최상위 고대비 색상으로 정렬되도록 리플래시 가동
-                        if (typeof refreshApplicantView === 'function') {
-                            refreshApplicantView();
-                        } else if (typeof renderApplicantTable === 'function') {
-                            renderApplicantTable();
-                        } else {
-                            window.location.reload();
-                        }
-
-                        alert("📢 대상자 정보 및 1~3차 참여비 정산 프로세스 상태가 대장에 완전 반영되었습니다.");
-
-                    } catch (error) {
-                        console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);
-                        alert("시스템 오류: 저장 중 문제가 발생했습니다.");
-                    }
+                // 원래 정의된 로컬스토리지 백업 함수 호출 (안전장치 유지)
+                if (typeof commitToLocalStorage === "function") {
+                    commitToLocalStorage();
                 }
 
-                // 💡 하방 링크 안전 포워딩 가드 매칭
-                function saveApplicantRecord(index) {
-                    saveApplicantInline(index);
-                }
+                resetForm(); // 💡 폼 초기화 및 버튼 전환
+                refreshApplicantView(); // 🌟 목록 즉시 리렌더링 반영
 
+                // 4. ⭐️ 물리 파일 세이브 안착 확인 후 통계 엔진 리프레시 즉각 가동!
+                // 사용자가 체감하는 레이턴시를 줄이기 위해 타이머 시간을 100ms~200ms 정도로 살짝 당겨주면 연동이 훨씬 부드러워집니다.
+                setTimeout(() => {
+                    if (typeof initDashboardFilter === "function") initDashboardFilter();
+                    if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+                }, 150); // 레이턴시 타이머 최적화 튜닝 (150ms)
 
+            } catch (error) {
+                console.error("대상자 신규 마스터 등록 중 치명적 오류 발생:", error);
+                alert("시스템 오류: 가상 DB 커밋에 실패했습니다.");
+            }
+        }
 
-                /**
-                 * 🎯 원본 호출 인터페이스 매칭: 삭제 버튼 클릭 처리
-                 */
-                function deleteApplicant(index) {
-                    if (confirm("정말로 이 대상자의 전체 정산 상태와 임상 명단 데이터를 영구 삭제하시겠습니까?")) {
-                        let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+        /** 💡 [추가] 테이블 행의 [수정] 버튼 클릭 시 데이터를 상단 폼으로 로드하는 함수 */
+        function enableApplicantEditMode(index) {
+            const target = dataStoreApplicant[index];
+            if (!target) return alert("데이터를 조회할 수 없습니다.");
 
-                        // 해당 배열 요소 잘라내기 탈락
-                        adminApplicantDB.splice(index, 1);
+            const formTitle = document.querySelector(".register-box h3");
+            if (formTitle) formTitle.innerText = "[대상자 정보 수정]";
 
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+            document.getElementById("editIndex").value = index;
+            document.getElementById("form-app-title").value = target.title;
+            document.getElementById("form-app-th").value = target.th; // 셀렉트박스 자동 선택
+            document.getElementById("form-app-count").value = target.count;
+            document.getElementById("form-app-period").value = target.period;
+            document.getElementById("form-app-name").value = target.name;
+            document.getElementById("form-app-ssn").value = target.ssn;
+            document.getElementById("form-app-phone").value = target.phone;
 
-                        if (currentAppEditingIndex === index) currentAppEditingIndex = null;
+            const submitBtn = document.querySelector(".register-box .action-btn");
+            if (submitBtn) submitBtn.innerText = "수정 완료";
 
-                        refreshApplicantView();
-                    }
-                }
+            let cancelBtn = document.getElementById("form-app-cancel-btn");
+            if (!cancelBtn) {
+                cancelBtn = document.createElement("button");
+                cancelBtn.id = "form-app-cancel-btn";
+                cancelBtn.className = "action-btn";
+                cancelBtn.style = "background: #475569; margin-left: 4px; box-shadow: none;";
+                cancelBtn.innerText = "수정 취소";
+                cancelBtn.onclick = resetForm;
+                submitBtn.parentNode.insertBefore(cancelBtn, submitBtn.nextSibling);
+            }
+            cancelBtn.style.display = "inline-block";
 
-                /** 대상자 수동 등록 및 수정을 원스톱 처리하는 마스터 함수입니다. */
-                function insertApplicantRecord() {
-                    const elTitle = document.getElementById('form-app-title');
-                    const elTh = document.getElementById('form-app-th');
-                    const elCount = document.getElementById('form-app-count');
-                    const elPeriod = document.getElementById('form-app-period');
-                    const elName = document.getElementById('form-app-name');
-                    const elSsn = document.getElementById('form-app-ssn');
-                    const elPhone = document.getElementById('form-app-phone');
-                    const editIndex = document.getElementById("editIndex").value; // 수정용 인덱스 포인터
+            document.querySelector(".register-box").scrollIntoView({ behavior: 'smooth' });
+        }
 
-                    if (!elTitle || !elTh || !elCount || !elPeriod || !elName || !elSsn || !elPhone) {
-                        console.error("대상자 등록 입력 폼 중 일부 엘리먼트 ID 를 찾을 수 없습니다.");
-                        return alert("알림: 시스템 화면 요소를 로드하지 못했습니다.");
-                    }
+        /** 💡 [추가] 입력 폼 공란 초기화 및 등록 모드 원상 복귀 함수 */
+        function resetForm() {
+            const formTitle = document.querySelector(".register-box h3");
+            if (formTitle) formTitle.innerText = "[신규 대상자 등록]";
 
-                    const t = elTitle.value.trim(), th = elTh.value.trim(), c = elCount.value.trim();
-                    const p = elPeriod.value.trim(), n = elName.value.trim(), s = elSsn.value.trim(), ph = elPhone.value.trim();
+            document.getElementById("editIndex").value = "";
+            document.getElementById("form-app-title").value = "";
+            document.getElementById("form-app-th").selectedIndex = 0;
+            document.getElementById("form-app-count").value = "";
+            document.getElementById("form-app-period").value = "";
+            document.getElementById("form-app-name").value = "";
+            document.getElementById("form-app-ssn").value = "";
+            document.getElementById("form-app-phone").value = "";
 
-                    if (!t || !th || !c || !p || !n || !s || !ph) {
-                        return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
-                    }
+            const submitBtn = document.querySelector(".register-box .action-btn");
+            if (submitBtn) submitBtn.innerText = "대상자 등록";
 
-                    // 신규 등록 및 수정 시 참여비 상태를 1차, 2차, 3차 독립 채널로 파티
-                    const payload = {
-                        uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
-                        title: t,
-                        th: th,
-                        count: getOnlyNumbers(c),
-                        period: getOnlyNumbers(p),
-                        name: n,
-                        ssn: getOnlyNumbers(s),
-                        phone: getOnlyNumbers(ph),
+            const cancelBtn = document.getElementById("form-app-cancel-btn");
+            if (cancelBtn) cancelBtn.style.display = "none";
+        }
 
-                        // ⭐️ [버그 원천 분쇄 1]: 신규 등록 시 무조건 "대기" 상태로 격리 인가
-                        result: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].result || "대기"),
+        /** 💡 [추가] 기수 셀렉트박스 옵션 동적 생성 함수 */
+        function initThSelectOptions() {
+            const filterTh = document.getElementById('dashboard-filter-th');
 
-                        // 🎯 [3단 분할 정산 엔진]: 1, 2, 3차 참여비 상태를 각각 독립적으로 관리하도록 신설
-                        // 신규 등록 시에는 모두 "대기"로 초기화하고, 수정 시에는 기존 상태를 안전하게 보존합니다.
-                        payStatus1: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus1 || "대기"),
-                        payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
-                        payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
+            // 🎯 [핵심 가드] 엘리먼트가 현재 화면에 물리적으로 존재하지 않는다면 실행을 멈추고 안전하게 탈출
+            if (!filterTh) {
+                console.log("안내: 대상자 관리 탭이 활성화되지 않아 기수 필터 초기화를 예약 상태로 둡니다.");
+                return;
+            }
 
-                        // 하방 호환성 유지를 위한 기존 payStatus (필요시 전체 상태 통합용으로 활용)
-                        payStatus: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus || "대기"),
-
-                        isAgreed: editIndex === "" ? "동의" : dataStoreApplicant[editIndex].isAgreed,
-                        category: editIndex === "" ? "내분비내과 / 대장 수동 등록" : dataStoreApplicant[editIndex].category,
-                        stage: `${th} 참여(소집)`,
-
-                        idCard: editIndex === "" ? false : (dataStoreApplicant[editIndex].idCard || false),
-                        bankbook: editIndex === "" ? false : (dataStoreApplicant[editIndex].bankbook || false),
-                        idCardImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardImg || ""),
-                        bankBookImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookImg || ""),
-                        idCardUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardUrl || ""),
-                        bankBookUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookUrl || "")
-                    };
-
-                    try {
-                        if (editIndex === "") {
-                            // [신규 등록 모드]
-                            // ⭐️ [버그 원천 분쇄 2]: 어떤 서브 함수가 오염을 일으켜도 무조건 "대기"가 들어가도록 저장 직전 한 번 더 강제 락
-                            payload.result = "대기";
-                            payload.payStatus = "대기";
-
-                            // 🎯 [정렬 교정 핵심]: 기존 push() 대신 unshift()를 사용하여 최신 대상자가 배열 슬롯 맨 앞(0번)에 적재되도록 처리
-                            dataStoreApplicant.unshift(payload);
-                            alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
-                        } else {
-                            // [수정 완료 모드]
-                            // 🌟 [안전 가드]: 수정 완료 시 상단 폼에서 바꾼 상태 값이 payload에 없다면 기존 대장의 값을 유지하거나 강제 매핑 보존
-                            if (!payload.result) payload.result = document.getElementById('form-app-result')?.value || dataStoreApplicant[editIndex].result || '접수';
-                            if (!payload.payStatus) payload.payStatus = payload.result;
-
-                            dataStoreApplicant[editIndex] = payload;
-                            alert(`📋 정보 갱신 완료: [${n}] 피험자의 마스터 레코드가 업데이트되었습니다.`);
-                        }
-
-                        // ⭐️ [버그 원천 분쇄 3]: commitToLocalStorage() 내부의 자동 "접수" 변환 오작동을 무력화하기 위해 물리 세이브 강제 주입
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                        window.dataStoreApplicant = dataStoreApplicant; // 전역 메모리 싱크 즉시 일치화
-
-                        // 원래 정의된 로컬스토리지 백업 함수 호출 (안전장치 유지)
-                        if (typeof commitToLocalStorage === "function") {
-                            commitToLocalStorage();
-                        }
-
-                        resetForm(); // 💡 폼 초기화 및 버튼 전환
-                        refreshApplicantView(); // 🌟 목록 즉시 리렌더링 반영
-
-                        // 4. ⭐️ 물리 파일 세이브 안착 확인 후 통계 엔진 리프레시 즉각 가동!
-                        // 사용자가 체감하는 레이턴시를 줄이기 위해 타이머 시간을 100ms~200ms 정도로 살짝 당겨주면 연동이 훨씬 부드러워집니다.
-                        setTimeout(() => {
-                            if (typeof initDashboardFilter === "function") initDashboardFilter();
-                            if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-                        }, 150); // 레이턴시 타이머 최적화 튜닝 (150ms)
-
-                    } catch (error) {
-                        console.error("대상자 신규 마스터 등록 중 치명적 오류 발생:", error);
-                        alert("시스템 오류: 가상 DB 커밋에 실패했습니다.");
-                    }
-                }
-
-                /** 💡 [추가] 테이블 행의 [수정] 버튼 클릭 시 데이터를 상단 폼으로 로드하는 함수 */
-                function enableApplicantEditMode(index) {
-                    const target = dataStoreApplicant[index];
-                    if (!target) return alert("데이터를 조회할 수 없습니다.");
-
-                    const formTitle = document.querySelector(".register-box h3");
-                    if (formTitle) formTitle.innerText = "[대상자 정보 수정]";
-
-                    document.getElementById("editIndex").value = index;
-                    document.getElementById("form-app-title").value = target.title;
-                    document.getElementById("form-app-th").value = target.th; // 셀렉트박스 자동 선택
-                    document.getElementById("form-app-count").value = target.count;
-                    document.getElementById("form-app-period").value = target.period;
-                    document.getElementById("form-app-name").value = target.name;
-                    document.getElementById("form-app-ssn").value = target.ssn;
-                    document.getElementById("form-app-phone").value = target.phone;
-
-                    const submitBtn = document.querySelector(".register-box .action-btn");
-                    if (submitBtn) submitBtn.innerText = "수정 완료";
-
-                    let cancelBtn = document.getElementById("form-app-cancel-btn");
-                    if (!cancelBtn) {
-                        cancelBtn = document.createElement("button");
-                        cancelBtn.id = "form-app-cancel-btn";
-                        cancelBtn.className = "action-btn";
-                        cancelBtn.style = "background: #475569; margin-left: 4px; box-shadow: none;";
-                        cancelBtn.innerText = "수정 취소";
-                        cancelBtn.onclick = resetForm;
-                        submitBtn.parentNode.insertBefore(cancelBtn, submitBtn.nextSibling);
-                    }
-                    cancelBtn.style.display = "inline-block";
-
-                    document.querySelector(".register-box").scrollIntoView({ behavior: 'smooth' });
-                }
-
-                /** 💡 [추가] 입력 폼 공란 초기화 및 등록 모드 원상 복귀 함수 */
-                function resetForm() {
-                    const formTitle = document.querySelector(".register-box h3");
-                    if (formTitle) formTitle.innerText = "[신규 대상자 등록]";
-
-                    document.getElementById("editIndex").value = "";
-                    document.getElementById("form-app-title").value = "";
-                    document.getElementById("form-app-th").selectedIndex = 0;
-                    document.getElementById("form-app-count").value = "";
-                    document.getElementById("form-app-period").value = "";
-                    document.getElementById("form-app-name").value = "";
-                    document.getElementById("form-app-ssn").value = "";
-                    document.getElementById("form-app-phone").value = "";
-
-                    const submitBtn = document.querySelector(".register-box .action-btn");
-                    if (submitBtn) submitBtn.innerText = "대상자 등록";
-
-                    const cancelBtn = document.getElementById("form-app-cancel-btn");
-                    if (cancelBtn) cancelBtn.style.display = "none";
-                }
-
-                /** 💡 [추가] 기수 셀렉트박스 옵션 동적 생성 함수 */
-                function initThSelectOptions() {
-                    const filterTh = document.getElementById('dashboard-filter-th');
-
-                    // 🎯 [핵심 가드] 엘리먼트가 현재 화면에 물리적으로 존재하지 않는다면 실행을 멈추고 안전하게 탈출
-                    if (!filterTh) {
-                        console.log("안내: 대상자 관리 탭이 활성화되지 않아 기수 필터 초기화를 예약 상태로 둡니다.");
-                        return;
-                    }
-
-                    // 🎯 [요구사항 반영] 초기값은 1기~4기가 미리 보이지 않도록 가리고, 시험명 선택을 유도하는 비활성 안내문만 주입
-                    filterTh.innerHTML = `
+            // 🎯 [요구사항 반영] 초기값은 1기~4기가 미리 보이지 않도록 가리고, 시험명 선택을 유도하는 비활성 안내문만 주입
+            filterTh.innerHTML = `
         <option value="ALL">— 시험을 먼저 선택하세요 —</option>
     `;
-                }
+        }
 
-                function enableInlineEditMode(id) { currentEditingUid = id; refreshApplicantView(); }
-                function cancelInlineEditMode() { currentEditingUid = null; refreshApplicantView(); }
+        function enableInlineEditMode(id) { currentEditingUid = id; refreshApplicantView(); }
+        function cancelInlineEditMode() { currentEditingUid = null; refreshApplicantView(); }
 
-                /** 💡 [마스터] 인라인 수정 데이터를 로컬 스토리지에 영구 커밋하는 트랜잭션 함수 */
-                function saveInlineEditRecord(id) {
-                    const idx = dataStoreApplicant.findIndex(d => d.uid === id);
-                    if (idx === -1) return;
+        /** 💡 [마스터] 인라인 수정 데이터를 로컬 스토리지에 영구 커밋하는 트랜잭션 함수 */
+        function saveInlineEditRecord(id) {
+            const idx = dataStoreApplicant.findIndex(d => d.uid === id);
+            if (idx === -1) return;
 
-                    // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크 (존재하지 않으면 null 방지 예외 처리)
-                    const elTitle = document.getElementById('inline-title');
-                    const elTh = document.getElementById('inline-th');
-                    const elCount = document.getElementById('inline-count');
-                    const elPeriod = document.getElementById('inline-period');
-                    const elName = document.getElementById('inline-name');
-                    const elSsn = document.getElementById('inline-ssn');
-                    const elPhone = document.getElementById('inline-phone');
-                    const elPayStatus = document.getElementById('inline-paystatus');
-                    const elAgreed = document.getElementById('inline-agreed');
+            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크 (존재하지 않으면 null 방지 예외 처리)
+            const elTitle = document.getElementById('inline-title');
+            const elTh = document.getElementById('inline-th');
+            const elCount = document.getElementById('inline-count');
+            const elPeriod = document.getElementById('inline-period');
+            const elName = document.getElementById('inline-name');
+            const elSsn = document.getElementById('inline-ssn');
+            const elPhone = document.getElementById('inline-phone');
+            const elPayStatus = document.getElementById('inline-paystatus');
+            const elAgreed = document.getElementById('inline-agreed');
 
-                    // 2. 가상 데이터베이스 구조에 안전한 값 주입 (엘리먼트가 없으면 기존 값을 유지하여 폭파 차단)
-                    dataStoreApplicant[idx] = {
-                        uid: id,
-                        title: elTitle ? elTitle.value.trim() : (dataStoreApplicant[idx].title || ""),
-                        th: elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || ""),
-                        count: elCount ? getOnlyNumbers(elCount.value) : (dataStoreApplicant[idx].count || "0"),
-                        period: elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0"),
-                        name: elName ? elName.value.trim() : (dataStoreApplicant[idx].name || ""),
-                        ssn: elSsn ? getOnlyNumbers(elSsn.value) : (dataStoreApplicant[idx].ssn || ""),
-                        phone: elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || ""),
-                        result: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].result || "접수"),
-                        payStatus: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus || "접수"),
-                        isAgreed: dataStoreApplicant[idx].isAgreed || "동의",
-                        category: dataStoreApplicant[idx].category || "내분비내과 / 대장 수동 등록",
-                        stage: `${elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || "1기")} 참여(소집)`
-                    };
+            // 2. 가상 데이터베이스 구조에 안전한 값 주입 (엘리먼트가 없으면 기존 값을 유지하여 폭파 차단)
+            dataStoreApplicant[idx] = {
+                uid: id,
+                title: elTitle ? elTitle.value.trim() : (dataStoreApplicant[idx].title || ""),
+                th: elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || ""),
+                count: elCount ? getOnlyNumbers(elCount.value) : (dataStoreApplicant[idx].count || "0"),
+                period: elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0"),
+                name: elName ? elName.value.trim() : (dataStoreApplicant[idx].name || ""),
+                ssn: elSsn ? getOnlyNumbers(elSsn.value) : (dataStoreApplicant[idx].ssn || ""),
+                phone: elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || ""),
+                result: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].result || "접수"),
+                payStatus: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus || "접수"),
+                isAgreed: dataStoreApplicant[idx].isAgreed || "동의",
+                category: dataStoreApplicant[idx].category || "내분비내과 / 대장 수동 등록",
+                stage: `${elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || "1기")} 참여(소집)`
+            };
 
 
-                    // 3. 로컬스토리지 영구 커밋 및 뷰 테이블 리렌더링
-                    commitToLocalStorage();
-                    currentEditingUid = null;
-                    if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
+            // 3. 로컬스토리지 영구 커밋 및 뷰 테이블 리렌더링
+            commitToLocalStorage();
+            currentEditingUid = null;
+            if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
 
-                    // 등록된 렌더러 함수 안전 호출
-                    if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
-                    if (typeof drawApplicantTable === 'function') { drawApplicantTable(); }
+            // 등록된 렌더러 함수 안전 호출
+            if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
+            if (typeof drawApplicantTable === 'function') { drawApplicantTable(); }
 
-                    alert(`전산 반영 완료: [${dataStoreApplicant[idx].name}] 피험자의 정보가 안전하게 업데이트되었습니다.`);
-                }
+            alert(`전산 반영 완료: [${dataStoreApplicant[idx].name}] 피험자의 정보가 안전하게 업데이트되었습니다.`);
+        }
 
-                function removeApplicantRecord(id) {
-                    if (confirm('대상자를 완전히 파기하겠습니까?')) {
-                        dataStoreApplicant = dataStoreApplicant.filter(d => d.uid !== id);
-                        commitToLocalStorage();
-                        currentEditingUid = null;
-                        refreshApplicantView();
-                    }
-                }
+        function removeApplicantRecord(id) {
+            if (confirm('대상자를 완전히 파기하겠습니까?')) {
+                dataStoreApplicant = dataStoreApplicant.filter(d => d.uid !== id);
+                commitToLocalStorage();
+                currentEditingUid = null;
+                refreshApplicantView();
+            }
+        }
 
-                // =========================================================================
-                // [5-B 파트] 최고 시스템 관리자(admin) 전용 운영진 관리 트랜잭션 제어부
-                // =========================================================================
+        // =========================================================================
+        // [5-B 파트] 최고 시스템 관리자(admin) 전용 운영진 관리 트랜잭션 제어부
+        // =========================================================================
 
-                function refreshAdminMemberTableView() {
-                    const tbody = document.getElementById('dom-member-table');
-                    if (!tbody) return;
-                    tbody.innerHTML = '';
+        function refreshAdminMemberTableView() {
+            const tbody = document.getElementById('dom-member-table');
+            if (!tbody) return;
+            tbody.innerHTML = '';
 
-                    const loggedInUserSabun = sessionStorage.getItem('adminLoginSabun');
-                    const currentUserInfo = dataStoreAdminMembers.find(member => member.sabun === loggedInUserSabun);
-                    const currentUserLevelConfig = currentUserInfo ? (DUTY_LEVEL_MATRIX[currentUserInfo.duty] || { level: 1 }) : { level: 1 };
-                    const isMasterAdmin = (loggedInUserSabun === 'admin' || currentUserLevelConfig.level === 10);
+            const loggedInUserSabun = sessionStorage.getItem('adminLoginSabun');
+            const currentUserInfo = dataStoreAdminMembers.find(member => member.sabun === loggedInUserSabun);
+            const currentUserLevelConfig = currentUserInfo ? (DUTY_LEVEL_MATRIX[currentUserInfo.duty] || { level: 1 }) : { level: 1 };
+            const isMasterAdmin = (loggedInUserSabun === 'admin' || currentUserLevelConfig.level === 10);
 
-                    dataStoreAdminMembers.forEach(row => {
-                        const tr = document.createElement('tr');
-                        const lvl = (DUTY_LEVEL_MATRIX[row.duty] || { level: 1 }).level;
+            dataStoreAdminMembers.forEach(row => {
+                const tr = document.createElement('tr');
+                const lvl = (DUTY_LEVEL_MATRIX[row.duty] || { level: 1 }).level;
 
-                        if (memberEditingSabun === row.sabun) {
-                            tr.classList.add('editing-row');
-                            tr.innerHTML = `
+                if (memberEditingSabun === row.sabun) {
+                    tr.classList.add('editing-row');
+                    tr.innerHTML = `
                 <td style="color:var(--secondary-color); font-weight:700;">${row.sabun}</td>
                 <td><input type="text" id="inline-mem-name" class="inline-input" value="${row.name}"></td>
                 <td><input type="text" id="inline-mem-dept" class="inline-input" value="${row.dept}"></td>
@@ -2905,263 +2908,263 @@
                     <button class="btn-inline save" onclick="saveAdminMemberInlineRecord('${row.sabun}')">완료</button>
                     <button class="btn-inline list" onclick="cancelAdminMemberInlineMode()">목록</button>
                 </td>`;
-                        } else {
-                            const pBtn = isMasterAdmin ? `<button class="btn-inline" style="background:#0284c7; font-size:11px; padding:4px 8px; color:#fff; font-weight:700;" onclick="openSystemResetPasswordModal('${row.sabun}')"><i class="fa-solid fa-key"></i> 비밀번호 수정</button>` : '';
-                            const aBtn = isMasterAdmin ? `<button class="btn-inline edit" onclick="enableAdminMemberInlineMode('${row.sabun}')">수정</button><button class="btn-inline delete" onclick="removeAdminMemberRecord('${row.sabun}')">삭제</button>` : '';
-                            tr.innerHTML = `<td style="color:var(--secondary-color); font-weight:700;">${row.sabun}</td><td class="text-bold">${row.name}</td><td>${row.dept}</td><td><span class="text-bold" style="color:#fff;">${row.duty}</span></td><td><span class="lvl-badge lvl-${lvl}"><i class="fa-solid fa-shield"></i> ${lvl}레벨 등급</span></td><td>${pBtn}</td><td style="text-align: center;">${aBtn}</td>`;
-                        }
-                        tbody.appendChild(tr);
-                    });
+                } else {
+                    const pBtn = isMasterAdmin ? `<button class="btn-inline" style="background:#0284c7; font-size:11px; padding:4px 8px; color:#fff; font-weight:700;" onclick="openSystemResetPasswordModal('${row.sabun}')"><i class="fa-solid fa-key"></i> 비밀번호 수정</button>` : '';
+                    const aBtn = isMasterAdmin ? `<button class="btn-inline edit" onclick="enableAdminMemberInlineMode('${row.sabun}')">수정</button><button class="btn-inline delete" onclick="removeAdminMemberRecord('${row.sabun}')">삭제</button>` : '';
+                    tr.innerHTML = `<td style="color:var(--secondary-color); font-weight:700;">${row.sabun}</td><td class="text-bold">${row.name}</td><td>${row.dept}</td><td><span class="text-bold" style="color:#fff;">${row.duty}</span></td><td><span class="lvl-badge lvl-${lvl}"><i class="fa-solid fa-shield"></i> ${lvl}레벨 등급</span></td><td>${pBtn}</td><td style="text-align: center;">${aBtn}</td>`;
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function enableAdminMemberInlineMode(k) { memberEditingSabun = k; refreshAdminMemberTableView(); }
+        function cancelAdminMemberInlineMode() { memberEditingSabun = null; refreshAdminMemberTableView(); }
+
+        /**
+ * 운영진 전산망(adm_mem)에서 참여완료/탈락 심사를 마치고 [참여비 신청] 활성화를 누를 때 발동하는 트랜잭션
+ * @param {string|number} uid - 대상자의 고유 식별자 키값
+ */
+        function executeAllowPayClaim(uid) {
+            // 1. 로컬스토리지 마스터 대장 안전 로드
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 2. 고유 UID 기반으로 해당 피험자 레코드 추적
+            const idx = adminApplicantDB.findIndex(user => String(user.uid) === String(uid));
+
+            if (idx !== -1) {
+                // 3. 💡 대상자 4단계 장벽을 개방하고 관리자 화면에 '미신청'으로 띄우는 마스터 키 세팅
+                adminApplicantDB[idx].payStatus = "신청가능";
+
+                // 4. 로컬스토리지 스트림 동기화 커밋 및 화면 갱신
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+
+                // 대상자 관리 탭 화면이 열려있을 수 있으므로 실시간 리렌더링 호출
+                if (typeof refreshApplicantView === 'function') {
+                    refreshApplicantView();
                 }
 
-                function enableAdminMemberInlineMode(k) { memberEditingSabun = k; refreshAdminMemberTableView(); }
-                function cancelAdminMemberInlineMode() { memberEditingSabun = null; refreshAdminMemberTableView(); }
+                alert("전산 처리 완료: 해당 피험자의 참여비 신청 권한(join_login 4단계)이 정상적으로 활성화되었습니다.");
+            } else {
+                alert("전산 오류: 일치하는 피험자 식별 정보(UID)를 찾을 수 없습니다.");
+            }
+        }
 
-                /**
-         * 운영진 전산망(adm_mem)에서 참여완료/탈락 심사를 마치고 [참여비 신청] 활성화를 누를 때 발동하는 트랜잭션
-         * @param {string|number} uid - 대상자의 고유 식별자 키값
-         */
-                function executeAllowPayClaim(uid) {
-                    // 1. 로컬스토리지 마스터 대장 안전 로드
-                    let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+        function saveAdminMemberInlineRecord(k) {
+            const idx = dataStoreAdminMembers.findIndex(m => m.sabun === k);
+            if (idx === -1) return;
 
-                    // 2. 고유 UID 기반으로 해당 피험자 레코드 추적
-                    const idx = adminApplicantDB.findIndex(user => String(user.uid) === String(uid));
+            const n = document.getElementById('inline-mem-name').value.trim();
+            const dept = document.getElementById('inline-mem-dept').value.trim();
+            const duty = document.getElementById('inline-mem-duty').value;
 
-                    if (idx !== -1) {
-                        // 3. 💡 대상자 4단계 장벽을 개방하고 관리자 화면에 '미신청'으로 띄우는 마스터 키 세팅
-                        adminApplicantDB[idx].payStatus = "신청가능";
+            if (!n || !dept) return alert('오류: 공백 서식을 허용할 수 없습니다.');
 
-                        // 4. 로컬스토리지 스트림 동기화 커밋 및 화면 갱신
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+            dataStoreAdminMembers[idx] = { sabun: k, name: n, duty: duty, dept: dept, pw: dataStoreAdminMembers[idx].pw };
+            commitToLocalStorage();
 
-                        // 대상자 관리 탭 화면이 열려있을 수 있으므로 실시간 리렌더링 호출
-                        if (typeof refreshApplicantView === 'function') {
-                            refreshApplicantView();
-                        }
+            if (sessionStorage.getItem('adminLoginSabun') === k) bindTopBarProfile(k);
+            memberEditingSabun = null;
+            refreshAdminMemberTableView();
+            alert('📋 정보 갱신 수립: 임직원 정보 보관이 완료되었습니다.');
+        }
 
-                        alert("전산 처리 완료: 해당 피험자의 참여비 신청 권한(join_login 4단계)이 정상적으로 활성화되었습니다.");
-                    } else {
-                        alert("전산 오류: 일치하는 피험자 식별 정보(UID)를 찾을 수 없습니다.");
-                    }
+        function insertAdminMember() {
+            const s = document.getElementById('form-mem-id').value.trim();
+            const n = document.getElementById('form-mem-name').value.trim();
+            const duty = document.getElementById('form-mem-duty').value;
+            const dept = document.getElementById('form-mem-dept').value.trim() || "미배정지부";
+
+            if (!s || !n) return alert('사번 코드와 성명(이름)은 필수 입력 사항입니다.');
+            if (dataStoreAdminMembers.some(member => member.sabun === s)) return alert('전산 오류: 이미 동일 사번이 존재합니다.');
+
+            dataStoreAdminMembers.push({ sabun: s, name: n, duty: duty, dept: dept, pw: s });
+            commitToLocalStorage();
+            refreshAdminMemberTableView();
+
+            document.getElementById('form-mem-id').value = '';
+            document.getElementById('form-mem-name').value = '';
+            document.getElementById('form-mem-dept').value = '';
+            alert(`🎉 사원 등록 완료: ${n} 님의 초기 패스워드는 [사번:${s}]으로 사전 할당 보존되었습니다.`);
+        }
+
+        function removeAdminMemberRecord(k) {
+            if (sessionStorage.getItem('adminLoginSabun') === k) return alert('제한 오류: 본인 계정은 직접 삭제할 수 없습니다.');
+            if (confirm('사번 임직원의 관리 권한을 완전히 삭제하겠습니까?')) {
+                dataStoreAdminMembers = dataStoreAdminMembers.filter(m => m.sabun !== k);
+                commitToLocalStorage();
+                refreshAdminMemberTableView();
+            }
+        }
+
+        // =========================================================================
+        // [5-C 파트] 외부 텍스트/문서 원천 데이터 스마트 정규표현식 파서 엔진
+        // =========================================================================
+
+        function handleSmartFileImport(e) {
+            const file = e.target.files;
+            const d = document.getElementById('selected-file-name');
+            if (!file || file.length === 0) { if (d) d.innerText = ''; return; }
+
+            const ext = file[0].name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt'].includes(ext)) {
+                alert('지원하지 않는 형식입니다.');
+                e.target.value = '';
+                return;
+            }
+            if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file[0].name}`;
+
+            const r = new FileReader();
+            r.onload = function (evt) { if (typeof parseRawTextDump === 'function') parseRawTextDump(evt.target.result); };
+            r.readAsText(file[0]);
+        }
+
+        function handleExamFileImport(event) {
+            const file = event.target.files;
+            if (!file || file.length === 0) return;
+
+            alert(`"${file[0].name}" 업로드가 완료되었습니다.`);
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                mammoth.extractRawText({ arrayBuffer: e.target.result })
+                    .then(function (result) { parseRecruitmentTextDump(result.value); })
+                    .catch(function (err) { alert("❌ 워드 전산 해독 중 오류: " + err.message); });
+            };
+            reader.readAsArrayBuffer(file[0]);
+        }
+
+        function exportFinancialSettlementData() {
+            if (!dataStoreApplicant || dataStoreApplicant.length === 0) {
+                return alert("알림: 내보낼 대상자(정산 청구) 데이터가 현재 시스템 저장소에 존재하지 않습니다.");
+            }
+
+            // 1. 엑셀/CSV 표준 헤더 타이틀 라인 정의 (쉼표 분할 규격)
+            let csvContent = "\uFEFF"; // 💡 엑셀 한글 깨짐 방지를 위한 필수 UTF-8 BOM 바이트 헤더 주입
+            csvContent += "순번,시험명,기수,이름,생년월일,연락처,참여비단계,동의여부,금융계좌정보\n";
+
+            // 2. 가상 DB 순회하며 로우 데이터 로깅 가공 처리
+            const counterMap = {};
+            dataStoreApplicant.forEach(row => {
+                const groupKey = `${row.title}_${row.th}`;
+                if (!counterMap[groupKey]) counterMap[groupKey] = 0;
+                counterMap[groupKey]++;
+
+                const order = counterMap[groupKey];
+                const title = (row.title || "").replace(/,/g, " "); // 데이터 내 쉼표 오염 방지 정제
+                const th = formatTh(row.th);
+                const name = row.name || "";
+                const ssn = getOnlyNumbers(row.ssn);
+                const phone = formatPhone(row.phone);
+                const payState = row.payStatus || "임상참여중";
+                const agreed = row.isAgreed || "미동의";
+                const account = row.accountInfo || "미제출";
+
+                // 한 줄 단위 로우 데이터 가공 조립
+                csvContent += `${order},${title},${th},${name},${ssn},${phone},${payState},${agreed},${account}\n`;
+            });
+
+            // 3. 브라우저 메모리 가상 파일 Blob 바이너리 인터페이스 인스턴스 생성
+            try {
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+
+                // 다운로드 파일명 조합 명세 (예: 임상정산대장_20260814.csv)
+                const dateStamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+                const fileName = `임상정산대장_금융결제원제출용_${dateStamp}.csv`;
+
+                // 가상 앵커 링크 구동 다운로드 스트림 트리거 가동
+                if (navigator.msSaveBlob) {
+                    navigator.msSaveBlob(blob, fileName); // 구형 브라우저 보정
+                } else {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", fileName);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                 }
 
-                function saveAdminMemberInlineRecord(k) {
-                    const idx = dataStoreAdminMembers.findIndex(m => m.sabun === k);
-                    if (idx === -1) return;
+                alert(`[데이터 추출 완료]\n\n총 ${dataStoreApplicant.length}건의 정산 연동 명단 데이터가 엑셀 호환 파일[${fileName}]로 다운로드 폴더에 안전하게 내보내기 완료되었습니다.`);
+            } catch (err) {
+                alert("전산 파일 추출 오류: 데이터 스트림 변환 및 다운로드 처리에 실패했습니다.");
+            }
+        }
+        function parseRecruitmentTextDump(rawText) {
+            if (!rawText) return alert("파일 내용이 비어있습니다.");
+            const titleMatch = rawText.match(/(?:시험명|과제명|임상명)(?:\s*[:=➔]\s*|\s+)(\[.*\]\s*[가-힣\w\s+]+)/) || rawText.match(/(\[.*\]\s*[가-힣\w\s+]+)/);
+            const thMatch = rawText.match(/(\d+)\s*(?:기|차수)/) || rawText.match(/(?:기수|차수)(?:\s*[:=➔]\s*|\s+)(\d+)/);
+            const countMatch = rawText.match(/(?:배정\s*인원수|인원수|인원)(?:\s*[:=➔]\s*|\s+)(\d+)/) || rawText.match(/(\d+)\s*명/);
+            const periodMatch = rawText.match(/(?:임상\s*기간|기간|시간)(?:\s*[:=➔]\s*|\s+)(\d+)/) || rawText.match(/(\d+)\s*시간/);
+            if (!titleMatch) return alert("❌ 문서 내에서 규격화된 [시험명] 패턴을 식별할 수 없습니다.");
 
-                    const n = document.getElementById('inline-mem-name').value.trim();
-                    const dept = document.getElementById('inline-mem-dept').value.trim();
-                    const duty = document.getElementById('inline-mem-duty').value;
+            const extractedTitle = titleMatch[1].trim();
+            const extractedTh = thMatch ? thMatch[1].trim() : "1";
+            const extractedCount = countMatch ? countMatch[1].trim() : "30";
+            const extractedPeriod = periodMatch ? periodMatch[1].trim() : "72";
 
-                    if (!n || !dept) return alert('오류: 공백 서식을 허용할 수 없습니다.');
+            if (dataStoreRecruitment.some(rec => rec.title === extractedTitle && rec.th === extractedTh)) {
+                return alert('알림: 이미 대장에 등록된 모집공고 과제입니다.');
+            }
 
-                    dataStoreAdminMembers[idx] = { sabun: k, name: n, duty: duty, dept: dept, pw: dataStoreAdminMembers[idx].pw };
-                    commitToLocalStorage();
+            dataStoreRecruitment.push({ uid: Date.now(), title: extractedTitle, th: extractedTh, count: extractedCount, period: extractedPeriod });
+            localStorage.setItem('dataStoreRecruitment', JSON.stringify(dataStoreRecruitment));
+            if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
+            alert(`📢 모집공고 등록 성공!\n● 시험명: ${extractedTitle}\n● 기수: ${extractedTh}기\n● 인원수: ${extractedCount}명\n● 임상기간: ${extractedPeriod}시간`);
+        }
 
-                    if (sessionStorage.getItem('adminLoginSabun') === k) bindTopBarProfile(k);
-                    memberEditingSabun = null;
-                    refreshAdminMemberTableView();
-                    alert('📋 정보 갱신 수립: 임직원 정보 보관이 완료되었습니다.');
-                }
+        function parseRawTextDump(rawText) {
+            if (!rawText) return alert("파일 내용이 비어있습니다.");
+            const nameMatch = rawText.match(/(?:이름|성명)(?:\s*[:=➔]\s*|\s+)([가-힣]{2,5})/);
+            const ssnMatch = rawText.match(/(?:생년월일|주민번호|SSN)?(?:\s*[:=➔]\s*|\s+)?\b(\d{6})\b/);
+            const phoneMatch = rawText.match(/(?:연락처|전화번호|휴대폰|HP)?(?:\s*[:=➔]\s*|\s+)?\b(010[-.\s]?\d{3,4}[-.\s]?\d{4})\b/);
+            const titleMatch = rawText.match(/(?:과제명|참여과제|시험명)?(?:\s*[:=➔]\s*|\s+)?(\[.*\]\s*[가-힣\w\s+]+)/) || ["", "[임상] 기본 과제 정의"];
+            const thMatch = rawText.match(/(\d+)\s*(?:기|차수)/) || ["", "1"];
+            if (!nameMatch || !ssnMatch || !phoneMatch) return alert("❌ 문서 내에서 필수값(이름, 생년월일, 연락처) 패턴을 찾을 수 없습니다.");
 
-                function insertAdminMember() {
-                    const s = document.getElementById('form-mem-id').value.trim();
-                    const n = document.getElementById('form-mem-name').value.trim();
-                    const duty = document.getElementById('form-mem-duty').value;
-                    const dept = document.getElementById('form-mem-dept').value.trim() || "미배정지부";
+            const extractedName = nameMatch[1].trim();
+            const extractedSsn = ssnMatch[1].trim();
+            const extractedPhone = phoneMatch[1].replace(/[^0-9]/g, '');
+            const extractedTitle = titleMatch[1] ? titleMatch[1].trim() : "[임상] 수동 업로드 과제";
+            const extractedTh = thMatch[1] ? thMatch[1].trim() : "1";
 
-                    if (!s || !n) return alert('사번 코드와 성명(이름)은 필수 입력 사항입니다.');
-                    if (dataStoreAdminMembers.some(member => member.sabun === s)) return alert('전산 오류: 이미 동일 사번이 존재합니다.');
+            if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
+                return alert('알림: 이미 명단에 존재하는 대상자입니다.');
+            }
 
-                    dataStoreAdminMembers.push({ sabun: s, name: n, duty: duty, dept: dept, pw: s });
-                    commitToLocalStorage();
-                    refreshAdminMemberTableView();
+            dataStoreApplicant.push({
+                uid: Date.now(), title: extractedTitle, th: extractedTh, count: "1", period: "72", name: extractedName, ssn: extractedSsn, phone: extractedPhone, result: "접수",
+                category: "내분비내과 / 스마트 업로드", stage: `${extractedTh}기 참여(소집)`
+            });
+            localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
+            if (typeof refreshApplicantView === "function") refreshApplicantView();
+            alert(`📢 스마트 자동 등록 성공!\n● 성명: ${extractedName}\n● 생년월일: ${extractedSsn}\n● 연락처: ${extractedPhone}`);
+        }
 
-                    document.getElementById('form-mem-id').value = '';
-                    document.getElementById('form-mem-name').value = '';
-                    document.getElementById('form-mem-dept').value = '';
-                    alert(`🎉 사원 등록 완료: ${n} 님의 초기 패스워드는 [사번:${s}]으로 사전 할당 보존되었습니다.`);
-                }
+        // 💥 [독립 확장] 새창이 아닌 기존 비밀번호 수정창과 동일한 내장형 모달 시스템 가동
+        function openAdminDocViewer(uid, docType) {
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            const targetUser = adminApplicantDB.find(function (u) { return String(u.uid) === String(uid); });
 
-                function removeAdminMemberRecord(k) {
-                    if (sessionStorage.getItem('adminLoginSabun') === k) return alert('제한 오류: 본인 계정은 직접 삭제할 수 없습니다.');
-                    if (confirm('사번 임직원의 관리 권한을 완전히 삭제하겠습니까?')) {
-                        dataStoreAdminMembers = dataStoreAdminMembers.filter(m => m.sabun !== k);
-                        commitToLocalStorage();
-                        refreshAdminMemberTableView();
-                    }
-                }
+            if (!targetUser) return alert("해당 대상자 데이터를 전산망에서 식별할 수 없습니다.");
 
-                // =========================================================================
-                // [5-C 파트] 외부 텍스트/문서 원천 데이터 스마트 정규표현식 파서 엔진
-                // =========================================================================
+            const targetImgSrc = (docType === 'idCard') ? targetUser.idCardUrl : targetUser.bankBookUrl;
+            const docTitle = (docType === 'idCard') ? "피험자 신분증 원본" : "피험자 통장사본 원본";
 
-                function handleSmartFileImport(e) {
-                    const file = e.target.files;
-                    const d = document.getElementById('selected-file-name');
-                    if (!file || file.length === 0) { if (d) d.innerText = ''; return; }
+            if (!targetImgSrc) return alert("첨부된 파일 서류 증빙 데이터셋이 존재하지 않습니다.");
 
-                    const ext = file[0].name.split('.').pop().toLowerCase();
-                    if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt'].includes(ext)) {
-                        alert('지원하지 않는 형식입니다.');
-                        e.target.value = '';
-                        return;
-                    }
-                    if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file[0].name}`;
+            // 1. 기존 비밀번호 모달 구조와 100% 일치하는 일체형 모달 오버레이 동적 생성
+            let modalOverlay = document.getElementById('admin-global-doc-modal');
+            if (!modalOverlay) {
+                modalOverlay = document.createElement('div');
+                modalOverlay.id = 'admin-global-doc-modal';
+                // 기존 admin.html의 모달 백그라운드 클래스 및 CSS 적용
+                modalOverlay.className = 'modal-overlay';
+                modalOverlay.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); z-index:9999; justify-content:center; align-items:center;";
+                document.body.appendChild(modalOverlay);
+            }
 
-                    const r = new FileReader();
-                    r.onload = function (evt) { if (typeof parseRawTextDump === 'function') parseRawTextDump(evt.target.result); };
-                    r.readAsText(file[0]);
-                }
-
-                function handleExamFileImport(event) {
-                    const file = event.target.files;
-                    if (!file || file.length === 0) return;
-
-                    alert(`"${file[0].name}" 업로드가 완료되었습니다.`);
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        mammoth.extractRawText({ arrayBuffer: e.target.result })
-                            .then(function (result) { parseRecruitmentTextDump(result.value); })
-                            .catch(function (err) { alert("❌ 워드 전산 해독 중 오류: " + err.message); });
-                    };
-                    reader.readAsArrayBuffer(file[0]);
-                }
-
-                function exportFinancialSettlementData() {
-                    if (!dataStoreApplicant || dataStoreApplicant.length === 0) {
-                        return alert("알림: 내보낼 대상자(정산 청구) 데이터가 현재 시스템 저장소에 존재하지 않습니다.");
-                    }
-
-                    // 1. 엑셀/CSV 표준 헤더 타이틀 라인 정의 (쉼표 분할 규격)
-                    let csvContent = "\uFEFF"; // 💡 엑셀 한글 깨짐 방지를 위한 필수 UTF-8 BOM 바이트 헤더 주입
-                    csvContent += "순번,시험명,기수,이름,생년월일,연락처,참여비단계,동의여부,금융계좌정보\n";
-
-                    // 2. 가상 DB 순회하며 로우 데이터 로깅 가공 처리
-                    const counterMap = {};
-                    dataStoreApplicant.forEach(row => {
-                        const groupKey = `${row.title}_${row.th}`;
-                        if (!counterMap[groupKey]) counterMap[groupKey] = 0;
-                        counterMap[groupKey]++;
-
-                        const order = counterMap[groupKey];
-                        const title = (row.title || "").replace(/,/g, " "); // 데이터 내 쉼표 오염 방지 정제
-                        const th = formatTh(row.th);
-                        const name = row.name || "";
-                        const ssn = getOnlyNumbers(row.ssn);
-                        const phone = formatPhone(row.phone);
-                        const payState = row.payStatus || "임상참여중";
-                        const agreed = row.isAgreed || "미동의";
-                        const account = row.accountInfo || "미제출";
-
-                        // 한 줄 단위 로우 데이터 가공 조립
-                        csvContent += `${order},${title},${th},${name},${ssn},${phone},${payState},${agreed},${account}\n`;
-                    });
-
-                    // 3. 브라우저 메모리 가상 파일 Blob 바이너리 인터페이스 인스턴스 생성
-                    try {
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                        const link = document.createElement("a");
-
-                        // 다운로드 파일명 조합 명세 (예: 임상정산대장_20260814.csv)
-                        const dateStamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-                        const fileName = `임상정산대장_금융결제원제출용_${dateStamp}.csv`;
-
-                        // 가상 앵커 링크 구동 다운로드 스트림 트리거 가동
-                        if (navigator.msSaveBlob) {
-                            navigator.msSaveBlob(blob, fileName); // 구형 브라우저 보정
-                        } else {
-                            const url = URL.createObjectURL(blob);
-                            link.setAttribute("href", url);
-                            link.setAttribute("download", fileName);
-                            link.style.visibility = 'hidden';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        }
-
-                        alert(`[데이터 추출 완료]\n\n총 ${dataStoreApplicant.length}건의 정산 연동 명단 데이터가 엑셀 호환 파일[${fileName}]로 다운로드 폴더에 안전하게 내보내기 완료되었습니다.`);
-                    } catch (err) {
-                        alert("전산 파일 추출 오류: 데이터 스트림 변환 및 다운로드 처리에 실패했습니다.");
-                    }
-                }
-                function parseRecruitmentTextDump(rawText) {
-                    if (!rawText) return alert("파일 내용이 비어있습니다.");
-                    const titleMatch = rawText.match(/(?:시험명|과제명|임상명)(?:\s*[:=➔]\s*|\s+)(\[.*\]\s*[가-힣\w\s+]+)/) || rawText.match(/(\[.*\]\s*[가-힣\w\s+]+)/);
-                    const thMatch = rawText.match(/(\d+)\s*(?:기|차수)/) || rawText.match(/(?:기수|차수)(?:\s*[:=➔]\s*|\s+)(\d+)/);
-                    const countMatch = rawText.match(/(?:배정\s*인원수|인원수|인원)(?:\s*[:=➔]\s*|\s+)(\d+)/) || rawText.match(/(\d+)\s*명/);
-                    const periodMatch = rawText.match(/(?:임상\s*기간|기간|시간)(?:\s*[:=➔]\s*|\s+)(\d+)/) || rawText.match(/(\d+)\s*시간/);
-                    if (!titleMatch) return alert("❌ 문서 내에서 규격화된 [시험명] 패턴을 식별할 수 없습니다.");
-
-                    const extractedTitle = titleMatch[1].trim();
-                    const extractedTh = thMatch ? thMatch[1].trim() : "1";
-                    const extractedCount = countMatch ? countMatch[1].trim() : "30";
-                    const extractedPeriod = periodMatch ? periodMatch[1].trim() : "72";
-
-                    if (dataStoreRecruitment.some(rec => rec.title === extractedTitle && rec.th === extractedTh)) {
-                        return alert('알림: 이미 대장에 등록된 모집공고 과제입니다.');
-                    }
-
-                    dataStoreRecruitment.push({ uid: Date.now(), title: extractedTitle, th: extractedTh, count: extractedCount, period: extractedPeriod });
-                    localStorage.setItem('dataStoreRecruitment', JSON.stringify(dataStoreRecruitment));
-                    if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
-                    alert(`📢 모집공고 등록 성공!\n● 시험명: ${extractedTitle}\n● 기수: ${extractedTh}기\n● 인원수: ${extractedCount}명\n● 임상기간: ${extractedPeriod}시간`);
-                }
-
-                function parseRawTextDump(rawText) {
-                    if (!rawText) return alert("파일 내용이 비어있습니다.");
-                    const nameMatch = rawText.match(/(?:이름|성명)(?:\s*[:=➔]\s*|\s+)([가-힣]{2,5})/);
-                    const ssnMatch = rawText.match(/(?:생년월일|주민번호|SSN)?(?:\s*[:=➔]\s*|\s+)?\b(\d{6})\b/);
-                    const phoneMatch = rawText.match(/(?:연락처|전화번호|휴대폰|HP)?(?:\s*[:=➔]\s*|\s+)?\b(010[-.\s]?\d{3,4}[-.\s]?\d{4})\b/);
-                    const titleMatch = rawText.match(/(?:과제명|참여과제|시험명)?(?:\s*[:=➔]\s*|\s+)?(\[.*\]\s*[가-힣\w\s+]+)/) || ["", "[임상] 기본 과제 정의"];
-                    const thMatch = rawText.match(/(\d+)\s*(?:기|차수)/) || ["", "1"];
-                    if (!nameMatch || !ssnMatch || !phoneMatch) return alert("❌ 문서 내에서 필수값(이름, 생년월일, 연락처) 패턴을 찾을 수 없습니다.");
-
-                    const extractedName = nameMatch[1].trim();
-                    const extractedSsn = ssnMatch[1].trim();
-                    const extractedPhone = phoneMatch[1].replace(/[^0-9]/g, '');
-                    const extractedTitle = titleMatch[1] ? titleMatch[1].trim() : "[임상] 수동 업로드 과제";
-                    const extractedTh = thMatch[1] ? thMatch[1].trim() : "1";
-
-                    if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
-                        return alert('알림: 이미 명단에 존재하는 대상자입니다.');
-                    }
-
-                    dataStoreApplicant.push({
-                        uid: Date.now(), title: extractedTitle, th: extractedTh, count: "1", period: "72", name: extractedName, ssn: extractedSsn, phone: extractedPhone, result: "접수",
-                        category: "내분비내과 / 스마트 업로드", stage: `${extractedTh}기 참여(소집)`
-                    });
-                    localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                    if (typeof refreshApplicantView === "function") refreshApplicantView();
-                    alert(`📢 스마트 자동 등록 성공!\n● 성명: ${extractedName}\n● 생년월일: ${extractedSsn}\n● 연락처: ${extractedPhone}`);
-                }
-
-                // 💥 [독립 확장] 새창이 아닌 기존 비밀번호 수정창과 동일한 내장형 모달 시스템 가동
-                function openAdminDocViewer(uid, docType) {
-                    let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                    const targetUser = adminApplicantDB.find(function (u) { return String(u.uid) === String(uid); });
-
-                    if (!targetUser) return alert("해당 대상자 데이터를 전산망에서 식별할 수 없습니다.");
-
-                    const targetImgSrc = (docType === 'idCard') ? targetUser.idCardUrl : targetUser.bankBookUrl;
-                    const docTitle = (docType === 'idCard') ? "피험자 신분증 원본" : "피험자 통장사본 원본";
-
-                    if (!targetImgSrc) return alert("첨부된 파일 서류 증빙 데이터셋이 존재하지 않습니다.");
-
-                    // 1. 기존 비밀번호 모달 구조와 100% 일치하는 일체형 모달 오버레이 동적 생성
-                    let modalOverlay = document.getElementById('admin-global-doc-modal');
-                    if (!modalOverlay) {
-                        modalOverlay = document.createElement('div');
-                        modalOverlay.id = 'admin-global-doc-modal';
-                        // 기존 admin.html의 모달 백그라운드 클래스 및 CSS 적용
-                        modalOverlay.className = 'modal-overlay';
-                        modalOverlay.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); z-index:9999; justify-content:center; align-items:center;";
-                        document.body.appendChild(modalOverlay);
-                    }
-
-                    // 2. 기존 비밀번호 모달창 양식(.modal-content / .modal-header / .modal-body) 컴포넌트 이식
-                    modalOverlay.innerHTML = `
+            // 2. 기존 비밀번호 모달창 양식(.modal-content / .modal-header / .modal-body) 컴포넌트 이식
+            modalOverlay.innerHTML = `
         <div class="modal-content" style="background: var(--bg-card, #1e293b); border: 1px solid var(--border-color, #334155); padding: 24px; border-radius: 12px; width: 100%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); font-family: sans-serif;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color, #334155); padding-bottom: 12px;">
                 <h3 style="margin: 0; font-size: 16px; color: var(--text-primary, #ffffff); font-weight: 700;">📋 서류 증빙 전산 검수</h3>
@@ -3183,568 +3186,568 @@
         </div>
     `;
 
-                    // flex로 설정하여 화면 정중앙 배치 렌더링
-                    modalOverlay.style.display = "flex";
-                }
+            // flex로 설정하여 화면 정중앙 배치 렌더링
+            modalOverlay.style.display = "flex";
+        }
 
-                // 모달 내부 전용 격리 하드웨어 프린팅 트랜잭션
-                function executeAdminPopupPrint(imgSrc) {
-                    const printWindow = window.open('', '_blank', 'width=800,height=600');
-                    printWindow.document.write('<html><head><title>국책 증빙 출력</title></head><body style="margin:0; display:flex; justify-content:center; align-items:center;"><img src="' + imgSrc + '" style="max-width:100%; max-height:100vh; object-fit:contain;" onload="window.print(); window.close();"></body></html>');
-                    printWindow.document.close();
-                }
+        // 모달 내부 전용 격리 하드웨어 프린팅 트랜잭션
+        function executeAdminPopupPrint(imgSrc) {
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            printWindow.document.write('<html><head><title>국책 증빙 출력</title></head><body style="margin:0; display:flex; justify-content:center; align-items:center;"><img src="' + imgSrc + '" style="max-width:100%; max-height:100vh; object-fit:contain;" onload="window.print(); window.close();"></body></html>');
+            printWindow.document.close();
+        }
 
-                // 모달 내부 전용 로컬 디스크 파일 디코딩 저장 트랜잭션
-                function executeAdminPopupDownload(imgSrc, filename) {
-                    const a = document.createElement('a');
-                    a.href = imgSrc;
-                    a.download = 'ADMIN_증빙_' + filename + '.png';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                }
+        // 모달 내부 전용 로컬 디스크 파일 디코딩 저장 트랜잭션
+        function executeAdminPopupDownload(imgSrc, filename) {
+            const a = document.createElement('a');
+            a.href = imgSrc;
+            a.download = 'ADMIN_증빙_' + filename + '.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
 
-                // 💥 [최종 해결책] 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가해 주세요.
-                // 모든 레거시 소스코드의 리셋 루틴이 끝난 후 0.05초 뒤에 기억된 메뉴를 강제로 최종 마운트합니다.
-                window.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(function () {
-                        var savedViewport = localStorage.getItem('adminActiveViewportId');
-                        if (savedViewport) {
-                            if (typeof changeMainViewport === 'function') {
-                                changeMainViewport(savedViewport);
-                            }
-                        }
-                    }, 50); // 50ms 미세 지연을 통한 강제 우선순위 획득
+        // 💥 [최종 해결책] 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가해 주세요.
+        // 모든 레거시 소스코드의 리셋 루틴이 끝난 후 0.05초 뒤에 기억된 메뉴를 강제로 최종 마운트합니다.
+        window.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+                var savedViewport = localStorage.getItem('adminActiveViewportId');
+                if (savedViewport) {
+                    if (typeof changeMainViewport === 'function') {
+                        changeMainViewport(savedViewport);
+                    }
+                }
+            }, 50); // 50ms 미세 지연을 통한 강제 우선순위 획득
+        });
+
+        // 💥 [최종 절대 권한 해킹 체인] 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가하세요.
+        // 기존의 그 어떤 로직이나 세션 스크립트가 화면을 리셋하더라도, 0.15초 뒤에 무조건 덮어써서 메뉴를 강제 고정합니다.
+        (function () {
+            function forceRestoreViewport() {
+                var savedViewport = localStorage.getItem('adminActiveViewportId');
+                if (!savedViewport) return;
+
+                // 1. 우측 모든 본문 섹션 강제 은닉
+                const views = ['recruitmentView', 'applicantView', 'gradeView'];
+                views.forEach(function (v) {
+                    const el = document.getElementById(v);
+                    if (el) el.style.display = 'none';
                 });
 
-                // 💥 [최종 절대 권한 해킹 체인] 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가하세요.
-                // 기존의 그 어떤 로직이나 세션 스크립트가 화면을 리셋하더라도, 0.15초 뒤에 무조건 덮어써서 메뉴를 강제 고정합니다.
-                (function () {
-                    function forceRestoreViewport() {
-                        var savedViewport = localStorage.getItem('adminActiveViewportId');
-                        if (!savedViewport) return;
+                // 2. 타겟 본문 화면 강제 노출
+                const targetView = document.getElementById(savedViewport);
+                if (targetView) targetView.style.display = 'block';
 
-                        // 1. 우측 모든 본문 섹션 강제 은닉
-                        const views = ['recruitmentView', 'applicantView', 'gradeView'];
-                        views.forEach(function (v) {
-                            const el = document.getElementById(v);
-                            if (el) el.style.display = 'none';
-                        });
+                // 3. 좌측 메뉴 전체 하이라이트(.active) 강제 삭제
+                // 3. 💥 [버그 진압] 좌측 메뉴 전체 하이라이트(.active) 강제 삭제 루틴 교정
+                if (document.getElementById('menuRec')) document.getElementById('menuRec').classList.remove('active');
+                if (document.getElementById('menuApp')) document.getElementById('menuApp').classList.remove('active');
+                if (document.getElementById('menuGrade')) document.getElementById('menuGrade').classList.remove('active');
 
-                        // 2. 타겟 본문 화면 강제 노출
-                        const targetView = document.getElementById(savedViewport);
-                        if (targetView) targetView.style.display = 'block';
+                // 4. 💥 [최종 디자인 밀착 고정] 기억된 화면 뷰포트 ID 명칭에 맞춰 좌측 파란 불빛 강제 마운트 완료
+                if (savedViewport === 'recruitmentView' && document.getElementById('menuRec')) {
+                    document.getElementById('menuRec').classList.add('active');
+                } else if (savedViewport === 'applicantView' && document.getElementById('menuApp')) {
+                    document.getElementById('menuApp').classList.add('active');
+                } else if (savedViewport === 'gradeView' && document.getElementById('menuGrade')) {
+                    document.getElementById('menuGrade').classList.add('active');
+                }
+            }
 
-                        // 3. 좌측 메뉴 전체 하이라이트(.active) 강제 삭제
-                        // 3. 💥 [버그 진압] 좌측 메뉴 전체 하이라이트(.active) 강제 삭제 루틴 교정
-                        if (document.getElementById('menuRec')) document.getElementById('menuRec').classList.remove('active');
-                        if (document.getElementById('menuApp')) document.getElementById('menuApp').classList.remove('active');
-                        if (document.getElementById('menuGrade')) document.getElementById('menuGrade').classList.remove('active');
+            // 브라우저 화면이 완전히 구성된 직후 1차 복구 가동
+            window.addEventListener('DOMContentLoaded', function () {
+                setTimeout(forceRestoreViewport, 50);
+            });
 
-                        // 4. 💥 [최종 디자인 밀착 고정] 기억된 화면 뷰포트 ID 명칭에 맞춰 좌측 파란 불빛 강제 마운트 완료
-                        if (savedViewport === 'recruitmentView' && document.getElementById('menuRec')) {
-                            document.getElementById('menuRec').classList.add('active');
-                        } else if (savedViewport === 'applicantView' && document.getElementById('menuApp')) {
-                            document.getElementById('menuApp').classList.add('active');
-                        } else if (savedViewport === 'gradeView' && document.getElementById('menuGrade')) {
-                            document.getElementById('menuGrade').classList.add('active');
-                        }
-                    }
+            // 전체 리소스와 세션 토큰 판정문이 완벽히 끝난 직후 2차 최종 강제 덮어쓰기 완료 (강력 제어)
+            window.addEventListener('load', function () {
+                setTimeout(forceRestoreViewport, 150);
+            });
+        })();
 
-                    // 브라우저 화면이 완전히 구성된 직후 1차 복구 가동
-                    window.addEventListener('DOMContentLoaded', function () {
-                        setTimeout(forceRestoreViewport, 50);
-                    });
+        // ==========================================================================
+        // 🔐 [보안 인증] 지워진 시스템 로그인 및 세션 관리 체인 긴급 복구 모듈
+        // ==========================================================================
 
-                    // 전체 리소스와 세션 토큰 판정문이 완벽히 끝난 직후 2차 최종 강제 덮어쓰기 완료 (강력 제어)
-                    window.addEventListener('load', function () {
-                        setTimeout(forceRestoreViewport, 150);
-                    });
-                })();
+        /** 1. [복구] 로그인 처리 함수 - 관리자 사번 및 비밀번호 매칭 인증 */
+        function executeSystemLogin() {
+            const id = document.getElementById('uid').value.trim();
+            const pw = document.getElementById('upw').value.trim();
 
-                // ==========================================================================
-                // 🔐 [보안 인증] 지워진 시스템 로그인 및 세션 관리 체인 긴급 복구 모듈
-                // ==========================================================================
+            if (!id || !pw) return alert('사번과 비밀번호를 입력해주세요.');
 
-                /** 1. [복구] 로그인 처리 함수 - 관리자 사번 및 비밀번호 매칭 인증 */
-                function executeSystemLogin() {
-                    const id = document.getElementById('uid').value.trim();
-                    const pw = document.getElementById('upw').value.trim();
+            // 가상 DB 임직원 명단에 존재하는지 확인
+            if (typeof initializePresetMasterDatabase === 'function') { initializePresetMasterDatabase(); }
+            const account = dataStoreAdminMembers.find(m => m.sabun === id);
 
-                    if (!id || !pw) return alert('사번과 비밀번호를 입력해주세요.');
+            if (account) {
+                if (pw === account.pw || pw === account.sabun || (pw === "9793" && account.sabun === "admin")) {
+                    // 인증 토큰 발급 및 세션 스토리지 적재
+                    sessionStorage.setItem('adminLoginSession', 'isAuthorizedSecureToken');
+                    sessionStorage.setItem('adminLoginSabun', id);
 
-                    // 가상 DB 임직원 명단에 존재하는지 확인
-                    if (typeof initializePresetMasterDatabase === 'function') { initializePresetMasterDatabase(); }
-                    const account = dataStoreAdminMembers.find(m => m.sabun === id);
+                    // 대시보드 화면 전환 처리
+                    if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'none';
+                    if (document.getElementById('mainDashboard')) document.getElementById('mainDashboard').style.display = 'flex';
 
-                    if (account) {
-                        if (pw === account.pw || pw === account.sabun || (pw === "9793" && account.sabun === "admin")) {
-                            // 인증 토큰 발급 및 세션 스토리지 적재
-                            sessionStorage.setItem('adminLoginSession', 'isAuthorizedSecureToken');
-                            sessionStorage.setItem('adminLoginSabun', id);
+                    if (typeof bindTopBarProfile === 'function') { bindTopBarProfile(id); }
+                    if (typeof changeMainViewport === 'function') { changeMainViewport('recruitmentView'); }
+                } else {
+                    alert('인증 실패: 비밀번호가 틀립니다.');
+                }
+            } else {
+                alert('인증 오류: 등록되지 않은 사번입니다.');
+            }
+        }
 
-                            // 대시보드 화면 전환 처리
-                            if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'none';
-                            if (document.getElementById('mainDashboard')) document.getElementById('mainDashboard').style.display = 'flex';
+        /** 2. [복구] 안전 로그아웃 처리 함수 - 세션 파기 */
+        function executeSystemLogout() {
+            if (confirm('세션을 파기하고 안전 로그아웃 하시겠습니까?')) {
+                sessionStorage.clear();
+                if (document.getElementById('mainDashboard')) document.getElementById('mainDashboard').style.display = 'none';
+                if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'flex';
+                if (document.getElementById('uid')) document.getElementById('uid').value = '';
+                if (document.getElementById('upw')) document.getElementById('upw').value = '';
+            }
+        }
 
-                            if (typeof bindTopBarProfile === 'function') { bindTopBarProfile(id); }
-                            if (typeof changeMainViewport === 'function') { changeMainViewport('recruitmentView'); }
-                        } else {
-                            alert('인증 실패: 비밀번호가 틀립니다.');
-                        }
-                    } else {
-                        alert('인증 오류: 등록되지 않은 사번입니다.');
+        // 3. 비밀번호 입력 칸에서 엔터키 입력 시 로그인 연동 리스너 추가
+        const upwInput = document.getElementById('upw');
+        if (upwInput) {
+            upwInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    executeSystemLogin();
+                }
+            });
+        }
+
+        function executeSystemLogin() {
+            var idInput = document.getElementById('uid');
+            var pwInput = document.getElementById('upw');
+            if (!idInput || !pwInput) return;
+
+            var id = idInput.value.trim();
+            var pw = pwInput.value.trim();
+
+            if (!id || !pw) {
+                alert('사번과 비밀번호를 입력해주세요.');
+                return;
+            }
+
+            if (typeof initializePresetMasterDatabase === 'function') {
+                initializePresetMasterDatabase();
+            }
+
+            var account = dataStoreAdminMembers.find(function (m) { return m.sabun === id; });
+
+            if (account) {
+                if (pw === account.pw || pw === account.sabun || (pw === "9793" && account.sabun === "admin")) {
+                    sessionStorage.setItem('adminLoginSession', 'isAuthorizedSecureToken');
+                    sessionStorage.setItem('adminLoginSabun', id);
+
+                    var scrLogin = document.getElementById('loginScreen');
+                    var scrDash = document.getElementById('mainDashboard');
+                    if (scrLogin) scrLogin.style.display = 'none';
+                    if (scrDash) scrDash.style.display = 'flex';
+
+                    if (typeof bindTopBarProfile === 'function') { bindTopBarProfile(id); }
+                    if (typeof changeMainViewport === 'function') { changeMainViewport('recruitmentView'); }
+                } else {
+                    alert('인증 실패: 비밀번호가 틀립니다.');
+                }
+            } else {
+                alert('인증 오류: 등록되지 않은 사번입니다.');
+            }
+        }
+
+        function executeSystemLogout() {
+            if (confirm('세션을 파기하고 안전 로그아웃 하시겠습니까?')) {
+                sessionStorage.clear();
+                var scrLogin = document.getElementById('loginScreen');
+                var scrDash = document.getElementById('mainDashboard');
+                if (scrDash) scrDash.style.display = 'none';
+                if (scrLogin) scrLogin.style.display = 'flex';
+                if (document.getElementById('uid')) document.getElementById('uid').value = '';
+                if (document.getElementById('upw')) document.getElementById('upw').value = '';
+            }
+        }
+
+
+        // 관리자 비번변경 모달 열기
+        function openSelfPasswordModal() {
+            // 💡 HTML의 ID인 'pwModalLayer'로 정확히 일치시켰습니다.
+            var modal = document.getElementById('pwModalLayer');
+
+            if (modal) {
+                // 1. 모달을 띄울 때마다 이전 입력 암호를 비워줍니다.
+                var pwInput = document.getElementById('txtNewPassword');
+                if (pwInput) pwInput.value = '';
+
+                // 2. CSS Flexbox 구조를 활성화하여 정확히 정중앙에 배치되도록 합니다.
+                modal.style.display = 'flex';
+            } else {
+                console.error("모달 엘리먼트를 찾을 수 없습니다.");
+            }
+        }
+
+        // 관리자 비번변경 모달 닫기
+        function closeSelfPasswordModal() {
+            // 💡 HTML의 ID인 'pwModalLayer'로 정확히 일치시켰습니다.
+            var modal = document.getElementById('pwModalLayer');
+            if (modal) {
+                modal.style.display = 'none'; // 화면에서 완전히 감춤
+            }
+        }
+
+        // 비밀번호 변경 커밋 실행부
+        function executePasswordChangeCommit() {
+            var newPassword = document.getElementById('txtNewPassword').value;
+
+            if (!newPassword || newPassword.trim() === "") {
+                alert("변경할 암호를 입력해 주세요.");
+                document.getElementById('txtNewPassword').focus();
+                return;
+            }
+
+            // 여기에 기존 프로젝트의 변경 로직(ajax 혹은 fetch 등)을 넣으시면 됩니다.
+            alert("비밀번호가 정상적으로 변경되었습니다.");
+            closeSelfPasswordModal();
+        }
+
+        // 관리자 전용 대시대상자 미디어 해시 저장소 (업로드 파일 바이너리를 인메모리에 락업 보관)
+        window.adminDocumentMemoryStore = {};
+
+        // 💡 [실시간 연동 코어 인터페이스] adm_mem.pdf 모바일 신청서 단추 타격 시 소켓 릴레이 수신 라우터 함수
+        function receiveSubjectDocumentPayload(payload) {
+            if (!payload || !payload.patientName) return;
+
+            const pName = payload.patientName;
+
+            // 1. 메모리에 파일 바이너리 보관
+            window.adminDocumentMemoryStore[pName] = {
+                idCard: payload.idCardImg,
+                bankBook: payload.bankBookImg
+            };
+
+            // 2. 전체 테이블에서 '홍길동' 이름이 들어간 행(Row) 정확하게 탐색
+            let targetRow = null;
+            const allRows = document.querySelectorAll("table tbody tr");
+
+            for (let row of allRows) {
+                if (row.getAttribute('data-name') === pName) {
+                    targetRow = row;
+                    break;
+                }
+                for (let cell of row.cells) {
+                    if (cell.innerText.trim() === pName) {
+                        targetRow = row;
+                        break;
                     }
                 }
+                if (targetRow) break;
+            }
 
-                /** 2. [복구] 안전 로그아웃 처리 함수 - 세션 파기 */
-                function executeSystemLogout() {
-                    if (confirm('세션을 파기하고 안전 로그아웃 하시겠습니까?')) {
-                        sessionStorage.clear();
-                        if (document.getElementById('mainDashboard')) document.getElementById('mainDashboard').style.display = 'none';
-                        if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'flex';
-                        if (document.getElementById('uid')) document.getElementById('uid').value = '';
-                        if (document.getElementById('upw')) document.getElementById('upw').value = '';
-                    }
-                }
+            // 3. 🎯 [완전 교정] 인원수/기간 칸 오염 차단 + 오직 첨부서류 칸만 정밀 타격
+            if (targetRow && targetRow.cells.length > 0) {
+                const totalCells = targetRow.cells.length;
 
-                // 3. 비밀번호 입력 칸에서 엔터키 입력 시 로그인 연동 리스너 추가
-                const upwInput = document.getElementById('upw');
-                if (upwInput) {
-                    upwInput.addEventListener('keydown', function (event) {
-                        if (event.key === 'Enter') {
-                            event.preventDefault();
-                            executeSystemLogin();
-                        }
-                    });
-                }
+                // 💡 맨 오른쪽(cells.length - 1)은 [작업] 버튼 칸이고, 
+                // 💡 오른쪽에서 2번째(cells.length - 2)가 무조건 [첨부서류] 칸입니다.
+                const docCellIndex = totalCells - 2;
+                const docCell = targetRow.cells[docCellIndex];
 
-                function executeSystemLogin() {
-                    var idInput = document.getElementById('uid');
-                    var pwInput = document.getElementById('upw');
-                    if (!idInput || !pwInput) return;
-
-                    var id = idInput.value.trim();
-                    var pw = pwInput.value.trim();
-
-                    if (!id || !pw) {
-                        alert('사번과 비밀번호를 입력해주세요.');
-                        return;
-                    }
-
-                    if (typeof initializePresetMasterDatabase === 'function') {
-                        initializePresetMasterDatabase();
-                    }
-
-                    var account = dataStoreAdminMembers.find(function (m) { return m.sabun === id; });
-
-                    if (account) {
-                        if (pw === account.pw || pw === account.sabun || (pw === "9793" && account.sabun === "admin")) {
-                            sessionStorage.setItem('adminLoginSession', 'isAuthorizedSecureToken');
-                            sessionStorage.setItem('adminLoginSabun', id);
-
-                            var scrLogin = document.getElementById('loginScreen');
-                            var scrDash = document.getElementById('mainDashboard');
-                            if (scrLogin) scrLogin.style.display = 'none';
-                            if (scrDash) scrDash.style.display = 'flex';
-
-                            if (typeof bindTopBarProfile === 'function') { bindTopBarProfile(id); }
-                            if (typeof changeMainViewport === 'function') { changeMainViewport('recruitmentView'); }
-                        } else {
-                            alert('인증 실패: 비밀번호가 틀립니다.');
-                        }
-                    } else {
-                        alert('인증 오류: 등록되지 않은 사번입니다.');
-                    }
-                }
-
-                function executeSystemLogout() {
-                    if (confirm('세션을 파기하고 안전 로그아웃 하시겠습니까?')) {
-                        sessionStorage.clear();
-                        var scrLogin = document.getElementById('loginScreen');
-                        var scrDash = document.getElementById('mainDashboard');
-                        if (scrDash) scrDash.style.display = 'none';
-                        if (scrLogin) scrLogin.style.display = 'flex';
-                        if (document.getElementById('uid')) document.getElementById('uid').value = '';
-                        if (document.getElementById('upw')) document.getElementById('upw').value = '';
-                    }
-                }
-
-
-                // 관리자 비번변경 모달 열기
-                function openSelfPasswordModal() {
-                    // 💡 HTML의 ID인 'pwModalLayer'로 정확히 일치시켰습니다.
-                    var modal = document.getElementById('pwModalLayer');
-
-                    if (modal) {
-                        // 1. 모달을 띄울 때마다 이전 입력 암호를 비워줍니다.
-                        var pwInput = document.getElementById('txtNewPassword');
-                        if (pwInput) pwInput.value = '';
-
-                        // 2. CSS Flexbox 구조를 활성화하여 정확히 정중앙에 배치되도록 합니다.
-                        modal.style.display = 'flex';
-                    } else {
-                        console.error("모달 엘리먼트를 찾을 수 없습니다.");
-                    }
-                }
-
-                // 관리자 비번변경 모달 닫기
-                function closeSelfPasswordModal() {
-                    // 💡 HTML의 ID인 'pwModalLayer'로 정확히 일치시켰습니다.
-                    var modal = document.getElementById('pwModalLayer');
-                    if (modal) {
-                        modal.style.display = 'none'; // 화면에서 완전히 감춤
-                    }
-                }
-
-                // 비밀번호 변경 커밋 실행부
-                function executePasswordChangeCommit() {
-                    var newPassword = document.getElementById('txtNewPassword').value;
-
-                    if (!newPassword || newPassword.trim() === "") {
-                        alert("변경할 암호를 입력해 주세요.");
-                        document.getElementById('txtNewPassword').focus();
-                        return;
-                    }
-
-                    // 여기에 기존 프로젝트의 변경 로직(ajax 혹은 fetch 등)을 넣으시면 됩니다.
-                    alert("비밀번호가 정상적으로 변경되었습니다.");
-                    closeSelfPasswordModal();
-                }
-
-                // 관리자 전용 대시대상자 미디어 해시 저장소 (업로드 파일 바이너리를 인메모리에 락업 보관)
-                window.adminDocumentMemoryStore = {};
-
-                // 💡 [실시간 연동 코어 인터페이스] adm_mem.pdf 모바일 신청서 단추 타격 시 소켓 릴레이 수신 라우터 함수
-                function receiveSubjectDocumentPayload(payload) {
-                    if (!payload || !payload.patientName) return;
-
-                    const pName = payload.patientName;
-
-                    // 1. 메모리에 파일 바이너리 보관
-                    window.adminDocumentMemoryStore[pName] = {
-                        idCard: payload.idCardImg,
-                        bankBook: payload.bankBookImg
-                    };
-
-                    // 2. 전체 테이블에서 '홍길동' 이름이 들어간 행(Row) 정확하게 탐색
-                    let targetRow = null;
-                    const allRows = document.querySelectorAll("table tbody tr");
-
-                    for (let row of allRows) {
-                        if (row.getAttribute('data-name') === pName) {
-                            targetRow = row;
-                            break;
-                        }
-                        for (let cell of row.cells) {
-                            if (cell.innerText.trim() === pName) {
-                                targetRow = row;
-                                break;
-                            }
-                        }
-                        if (targetRow) break;
-                    }
-
-                    // 3. 🎯 [완전 교정] 인원수/기간 칸 오염 차단 + 오직 첨부서류 칸만 정밀 타격
-                    if (targetRow && targetRow.cells.length > 0) {
-                        const totalCells = targetRow.cells.length;
-
-                        // 💡 맨 오른쪽(cells.length - 1)은 [작업] 버튼 칸이고, 
-                        // 💡 오른쪽에서 2번째(cells.length - 2)가 무조건 [첨부서류] 칸입니다.
-                        const docCellIndex = totalCells - 2;
-                        const docCell = targetRow.cells[docCellIndex];
-
-                        if (docCell) {
-                            // 다른 앞쪽 칸(인원수, 기간 등)은 일절 건드리지 않고, 오직 첨부서류 칸에만 신분증/통장 배지를 인젝션합니다.
-                            docCell.innerHTML = `
+                if (docCell) {
+                    // 다른 앞쪽 칸(인원수, 기간 등)은 일절 건드리지 않고, 오직 첨부서류 칸에만 신분증/통장 배지를 인젝션합니다.
+                    docCell.innerHTML = `
                 <span class="doc-badge status-id" style="display:inline-block; padding:4px 6px; background:rgba(74,222,128,0.15); border:1px solid #4ade80; color:#4ade80; border-radius:4px; font-size:11px; font-weight:700; margin:2px; cursor:pointer;" onclick="openAdminDocModal('${pName}', 'idCard')">신분증</span>
                 <span class="doc-badge status-bank" style="display:inline-block; padding:4px 6px; background:rgba(14,165,233,0.15); border:1px solid #0ea5e9; color:#38bdf8; border-radius:4px; font-size:11px; font-weight:700; margin:2px; cursor:pointer;" onclick="openAdminDocModal('${pName}', 'bankBook')">통장</span>
             `;
-                        }
-
-                        console.log(`[연동 성공] [접수] 배지 없이 정확한 첨부서류 열에 증빙 배지만 안착되었습니다.`);
-                    } else {
-                        console.error(`[연동 실패] 대시보드 명단에서 [${pName}] 대상자 행을 찾지 못했습니다.`);
-                    }
-
-                    // 4. 상단 '청구서 접수 현황' 스코어보드 통계 실시간 동기화 (+1)
-                    let receivedStat = document.getElementById('stat-received-count');
-                    if (receivedStat) {
-                        let currentCount = parseInt(receivedStat.innerText) || 0;
-                        receivedStat.innerText = (currentCount + 1) + "건";
-                    }
                 }
-                window.receiveSubjectDocumentPayload = receiveSubjectDocumentPayload;
 
-                // 명단 그리드 내부 특정 대상자 행의 서류 구역을 '미제출' -> '신분증/통장 뱃지' 마크업으로 강제 강전산 스위칭
-                function updateTableDocumentCellDynamic(patientName) {
-                    // 예시: 테이블 바디 내 전체 행 중에서 성명 열 또는 텍스트 매칭을 추적
-                    // 아래 코드는 명단 테이블 구조에서 대상자 매칭 후 서류 셀을 조작하는 마스터 제어 알고리즘 예시입니다.
-                    let rows = document.querySelectorAll("#dom-applicant-table-body tr, table tbody tr");
-                    rows.forEach(row => {
-                        if (row.innerHTML.includes(patientName)) {
-                            // 통상적으로 첨부서류가 출력되도록 규정된 td 컬럼 인덱스 타겟팅 (설계 구조에 맞춰 조정 가능)
-                            // 여기서는 '첨부서류' 레이어 구역을 찾아 교체 처리합니다.
-                            let docCell = row.querySelector(".target-doc-cell") || row.cells[6]; // 임의 지정
-                            if (docCell) {
-                                docCell.innerHTML = `
+                console.log(`[연동 성공] [접수] 배지 없이 정확한 첨부서류 열에 증빙 배지만 안착되었습니다.`);
+            } else {
+                console.error(`[연동 실패] 대시보드 명단에서 [${pName}] 대상자 행을 찾지 못했습니다.`);
+            }
+
+            // 4. 상단 '청구서 접수 현황' 스코어보드 통계 실시간 동기화 (+1)
+            let receivedStat = document.getElementById('stat-received-count');
+            if (receivedStat) {
+                let currentCount = parseInt(receivedStat.innerText) || 0;
+                receivedStat.innerText = (currentCount + 1) + "건";
+            }
+        }
+        window.receiveSubjectDocumentPayload = receiveSubjectDocumentPayload;
+
+        // 명단 그리드 내부 특정 대상자 행의 서류 구역을 '미제출' -> '신분증/통장 뱃지' 마크업으로 강제 강전산 스위칭
+        function updateTableDocumentCellDynamic(patientName) {
+            // 예시: 테이블 바디 내 전체 행 중에서 성명 열 또는 텍스트 매칭을 추적
+            // 아래 코드는 명단 테이블 구조에서 대상자 매칭 후 서류 셀을 조작하는 마스터 제어 알고리즘 예시입니다.
+            let rows = document.querySelectorAll("#dom-applicant-table-body tr, table tbody tr");
+            rows.forEach(row => {
+                if (row.innerHTML.includes(patientName)) {
+                    // 통상적으로 첨부서류가 출력되도록 규정된 td 컬럼 인덱스 타겟팅 (설계 구조에 맞춰 조정 가능)
+                    // 여기서는 '첨부서류' 레이어 구역을 찾아 교체 처리합니다.
+                    let docCell = row.querySelector(".target-doc-cell") || row.cells[6]; // 임의 지정
+                    if (docCell) {
+                        docCell.innerHTML = `
                     <span class="doc-badge status-id" onclick="openAdminDocModal('${patientName}', 'idCard')"><i class="fa-solid fa-id-card"></i> 신분증</span>
                     <span class="doc-badge status-bank" onclick="openAdminDocModal('${patientName}', 'bankBook')"><i class="fa-solid fa-wallet"></i> 통장</span>
                 `;
-                            }
-                            // 전체 대장 대지 상태값 레이블도 "접수" 상태로 전환 처리
-                            let statusCell = row.querySelector(".target-status-cell") || row.cells[7];
-                            if (statusCell) {
-                                statusCell.innerHTML = `<span class="lvl-badge lvl-2">접수</span>`;
-                            }
-                        }
-                    });
-                }
-
-                // 💡 [모달 오픈 기능] 배지 클릭 시 해당 피험자의 디코딩 미디어를 주입하여 팝업을 개방하는 마스터 핸들러
-                function openAdminDocModal(patientName, docType) {
-                    const userDocs = window.adminDocumentMemoryStore[patientName];
-                    if (!userDocs || !userDocs[docType] || userDocs[docType] === "placeholder") {
-                        alert("제출된 증빙 문서 파일의 변수 스트림이 유효하지 않거나 손상되었습니다.");
-                        return;
                     }
-
-                    const modal = document.getElementById('adminDocViewerOverlay');
-                    const modalImg = document.getElementById('adminDocModalImg');
-                    const modalTitle = document.getElementById('adminDocModalTitle');
-                    const downloadBtn = document.getElementById('adminDocDownloadBtn');
-
-                    const docLabel = docType === 'idCard' ? '신분증' : '통장사본';
-                    modalTitle.innerHTML = `💥 [국책정산 증빙] ${patientName} 피험자 님의 정밀 검수 - [${docLabel}]`;
-
-                    // Base64 데이터 스레드를 이미지 소스 인젝션 처리
-                    modalImg.src = userDocs[docType];
-                    modal.style.display = 'flex'; // 전체 브라우저 중앙 레이아웃 고정 개방
-
-                    // 로컬 다운로드 동작용 트리거 바인딩 설정 업데이트
-                    downloadBtn.onclick = function () {
-                        var dummyLink = document.createElement('a');
-                        dummyLink.href = userDocs[docType];
-                        dummyLink.download = `관리자검수_${patientName}_${docLabel}.png`;
-                        document.body.appendChild(dummyLink);
-                        dummyLink.click();
-                        document.body.removeChild(dummyLink);
-                    };
+                    // 전체 대장 대지 상태값 레이블도 "접수" 상태로 전환 처리
+                    let statusCell = row.querySelector(".target-status-cell") || row.cells[7];
+                    if (statusCell) {
+                        statusCell.innerHTML = `<span class="lvl-badge lvl-2">접수</span>`;
+                    }
                 }
+            });
+        }
 
-                function closeAdminDocModal() {
-                    document.getElementById('adminDocViewerOverlay').style.display = 'none';
-                }
+        // 💡 [모달 오픈 기능] 배지 클릭 시 해당 피험자의 디코딩 미디어를 주입하여 팝업을 개방하는 마스터 핸들러
+        function openAdminDocModal(patientName, docType) {
+            const userDocs = window.adminDocumentMemoryStore[patientName];
+            if (!userDocs || !userDocs[docType] || userDocs[docType] === "placeholder") {
+                alert("제출된 증빙 문서 파일의 변수 스트림이 유효하지 않거나 손상되었습니다.");
+                return;
+            }
 
-                // 격리 레이어 프린트 드라이버 원격 호출 인가 함수
-                function printAdminModalDoc() {
-                    const imgElement = document.getElementById('adminDocModalImg');
-                    if (!imgElement || !imgElement.src) return;
+            const modal = document.getElementById('adminDocViewerOverlay');
+            const modalImg = document.getElementById('adminDocModalImg');
+            const modalTitle = document.getElementById('adminDocModalTitle');
+            const downloadBtn = document.getElementById('adminDocDownloadBtn');
 
-                    var printWindow = window.open('', '_blank', 'width=850,height=650');
-                    var htmlContent = `
+            const docLabel = docType === 'idCard' ? '신분증' : '통장사본';
+            modalTitle.innerHTML = `💥 [국책정산 증빙] ${patientName} 피험자 님의 정밀 검수 - [${docLabel}]`;
+
+            // Base64 데이터 스레드를 이미지 소스 인젝션 처리
+            modalImg.src = userDocs[docType];
+            modal.style.display = 'flex'; // 전체 브라우저 중앙 레이아웃 고정 개방
+
+            // 로컬 다운로드 동작용 트리거 바인딩 설정 업데이트
+            downloadBtn.onclick = function () {
+                var dummyLink = document.createElement('a');
+                dummyLink.href = userDocs[docType];
+                dummyLink.download = `관리자검수_${patientName}_${docLabel}.png`;
+                document.body.appendChild(dummyLink);
+                dummyLink.click();
+                document.body.removeChild(dummyLink);
+            };
+        }
+
+        function closeAdminDocModal() {
+            document.getElementById('adminDocViewerOverlay').style.display = 'none';
+        }
+
+        // 격리 레이어 프린트 드라이버 원격 호출 인가 함수
+        function printAdminModalDoc() {
+            const imgElement = document.getElementById('adminDocModalImg');
+            if (!imgElement || !imgElement.src) return;
+
+            var printWindow = window.open('', '_blank', 'width=850,height=650');
+            var htmlContent = `
         <html><head><title>임상관리원 정산증빙출력</title></head>
         <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#ffffff;">
             <img src="${imgElement.src}" style="max-width:100%; max-height:100vh; object-fit:contain;" onload="window.print(); window.close();">
         </body></html>`;
-                    printWindow.document.write(htmlContent);
-                    printWindow.document.close();
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+        }
+
+
+        // 💡 부모창-자식창 간 커넥션 링크 주소를 자동 매핑하여 모바일 팝업을 정식 인가하는 함수
+        function openMobileForm() {
+            // 현재 admin.html 주소를 기반으로 동일 디렉토리 내의 adm_mem.html 주소 자동 연산
+            const currentUrl = window.location.href;
+            const targetUrl = currentUrl.replace('admin.html', 'adm_mem.html');
+
+            // 모바일 폰 규격(폭 420px, 높이 850px)으로 브라우저 자식 윈도우 개방 (opener 바인딩 활성화)
+            window.open(targetUrl, 'mobileFormPopup', 'width=420,height=850,resizable=no,scrollbars=yes,left=150,top=50');
+        }
+        window.openMobileForm = openMobileForm;
+
+
+        // 자식 팝업들이 서로 동기화하기 위해 부모 창의 메모리를 허브로 사용합니다.
+        window.currentCertifiedUser = null; // 인증 통과한 대상자의 전체 객체 보관 슬롯
+
+        // A. 우측 상단 민간인증 로그인 테스트 팝업 가동
+        function openCivilAuthBridge() {
+            // join_login.html을 자식 창으로 오픈
+            window.open('join_login.html', 'civilAuthPopup', 'width=500, height=750, top=150, left=200');
+        }
+
+        // B. 목록 내에서 [사례비 신청 프로세스 관리] 또는 상단 테스트 버튼 클릭 시 adm_mem 오픈
+        // 💡 팁: 목록 테이블 렌더링 시 버튼에 인자로 user 객체를 넘겨주거나(openAdminMemberController(user)), 
+        // 인자 없이 호출하면(openAdminMemberController()) 방금 join_login을 통과한 유저를 제어하도록 다형성(Polymorphism)을 부여합니다.
+        function openAdminMemberController(specificUser) {
+
+            // 1. 목록 내에서 특정 대상자 버튼을 명확히 클릭하여 진입한 경우
+            if (specificUser) {
+                window.currentCertifiedUser = specificUser;
+                console.log(`[직접 지정 제어] 목록에서 선택된 대상자로 허브 락업: ${specificUser.name}`);
+            }
+            // 2. 인자 없이 상단 테스트 버튼 등으로 진입한 경우
+            else {
+                if (!window.currentCertifiedUser) {
+                    alert("위험: 아직 민간인증(join_login)을 성공한 대상자가 없거나 목록에서 선택된 유저가 없습니다.\n인증을 먼저 완료하거나 대장에서 대상자를 선택해주세요.");
+                    return;
                 }
+                console.log(`[인증 기반 제어] 민간인증을 성공한 대상자로 제어반 오픈: ${window.currentCertifiedUser.name}`);
+            }
 
+            // adm_mem.html을 오픈하여 부모의 window.currentCertifiedUser 주소값을 강제 바인딩하게 유도
+            window.open('adm_mem.html', 'adminMemberController', 'width=1600, height=900, top=50, left=100');
+        }
 
-                // 💡 부모창-자식창 간 커넥션 링크 주소를 자동 매핑하여 모바일 팝업을 정식 인가하는 함수
-                function openMobileForm() {
-                    // 현재 admin.html 주소를 기반으로 동일 디렉토리 내의 adm_mem.html 주소 자동 연산
-                    const currentUrl = window.location.href;
-                    const targetUrl = currentUrl.replace('admin.html', 'adm_mem.html');
+        // C. adm_mem에서 최종 청구 패킷 수신 시 명단 테이블 리렌더링 및 배지 노출 허브 함수
+        function receiveSubjectDocumentPayload(payload) {
+            console.log("실시간 서류 수신 패킷: ", payload);
 
-                    // 모바일 폰 규격(폭 420px, 높이 850px)으로 브라우저 자식 윈도우 개방 (opener 바인딩 활성화)
-                    window.open(targetUrl, 'mobileFormPopup', 'width=420,height=850,resizable=no,scrollbars=yes,left=150,top=50');
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 이름과 주민번호 앞자리를 결합하여 대상자 대장에서 정확한 행(Index)을 검색합니다.
+            const idx = adminApplicantDB.findIndex(user => {
+                if (payload.patientUid) {
+                    return String(user.uid) === String(payload.patientUid);
                 }
-                window.openMobileForm = openMobileForm;
+                return user.name === payload.patientName && (!payload.patientSsn || user.ssn === payload.patientSsn);
+            });
 
+            if (idx !== -1) {
+                adminApplicantDB[idx].payStatus = "접수";
 
-                // 자식 팝업들이 서로 동기화하기 위해 부모 창의 메모리를 허브로 사용합니다.
-                window.currentCertifiedUser = null; // 인증 통과한 대상자의 전체 객체 보관 슬롯
+                // 🎯 [오타 전면 교정 구역] 
+                // 1. 신분증 방에는 패킷이 보내준 신분증 이미지(payload.idCardImg)만 정확하게 마운트!
+                adminApplicantDB[idx].idCardImg = payload.idCardImg;
+                adminApplicantDB[idx].idCardUrl = payload.idCardImg; // 백업 키 동시 동기화
 
-                // A. 우측 상단 민간인증 로그인 테스트 팝업 가동
-                function openCivilAuthBridge() {
-                    // join_login.html을 자식 창으로 오픈
-                    window.open('join_login.html', 'civilAuthPopup', 'width=500, height=750, top=150, left=200');
+                // 2. 통장 방에는 패킷이 보내준 통장 이미지(payload.bankBookImg)만 정확하게 마운트!
+                // 💡 주의: 기존 소스의 payload.bankBookUrl 이나 오타를 실제 로그에 찍힌 'bankBookImg' 규격으로 정밀 일치화했습니다.
+                adminApplicantDB[idx].bankBookImg = payload.bankBookImg;
+                adminApplicantDB[idx].bankBookUrl = payload.bankBookImg; // 백업 키 동시 동기화
+
+                // 서류 통과 부울값 활성화
+                adminApplicantDB[idx].idCard = true;
+                adminApplicantDB[idx].bankbook = true;
+
+                // 교정된 개별 이미지 스트림을 LocalStorage 가상 DB에 최종 커밋
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+                console.log(`🎯 [정렬 성공] ${payload.patientName}님의 신분증 및 통장 원본 데이터가 대장에 각각 격리 저장되었습니다.`);
+
+                // 12개 컬럼 마스터 테이블 목록 실시간 리렌더링 호출
+                if (typeof refreshApplicantView === "function") {
+                    refreshApplicantView();
                 }
+            } else {
+                console.warn(`⚠️ [연동 실패] 수신된 성명(${payload.patientName})과 일치하는 대상자를 찾지 못했습니다.`);
+            }
+        }
 
-                // B. 목록 내에서 [사례비 신청 프로세스 관리] 또는 상단 테스트 버튼 클릭 시 adm_mem 오픈
-                // 💡 팁: 목록 테이블 렌더링 시 버튼에 인자로 user 객체를 넘겨주거나(openAdminMemberController(user)), 
-                // 인자 없이 호출하면(openAdminMemberController()) 방금 join_login을 통과한 유저를 제어하도록 다형성(Polymorphism)을 부여합니다.
-                function openAdminMemberController(specificUser) {
 
-                    // 1. 목록 내에서 특정 대상자 버튼을 명확히 클릭하여 진입한 경우
-                    if (specificUser) {
-                        window.currentCertifiedUser = specificUser;
-                        console.log(`[직접 지정 제어] 목록에서 선택된 대상자로 허브 락업: ${specificUser.name}`);
+        /**
+ * 🎯 [신규 추가] 증빙 서류 배지 클릭 시 원본 이미지를 오버레이로 띄워주는 모달 엔진
+ * @param {string} imgSrc - 파일 이미지 경로 또는 Base64 바이너리 데이터
+ * @param {string} titleText - 모달 헤더에 출력할 대상자 정보 타이틀
+ */
+        function openDocModal(imgSrc, titleText) {
+            const overlay = document.getElementById('docModalOverlay');
+            const modalImg = document.getElementById('docModalImage');
+            const modalTitle = document.getElementById('docModalTitle');
+            const noImgMsg = document.getElementById('docModalNoImageMessage');
+
+            if (!overlay || !modalImg) return;
+
+            // 모달 상단 타이틀 실시간 동기화 갱신
+            if (modalTitle) modalTitle.innerText = titleText;
+
+            // 1. 🎯 [초정밀 스트림 무결성 검사]: 수신된 데이터가 완전히 깨지지 않은 정상 Base64 주소인지 판정
+            let isPerfectStream = false;
+
+            if (imgSrc &&
+                imgSrc !== "undefined" &&
+                imgSrc !== "null" &&
+                imgSrc !== "유" &&
+                imgSrc !== "true" &&
+                imgSrc !== "placeholder" &&
+                imgSrc.length > 100) { // 💡 파편화 및 유실되지 않은 온전한 대용량 스트림 데이터만 실물 출력 승인
+
+                if (imgSrc.indexOf('data:image') === 0 || imgSrc.indexOf('http') === 0) {
+                    if (imgSrc.indexOf('fakepath') === -1) {
+                        isPerfectStream = true;
                     }
-                    // 2. 인자 없이 상단 테스트 버튼 등으로 진입한 경우
-                    else {
-                        if (!window.currentCertifiedUser) {
-                            alert("위험: 아직 민간인증(join_login)을 성공한 대상자가 없거나 목록에서 선택된 유저가 없습니다.\n인증을 먼저 완료하거나 대장에서 대상자를 선택해주세요.");
-                            return;
-                        }
-                        console.log(`[인증 기반 제어] 민간인증을 성공한 대상자로 제어반 오픈: ${window.currentCertifiedUser.name}`);
-                    }
+                }
+            }
 
-                    // adm_mem.html을 오픈하여 부모의 window.currentCertifiedUser 주소값을 강제 바인딩하게 유도
-                    window.open('adm_mem.html', 'adminMemberController', 'width=1600, height=900, top=50, left=100');
+            // 2. [가드 링킹 및 1:1 독립 샘플 복원 분기]
+            if (isPerfectStream) {
+                // [A 루트]: 파일 스트림 코드가 완벽하게 유효한 경우 -> 업로드 실물 직격 출력
+                modalImg.src = imgSrc;
+            } else {
+                // [B 루트]: 🎯 [신분증 빈칸 버그 완전 치료 구역]
+                // 데이터가 유실되거나 깨진 신호("유", "true", placeholder)일 때, 빈칸으로 두지 않고 타이틀 문맥을 분석하여 
+                // Slide 2 매뉴얼 가이드라인에 규정된 독립된 고해상도 그래픽 이미지로 강제 전환 매칭합니다!
+                if (titleText.indexOf('신분증') !== -1) {
+                    // 💡 신분증 버튼을 눌렀을 때는 무조건 고해상도 가상 주민등록증 그래픽 마운트!
+                    modalImg.src = "https://picsum.photos";
+                } else {
+                    // 💡 통장 버튼을 눌렀을 때는 무조건 고해상도 가상 통장사본 그래픽 마운트!
+                    modalImg.src = "https://picsum.photos";
+                }
+            }
+
+            // 3. 🎯 이미지 엘리먼트 강제 시각화 활성화
+            modalImg.style.display = "block";
+            if (noImgMsg) noImgMsg.style.display = "none";
+
+            // 4. 🎯 [최후의 보루]: 브라우저 내부에서 데이터가 로딩되다가 깨짐 에러(onerror)가 터지는 순간 실행되는 비상 헬퍼
+            modalImg.onerror = function () {
+                console.warn("⚠️ [자동 복구 가동] 신분증/통장 전용 그래픽 소스로 안전 대칭 복원 작업을 수행합니다.");
+
+                // 에러가 터진 시점의 타이틀 텍스트를 파싱하여 신분증과 통장을 완벽하게 분리 출력합니다.
+                if (titleText.indexOf('신분증') !== -1) {
+                    this.src = "https://picsum.photos"; // 깨진 신분증을 진짜 신분증 샘플로 복구
+                } else {
+                    this.src = "https://picsum.photos";  // 깨진 통장을 진짜 통장 샘플로 복구
                 }
 
-                // C. adm_mem에서 최종 청구 패킷 수신 시 명단 테이블 리렌더링 및 배지 노출 허브 함수
-                function receiveSubjectDocumentPayload(payload) {
-                    console.log("실시간 서류 수신 패킷: ", payload);
+                this.style.display = "block";
+                if (noImgMsg) noImgMsg.style.display = "none";
+            };
 
-                    let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            // 5. 모달창 오버레이 뷰포트 flex 완전 개방
+            overlay.style.display = "flex";
+        }
 
-                    // 이름과 주민번호 앞자리를 결합하여 대상자 대장에서 정확한 행(Index)을 검색합니다.
-                    const idx = adminApplicantDB.findIndex(user => {
-                        if (payload.patientUid) {
-                            return String(user.uid) === String(payload.patientUid);
-                        }
-                        return user.name === payload.patientName && (!payload.patientSsn || user.ssn === payload.patientSsn);
-                    });
-
-                    if (idx !== -1) {
-                        adminApplicantDB[idx].payStatus = "접수";
-
-                        // 🎯 [오타 전면 교정 구역] 
-                        // 1. 신분증 방에는 패킷이 보내준 신분증 이미지(payload.idCardImg)만 정확하게 마운트!
-                        adminApplicantDB[idx].idCardImg = payload.idCardImg;
-                        adminApplicantDB[idx].idCardUrl = payload.idCardImg; // 백업 키 동시 동기화
-
-                        // 2. 통장 방에는 패킷이 보내준 통장 이미지(payload.bankBookImg)만 정확하게 마운트!
-                        // 💡 주의: 기존 소스의 payload.bankBookUrl 이나 오타를 실제 로그에 찍힌 'bankBookImg' 규격으로 정밀 일치화했습니다.
-                        adminApplicantDB[idx].bankBookImg = payload.bankBookImg;
-                        adminApplicantDB[idx].bankBookUrl = payload.bankBookImg; // 백업 키 동시 동기화
-
-                        // 서류 통과 부울값 활성화
-                        adminApplicantDB[idx].idCard = true;
-                        adminApplicantDB[idx].bankbook = true;
-
-                        // 교정된 개별 이미지 스트림을 LocalStorage 가상 DB에 최종 커밋
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-                        console.log(`🎯 [정렬 성공] ${payload.patientName}님의 신분증 및 통장 원본 데이터가 대장에 각각 격리 저장되었습니다.`);
-
-                        // 12개 컬럼 마스터 테이블 목록 실시간 리렌더링 호출
-                        if (typeof refreshApplicantView === "function") {
-                            refreshApplicantView();
-                        }
-                    } else {
-                        console.warn(`⚠️ [연동 실패] 수신된 성명(${payload.patientName})과 일치하는 대상자를 찾지 못했습니다.`);
-                    }
-                }
-
-
-                /**
-         * 🎯 [신규 추가] 증빙 서류 배지 클릭 시 원본 이미지를 오버레이로 띄워주는 모달 엔진
-         * @param {string} imgSrc - 파일 이미지 경로 또는 Base64 바이너리 데이터
-         * @param {string} titleText - 모달 헤더에 출력할 대상자 정보 타이틀
+        /**
+         * 🎯 [원본 스펙 준수] 이미지 확인 후 팝업 모달을 닫는 제어 함수
          */
-                function openDocModal(imgSrc, titleText) {
-                    const overlay = document.getElementById('docModalOverlay');
-                    const modalImg = document.getElementById('docModalImage');
-                    const modalTitle = document.getElementById('docModalTitle');
-                    const noImgMsg = document.getElementById('docModalNoImageMessage');
+        function closeDocModal() {
+            const overlay = document.getElementById('docModalOverlay');
+            if (overlay) overlay.style.display = "none";
+        }
 
-                    if (!overlay || !modalImg) return;
+        /**
+         * 🎯 [하단 단추 연동 1] Slide 2 '증빙인쇄' 스풀러 엔진
+         */
+        function printDocModalElement() {
+            const modalImg = document.getElementById('docModalImage');
+            const modalTitle = document.getElementById('docModalTitle')?.innerText || "증빙서류";
+            if (!modalImg || !modalImg.src || modalImg.style.display === 'none') {
+                alert("인쇄를 진행할 대상 서류 이미지가 활성화되지 않았습니다.");
+                return;
+            }
 
-                    // 모달 상단 타이틀 실시간 동기화 갱신
-                    if (modalTitle) modalTitle.innerText = titleText;
+            // 메인 관리자 대시보드 검은 화면 전체 인쇄 버그 차단용 가상 격리 iframe 기법
+            const printFrame = document.createElement('iframe');
+            printFrame.style.position = 'fixed';
+            printFrame.style.width = '0';
+            printFrame.style.height = '0';
+            printFrame.style.border = '0';
+            document.body.appendChild(printFrame);
 
-                    // 1. 🎯 [초정밀 스트림 무결성 검사]: 수신된 데이터가 완전히 깨지지 않은 정상 Base64 주소인지 판정
-                    let isPerfectStream = false;
-
-                    if (imgSrc &&
-                        imgSrc !== "undefined" &&
-                        imgSrc !== "null" &&
-                        imgSrc !== "유" &&
-                        imgSrc !== "true" &&
-                        imgSrc !== "placeholder" &&
-                        imgSrc.length > 100) { // 💡 파편화 및 유실되지 않은 온전한 대용량 스트림 데이터만 실물 출력 승인
-
-                        if (imgSrc.indexOf('data:image') === 0 || imgSrc.indexOf('http') === 0) {
-                            if (imgSrc.indexOf('fakepath') === -1) {
-                                isPerfectStream = true;
-                            }
-                        }
-                    }
-
-                    // 2. [가드 링킹 및 1:1 독립 샘플 복원 분기]
-                    if (isPerfectStream) {
-                        // [A 루트]: 파일 스트림 코드가 완벽하게 유효한 경우 -> 업로드 실물 직격 출력
-                        modalImg.src = imgSrc;
-                    } else {
-                        // [B 루트]: 🎯 [신분증 빈칸 버그 완전 치료 구역]
-                        // 데이터가 유실되거나 깨진 신호("유", "true", placeholder)일 때, 빈칸으로 두지 않고 타이틀 문맥을 분석하여 
-                        // Slide 2 매뉴얼 가이드라인에 규정된 독립된 고해상도 그래픽 이미지로 강제 전환 매칭합니다!
-                        if (titleText.indexOf('신분증') !== -1) {
-                            // 💡 신분증 버튼을 눌렀을 때는 무조건 고해상도 가상 주민등록증 그래픽 마운트!
-                            modalImg.src = "https://picsum.photos";
-                        } else {
-                            // 💡 통장 버튼을 눌렀을 때는 무조건 고해상도 가상 통장사본 그래픽 마운트!
-                            modalImg.src = "https://picsum.photos";
-                        }
-                    }
-
-                    // 3. 🎯 이미지 엘리먼트 강제 시각화 활성화
-                    modalImg.style.display = "block";
-                    if (noImgMsg) noImgMsg.style.display = "none";
-
-                    // 4. 🎯 [최후의 보루]: 브라우저 내부에서 데이터가 로딩되다가 깨짐 에러(onerror)가 터지는 순간 실행되는 비상 헬퍼
-                    modalImg.onerror = function () {
-                        console.warn("⚠️ [자동 복구 가동] 신분증/통장 전용 그래픽 소스로 안전 대칭 복원 작업을 수행합니다.");
-
-                        // 에러가 터진 시점의 타이틀 텍스트를 파싱하여 신분증과 통장을 완벽하게 분리 출력합니다.
-                        if (titleText.indexOf('신분증') !== -1) {
-                            this.src = "https://picsum.photos"; // 깨진 신분증을 진짜 신분증 샘플로 복구
-                        } else {
-                            this.src = "https://picsum.photos";  // 깨진 통장을 진짜 통장 샘플로 복구
-                        }
-
-                        this.style.display = "block";
-                        if (noImgMsg) noImgMsg.style.display = "none";
-                    };
-
-                    // 5. 모달창 오버레이 뷰포트 flex 완전 개방
-                    overlay.style.display = "flex";
-                }
-
-                /**
-                 * 🎯 [원본 스펙 준수] 이미지 확인 후 팝업 모달을 닫는 제어 함수
-                 */
-                function closeDocModal() {
-                    const overlay = document.getElementById('docModalOverlay');
-                    if (overlay) overlay.style.display = "none";
-                }
-
-                /**
-                 * 🎯 [하단 단추 연동 1] Slide 2 '증빙인쇄' 스풀러 엔진
-                 */
-                function printDocModalElement() {
-                    const modalImg = document.getElementById('docModalImage');
-                    const modalTitle = document.getElementById('docModalTitle')?.innerText || "증빙서류";
-                    if (!modalImg || !modalImg.src || modalImg.style.display === 'none') {
-                        alert("인쇄를 진행할 대상 서류 이미지가 활성화되지 않았습니다.");
-                        return;
-                    }
-
-                    // 메인 관리자 대시보드 검은 화면 전체 인쇄 버그 차단용 가상 격리 iframe 기법
-                    const printFrame = document.createElement('iframe');
-                    printFrame.style.position = 'fixed';
-                    printFrame.style.width = '0';
-                    printFrame.style.height = '0';
-                    printFrame.style.border = '0';
-                    document.body.appendChild(printFrame);
-
-                    const frameDoc = printFrame.contentWindow.document;
-                    frameDoc.open();
-                    frameDoc.write(`
+            const frameDoc = printFrame.contentWindow.document;
+            frameDoc.open();
+            frameDoc.write(`
         <html>
         <head>
             <title>${modalTitle}</title>
@@ -3759,187 +3762,187 @@
         </body>
         </html>
     `);
-                    frameDoc.close();
+            frameDoc.close();
+        }
+
+        /**
+         * 🎯 [하단 단추 연동 2] Slide 2 '로컬저장' 가속 앵커 다운로더 엔진
+         */
+        function downloadDocModalElement() {
+            const modalImg = document.getElementById('docModalImage');
+            const modalTitle = document.getElementById('docModalTitle')?.innerText || "증빙서류_원본";
+            if (!modalImg || !modalImg.src || modalImg.style.display === 'none') {
+                alert("로컬 PC에 다운로드 저장할 수 있는 파일 스트림이 유효하지 않습니다.");
+                return;
+            }
+
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.href = modalImg.src;
+            // 파일명 중간 공백 제어 처리 후 저장 파일 레이블 인가
+            downloadAnchor.download = `${modalTitle.replace(/\s/g, "_")}.jpg`;
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            document.body.removeChild(downloadAnchor);
+        }
+
+        // ========================================================
+        // 🎯 [최종 통합 싱크] 모집공고와 대상자 데이터베이스 명칭 100% 일치화 엔진
+        // ========================================================
+        (function () {
+            // 1. 📊 모집공고 데이터베이스 3종 마스터 리셋 및 강제 셋팅
+            let adminRecruitmentDB = [
+                {
+                    title: "애드파마 로잘탄+로수+에제",
+                    th: "2기",
+                    count: "60",
+                    period: "72",
+                    crc: "석정은",
+                    notice: "공복 유지 필수 및 소집 10분 전 대기",
+                    examDate: "2026-09-01",
+                    payDate: "2026-09-10" // join_login 연동 고정값
+                },
+                {
+                    title: "신일제약-사쿠+발사",
+                    th: "4기",
+                    count: "46",
+                    period: "96",
+                    crc: "최미현",
+                    notice: "지정식 이외 취식 금지 및 격리 규정 준수",
+                    examDate: "2026-09-15",
+                    payDate: "2026-09-30"
+                },
+                {
+                    title: "경동제약 식후 임상시험",
+                    th: "4기",
+                    count: "46",
+                    period: "96",
+                    crc: "강은애",
+                    notice: "지정식 이외 취식 금지 및 격리 규정 준수",
+                    examDate: "2026-10-15",
+                    payDate: "2026-10-30"
+                }
+            ];
+            localStorage.setItem('dataStoreRecruitment', JSON.stringify(adminRecruitmentDB));
+            console.log("[통합 동기화] 모집공고 마스터 테이블 3종 리셋 및 락인 완료.");
+
+            // 2. 📱 대상자 관리 데이터베이스 3인방 명단 완벽 매칭 주입
+            let adminApplicantDB = [
+                {
+                    title: "애드파마 로잘탄+로수+에제",
+                    th: "2기(1차)",
+                    count: "60",
+                    period: "72",
+                    name: "홍길동",
+                    ssn: "950505",
+                    phone: "01012345678",
+                    payStatus: "대기",
+                    isAgreed: "동의",
+                    idCardImg: "무",
+                    bankBookImg: "무",
+                    stage: "2 기 [1 차 차수분] 분할 사례비"
+                },
+                {
+                    title: "신일제약-사쿠+발사",
+                    th: "4기(1차)",
+                    count: "46",
+                    period: "96",
+                    name: "강남구",
+                    ssn: "980101",
+                    phone: "01090956763",
+                    payStatus: "대기",
+                    isAgreed: "동의",
+                    idCardImg: "무",
+                    bankBookImg: "무",
+                    stage: "4 기 [1 차 차수분] 분할 사례비"
+                },
+                {
+                    title: "경동제약 식후 임상시험",
+                    th: "4기(2차)",
+                    count: "46",
+                    period: "96",
+                    name: "진재영",
+                    ssn: "050607",
+                    phone: "01023469876",
+                    payStatus: "대기",
+                    isAgreed: "동의",
+                    idCardImg: "무",
+                    bankBookImg: "무",
+                    stage: "4 기 [1 차 차수분] 분할 사례비"
+                }
+            ];
+            localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+            console.log("[통합 동기화] 대상자 관리 명단 3종 명칭 싱크 결합 완료.");
+
+            // 3. 브라우저 로딩이 끝나면 양쪽 뷰 포트를 일제히 강제 출력 리프레시
+            window.addEventListener('load', function () {
+                if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
+                if (typeof refreshApplicantView === "function") refreshApplicantView();
+            });
+        })();
+
+        /**
+         * 🎯 1. [보기] 버튼 클릭 시 주의사항 및 상세 전산 팝업 알림 함수
+         */
+        function openRecruitmentDetails(index) {
+            if (!window.dataStoreRecruitment || !dataStoreRecruitment[index]) return;
+            const target = dataStoreRecruitment[index];
+            alert(`📋 [모집공고 상세조회]\n\n● 과제명: ${target.title}\n● 적용기수: ${target.th}\n● 담당 CRC: ${target.crc || '-'}\n● 배정인원: ${target.count}명\n● 임상기간: ${target.period}시간\n\n📢 [주의사항 및 특이사항]\n👉 ${target.notice || '등록된 내용이 없습니다.'}`);
+        }
+
+        /**
+         * 🎯 2. [수정] 버튼 클릭 시 인풋 폼으로 데이터를 역매핑하는 함수
+         */
+        function editRecruitmentRecord(index) {
+            if (!window.dataStoreRecruitment || !dataStoreRecruitment[index]) return;
+            const target = dataStoreRecruitment[index];
+
+            // 상단 신규 등록 폼 상자들을 수정 모드로 리다이렉트 치환합니다.
+            document.getElementById('form-rec-title').value = target.title;
+            document.getElementById('form-rec-th').value = target.th;
+            document.getElementById('form-rec-count').value = target.count;
+            document.getElementById('form-rec-period').value = target.period;
+            if (document.getElementById('form-rec-crc')) {
+                document.getElementById('form-rec-crc').value = target.crc || '';
+            }
+
+            // 등록박스 타이틀을 동적으로 변경하여 관리자에게 인지시킵니다.
+            const boxTitle = document.querySelector('.register-box h3');
+            if (boxTitle) boxTitle.innerText = `[모집공고 데이터 수정 모드 - 행 번호: ${index + 1}]`;
+
+            // 스크롤을 부드럽게 위로 올려 수정 폼으로 안내합니다.
+            document.querySelector('.register-box').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        /**
+         * 🎯 3. [삭제] 버튼 클릭 시 로컬스토리지 대장에서 영구 삭제 처리하는 함수
+         */
+        function deleteRecruitmentRecord(index) {
+            if (!window.dataStoreRecruitment || !dataStoreRecruitment[index]) return;
+            const target = dataStoreRecruitment[index];
+
+            if (confirm(`⚠️ 정말로 [${target.title}] 모집공고 데이터를 영구 삭제하시겠습니까?\n삭제 후에는 복구가 불가능합니다.`)) {
+                // 배열에서 해당 항목 제거
+                dataStoreRecruitment.splice(index, 1);
+
+                // 로컬스토리지 동기화 커밋 및 화면 리렌더링
+                if (typeof commitToLocalStorage === "function") {
+                    commitToLocalStorage();
+                } else {
+                    localStorage.setItem('dataStoreRecruitment', JSON.stringify(dataStoreRecruitment));
                 }
 
-                /**
-                 * 🎯 [하단 단추 연동 2] Slide 2 '로컬저장' 가속 앵커 다운로더 엔진
-                 */
-                function downloadDocModalElement() {
-                    const modalImg = document.getElementById('docModalImage');
-                    const modalTitle = document.getElementById('docModalTitle')?.innerText || "증빙서류_원본";
-                    if (!modalImg || !modalImg.src || modalImg.style.display === 'none') {
-                        alert("로컬 PC에 다운로드 저장할 수 있는 파일 스트림이 유효하지 않습니다.");
-                        return;
-                    }
-
-                    const downloadAnchor = document.createElement('a');
-                    downloadAnchor.href = modalImg.src;
-                    // 파일명 중간 공백 제어 처리 후 저장 파일 레이블 인가
-                    downloadAnchor.download = `${modalTitle.replace(/\s/g, "_")}.jpg`;
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    document.body.removeChild(downloadAnchor);
-                }
-
-                // ========================================================
-                // 🎯 [최종 통합 싱크] 모집공고와 대상자 데이터베이스 명칭 100% 일치화 엔진
-                // ========================================================
-                (function () {
-                    // 1. 📊 모집공고 데이터베이스 3종 마스터 리셋 및 강제 셋팅
-                    let adminRecruitmentDB = [
-                        {
-                            title: "애드파마 로잘탄+로수+에제",
-                            th: "2기",
-                            count: "60",
-                            period: "72",
-                            crc: "석정은",
-                            notice: "공복 유지 필수 및 소집 10분 전 대기",
-                            examDate: "2026-09-01",
-                            payDate: "2026-09-10" // join_login 연동 고정값
-                        },
-                        {
-                            title: "신일제약-사쿠+발사",
-                            th: "4기",
-                            count: "46",
-                            period: "96",
-                            crc: "최미현",
-                            notice: "지정식 이외 취식 금지 및 격리 규정 준수",
-                            examDate: "2026-09-15",
-                            payDate: "2026-09-30"
-                        },
-                        {
-                            title: "경동제약 식후 임상시험",
-                            th: "4기",
-                            count: "46",
-                            period: "96",
-                            crc: "강은애",
-                            notice: "지정식 이외 취식 금지 및 격리 규정 준수",
-                            examDate: "2026-10-15",
-                            payDate: "2026-10-30"
-                        }
-                    ];
-                    localStorage.setItem('dataStoreRecruitment', JSON.stringify(adminRecruitmentDB));
-                    console.log("[통합 동기화] 모집공고 마스터 테이블 3종 리셋 및 락인 완료.");
-
-                    // 2. 📱 대상자 관리 데이터베이스 3인방 명단 완벽 매칭 주입
-                    let adminApplicantDB = [
-                        {
-                            title: "애드파마 로잘탄+로수+에제",
-                            th: "2기(1차)",
-                            count: "60",
-                            period: "72",
-                            name: "홍길동",
-                            ssn: "950505",
-                            phone: "01012345678",
-                            payStatus: "대기",
-                            isAgreed: "동의",
-                            idCardImg: "무",
-                            bankBookImg: "무",
-                            stage: "2 기 [1 차 차수분] 분할 사례비"
-                        },
-                        {
-                            title: "신일제약-사쿠+발사",
-                            th: "4기(1차)",
-                            count: "46",
-                            period: "96",
-                            name: "강남구",
-                            ssn: "980101",
-                            phone: "01090956763",
-                            payStatus: "대기",
-                            isAgreed: "동의",
-                            idCardImg: "무",
-                            bankBookImg: "무",
-                            stage: "4 기 [1 차 차수분] 분할 사례비"
-                        },
-                        {
-                            title: "경동제약 식후 임상시험",
-                            th: "4기(2차)",
-                            count: "46",
-                            period: "96",
-                            name: "진재영",
-                            ssn: "050607",
-                            phone: "01023469876",
-                            payStatus: "대기",
-                            isAgreed: "동의",
-                            idCardImg: "무",
-                            bankBookImg: "무",
-                            stage: "4 기 [1 차 차수분] 분할 사례비"
-                        }
-                    ];
-                    localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-                    console.log("[통합 동기화] 대상자 관리 명단 3종 명칭 싱크 결합 완료.");
-
-                    // 3. 브라우저 로딩이 끝나면 양쪽 뷰 포트를 일제히 강제 출력 리프레시
-                    window.addEventListener('load', function () {
-                        if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
-                        if (typeof refreshApplicantView === "function") refreshApplicantView();
-                    });
-                })();
-
-                /**
-                 * 🎯 1. [보기] 버튼 클릭 시 주의사항 및 상세 전산 팝업 알림 함수
-                 */
-                function openRecruitmentDetails(index) {
-                    if (!window.dataStoreRecruitment || !dataStoreRecruitment[index]) return;
-                    const target = dataStoreRecruitment[index];
-                    alert(`📋 [모집공고 상세조회]\n\n● 과제명: ${target.title}\n● 적용기수: ${target.th}\n● 담당 CRC: ${target.crc || '-'}\n● 배정인원: ${target.count}명\n● 임상기간: ${target.period}시간\n\n📢 [주의사항 및 특이사항]\n👉 ${target.notice || '등록된 내용이 없습니다.'}`);
-                }
-
-                /**
-                 * 🎯 2. [수정] 버튼 클릭 시 인풋 폼으로 데이터를 역매핑하는 함수
-                 */
-                function editRecruitmentRecord(index) {
-                    if (!window.dataStoreRecruitment || !dataStoreRecruitment[index]) return;
-                    const target = dataStoreRecruitment[index];
-
-                    // 상단 신규 등록 폼 상자들을 수정 모드로 리다이렉트 치환합니다.
-                    document.getElementById('form-rec-title').value = target.title;
-                    document.getElementById('form-rec-th').value = target.th;
-                    document.getElementById('form-rec-count').value = target.count;
-                    document.getElementById('form-rec-period').value = target.period;
-                    if (document.getElementById('form-rec-crc')) {
-                        document.getElementById('form-rec-crc').value = target.crc || '';
-                    }
-
-                    // 등록박스 타이틀을 동적으로 변경하여 관리자에게 인지시킵니다.
-                    const boxTitle = document.querySelector('.register-box h3');
-                    if (boxTitle) boxTitle.innerText = `[모집공고 데이터 수정 모드 - 행 번호: ${index + 1}]`;
-
-                    // 스크롤을 부드럽게 위로 올려 수정 폼으로 안내합니다.
-                    document.querySelector('.register-box').scrollIntoView({ behavior: 'smooth' });
-                }
-
-                /**
-                 * 🎯 3. [삭제] 버튼 클릭 시 로컬스토리지 대장에서 영구 삭제 처리하는 함수
-                 */
-                function deleteRecruitmentRecord(index) {
-                    if (!window.dataStoreRecruitment || !dataStoreRecruitment[index]) return;
-                    const target = dataStoreRecruitment[index];
-
-                    if (confirm(`⚠️ 정말로 [${target.title}] 모집공고 데이터를 영구 삭제하시겠습니까?\n삭제 후에는 복구가 불가능합니다.`)) {
-                        // 배열에서 해당 항목 제거
-                        dataStoreRecruitment.splice(index, 1);
-
-                        // 로컬스토리지 동기화 커밋 및 화면 리렌더링
-                        if (typeof commitToLocalStorage === "function") {
-                            commitToLocalStorage();
-                        } else {
-                            localStorage.setItem('dataStoreRecruitment', JSON.stringify(dataStoreRecruitment));
-                        }
-
-                        alert("선택하신 모집공고가 전산 대장에서 삭제되었습니다.");
-                        refreshRecruitmentView();
-                    }
-                }
+                alert("선택하신 모집공고가 전산 대장에서 삭제되었습니다.");
+                refreshRecruitmentView();
+            }
+        }
 
 
-                // ========================================================
-                // 🎯 [신규 추가] admin.html 최하단: 악성 CSS 하이퍼링크 간섭 원천 파괴 스크립트
-                // ========================================================
-                (function () {
-                    const linkDestroyer = document.createElement('style');
-                    linkDestroyer.innerHTML = `
+        // ========================================================
+        // 🎯 [신규 추가] admin.html 최하단: 악성 CSS 하이퍼링크 간섭 원천 파괴 스크립트
+        // ========================================================
+        (function () {
+            const linkDestroyer = document.createElement('style');
+            linkDestroyer.innerHTML = `
         /* 테이블 내부의 a 태그 자체를 일반 평범한 글자(text) 상태로 박제합니다 */
         #dom-recruitment-table a,
         #dom-recruitment-table td,
@@ -3958,357 +3961,357 @@
             cursor: pointer !important;
         }
     `;
-                    document.head.appendChild(linkDestroyer);
-                    console.log("[시스템 가드] 물리적 하이퍼링크 기능이 완벽하게 소멸 처리되었습니다.");
-                })();
+            document.head.appendChild(linkDestroyer);
+            console.log("[시스템 가드] 물리적 하이퍼링크 기능이 완벽하게 소멸 처리되었습니다.");
+        })();
 
 
-                // ========================================================
-                // 🎯 [완전 종결] LocalStorage 실시간 크로스 브라우징 가속 리스너
-                // 💡 신청자가 서류를 제출하는 즉시 관리자 화면이 새로고침 없이 100% 감지하여 배지를 그립니다.
-                // ========================================================
-                window.addEventListener('storage', function (event) {
-                    // 우리가 사용하는 대상자 데이터베이스 키값이 변경되었는지 감시
-                    if (event.key === 'dataStoreApplicant') {
-                        console.log("⚡ [실시간 레이더] 대상자 마스터 DB 변동 감지! 목록을 즉시 리렌더링합니다.");
+        // ========================================================
+        // 🎯 [완전 종결] LocalStorage 실시간 크로스 브라우징 가속 리스너
+        // 💡 신청자가 서류를 제출하는 즉시 관리자 화면이 새로고침 없이 100% 감지하여 배지를 그립니다.
+        // ========================================================
+        window.addEventListener('storage', function (event) {
+            // 우리가 사용하는 대상자 데이터베이스 키값이 변경되었는지 감시
+            if (event.key === 'dataStoreApplicant') {
+                console.log("⚡ [실시간 레이더] 대상자 마스터 DB 변동 감지! 목록을 즉시 리렌더링합니다.");
 
-                        // 데이터가 유실되지 않도록 즉시 최신화하여 화면 갱신
-                        if (typeof refreshApplicantView === 'function') {
-                            refreshApplicantView();
-                        }
-                    }
+                // 데이터가 유실되지 않도록 즉시 최신화하여 화면 갱신
+                if (typeof refreshApplicantView === 'function') {
+                    refreshApplicantView();
+                }
+            }
+        });
+
+
+        /**  26-08-19 10:50 추가
+  * 1. [데이터 수집] 하단 대상자 목록 테이블에서 실제 HTML 데이터를 실시간으로 수집하는 함수
+  * 대상자 테이블의 각 행(tr) 내 서류 배지 상태 및 정산 상태를 파악하도록 설계되었습니다.
+  */
+        function deleteApplicantRecord(index) {
+            if (!confirm("⚠️ 정말로 해당 대상자 데이터를 영구 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.")) {
+                return;
+            }
+
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            if (index >= 0 && index < adminApplicantDB.length) {
+                const deletedName = adminApplicantDB[index].name || "미정";
+
+                // 배열에서 선택한 행 도려내기
+                adminApplicantDB.splice(index, 1);
+
+                // 최신 데이터 물리 세이브
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+
+                if (typeof dataStoreApplicant !== "undefined") {
+                    dataStoreApplicant = adminApplicantDB;
+                }
+
+                alert(`🗑️ [${deletedName}] 피험자의 마스터 레코드가 대장에서 안전하게 영구 삭제되었습니다.`);
+
+                // 하단 테이블 다시 그리기
+                if (typeof refreshApplicantView === "function") {
+                    refreshApplicantView();
+                }
+
+                // 상단 대시보드 강제 갱신 차감 연동
+                setTimeout(() => {
+                    initDashboardFilter();
+                    calculateLiveDashboardStats();
+                }, 150);
+
+            } else {
+                alert("알림: 삭제하려는 대상자의 인덱스 번호가 올바르지 않습니다.");
+            }
+        }
+
+        /**
+  * 3. [안전장치 추가] admin.html 최초 로드 시 시험명 셀렉트 박스에 존재하는 과제들을 자동으로 파싱해 채워주는 동적 초기화 함수
+  */
+        function initDashboardFilter() {
+            const filterTitleSelect = document.getElementById('dashboard-filter-title');
+            if (!filterTitleSelect) return;
+
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 첫 번째 옵션인 전체보기 제외하고 리셋
+            filterTitleSelect.innerHTML = '<option value="ALL">— 전체 시험 보기 —</option>';
+
+            // 존재하는 모든 시험명을 중복 없이 추출
+            let titles = [];
+            adminApplicantDB.forEach(row => {
+                if (row.title && !titles.includes(row.title)) {
+                    titles.push(row.title);
+                }
+            });
+
+            // 셀렉트 박스에 주입
+            titles.sort().forEach(t => {
+                const option = document.createElement('option');
+                option.value = t;
+                option.innerText = t;
+                filterTitleSelect.appendChild(option);
+            });
+
+            // 초기 첫 선택에 맞춰 서브 기수 로딩
+            updateDashboardThOptions();
+        }
+
+        /**
+ * 1. [교정 완료] 상단 시험명 필터 변경 시 해당 시험에 존재하는 진짜 기수만 추출해 서브 셀렉트박스를 동적 갱신하는 함수
+ */
+        function updateDashboardThOptions() {
+            const filterTitle = document.getElementById('dashboard-filter-title');
+            const filterTh = document.getElementById('dashboard-filter-th');
+            if (!filterTitle || !filterTh) return;
+
+            const selectedTitle = filterTitle.value ? filterTitle.value.trim() : "";
+
+            // 1. 🎯 '전체 시험 보기' 상태일 때는 기수 선택지를 완전히 가림 (안내문구 고정)
+            if (selectedTitle === "ALL" || !selectedTitle) {
+                filterTh.innerHTML = `<option value="ALL">— 시험을 먼저 선택하세요 —</option>`;
+                filterTh.value = "ALL";
+
+                if (typeof calculateLiveDashboardStats === "function") {
+                    calculateLiveDashboardStats();
+                }
+                return;
+            }
+
+            // 2. 마스터 데이터 저장소 로드
+            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 🌟 [정밀 정제 변환기]: 특수문자, 대시(-), 플러스(+), 공백을 완전히 파괴하고 순수 알맹이 글자만 추출
+            const cleanString = (str) => {
+                if (!str) return "";
+                return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+            };
+
+            const targetTitleClean = cleanString(selectedTitle);
+
+            // 3. 🎯 [텍스트 가드 장착 필터링] 알맹이 글자가 상호 교차 포함되거나 일치하는 기수들만 추출
+            let matchedThs = recruitmentDB
+                .filter(row => {
+                    const rowTitleClean = cleanString(row.title);
+                    return rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean);
+                })
+                .map(row => row.th)
+                .filter(Boolean);
+
+            // 💡 [2중 방어 코드]: 만약 공고 대장에 매칭이 없다면 대상자 대장에서도 유연하게 글자 스캔 추출
+            if (matchedThs.length === 0) {
+                matchedThs = applicantDB
+                    .filter(item => {
+                        const itemTitleClean = cleanString(item.title);
+                        return itemTitleClean === targetTitleClean || itemTitleClean.includes(targetTitleClean) || targetTitleClean.includes(itemTitleClean);
+                    })
+                    .map(item => item.th)
+                    .filter(Boolean);
+            }
+
+            // 중복 제거
+            const availableThs = [...new Set(matchedThs)];
+
+            // 4. 추출된 공고 기준 기수 데이터로 드롭다운 옵션 태그 동적 세팅 (1기~4기)
+            let htmlOptions = `<option value="ALL">— 전체 기수 —</option>`;
+
+            // 자연스러운 숫자식 정렬 후 옵션 추가
+            availableThs.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })).forEach(th => {
+                htmlOptions += `<option value="${th}">${th}</option>`;
+            });
+
+            filterTh.innerHTML = htmlOptions;
+            filterTh.value = "ALL"; // 시험명 변경 시 기수는 '전체 기수'가 기본 선택되도록 강제 락인
+
+            // 🌟 [핵심 바인딩]: innerHTML로 태그를 새로 쓸 때 유실될 수 있는 클릭 이벤트를 자바스크립트 레벨에서 강제 복구
+            filterTh.onchange = function () {
+                if (typeof calculateLiveDashboardStats === "function") {
+                    calculateLiveDashboardStats();
+                }
+            };
+
+            // 5. 기수 목록 빌드가 끝나면 최종 통계 스코어보드 라이브 리계산 호출 (요구사항 규칙에 의해 초기에는 0으로 홀딩됨)
+            if (typeof calculateLiveDashboardStats === "function") {
+                calculateLiveDashboardStats();
+            }
+        }
+
+        /**
+ * 2. [교정 완료] 선택된 필터 조건에 맞춰 상단 4개 위젯 카드의 카운트를 실시간 자동 파싱하는 핵심 엔진
+ */
+        function calculateLiveDashboardStats() {
+            const filterTitleSelect = document.getElementById('dashboard-filter-title');
+            const filterThSelect = document.getElementById('dashboard-filter-th');
+
+            const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
+            const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
+
+            const lblTotal = document.getElementById('stat-total-count');
+            const lblReceived = document.getElementById('stat-received-count');
+            const lblProcessing = document.getElementById('stat-processing-count');
+            const lblComplete = document.getElementById('stat-complete-count');
+
+            // 🎯 [요구사항 원칙 고수]: 기수가 아직 'ALL'(— 전체 기수 — 또는 안내창) 상태라면 무조건 0으로 락인 고정
+            if (filterTitle === 'ALL' || filterTh === 'ALL' || filterTh === '') {
+                if (lblTotal) lblTotal.innerText = "0 / 0명";
+                if (lblReceived) lblReceived.innerText = "0건";
+                if (lblProcessing) lblProcessing.innerText = "0건";
+                if (lblComplete) lblComplete.innerText = "0건";
+                console.log(`🔒 [통계 락업 활성화] 기수 미선택(ALL) 조건 충족으로 통계 수치가 0으로 홀딩 대기됩니다.`);
+                return;
+            }
+
+            // ----------------======================================================
+            // 💡 [안전 패스 통과 구역]: 1번 시험명과 2번 특정 기수가 완전하게 매칭 픽스되었을 때만 연산 개시
+            // --------------------------------======================================
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 공백, 기호, 특수기호 제거 포맷터 (동일 알고리즘 싱크 일치화)
+            const cleanString = (str) => {
+                if (!str) return "";
+                return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+            };
+
+            const targetTitleClean = cleanString(filterTitle);
+            const filterThNum = filterTh.replace(/[^0-9]/g, "");
+
+            // 정밀 교차 필터링
+            let filteredList = adminApplicantDB.filter(row => {
+                const rowTitleClean = cleanString(row.title);
+                const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
+
+                const matchTitle = (rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
+                const matchTh = (rowThNum === filterThNum);
+
+                return matchTitle && matchTh;
+            });
+
+            let totalQuotaSum = 0;
+            let totalActiveCount = filteredList.length;
+
+            let receivedCount = 0;
+            let processingCount = 0;
+            let completeCount = 0;
+
+            let quotaMap = {};
+
+            filteredList.forEach(row => {
+                const quotaKey = `${cleanString(row.title)}_${row.th}`;
+                if (!quotaMap[quotaKey]) {
+                    quotaMap[quotaKey] = parseInt(row.count) || 0;
+                    totalQuotaSum += quotaMap[quotaKey];
+                }
+
+                let status = (row.result || row.payStatus || '접수').toString().trim();
+                if (status === '확인' || status === '접수완료') status = '접수';
+
+                if (status === '접수') {
+                    receivedCount++;
+                } else if (status === '처리중') {
+                    processingCount++;
+                } else if (status === '처리완료' || status === '지급완료' || status === '완료') {
+                    completeCount++;
+                }
+            });
+
+            if (totalQuotaSum === 0 && filteredList.length > 0) {
+                totalQuotaSum = parseInt(filteredList[0].count) || 60;
+            }
+
+            // 통계 보드 최종 렌더링 스왑 바인딩
+            if (lblTotal) lblTotal.innerText = `${totalActiveCount} / ${totalQuotaSum}명`;
+            if (lblReceived) lblReceived.innerText = `${receivedCount}건`;
+            if (lblProcessing) lblProcessing.innerText = `${processingCount}건`;
+            if (lblComplete) lblComplete.innerText = `${completeCount}건`;
+
+            console.log(`📊 [2단계 필터 통과 정밀 통계 완료] 필터링 매칭인원: ${filteredList.length}명`);
+        }
+
+        /**
+         * 5. 생명주기 초기 구동 리스너
+         */
+        window.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                initDashboardFilter();
+            }, 600);
+        });
+
+
+        /**
+         * 이력조회 버튼 클릭 시 에러를 해결하고 피험자 데이터와 공고 마스터 일정을 교차 맵핑하여 모달창에 렌더링하는 함수
+         */
+        function openApplicantHistoryModal(index) {
+            // A. 안전장치: 로컬스토리지 최신 데이터 스토어 로드 및 인덱스 범위 확인
+            const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            if (index < 0 || index >= adminApplicantDB.length) {
+                return alert("알림: 피험자 데이터를 찾을 수 없습니다.");
+            }
+
+            // 타겟 피험자 기본 마스터 레코드 획득
+            const row = adminApplicantDB[index];
+
+            // 성명 특수문자 제거 정제
+            const rawName = row.name || '';
+            const cleanName = rawName.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
+            const targetSsn = row.ssn ? row.ssn.trim() : "";
+
+            // B. 모집공고 마스터 DB를 전역 변수가 아닌 최신 로컬스토리지에서 실시간 동기화 로드
+            const recDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+
+            // C. 가변 돔(DOM) 슬롯 엘리먼트 추적
+            const overlay = document.getElementById("applicantHistoryModal");
+            const contentSlot = document.getElementById("history-modal-content-slot");
+            const actionSlot = document.getElementById("history-modal-action-slot");
+
+            if (!overlay || !contentSlot || !actionSlot) {
+                console.error("이력 모달창의 DOM 슬롯 엘리먼트를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 🎯 [전수 역추적 스캔]: 성명과 생년월일이 일치하는 모든 참여 레코드를 필터링 추출
+            let matchedHistoryList = adminApplicantDB.filter(item => {
+                const itemCleanName = (item.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
+                const itemSsn = item.ssn ? item.ssn.trim() : "";
+                return itemCleanName === cleanName && itemSsn === targetSsn;
+            }).reverse();
+
+            // 🌟 [정밀 정제 변환기 장착]: 공백, 하이픈(-), 플러스(+) 등 모든 기호 오차를 원천 무력화하는 핵심 필터
+            const cleanString = (str) => {
+                if (!str) return "";
+                return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+            };
+
+            // 🎯 [지능형 가변 카드 루프]: 참여한 시험 개수만큼 세부 지급일정을 동적 파싱하여 복사 생성
+            let historyCardsHTML = "";
+
+            matchedHistoryList.forEach((historyRow) => {
+                // 🌟 [버그 킬러]: 현재 피험자 이력의 과제명과 기수 텍스트를 알맹이 단위로 정제
+                const targetTitleClean = cleanString(historyRow.title);
+                const filterThNum = (historyRow.th || "").toString().replace(/[^0-9]/g, "");
+
+                // 🎯 [크로스 매핑 종결]: 엄격한 === 비교를 폐기하고, 글자 알맹이와 기수 숫자가 상호 일치하는 마스터 공고를 정밀 탐색합니다.
+                const matchedRec = recDB.find(rec => {
+                    const recTitleClean = cleanString(rec.title);
+                    const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
+
+                    // 공고 과제명과 대상자 과제명이 서로 포함관계이거나 일치하고, 기수 숫자가 완벽히 같을 때 매칭 성공
+                    return (recTitleClean === targetTitleClean || recTitleClean.includes(targetTitleClean) || targetTitleClean.includes(recTitleClean)) && (recThNum === filterThNum);
                 });
 
-
-                /**  26-08-19 10:50 추가
-          * 1. [데이터 수집] 하단 대상자 목록 테이블에서 실제 HTML 데이터를 실시간으로 수집하는 함수
-          * 대상자 테이블의 각 행(tr) 내 서류 배지 상태 및 정산 상태를 파악하도록 설계되었습니다.
-          */
-                function deleteApplicantRecord(index) {
-                    if (!confirm("⚠️ 정말로 해당 대상자 데이터를 영구 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.")) {
-                        return;
-                    }
-
-                    let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-                    if (index >= 0 && index < adminApplicantDB.length) {
-                        const deletedName = adminApplicantDB[index].name || "미정";
-
-                        // 배열에서 선택한 행 도려내기
-                        adminApplicantDB.splice(index, 1);
-
-                        // 최신 데이터 물리 세이브
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-
-                        if (typeof dataStoreApplicant !== "undefined") {
-                            dataStoreApplicant = adminApplicantDB;
-                        }
-
-                        alert(`🗑️ [${deletedName}] 피험자의 마스터 레코드가 대장에서 안전하게 영구 삭제되었습니다.`);
-
-                        // 하단 테이블 다시 그리기
-                        if (typeof refreshApplicantView === "function") {
-                            refreshApplicantView();
-                        }
-
-                        // 상단 대시보드 강제 갱신 차감 연동
-                        setTimeout(() => {
-                            initDashboardFilter();
-                            calculateLiveDashboardStats();
-                        }, 150);
-
-                    } else {
-                        alert("알림: 삭제하려는 대상자의 인덱스 번호가 올바르지 않습니다.");
-                    }
-                }
-
-                /**
-          * 3. [안전장치 추가] admin.html 최초 로드 시 시험명 셀렉트 박스에 존재하는 과제들을 자동으로 파싱해 채워주는 동적 초기화 함수
-          */
-                function initDashboardFilter() {
-                    const filterTitleSelect = document.getElementById('dashboard-filter-title');
-                    if (!filterTitleSelect) return;
-
-                    let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-                    // 첫 번째 옵션인 전체보기 제외하고 리셋
-                    filterTitleSelect.innerHTML = '<option value="ALL">— 전체 시험 보기 —</option>';
-
-                    // 존재하는 모든 시험명을 중복 없이 추출
-                    let titles = [];
-                    adminApplicantDB.forEach(row => {
-                        if (row.title && !titles.includes(row.title)) {
-                            titles.push(row.title);
-                        }
-                    });
-
-                    // 셀렉트 박스에 주입
-                    titles.sort().forEach(t => {
-                        const option = document.createElement('option');
-                        option.value = t;
-                        option.innerText = t;
-                        filterTitleSelect.appendChild(option);
-                    });
-
-                    // 초기 첫 선택에 맞춰 서브 기수 로딩
-                    updateDashboardThOptions();
-                }
-
-                /**
-         * 1. [교정 완료] 상단 시험명 필터 변경 시 해당 시험에 존재하는 진짜 기수만 추출해 서브 셀렉트박스를 동적 갱신하는 함수
-         */
-                function updateDashboardThOptions() {
-                    const filterTitle = document.getElementById('dashboard-filter-title');
-                    const filterTh = document.getElementById('dashboard-filter-th');
-                    if (!filterTitle || !filterTh) return;
-
-                    const selectedTitle = filterTitle.value ? filterTitle.value.trim() : "";
-
-                    // 1. 🎯 '전체 시험 보기' 상태일 때는 기수 선택지를 완전히 가림 (안내문구 고정)
-                    if (selectedTitle === "ALL" || !selectedTitle) {
-                        filterTh.innerHTML = `<option value="ALL">— 시험을 먼저 선택하세요 —</option>`;
-                        filterTh.value = "ALL";
-
-                        if (typeof calculateLiveDashboardStats === "function") {
-                            calculateLiveDashboardStats();
-                        }
-                        return;
-                    }
-
-                    // 2. 마스터 데이터 저장소 로드
-                    const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-                    const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-                    // 🌟 [정밀 정제 변환기]: 특수문자, 대시(-), 플러스(+), 공백을 완전히 파괴하고 순수 알맹이 글자만 추출
-                    const cleanString = (str) => {
-                        if (!str) return "";
-                        return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                    };
-
-                    const targetTitleClean = cleanString(selectedTitle);
-
-                    // 3. 🎯 [텍스트 가드 장착 필터링] 알맹이 글자가 상호 교차 포함되거나 일치하는 기수들만 추출
-                    let matchedThs = recruitmentDB
-                        .filter(row => {
-                            const rowTitleClean = cleanString(row.title);
-                            return rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean);
-                        })
-                        .map(row => row.th)
-                        .filter(Boolean);
-
-                    // 💡 [2중 방어 코드]: 만약 공고 대장에 매칭이 없다면 대상자 대장에서도 유연하게 글자 스캔 추출
-                    if (matchedThs.length === 0) {
-                        matchedThs = applicantDB
-                            .filter(item => {
-                                const itemTitleClean = cleanString(item.title);
-                                return itemTitleClean === targetTitleClean || itemTitleClean.includes(targetTitleClean) || targetTitleClean.includes(itemTitleClean);
-                            })
-                            .map(item => item.th)
-                            .filter(Boolean);
-                    }
-
-                    // 중복 제거
-                    const availableThs = [...new Set(matchedThs)];
-
-                    // 4. 추출된 공고 기준 기수 데이터로 드롭다운 옵션 태그 동적 세팅 (1기~4기)
-                    let htmlOptions = `<option value="ALL">— 전체 기수 —</option>`;
-
-                    // 자연스러운 숫자식 정렬 후 옵션 추가
-                    availableThs.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })).forEach(th => {
-                        htmlOptions += `<option value="${th}">${th}</option>`;
-                    });
-
-                    filterTh.innerHTML = htmlOptions;
-                    filterTh.value = "ALL"; // 시험명 변경 시 기수는 '전체 기수'가 기본 선택되도록 강제 락인
-
-                    // 🌟 [핵심 바인딩]: innerHTML로 태그를 새로 쓸 때 유실될 수 있는 클릭 이벤트를 자바스크립트 레벨에서 강제 복구
-                    filterTh.onchange = function () {
-                        if (typeof calculateLiveDashboardStats === "function") {
-                            calculateLiveDashboardStats();
-                        }
-                    };
-
-                    // 5. 기수 목록 빌드가 끝나면 최종 통계 스코어보드 라이브 리계산 호출 (요구사항 규칙에 의해 초기에는 0으로 홀딩됨)
-                    if (typeof calculateLiveDashboardStats === "function") {
-                        calculateLiveDashboardStats();
-                    }
-                }
-
-                /**
-         * 2. [교정 완료] 선택된 필터 조건에 맞춰 상단 4개 위젯 카드의 카운트를 실시간 자동 파싱하는 핵심 엔진
-         */
-                function calculateLiveDashboardStats() {
-                    const filterTitleSelect = document.getElementById('dashboard-filter-title');
-                    const filterThSelect = document.getElementById('dashboard-filter-th');
-
-                    const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
-                    const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
-
-                    const lblTotal = document.getElementById('stat-total-count');
-                    const lblReceived = document.getElementById('stat-received-count');
-                    const lblProcessing = document.getElementById('stat-processing-count');
-                    const lblComplete = document.getElementById('stat-complete-count');
-
-                    // 🎯 [요구사항 원칙 고수]: 기수가 아직 'ALL'(— 전체 기수 — 또는 안내창) 상태라면 무조건 0으로 락인 고정
-                    if (filterTitle === 'ALL' || filterTh === 'ALL' || filterTh === '') {
-                        if (lblTotal) lblTotal.innerText = "0 / 0명";
-                        if (lblReceived) lblReceived.innerText = "0건";
-                        if (lblProcessing) lblProcessing.innerText = "0건";
-                        if (lblComplete) lblComplete.innerText = "0건";
-                        console.log(`🔒 [통계 락업 활성화] 기수 미선택(ALL) 조건 충족으로 통계 수치가 0으로 홀딩 대기됩니다.`);
-                        return;
-                    }
-
-                    // ----------------======================================================
-                    // 💡 [안전 패스 통과 구역]: 1번 시험명과 2번 특정 기수가 완전하게 매칭 픽스되었을 때만 연산 개시
-                    // --------------------------------======================================
-                    let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-                    // 공백, 기호, 특수기호 제거 포맷터 (동일 알고리즘 싱크 일치화)
-                    const cleanString = (str) => {
-                        if (!str) return "";
-                        return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                    };
-
-                    const targetTitleClean = cleanString(filterTitle);
-                    const filterThNum = filterTh.replace(/[^0-9]/g, "");
-
-                    // 정밀 교차 필터링
-                    let filteredList = adminApplicantDB.filter(row => {
-                        const rowTitleClean = cleanString(row.title);
-                        const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
-
-                        const matchTitle = (rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
-                        const matchTh = (rowThNum === filterThNum);
-
-                        return matchTitle && matchTh;
-                    });
-
-                    let totalQuotaSum = 0;
-                    let totalActiveCount = filteredList.length;
-
-                    let receivedCount = 0;
-                    let processingCount = 0;
-                    let completeCount = 0;
-
-                    let quotaMap = {};
-
-                    filteredList.forEach(row => {
-                        const quotaKey = `${cleanString(row.title)}_${row.th}`;
-                        if (!quotaMap[quotaKey]) {
-                            quotaMap[quotaKey] = parseInt(row.count) || 0;
-                            totalQuotaSum += quotaMap[quotaKey];
-                        }
-
-                        let status = (row.result || row.payStatus || '접수').toString().trim();
-                        if (status === '확인' || status === '접수완료') status = '접수';
-
-                        if (status === '접수') {
-                            receivedCount++;
-                        } else if (status === '처리중') {
-                            processingCount++;
-                        } else if (status === '처리완료' || status === '지급완료' || status === '완료') {
-                            completeCount++;
-                        }
-                    });
-
-                    if (totalQuotaSum === 0 && filteredList.length > 0) {
-                        totalQuotaSum = parseInt(filteredList[0].count) || 60;
-                    }
-
-                    // 통계 보드 최종 렌더링 스왑 바인딩
-                    if (lblTotal) lblTotal.innerText = `${totalActiveCount} / ${totalQuotaSum}명`;
-                    if (lblReceived) lblReceived.innerText = `${receivedCount}건`;
-                    if (lblProcessing) lblProcessing.innerText = `${processingCount}건`;
-                    if (lblComplete) lblComplete.innerText = `${completeCount}건`;
-
-                    console.log(`📊 [2단계 필터 통과 정밀 통계 완료] 필터링 매칭인원: ${filteredList.length}명`);
-                }
-
-                /**
-                 * 5. 생명주기 초기 구동 리스너
-                 */
-                window.addEventListener("DOMContentLoaded", () => {
-                    setTimeout(() => {
-                        initDashboardFilter();
-                    }, 600);
-                });
-
-
-                /**
-                 * 이력조회 버튼 클릭 시 에러를 해결하고 피험자 데이터와 공고 마스터 일정을 교차 맵핑하여 모달창에 렌더링하는 함수
-                 */
-                function openApplicantHistoryModal(index) {
-                    // A. 안전장치: 로컬스토리지 최신 데이터 스토어 로드 및 인덱스 범위 확인
-                    const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                    if (index < 0 || index >= adminApplicantDB.length) {
-                        return alert("알림: 피험자 데이터를 찾을 수 없습니다.");
-                    }
-
-                    // 타겟 피험자 기본 마스터 레코드 획득
-                    const row = adminApplicantDB[index];
-
-                    // 성명 특수문자 제거 정제
-                    const rawName = row.name || '';
-                    const cleanName = rawName.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
-                    const targetSsn = row.ssn ? row.ssn.trim() : "";
-
-                    // B. 모집공고 마스터 DB를 전역 변수가 아닌 최신 로컬스토리지에서 실시간 동기화 로드
-                    const recDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-
-                    // C. 가변 돔(DOM) 슬롯 엘리먼트 추적
-                    const overlay = document.getElementById("applicantHistoryModal");
-                    const contentSlot = document.getElementById("history-modal-content-slot");
-                    const actionSlot = document.getElementById("history-modal-action-slot");
-
-                    if (!overlay || !contentSlot || !actionSlot) {
-                        console.error("이력 모달창의 DOM 슬롯 엘리먼트를 찾을 수 없습니다.");
-                        return;
-                    }
-
-                    // 🎯 [전수 역추적 스캔]: 성명과 생년월일이 일치하는 모든 참여 레코드를 필터링 추출
-                    let matchedHistoryList = adminApplicantDB.filter(item => {
-                        const itemCleanName = (item.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
-                        const itemSsn = item.ssn ? item.ssn.trim() : "";
-                        return itemCleanName === cleanName && itemSsn === targetSsn;
-                    }).reverse();
-
-                    // 🌟 [정밀 정제 변환기 장착]: 공백, 하이픈(-), 플러스(+) 등 모든 기호 오차를 원천 무력화하는 핵심 필터
-                    const cleanString = (str) => {
-                        if (!str) return "";
-                        return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                    };
-
-                    // 🎯 [지능형 가변 카드 루프]: 참여한 시험 개수만큼 세부 지급일정을 동적 파싱하여 복사 생성
-                    let historyCardsHTML = "";
-
-                    matchedHistoryList.forEach((historyRow) => {
-                        // 🌟 [버그 킬러]: 현재 피험자 이력의 과제명과 기수 텍스트를 알맹이 단위로 정제
-                        const targetTitleClean = cleanString(historyRow.title);
-                        const filterThNum = (historyRow.th || "").toString().replace(/[^0-9]/g, "");
-
-                        // 🎯 [크로스 매핑 종결]: 엄격한 === 비교를 폐기하고, 글자 알맹이와 기수 숫자가 상호 일치하는 마스터 공고를 정밀 탐색합니다.
-                        const matchedRec = recDB.find(rec => {
-                            const recTitleClean = cleanString(rec.title);
-                            const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
-
-                            // 공고 과제명과 대상자 과제명이 서로 포함관계이거나 일치하고, 기수 숫자가 완벽히 같을 때 매칭 성공
-                            return (recTitleClean === targetTitleClean || recTitleClean.includes(targetTitleClean) || targetTitleClean.includes(recTitleClean)) && (recThNum === filterThNum);
-                        });
-
-                        // 🌟 실시간 역추적 결합으로 추출된 모집공고의 소집일자 마스터 데이터를 연동 (없으면 미정 폴백)
-                        const matchedScheduleDate = matchedRec && matchedRec.recDate ? matchedRec.recDate : "미정";
-
-                        // 모집공고 등록 시점에 대장에 세이브된 1~3차 통합 지급일정 문자열 확보 (없으면 추후공지 폴백)
-                        const matchedPaySchedule = matchedRec && matchedRec.paySchedule ? matchedRec.paySchedule : "추후공지";
-
-                        let statusText = historyRow.payStatus || '대기';
-                        if (statusText === '확인' || statusText === '접수완료') statusText = '접수';
-                        if (statusText === '지급완료') statusText = '처리완료';
-                        if (statusText === '처리중') statusText = '재무 검토 (처리중)';
-
-                        // 오리지널 [임상시험 배정 이력] 내부에 '참여비 세부 지급일정' 행을 정밀 결합 추가
-                        historyCardsHTML += `
+                // 🌟 실시간 역추적 결합으로 추출된 모집공고의 소집일자 마스터 데이터를 연동 (없으면 미정 폴백)
+                const matchedScheduleDate = matchedRec && matchedRec.recDate ? matchedRec.recDate : "미정";
+
+                // 모집공고 등록 시점에 대장에 세이브된 1~3차 통합 지급일정 문자열 확보 (없으면 추후공지 폴백)
+                const matchedPaySchedule = matchedRec && matchedRec.paySchedule ? matchedRec.paySchedule : "추후공지";
+
+                let statusText = historyRow.payStatus || '대기';
+                if (statusText === '확인' || statusText === '접수완료') statusText = '접수';
+                if (statusText === '지급완료') statusText = '처리완료';
+                if (statusText === '처리중') statusText = '재무 검토 (처리중)';
+
+                // 오리지널 [임상시험 배정 이력] 내부에 '참여비 세부 지급일정' 행을 정밀 결합 추가
+                historyCardsHTML += `
             <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 12px; background-image: linear-gradient(to right, rgba(30, 41, 59, 0.2), transparent);">
                 <h4 style="font-size: 15px; color: #ffffff; margin-bottom: 15px; display: flex; align-items: center; gap: 6px; margin-top:0;">
                     <i class="fa-solid fa-flask-vial" style="color: var(--warning-color);"></i> 임상시험 배정 및 일정 연동 이력
@@ -4333,10 +4336,10 @@
                 </div>
             </div>
         `;
-                    });
+            });
 
-                    // D. [최종 출력 위임]: contentSlot 내부에 인포그래픽 정형 바인딩 주입 (구조 원형 보존)
-                    contentSlot.innerHTML = `
+            // D. [최종 출력 위임]: contentSlot 내부에 인포그래픽 정형 바인딩 주입 (구조 원형 보존)
+            contentSlot.innerHTML = `
         <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 16px;">
             <h4 style="font-size: 15px; color: #ffffff; margin-bottom: 15px; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-user-gear" style="color: var(--secondary-color);"></i> 기본 피험자 인적 사항
@@ -4354,8 +4357,8 @@
         </div>
     `;
 
-                    // E. 하단 닫기 단추 및 4단계 상태 제어 버튼 결합 마운트 [원안 프레임 100% 보존]
-                    actionSlot.innerHTML = `
+            // E. 하단 닫기 단추 및 4단계 상태 제어 버튼 결합 마운트 [원안 프레임 100% 보존]
+            actionSlot.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; flex-wrap: nowrap;">
             <div style="display: flex; gap: 8px;">
                 <button type="button" onclick="updateApplicantStatusViaModal(${index}, '접수')" 
@@ -4384,101 +4387,101 @@
         </div>
     `;
 
-                    // F. 모달 디스플레이 활성화 (Flexbox 정렬 투사)
-                    overlay.style.display = "flex";
+            // F. 모달 디스플레이 활성화 (Flexbox 정렬 투사)
+            overlay.style.display = "flex";
+        }
+
+        /**
+ * 🔥 [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 피험자의 마스터 상태값을 직접 변경하고
+ * 하단 목록 테이블 및 상단 대시보드 4대 지표 카드를 새로고침 없이 즉각 100% 동기화 리프레시합니다.
+ */
+        function updateApplicantStatusViaModal(index, newStatus) {
+            // 1. 최신 로컬스토리지 대장 확보
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            if (index >= 0 && index < adminApplicantDB.length) {
+                const targetUser = adminApplicantDB[index];
+                const targetName = targetUser.name || "미정";
+
+                // 2. ⭐️ [데이터 원천 오버라이드]: 마스터 스키마의 두 상태 필드를 전달받은 신규 상태로 즉시 변경 조율
+                targetUser.payStatus = newStatus;
+                targetUser.result = newStatus;
+
+                // 3. 변경 완료된 최신 배열을 로컬 스토리지에 물리 커밋 세이브
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+
+                // 만약 글로벌 변수를 혼용하는 설계라면 전역 변수 동시 스왑
+                if (typeof dataStoreApplicant !== "undefined") {
+                    dataStoreApplicant = adminApplicantDB;
                 }
 
-                /**
-         * 🔥 [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 피험자의 마스터 상태값을 직접 변경하고
-         * 하단 목록 테이블 및 상단 대시보드 4대 지표 카드를 새로고침 없이 즉각 100% 동기화 리프레시합니다.
+                // 만약 commitToLocalStorage() 스토리지 저장 보조 함수가 존재하면 안전장치 호출
+                if (typeof commitToLocalStorage === "function") {
+                    commitToLocalStorage();
+                }
+
+                // 4. 알림창 알림 (시연 설명력 강화)
+                alert(`📢 상태 변환 완료: [${targetName}] 피험자의 참여비 상태가 [${newStatus}] 상태로 수동 업데이트되었습니다.`);
+
+                // 5. ⭐️ [연쇄 리프레시]: 역순 정렬(reverse)로 인한 라벨 오작동을 원천 차단하기 위해 
+                // 텍스트 변환 필터링 포맷터를 거쳐 현재 열려있는 이력 모달 화면을 실시간으로 통째로 다시 렌더링 스왑합니다.
+                if (typeof openApplicantHistoryModal === "function") {
+                    // 이 함수가 실행되면서 모달 내부의 모든 상태 텍스트와 소집일자가 완벽한 화이트 컬러 및 최신 상태로 새로고침됩니다.
+                    openApplicantHistoryModal(index);
+                }
+
+                // 6. ⭐️ [화면 목록 동기화]: 하단 마스터 테이블 목록 tr을 최신 상태 배지 색상으로 새로 그리기 실행
+                if (typeof refreshApplicantView === "function") {
+                    refreshApplicantView();
+                }
+
+                // 7. ⭐️ [대시보드 폭발 갱신]: 변경된 최신 상태를 기반으로 상단 대시보드 카드 4종 건수 실시간 재연산 투사!
+                if (typeof calculateLiveDashboardStats === "function") {
+                    calculateLiveDashboardStats();
+                }
+
+            } else {
+                alert("알림: 상태를 변경하려는 피험자의 인덱스가 올바르지 않습니다.");
+            }
+        }
+
+        /**
+         * 5. 이력 모달창 닫기 전용 보조 함수
          */
-                function updateApplicantStatusViaModal(index, newStatus) {
-                    // 1. 최신 로컬스토리지 대장 확보
-                    let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-                    if (index >= 0 && index < adminApplicantDB.length) {
-                        const targetUser = adminApplicantDB[index];
-                        const targetName = targetUser.name || "미정";
-
-                        // 2. ⭐️ [데이터 원천 오버라이드]: 마스터 스키마의 두 상태 필드를 전달받은 신규 상태로 즉시 변경 조율
-                        targetUser.payStatus = newStatus;
-                        targetUser.result = newStatus;
-
-                        // 3. 변경 완료된 최신 배열을 로컬 스토리지에 물리 커밋 세이브
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-
-                        // 만약 글로벌 변수를 혼용하는 설계라면 전역 변수 동시 스왑
-                        if (typeof dataStoreApplicant !== "undefined") {
-                            dataStoreApplicant = adminApplicantDB;
-                        }
-
-                        // 만약 commitToLocalStorage() 스토리지 저장 보조 함수가 존재하면 안전장치 호출
-                        if (typeof commitToLocalStorage === "function") {
-                            commitToLocalStorage();
-                        }
-
-                        // 4. 알림창 알림 (시연 설명력 강화)
-                        alert(`📢 상태 변환 완료: [${targetName}] 피험자의 참여비 상태가 [${newStatus}] 상태로 수동 업데이트되었습니다.`);
-
-                        // 5. ⭐️ [연쇄 리프레시]: 역순 정렬(reverse)로 인한 라벨 오작동을 원천 차단하기 위해 
-                        // 텍스트 변환 필터링 포맷터를 거쳐 현재 열려있는 이력 모달 화면을 실시간으로 통째로 다시 렌더링 스왑합니다.
-                        if (typeof openApplicantHistoryModal === "function") {
-                            // 이 함수가 실행되면서 모달 내부의 모든 상태 텍스트와 소집일자가 완벽한 화이트 컬러 및 최신 상태로 새로고침됩니다.
-                            openApplicantHistoryModal(index);
-                        }
-
-                        // 6. ⭐️ [화면 목록 동기화]: 하단 마스터 테이블 목록 tr을 최신 상태 배지 색상으로 새로 그리기 실행
-                        if (typeof refreshApplicantView === "function") {
-                            refreshApplicantView();
-                        }
-
-                        // 7. ⭐️ [대시보드 폭발 갱신]: 변경된 최신 상태를 기반으로 상단 대시보드 카드 4종 건수 실시간 재연산 투사!
-                        if (typeof calculateLiveDashboardStats === "function") {
-                            calculateLiveDashboardStats();
-                        }
-
-                    } else {
-                        alert("알림: 상태를 변경하려는 피험자의 인덱스가 올바르지 않습니다.");
-                    }
-                }
-
-                /**
-                 * 5. 이력 모달창 닫기 전용 보조 함수
-                 */
-                function closeApplicantHistoryModal() {
-                    const overlay = document.getElementById("applicantHistoryModal");
-                    if (overlay) {
-                        overlay.style.display = "none";
-                    }
-                }
+        function closeApplicantHistoryModal() {
+            const overlay = document.getElementById("applicantHistoryModal");
+            if (overlay) {
+                overlay.style.display = "none";
+            }
+        }
 
 
-                /**
-                 * 🎯 [모집공고 관리 - 팝업 01] 주의사항 안내 전용 모달창 가동 엔진
-                 */
-                function openNoticeModal(index) {
-                    const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-                    const targetRow = recruitmentDB[index] || {};
-                    const examTitle = targetRow.title || "지정 과제";
+        /**
+         * 🎯 [모집공고 관리 - 팝업 01] 주의사항 안내 전용 모달창 가동 엔진
+         */
+        function openNoticeModal(index) {
+            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            const targetRow = recruitmentDB[index] || {};
+            const examTitle = targetRow.title || "지정 과제";
 
-                    // 1번부터 10번까지의 주의사항 디폴트 안내문 세트 빌드
-                    let noticeHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
-                    for (let i = 1; i <= 10; i++) {
-                        noticeHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #fbbf24; font-weight: 700; margin-right: 6px;">${i}.</span> 주의사항 안내입니다.</div>`;
-                    }
-                    noticeHTML += `</div>`;
+            // 1번부터 10번까지의 주의사항 디폴트 안내문 세트 빌드
+            let noticeHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
+            for (let i = 1; i <= 10; i++) {
+                noticeHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #fbbf24; font-weight: 700; margin-right: 6px;">${i}.</span> 주의사항 안내입니다.</div>`;
+            }
+            noticeHTML += `</div>`;
 
-                    const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-                    const contentBox = document.querySelector(".editor-modal-content");
+            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
+            const contentBox = document.querySelector(".editor-modal-content");
 
-                    if (!overlay || !contentBox) return console.error("주의사항 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
+            if (!overlay || !contentBox) return console.error("주의사항 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
 
-                    // 모달 내부 스타일 초기화 및 암전 가독성 주입
-                    contentBox.style.background = "var(--card-color)";
-                    contentBox.style.border = "1px solid var(--border-color)";
-                    contentBox.style.color = "var(--text-color)";
+            // 모달 내부 스타일 초기화 및 암전 가독성 주입
+            contentBox.style.background = "var(--card-color)";
+            contentBox.style.border = "1px solid var(--border-color)";
+            contentBox.style.color = "var(--text-color)";
 
-                    contentBox.innerHTML = `
+            contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: var(--secondary-color); font-size: 18px; font-weight: 800;">
             <i class="fa-solid fa-triangle-exclamation"></i> 주의사항 안내 [<span style="color:#ffffff;">${examTitle}</span>]
         </h3>
@@ -4490,40 +4493,40 @@
                 style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
         </div>
     `;
-                    overlay.style.display = "flex";
-                }
+            overlay.style.display = "flex";
+        }
 
-                function closeNoticeModal() {
-                    const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-                    if (overlay) overlay.style.display = "none";
-                }
+        function closeNoticeModal() {
+            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
+            if (overlay) overlay.style.display = "none";
+        }
 
 
-                /**
-                 * 🎯 [모집공고 관리 - 팝업 02] 시험일정 안내 전용 모달창 가동 엔진
-                 */
-                function openScheduleModal(index) {
-                    const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-                    const targetRow = recruitmentDB[index] || {};
-                    const examTitle = targetRow.title || "지정 과제";
+        /**
+         * 🎯 [모집공고 관리 - 팝업 02] 시험일정 안내 전용 모달창 가동 엔진
+         */
+        function openScheduleModal(index) {
+            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            const targetRow = recruitmentDB[index] || {};
+            const examTitle = targetRow.title || "지정 과제";
 
-                    // 1번부터 10번까지의 시험일정 디폴트 안내문 세트 빌드
-                    let scheduleHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
-                    for (let i = 1; i <= 10; i++) {
-                        scheduleHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #38bdf8; font-weight: 700; margin-right: 6px;">${i}.</span> 시험일정 안내입니다.</div>`;
-                    }
-                    scheduleHTML += `</div>`;
+            // 1번부터 10번까지의 시험일정 디폴트 안내문 세트 빌드
+            let scheduleHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
+            for (let i = 1; i <= 10; i++) {
+                scheduleHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #38bdf8; font-weight: 700; margin-right: 6px;">${i}.</span> 시험일정 안내입니다.</div>`;
+            }
+            scheduleHTML += `</div>`;
 
-                    const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-                    const contentBox = document.querySelector(".editor-modal-content");
+            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
+            const contentBox = document.querySelector(".editor-modal-content");
 
-                    if (!overlay || !contentBox) return console.error("시험일정 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
+            if (!overlay || !contentBox) return console.error("시험일정 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
 
-                    contentBox.style.background = "var(--card-color)";
-                    contentBox.style.border = "1px solid var(--border-color)";
-                    contentBox.style.color = "var(--text-color)";
+            contentBox.style.background = "var(--card-color)";
+            contentBox.style.border = "1px solid var(--border-color)";
+            contentBox.style.color = "var(--text-color)";
 
-                    contentBox.innerHTML = `
+            contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: var(--secondary-color); font-size: 18px; font-weight: 800;">
             <i class="fa-regular fa-calendar-days"></i> 시험일정 안내 [<span style="color:#ffffff;">${examTitle}</span>]
         </h3>
@@ -4535,13 +4538,13 @@
                 style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
         </div>
     `;
-                    overlay.style.display = "flex";
-                }
+            overlay.style.display = "flex";
+        }
 
-                function closeScheduleModal() {
-                    const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-                    if (overlay) overlay.style.display = "none";
-                }
+        function closeScheduleModal() {
+            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
+            if (overlay) overlay.style.display = "none";
+        }
 
     </script>
 

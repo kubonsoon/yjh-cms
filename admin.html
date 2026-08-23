@@ -1899,38 +1899,72 @@
                     tr.style.cursor = "default";
 
                     tr.innerHTML = `
-                <td style="vertical-align: middle; padding-left: 15px;"><input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;"></td>
-                <td style="width: 100px; text-align: center !important; vertical-align: middle;">
-                 <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 24px 2px 6px; text-align:center; text-align-last:center; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
-                  <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
-                  <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
-                  <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
-                  <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
-                 </select>
-                </td>
-                <td><input type="text" id="inline-rec-count-${index}" class="inline-input" value="${row.count || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;"></td>
-                <td><input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;"></td>
-                <td><input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; pointer-events: auto !important; background: var(--card-color) !important;"></td>
-                <td><input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #fbbf24; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;"></td>
-                <td><input type="text" id="inline-rec-notice-${index}" class="inline-input" value="${row.notice || ''}" style="color: #f87171; pointer-events: auto !important; background: var(--card-color) !important;"></td>
-                <td style="vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" style="background:#475569; opacity:0.5; cursor:not-allowed; pointer-events: none;" disabled>보기</button></td>
-                
-                <!-- 🎯 [버그 완전 해결 구역]: 3단 미니 달력 박스 자체에 pointer-events와 cursor 속성을 물리적으로 강제 부여하여 절대 잠기지 않도록 차단 해제 -->
-                <td style="vertical-align: middle;">
-                    <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; pointer-events: auto !important;">
-                        <input type="date" id="inline-rec-pay1-${index}" class="inline-input" value="${row.payDate1 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; pointer-events: auto !important; cursor: pointer !important;" title="1차 지급일 고치기">
-                        <input type="date" id="inline-rec-pay2-${index}" class="inline-input" value="${row.payDate2 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; pointer-events: auto !important; cursor: pointer !important;" title="2차 지급일 고치기">
-                        <input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; pointer-events: auto !important; cursor: pointer !important;" title="3차 지급일 고치기">
-                    </div>
-                </td>
+        <!-- 1. 시험명 (너비 유연 장착 및 좌측 패딩 정렬) -->
+        <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
+            <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
+        </td>
+        
+        <!-- 2. 기수 (너비 80px 센터 정렬) -->
+        <td style="width: 80px; text-align: center !important; vertical-align: middle;">
+            <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 24px 2px 6px; text-align:center; text-align-last:center; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
+                <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
+                <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
+                <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
+                <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
+            </select>
+        </td>
+        
+        <!-- 3. 인원수 (너비 100px 센터 정렬) -->
+        <td style="width: 100px; vertical-align: middle; text-align: center;">
+            <input type="text" id="inline-rec-count-${index}" class="inline-input" value="${row.count || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+        </td>
+        
+        <!-- 4. 기간 (너비 100px 센터 정렬) -->
+        <td style="width: 100px; vertical-align: middle; text-align: center;">
+            <input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+        </td>
+        
+        <!-- 5. 담당 CRC (너비 110px 센터 정렬) -->
+        <td style="width: 110px; vertical-align: middle; text-align: center;">
+            <input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+        </td>
+        
+        <!-- 6. 소집일자 (너비 130px 센터 정렬 및 화이트 색상 락인) -->
+        <td style="width: 130px; vertical-align: middle; text-align: center;">
+            <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
+        </td>
+        
+        <!-- 🌟 [요구사항 준수]: 수정 창에서도 구형 인풋을 소멸시키고, 4대 공지를 단정한 54px 보기 단추 배지로 고정 사출 -->
+        <td style="width: 80px; vertical-align: middle; text-align: center;">
+            <button type="button" class="btn-inline list" onclick="openNoticeModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+        </td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;">
+            <button type="button" class="btn-inline list" onclick="openScheduleModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+        </td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;">
+            <button type="button" class="btn-inline list" onclick="openDutyModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+        </td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;">
+            <button type="button" class="btn-inline list" onclick="openCallModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+        </td>
+        
+        <!-- 11. 참여비 지급일정 (너비 150px 센터 정렬 및 잠금 해제) -->
+        <td style="width: 150px; vertical-align: middle; text-align: center;">
+            <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; pointer-events: auto !important; align-items: center; width: 100%;">
+                <input type="date" id="inline-rec-pay1-${index}" class="inline-input" value="${row.payDate1 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;" title="1차 지급일 고치기">
+                <input type="date" id="inline-rec-pay2-${index}" class="inline-input" value="${row.payDate2 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;" title="2차 지급일 고치기">
+                <input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;" title="3차 지급일 고치기">
+            </div>
+        </td>
 
-                <td style="vertical-align: middle; text-align: center; padding-right: 15px;">
-                    <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important;">
-                        <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
-                        <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
-                    </div>
-                </td>
-            `;
+        <!-- 12. 작업 제어 단추존 (너비 140px 및 여백 일치) -->
+        <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
+            <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important;">
+                <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
+                <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
+            </div>
+        </td>
+    `;
                 }
 
                 // ==========================================================================
@@ -4474,12 +4508,39 @@
             const targetRow = recruitmentDB[index] || {};
             const examTitle = targetRow.title || "지정 과제";
 
-            // 1번부터 10번까지의 당직공지 안내문 레이어 생성
-            let dutyHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
-            for (let i = 1; i <= 10; i++) {
-                dutyHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #a855f7; font-weight: 700; margin-right: 6px;">${i}.</span> 당직공지 안내입니다.</div>`;
+            // 🌟 [요구사항 반영]: 대장에 세이브된 텍스트가 있다면 그것을 출력하고, 없다면 1~10번 안내 문구를 기본 적재
+            let currentDutyLines = [];
+            if (targetRow.customDutyText) {
+                currentDutyLines = targetRow.customDutyText.split('\n');
+            } else {
+                for (let i = 1; i <= 10; i++) {
+                    currentDutyLines.push(`${i}. 당직공지 안내입니다.`);
+                }
             }
+
+            let dutyHTML = `<div id="duty-display-view-area" style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
+            currentDutyLines.forEach(line => {
+                if (line.trim()) {
+                    // 번호 서식만 분리해 야광 보라색 스타일 매핑
+                    const numMatch = line.match(/^(\d+\.)/);
+                    if (numMatch) {
+                        const restText = line.substring(numMatch[0].length);
+                        dutyHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #c084fc; font-weight: 700; margin-right: 6px;">${numMatch[0]}</span>${restText}</div>`;
+                    } else {
+                        dutyHTML += `<div style="margin-bottom: 6px; font-weight: 500; padding-left: 14px;">${line}</div>`;
+                    }
+                }
+            });
             dutyHTML += `</div>`;
+
+            // 🌟 에디터 작성 폼 돔 레이어 빌드 (비활성 숨김 상태 배정)
+            const rawTextAreaValue = currentDutyLines.join('\n');
+            const editorHTML = `
+        <div id="duty-editor-form-area" style="display: none; width: 100%;">
+            <label style="display: block; font-size: 12.5px; font-weight: 700; color: #a855f7; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 내용 편집 에디터 (엔터로 줄바꿈 구분)</label>
+            <textarea id="txt-duty-editor-input-${index}" style="width: 100%; height: 220px; background: #0b0f19; border: 2px solid var(--border-color); border-radius: 8px; color: #ffffff; padding: 12px; font-family: inherit; font-size: 13.5px; line-height: 1.6; outline: none; resize: none; box-sizing: border-box; transition: border-color 0.2s;"></textarea>
+        </div>
+    `;
 
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             const contentBox = document.querySelector(".editor-modal-content");
@@ -4489,66 +4550,86 @@
             contentBox.style.background = "var(--card-color)";
             contentBox.style.border = "1px solid var(--border-color)";
             contentBox.style.color = "var(--text-color)";
+            contentBox.style.width = "480px";
 
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: #c084fc; font-size: 18px; font-weight: 800;">
             <i class="fa-solid fa-user-shield"></i> 당직공지 안내 [<span style="color:#ffffff;">${examTitle}</span>]
         </h3>
-        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px;">
+        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
             ${dutyHTML}
+            ${editorHTML}
         </div>
-        <div style="text-align: right;">
-            <button type="button" onclick="closeDutyModal()" style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <!-- 좌측: 모드 스위칭 액션 컨트롤러 버튼 -->
+            <div>
+                <button type="button" id="btn-duty-action-edit" onclick="switchDutyToEditorMode('${rawTextAreaValue.replace(/'/g, "\\'")}')" style="background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; color: #c084fc; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px;">편집</button>
+                <button type="button" id="btn-duty-action-save" onclick="saveDutyEditorContent(${index})" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);">수정완료</button>
+            </div>
+            <!-- 우측: 모달 닫기 단추 -->
+            <div>
+                <button type="button" onclick="closeDutyModal()" style="background: #475569; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
+            </div>
         </div>
     `;
             overlay.style.display = "flex";
+        }
+
+        /**
+         * 🌟 [에디터 서브 기능 01]: 편집 버튼 클릭 시 입력 텍스트 영역 가동 스왑
+         */
+        function switchDutyToEditorMode(rawContent) {
+            const displayArea = document.getElementById("duty-display-view-area");
+            const editorArea = document.getElementById("duty-editor-form-area");
+            const btnEdit = document.getElementById("btn-duty-action-edit");
+            const btnSave = document.getElementById("btn-duty-action-save");
+
+            // 타겟 텍스트에어리어 엘리먼트 검색 추출
+            const textarea = editorArea ? editorArea.querySelector("textarea") : null;
+
+            if (displayArea && editorArea && btnEdit && btnSave && textarea) {
+                displayArea.style.display = "none";
+                editorArea.style.display = "block";
+                btnEdit.style.display = "none";
+                btnSave.style.display = "inline-block";
+
+                textarea.value = rawContent;
+                textarea.focus();
+
+                // 포커스 네온 스타일 바인딩
+                textarea.onfocus = () => textarea.style.borderColor = '#a855f7';
+                textarea.onblur = () => textarea.style.borderColor = 'var(--border-color)';
+            }
+        }
+
+        /**
+         * 🌟 [에디터 서브 기능 02]: 수정완료 버튼 클릭 시 대장 영구 세이브 및 모달 실시간 동기화 리전개
+         */
+        function saveDutyEditorContent(index) {
+            const textarea = document.getElementById(`txt-duty-editor-input-${index}`);
+            if (!textarea) return;
+
+            const nextTextValue = textarea.value.trim();
+            if (!nextTextValue) return alert("알림: 당직공지 내용을 공란으로 둘 수 없습니다.");
+
+            // 로컬스토리지 대장 실시간 강제 트랜잭션 커밋
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            if (recruitmentDB[index]) {
+                recruitmentDB[index].customDutyText = nextTextValue;
+                localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
+                if (typeof dataStoreRecruitment !== "undefined") window.dataStoreRecruitment = recruitmentDB;
+
+                if (typeof commitToLocalStorage === "function") commitToLocalStorage();
+
+                alert("🎉 당직공지 에디터 내용이 성공적으로 수정 저장되어 화면에 즉시 동기화되었습니다.");
+
+                // 닫지 않고 처음 모달창의 수정 완료된 모습으로 실시간 강제 새로고침 리바인딩
+                openDutyModal(index);
+            }
         }
 
         function closeDutyModal() {
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            if (overlay) overlay.style.display = "none";
-        }
-
-
-        /**
-         * 🎯 [모집공고 관리 - 신규 팝업 04] 소집공지 안내 전용 모달창 가동 엔진
-         */
-        function openCallModal(index) {
-            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            const targetRow = recruitmentDB[index] || {};
-            const examTitle = targetRow.title || "지정 과제";
-
-            // 1번부터 10번까지의 소집공지 안내문 레이어 생성
-            let callHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
-            for (let i = 1; i <= 10; i++) {
-                callHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #2563eb; font-weight: 700; margin-right: 6px;">${i}.</span> 소집공지 안내입니다.</div>`;
-            }
-            callHTML += `</div>`;
-
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            const contentBox = document.querySelector(".editor-modal-content");
-
-            if (!overlay || !contentBox) return console.error("소집공지 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
-
-            contentBox.style.background = "var(--card-color)";
-            contentBox.style.border = "1px solid var(--border-color)";
-            contentBox.style.color = "var(--text-color)";
-
-            contentBox.innerHTML = `
-        <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: #60a5fa; font-size: 18px; font-weight: 800;">
-            <i class="fa-solid fa-bullhorn"></i> 소집공지 안내 [<span style="color:#ffffff;">${examTitle}</span>]
-        </h3>
-        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px;">
-            ${callHTML}
-        </div>
-        <div style="text-align: right;">
-            <button type="button" onclick="closeCallModal()" style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
-        </div>
-    `;
-            overlay.style.display = "flex";
-        }
-
-        function closeCallModal() {
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             if (overlay) overlay.style.display = "none";
         }

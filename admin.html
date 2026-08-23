@@ -2256,6 +2256,24 @@
             if (!tbody) return; tbody.innerHTML = '';
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
+            // [순정 데이터 정화 스캔 기믹]: 기존 let db = ... 라인 바로 아래에 그대로 붙여넣어 주세요!
+            let isDataCleaned = false;
+            db.forEach(user => {
+                if (!user.isDutyAgreed || user.isDutyAgreed === "동의" || user.isDutyAgreed === "") {
+                    user.isDutyAgreed = "대기";
+                    isDataCleaned = true;
+                }
+                if (!user.isCallAgreed || user.isCallAgreed === "동의" || user.isCallAgreed === "") {
+                    user.isCallAgreed = "대기";
+                    isDataCleaned = true;
+                }
+            });
+            if (isDataCleaned) {
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
+                if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = db;
+                console.log("📢 [CMS 대장 정화 완수] 초기 프리셋의 '동의' 유령 파편 데이터를 '대기' 상태로 전면 대전환 완료했습니다.");
+            }
+
             db.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();

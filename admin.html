@@ -1898,6 +1898,7 @@
                     tr.style.setProperty("pointer-events", "auto", "important");
                     tr.style.cursor = "default";
 
+                    // 🌟 백틱 내부의 구형 한줄 주속(//)들을 HTML 표준 주석으로 변환하여 구문 깨짐을 완천 차단했습니다.
                     tr.innerHTML = `
         <!-- 1. 시험명 (너비 유연 장착 및 좌측 패딩 정렬) -->
         <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
@@ -1934,7 +1935,7 @@
             <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
         </td>
         
-        <!-- 🌟 [요구사항 준수]: 수정 창에서도 구형 인풋을 소멸시키고, 4대 공지를 단정한 54px 보기 단추 배지로 고정 사출 -->
+        <!-- 7. 주의사항, 시험일정, 당직공지, 소집공지 보기 버튼 배지 유지 영역 -->
         <td style="width: 80px; vertical-align: middle; text-align: center;">
             <button type="button" class="btn-inline list" onclick="openNoticeModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
         </td>

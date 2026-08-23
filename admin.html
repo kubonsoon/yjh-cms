@@ -2294,7 +2294,7 @@
                 else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
                 docsHTML += `</div>`;
 
-                // 🌟 [오류 원천 분쇄 가드]: ReferenceError 및 배지 유실을 완전 방어하기 위해 배지 함수 2종 정의
+                // 🌟 [순서 인터셉터 가드 안착]: 배지 생성 선언부를 루프 엔진 최상단으로 올림 (ReferenceError 영구 청산)
                 const buildCoreMiniStatusBadgeHTML = (label, val) => {
                     let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '처리완료';
                     let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
@@ -2304,7 +2304,6 @@
                     return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s === '처리중' ? '검토중' : s === '처리완료' ? '완료' : s}</span></div>`;
                 };
                 const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
-
                 const buildAgreementStatusBadgeHTML = (val) => {
                     let s = (val || '대기').trim();
                     let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
@@ -2313,15 +2312,11 @@
                     return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
                 };
 
-                // 정화된 순정 서명 상태값 추출 매핑
                 const dutyAgreed = (row.isDutyAgreed || "대기").trim();
                 const callAgreed = (row.isCallAgreed || "대기").trim();
 
-                // 🌟 [기수 색상 복원 코어 락인]: 순정 기수 차수 문자열로부터 숫자 토큰을 정밀 추출하여 
-                // 삼항 연산 분기 우선순위를 재확립합니다. 1기➔lvl-1, 2~3기➔lvl-2, 4~5기➔lvl-4 (주황골드 복원)
                 const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
                 let thClass = thNum === 1 ? "lvl-1" : (thNum === 2 || thNum === 3) ? "lvl-2" : (thNum === 4 || thNum === 5) ? "lvl-4" : "lvl-6";
-
                 let matchCnt = db.slice(0, index + 1).filter(item => item.title === row.title && item.th === row.th).length;
                 const totalQuota = row.count || "60";
                 const isEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index);

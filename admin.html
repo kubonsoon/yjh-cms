@@ -1942,6 +1942,32 @@
                     const dutyBtnStyle = hasCustomDuty ? "background: rgba(168, 85, 247, 0.15); border: 1px solid #c084fc; color: #c084fc;" : "background: #475569; border: none; color: #ffffff;";
                     const callBtnStyle = hasCustomCall ? "background: rgba(96, 165, 250, 0.15); border: 1px solid #60a5fa; color: #60a5fa;" : "background: #475569; border: none; color: #ffffff;";
 
+                    // 🌟 [거시적 실시간 통계 연산 가드]: 대상자 대장에서 현재 시험명과 기수가 일치하는 피험자들의 동의/미동의 건수를 즉시 실시간 연산 추출합니다.
+                    let dutyAgreeCnt = 0, dutyDisagreeCnt = 0;
+                    let callAgreeCnt = 0, callDisagreeCnt = 0;
+
+                    try {
+                        // 현재 속한 시험명과 기수를 스캔 필터링
+                        const targetApplicants = adminApplicantDB.filter(item => {
+                            const rowThNum = (row.th || "").replace(/[^0-9]/g, "");
+                            const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
+                            return item.title === row.title && rowThNum === itemThNum && rowThNum !== "";
+                        });
+
+                        // 당직 및 소집 동의 여부 개별 분기 팩트 건수 누적
+                        targetApplicants.forEach(user => {
+                            // 당직 통계 집계
+                            if ((user.isDutyAgreed || "").trim() === "동의") dutyAgreeCnt++;
+                            else if ((user.isDutyAgreed || "").trim() === "미동의") dutyDisagreeCnt++;
+
+                            // 소집 통계 집계
+                            if ((user.isCallAgreed || "").trim() === "동의") callAgreeCnt++;
+                            else if ((user.isCallAgreed || "").trim() === "미동의") callDisagreeCnt++;
+                        });
+                    } catch (err) {
+                        console.error("통계 연산 오류 가드 가동", err);
+                    }
+
                     // 지급일정 가변 3단 누적 정렬 파서
                     let multiLinePayHTML = "";
                     if (row.payDate1) multiLinePayHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px;">1차: ${row.payDate1}</div>`;
@@ -1964,12 +1990,25 @@
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
-                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                
+                <!-- 9. 당직공지 버튼 구역 (🌟 요구사항 반영: 보기 단추 하단에 실시간 동의자/미동의자 복층 인원 통계 야광 정보 레이어 인가) -->
+                <td style="width: 80px; vertical-align: middle; text-align: center; padding-top: 6px; padding-bottom: 6px;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <div style="margin-top: 4px; font-size: 10px; line-height: 1.2; white-space: nowrap; font-weight: 700; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;">
+                        <span style="color: #34d399;">동의: ${dutyAgreeCnt}명</span>
+                        <span style="color: #f87171; ${dutyDisagreeCnt > 0 ? 'text-shadow: 0 0 6px rgba(248,113,113,0.4);' : ''}">미동의: ${dutyDisagreeCnt}명</span>
+                    </div>
                 </td>
-                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                
+                <!-- 10. 소집공지 버튼 구역 (🌟 요구사항 반영: 보기 단추 하단에 실시간 동의자/미동의자 복층 인원 통계 야광 정보 레이어 인가) -->
+                <td style="width: 80px; vertical-align: middle; text-align: center; padding-top: 6px; padding-bottom: 6px;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <div style="margin-top: 4px; font-size: 10px; line-height: 1.2; white-space: nowrap; font-weight: 700; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;">
+                        <span style="color: #34d399;">동의: ${callAgreeCnt}명</span>
+                        <span style="color: #f87171; ${callDisagreeCnt > 0 ? 'text-shadow: 0 0 6px rgba(248,113,113,0.4);' : ''}">미동의: ${callDisagreeCnt}명</span>
+                    </div>
                 </td>
+                
                 <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
                     <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
                         ${multiLinePayHTML}
@@ -1984,9 +2023,8 @@
             `;
                 }
 
-                // 🎯 [정렬 부착 완수]: 수많은 파트를 관통해 조립된 tr 로우를 마스터 테이블 본문에 안전하게 부착
                 tbody.appendChild(tr);
-            }); // 🎯 recruitmentDB.forEach 마감 괄호
+            });
         }
 
 
@@ -4406,10 +4444,9 @@
                 currentHTMLContent += `</div>`;
             }
 
-            // 네이버 카페 스타일 툴바 인터페이스 빌드
             const boardEditorHTML = `
         <div id="integrated-editor-form-area" style="display: none; width: 100%; text-align: left;">
-            <label style="display: block; font-size: 12px; font-weight: 700; color: ${config.color}; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 게시판 에디터 (글자를 마우스로 긁어 상단 툴바로 편집)</label>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: ${config.color}; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 게시판 에디터</label>
             <div style="display: flex; gap: 4px; background: #1e293b; padding: 6px; border-radius: 6px 6px 0 0; border: 2px solid var(--border-color); border-bottom: none; flex-wrap: wrap;">
                 <button type="button" onclick="execIntegratedCmd('bold')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; font-weight: 900; cursor: pointer;">B</button>
                 <button type="button" onclick="execIntegratedCmd('italic')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; font-style: italic; cursor: pointer;">I</button>
@@ -4433,19 +4470,9 @@
             contentBox.style.background = "var(--card-color)";
             contentBox.style.border = "1px solid var(--border-color)";
             contentBox.style.color = "var(--text-color)";
-            contentBox.style.width = "540px"; // 동의 단추 가독성 가로폭 확장
+            contentBox.style.width = "480px"; // 순정 컴팩트 사이즈 복원
 
-            // 🌟 [핵심 변경 식별 라인]: 오직 당직공지(duty)와 소집공지(call)일 때만 하단 동의/미동의 특수 단추 툴바 분출
-            let agreementButtonsHTML = "";
-            if (type === 'duty' || type === 'call') {
-                agreementButtonsHTML = `
-            <div style="display: flex; gap: 6px; background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; margin-right: auto;">
-                <button type="button" onclick="submitUserAgreementViaModal('${type}', '동의')" style="background: #10b981; color: #070a12; border: none; padding: 6px 14px; border-radius: 4px; font-weight: 700; font-size: 12px; cursor: pointer;"><i class="fa-solid fa-circle-check"></i> 동의</button>
-                <button type="button" onclick="submitUserAgreementViaModal('${type}', '미동의')" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; border: none; padding: 6px 14px; border-radius: 4px; font-weight: 700; font-size: 12px; cursor: pointer;"><i class="fa-solid fa-circle-xmark"></i> 미동의</button>
-            </div>
-        `;
-            }
-
+            // 🌟 [정비 완수]: 하단 버튼 레이아웃에서 편의용 동의 버튼을 소멸시키고 오직 순정 단추만 락인 배치
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: ${config.color}; font-size: 18px; font-weight: 800; text-align: left;">
             <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle}</span>]
@@ -4454,10 +4481,7 @@
             <div id="integrated-display-view-area" style="width: 100%; text-align: left;">${currentHTMLContent}</div>
             ${boardEditorHTML}
         </div>
-        <div style="display: flex; justify-content: flex-end; align-items: center; width: 100%; gap: 10px;">
-            <!-- 🌟 [가변 락인 결합]: 당직/소집 팝업일 때 동의 제어판 단추 레이어 인가 -->
-            ${agreementButtonsHTML}
-            
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <div>
                 <button type="button" id="btn-integrated-action-edit" onclick="switchIntegratedToEditorMode()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px;">편집</button>
                 <button type="button" id="btn-integrated-action-save" onclick="saveIntegratedEditorContent(${index}, '${type}', '${config.dbField}')" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px;">수정완료</button>
@@ -4608,58 +4632,6 @@
             };
         }
 
-
-        // ==========================================================================
-        // 🛡️ [신규 추가 코어]: 모집공고 모달창에서 동의 클릭 시 대상자 대장을 원격 통제
-        // ==========================================================================
-        function submitUserAgreementViaModal(type, agreementValue) {
-            // 1. 로컬스토리지 대상자 마스터 대장 최신화 로드
-            let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
-                applicantDB = dataStoreApplicant;
-            }
-
-            if (applicantDB.length === 0) {
-                return alert("알림: 현재 등록된 대상자(피험자) 데이터가 없어 동의 처리를 연결할 수 없습니다.");
-            }
-
-            // 2. 상단 필터 셀렉트박스로 조준 중인 과제명을 스캔하여 타겟 대상자 색출
-            const filterTitleEl = document.getElementById("dashboard-filter-title");
-            const filterThEl = document.getElementById("dashboard-filter-th");
-
-            const activeFilterTitle = filterTitleEl ? filterTitleEl.value : "ALL";
-            const activeFilterTh = filterThEl ? filterThEl.value : "ALL"; // 🎯 [복구완료]: filterThThEl 오타를 filterThEl로 안전 교정 완료
-
-            // 3. 대상자 대장 전수 스캔하여 조건 매칭 슬롯 오버라이드 커밋
-            applicantDB.forEach((user) => {
-                const isTitleMatch = (activeFilterTitle === "ALL" || user.title === activeFilterTitle);
-                const isThMatch = (activeFilterTh === "ALL" || user.th === activeFilterTh);
-
-                if (isTitleMatch && isThMatch) {
-                    // 공지 종류 분기에 따라 대상자의 실제 필드값 강제 수왑
-                    if (type === 'duty') {
-                        user.isDutyAgreed = agreementValue; // 당직동의 필드 박제
-                    } else if (type === 'call') {
-                        user.isCallAgreed = agreementValue; // 소집동의 필드 박제
-                    }
-                }
-            });
-
-            // 4. 로컬스토리지 가상 데이터베이스 영구 물리 커밋 세이브
-            localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
-            if (typeof dataStoreApplicant !== "undefined") dataStoreApplicant = applicantDB;
-            if (typeof commitToLocalStorage === "function") commitToLocalStorage();
-
-            // 5. 시연 효과 극대화를 위한 알림 스피치 사출
-            const targetLabel = (type === 'duty') ? "당직동의" : "소집동의";
-            alert(`📢 [시연용 연동 가드]: 현재 화면 통제 범위 내 피험자의 [${targetLabel}] 스펙이 [${agreementValue}] 상태로 원격 실시간 강제 업데이트 완료되었습니다.`);
-
-            // 6. 배후에 대기 중인 대상자 목록 마스터 테이블 목록 tr 즉시 동적 렌더링 새로 그리기!
-            if (typeof refreshApplicantView === "function") {
-                console.log("🔄 [원격 트랜잭션] 대상자 관리 목록 테이블 실시간 동기화 리렌더링 트리거 가동");
-                refreshApplicantView();
-            }
-        }
 
     </script>
 

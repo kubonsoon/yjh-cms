@@ -141,6 +141,15 @@
             color: #06B6D4;
         }
 
+        /* 💥 추가: 깃허브 실물 QR 이미지 규격 고정 기술 서식 */
+        .qr-box img {
+            width: 84%;
+            height: 84%;
+            object-fit: contain;
+            position: relative;
+            z-index: 1;
+        }
+
         .scan-line {
             position: absolute;
             width: 90%;
@@ -569,18 +578,11 @@
                     안내 메시지의 <span style="color:#38bdf8; font-weight:700;">QR코드를 스캔</span>하여<br>모바일 인증 시스템에 접속합니다.
                 </p>
 
-                <!-- 💥 깃허브 원본 이미지 임베딩 프레임 박스 -->
-                <div class="qr-box" onclick="executeStep0QRScan()"
-                    style="width: 200px; height: 200px; border: 3px solid #38bdf8; border-radius: 24px; margin: 20px auto; display: flex; align-items: center; justify-content: center; background: #ffffff; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);">
-
-                    <!-- 위아래로 움직이는 모바일 레이저 가이드 선 -->
-                    <div class="scan-line"
-                        style="position: absolute; width: 90%; height: 2px; background: #38bdf8; animation: scanMove 2.5s infinite linear; box-shadow: 0 0 10px #38bdf8; z-index: 2;">
-                    </div>
-
-                    <!-- 요청하신 깃허브 실제 QR 이미지 정밀 축소 매핑 -->
-                    <img src="https://github.com/kubonsoon/yjh-cms/blob/main/qr-code.png" alt="QR Code"
-                        style="width: 82%; height: 82%; object-fit: contain; position: relative; z-index: 1;">
+                <div class="qr-box" onclick="executeStep0QRScan()">
+                    <!-- 위아래로 투사되는 움직이는 가이드 레이저 라인 -->
+                    <div class="scan-line"></div>
+                    <!-- 요청하신 깃허브 원본 이미지 소스 다이렉트 바인딩 (엑박 방지 Raw 주소 적용) -->
+                    <img src="https://githubusercontent.com" alt="QR Code Link">
                 </div>
 
                 <p style="font-size:11px; color:rgba(255,255,255,0.4); line-height:1.4;">

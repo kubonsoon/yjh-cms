@@ -4593,6 +4593,48 @@
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             if (overlay) overlay.style.display = "none";
         }
+
+
+        /**
+         * 🎯 과거 주의사항 보기 버튼 클릭 흔적 가드
+         */
+        if (typeof openNoticeModal !== "function") {
+            window.openNoticeModal = function (index) {
+                console.log("🛡️ [가드동작] openNoticeModal ➔ openIntegratedBoardModal('notice') 우회 연동");
+                if (typeof openIntegratedBoardModal === "function") openIntegratedBoardModal(index, 'notice');
+            };
+        }
+
+        /**
+         * 🎯 과거 시험일정 보기 버튼 클릭 흔적 가드
+         */
+        if (typeof openScheduleModal !== "function") {
+            window.openScheduleModal = function (index) {
+                console.log("🛡️ [가드동작] openScheduleModal ➔ openIntegratedBoardModal('schedule') 우회 연동");
+                if (typeof openIntegratedBoardModal === "function") openIntegratedBoardModal(index, 'schedule');
+            };
+        }
+
+        /**
+         * 🎯 과거 당직공지 보기 버튼 클릭 흔적 가드
+         */
+        if (typeof openDutyModal !== "function") {
+            window.openDutyModal = function (index) {
+                console.log("🛡️ [가드동작] openDutyModal ➔ openIntegratedBoardModal('duty') 우회 연동");
+                if (typeof openIntegratedBoardModal === "function") openIntegratedBoardModal(index, 'duty');
+            };
+        }
+
+        /**
+         * 🎯 과거 소집공지 보기 버튼 클릭 흔적 가드
+         */
+        if (typeof openCallModal !== "function") {
+            window.openCallModal = function (index) {
+                console.log("🛡️ [가드동작] openCallModal ➔ openIntegratedBoardModal('call') 우회 연동");
+                if (typeof openIntegratedBoardModal === "function") openIntegratedBoardModal(index, 'call');
+            };
+        }
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

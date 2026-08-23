@@ -4452,247 +4452,188 @@
 
 
         // ==========================================================================
-        // 🎯 [모집공고 관리 - 팝업 01] 주의사항 안내 전용 모달창 가동 엔진
-        // ==========================================================================
-        function openNoticeModal(index) {
-            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            const targetRow = recruitmentDB[index] || {};
-            const examTitle = targetRow.title || "지정 과제";
+        // 📊 [4대 공지 통합형 HTML 게시판 에디터 인프라]: 파일 최하단 </script> 바로 위 주입
+    // ==========================================================================
 
-            // 1번부터 10번까지의 주의사항 디폴트 안내문 세트 빌드
-            let noticeHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
-            for (let i = 1; i <= 10; i++) {
-                noticeHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #fbbf24; font-weight: 700; margin-right: 6px;">${i}.</span> 주의사항 안내입니다.</div>`;
-            }
-            noticeHTML += `</div>`;
+    /**
+    * 🎯 [모집공고 관리] 4대 공지 통합 제어 및 실시간 게시판형 에디터 스위칭 마스터 렌더러
+    * @param {number} index - 모집공고 대장 배열 인덱스
+    * @param {string} type - 공지 종류 분기 키워드 ('notice', 'schedule', 'duty', 'call')
+    */
+    function openIntegratedBoardModal(index, type) {
+    const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+    const targetRow = recruitmentDB[index] || {};
+    const examTitle = targetRow.title || "지정 과제";
 
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            const contentBox = document.querySelector(".editor-modal-content");
-            if (!overlay || !contentBox) return console.error("주의사항 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
+    // 1. 공지 속성별 타이틀, 아이콘, 전용 컬러 및 가상 DB 필드 맵 스펙 락인
+    let config = { title: "", icon: "", color: "", dbField: "", label: "" };
+    if (type === 'notice') {
+    config = { title: "주의사항 안내", icon: "fa-solid fa-triangle-exclamation", color: "var(--secondary-color, #0ea5e9)",
+    dbField: "customNoticeHTML", label: "주의사항" };
+    } else if (type === 'schedule') {
+    config = { title: "시험일정 안내", icon: "fa-regular fa-calendar-days", color: "#38bdf8", dbField: "customScheduleHTML",
+    label: "시험일정" };
+    } else if (type === 'duty') {
+    config = { title: "당직공지 안내", icon: "fa-solid fa-user-shield", color: "#c084fc", dbField: "customDutyHTML", label:
+    "당직공지" };
+    } else if (type === 'call') {
+    config = { title: "소집공지 안내", icon: "fa-solid fa-bullhorn", color: "#60a5fa", dbField: "customCallHTML", label:
+    "소집공지" };
+    }
 
-            // 모달 내부 스타일 초기화 및 암전 가독성 주입
-            contentBox.style.background = "var(--card-color)";
-            contentBox.style.border = "1px solid var(--border-color)";
-            contentBox.style.color = "var(--text-color)";
-            contentBox.style.width = "480px";
+    // 2. 대장에 세이브된 가변 HTML 텍스트 코드가 있다면 우선 로드, 없다면 순정 1~10번 조항 자동 사출
+    let currentHTMLContent = "";
+    if (targetRow[config.dbField]) {
+    currentHTMLContent = targetRow[config.dbField];
+    } else {
+    currentHTMLContent = `<div style="color:#cbd5e1; font-size:14px; line-height:1.8; text-align:left;">`;
+        for (let i = 1; i <= 10; i++) { currentHTMLContent +=`<div style="margin-bottom:6px;"><strong
+                style="color:${config.color}; margin-right:6px;">${i}.</strong> ${config.label} 안내 내용입니다.</div>`;
+    }
+    currentHTMLContent += `</div>`;
+    }
 
-            contentBox.innerHTML = `
-        <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: var(--secondary-color); font-size: 18px; font-weight: 800;">
-            <i class="fa-solid fa-triangle-exclamation"></i> 주의사항 안내 [<span style="color:#ffffff;">${examTitle}</span>]
-        </h3>
-        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px;">
-            ${noticeHTML}
+    // 3. 초슬림 상용 보더 툴바 및 contenteditable 반응형 웹 워크스페이스 패널 조립
+    const boardEditorHTML = `
+    <div id="integrated-editor-form-area" style="display: none; width: 100%; text-align: left;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: ${config.color}; margin-bottom: 8px;"><i
+                class="fa-solid fa-pen-to-square"></i> 게시판 에디터 (글자를 마우스로 긁어 상단 툴바로 편집)</label>
+        <div
+            style="display: flex; gap: 4px; background: #1e293b; padding: 6px; border-radius: 6px 6px 0 0; border: 2px solid var(--border-color); border-bottom: none; flex-wrap: wrap;">
+            <button type="button" onclick="execIntegratedCmd('bold')"
+                style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; font-weight: 900; cursor: pointer;">B</button>
+            <button type="button" onclick="execIntegratedCmd('italic')"
+                style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; font-style: italic; cursor: pointer;">I</button>
+            <button type="button" onclick="execIntegratedCmd('underline')"
+                style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; text-decoration: underline; cursor: pointer;">U</button>
+            <button type="button" onclick="execIntegratedCmd('strikeThrough')"
+                style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; text-decoration: line-through; cursor: pointer;">S</button>
+            <span style="border-left: 1px solid #475569; margin: 2px 4px;"></span>
+            <button type="button" onclick="execIntegratedCmd('foreColor', '#f87171')"
+                style="background: #ef4444; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"
+                title="빨강"></button>
+            <button type="button" onclick="execIntegratedCmd('foreColor', '#fbbf24')"
+                style="background: #f59e0b; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"
+                title="노랑"></button>
+            <button type="button" onclick="execIntegratedCmd('foreColor', '#4ade80')"
+                style="background: #10b981; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"
+                title="초록"></button>
+            <button type="button" onclick="execIntegratedCmd('foreColor', '#38bdf8')"
+                style="background: #0ea5e9; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"
+                title="파랑"></button>
+            <button type="button" onclick="execIntegratedCmd('foreColor', '#ffffff')"
+                style="background: #ffffff; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"
+                title="흰색"></button>
         </div>
-        <div style="text-align: right;">
-            <button type="button" onclick="closeNoticeModal()" style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
+        <div id="html-integrated-workspace" contenteditable="true"
+            style="width: 100%; height: 220px; background: #0b0f19; border: 2px solid var(--border-color); border-radius: 0 0 8px 8px; color: #ffffff; padding: 14px; font-size: 14px; line-height: 1.6; outline: none; overflow-y: auto; box-sizing: border-box;">
         </div>
-    `;
-            overlay.style.display = "flex";
-        }
-
-        function closeNoticeModal() {
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            if (overlay) overlay.style.display = "none";
-        }
-
-        // ==========================================================================
-        // 🎯 [모집공고 관리 - 팝업 02] 시험일정 안내 전용 모달창 가동 엔진
-        // ==========================================================================
-        function openScheduleModal(index) {
-            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            const targetRow = recruitmentDB[index] || {};
-            const examTitle = targetRow.title || "지정 과제";
-
-            // 1번부터 10번까지의 시험일정 디폴트 안내문 세트 빌드
-            let scheduleHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
-            for (let i = 1; i <= 10; i++) {
-                scheduleHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #38bdf8; font-weight: 700; margin-right: 6px;">${i}.</span> 시험일정 안내입니다.</div>`;
-            }
-            scheduleHTML += `</div>`;
-
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            const contentBox = document.querySelector(".editor-modal-content");
-            if (!overlay || !contentBox) return console.error("시험일정 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
-
-            contentBox.style.background = "var(--card-color)";
-            contentBox.style.border = "1px solid var(--border-color)";
-            contentBox.style.color = "var(--text-color)";
-            contentBox.style.width = "480px";
-
-            contentBox.innerHTML = `
-        <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: var(--secondary-color); font-size: 18px; font-weight: 800;">
-            <i class="fa-regular fa-calendar-days"></i> 시험일정 안내 [<span style="color:#ffffff;">${examTitle}</span>]
-        </h3>
-        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px;">
-            ${scheduleHTML}
-        </div>
-        <div style="text-align: right;">
-            <button type="button" onclick="closeScheduleModal()" style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
-        </div>
-    `;
-            overlay.style.display = "flex";
-        }
-
-        function closeScheduleModal() {
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            if (overlay) overlay.style.display = "none";
-        }
-
-
-        // ==========================================================================
-        // 🎯 [모집공고 관리 - 신규 팝업 03] 당직공지 안내 전용 가변 실시간 에디터 모달 엔진
-        // ==========================================================================
-        function openDutyModal(index) {
-            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            const targetRow = recruitmentDB[index] || {};
-            const examTitle = targetRow.title || "지정 과제";
-
-            // 🌟 대장에 세이브된 텍스트가 있다면 그것을 출력하고, 없다면 1~10번 안내 문구를 기본 적재
-            let currentDutyLines = [];
-            if (targetRow.customDutyText) {
-                currentDutyLines = targetRow.customDutyText.split('\n');
-            } else {
-                for (let i = 1; i <= 10; i++) {
-                    currentDutyLines.push(`${i}. 당직공지 안내입니다.`);
-                }
-            }
-
-            let dutyHTML = `<div id="duty-display-view-area" style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left; width: 100%;">`;
-            currentDutyLines.forEach(line => {
-                if (line.trim()) {
-                    const numMatch = line.match(/^(\d+\.)/);
-                    if (numMatch) {
-                        const restText = line.substring(numMatch[0].length);
-                        dutyHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #c084fc; font-weight: 700; margin-right: 6px;">${numMatch[0]}</span>${restText}</div>`;
-                    } else {
-                        dutyHTML += `<div style="margin-bottom: 6px; font-weight: 500; padding-left: 14px;">${line}</div>`;
-                    }
-                }
-            });
-            dutyHTML += `</div>`;
-
-            // 에디터 작성 폼 돔 레이어 빌드 (초기 숨김 상태 배정)
-            const rawTextAreaValue = currentDutyLines.join('\n');
-            const editorHTML = `
-        <div id="duty-editor-form-area" style="display: none; width: 100%;">
-            <label style="display: block; font-size: 12.5px; font-weight: 700; color: #a855f7; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 내용 편집 에디터 (엔터로 줄바꿈 구분)</label>
-            <textarea id="txt-duty-editor-input-${index}" style="width: 100%; height: 220px; background: #0b0f19; border: 2px solid var(--border-color); border-radius: 8px; color: #ffffff; padding: 12px; font-family: inherit; font-size: 13.5px; line-height: 1.6; outline: none; resize: none; box-sizing: border-box; transition: border-color 0.2s;"></textarea>
-        </div>
+    </div>
     `;
 
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            const contentBox = document.querySelector(".editor-modal-content");
-            if (!overlay || !contentBox) return console.error("당직공지 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
+    const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
+    const contentBox = document.querySelector(".editor-modal-content");
+    if (!overlay || !contentBox) return console.error("통합 모달창 돔 오류");
 
-            contentBox.style.background = "var(--card-color)";
-            contentBox.style.border = "1px solid var(--border-color)";
-            contentBox.style.color = "var(--text-color)";
-            contentBox.style.width = "480px";
+    contentBox.style.background = "var(--card-color)";
+    contentBox.style.border = "1px solid var(--border-color)";
+    contentBox.style.color = "var(--text-color)";
+    contentBox.style.width = "520px"; // 게시판형 대칭 크기 셋업
 
-            contentBox.innerHTML = `
-        <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: #c084fc; font-size: 18px; font-weight: 800;">
-            <i class="fa-solid fa-user-shield"></i> 당직공지 안내 [<span style="color:#ffffff;">${examTitle}</span>]
-        </h3>
-        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; width: 100%;">
-            ${dutyHTML}
-            ${editorHTML}
+    contentBox.innerHTML = `
+    <h3
+        style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: ${config.color}; font-size: 18px; font-weight: 800; text-align: left;">
+        <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle}</span>]
+    </h3>
+    <div
+        style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; width: 100%;">
+        <div id="integrated-display-view-area" style="width: 100%; text-align: left;">${currentHTMLContent}</div>
+        ${boardEditorHTML}
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div>
+            <button type="button" id="btn-integrated-action-edit" onclick="switchIntegratedToEditorMode()"
+                style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px;">편집</button>
+            <button type="button" id="btn-integrated-action-save"
+                onclick="saveIntegratedEditorContent(${index}, '${type}', '${config.dbField}')"
+                style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);">수정완료</button>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <div>
-                <button type="button" id="btn-duty-action-edit" onclick="switchDutyToEditorMode('${rawTextAreaValue.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')" style="background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; color: #c084fc; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px;">편집</button>
-                <button type="button" id="btn-duty-action-save" onclick="saveDutyEditorContent(${index})" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);">수정완료</button>
-            </div>
-            <div>
-                <button type="button" onclick="closeDutyModal()" style="background: #475569; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
-            </div>
+        <div>
+            <button type="button" onclick="closeIntegratedModal()"
+                style="background: #475569; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
         </div>
+    </div>
     `;
-            overlay.style.display = "flex";
-        }
+    overlay.style.display = "flex";
+    }
 
-        function switchDutyToEditorMode(rawContent) {
-            const displayArea = document.getElementById("duty-display-view-area");
-            const editorArea = document.getElementById("duty-editor-form-area");
-            const btnEdit = document.getElementById("btn-duty-action-edit");
-            const btnSave = document.getElementById("btn-duty-action-save");
-            const textarea = editorArea ? editorArea.querySelector("textarea") : null;
+    /**
+    * 🌟 [통합 에디터 명령어] 마우스로 드래그 선택된 영역에 웹 표준 HTML 태그 실시간 투사 주입
+    */
+    function execIntegratedCmd(command, value = null) {
+    document.execCommand(command, false, value);
+    }
 
-            if (displayArea && editorArea && btnEdit && btnSave && textarea) {
-                displayArea.style.display = "none";
-                editorArea.style.display = "block";
-                btnEdit.style.display = "none";
-                btnSave.style.display = "inline-block";
-                textarea.value = rawContent;
-                textarea.focus();
-            }
-        }
+    /**
+    * 🌟 [모드 편집 전환] 기존 보기 화면을 가리고 HTML 스트링 구문을 워크스페이스 패널 내부에 로드 가동
+    */
+    function switchIntegratedToEditorMode() {
+    const displayArea = document.getElementById("integrated-display-view-area");
+    const editorArea = document.getElementById("integrated-editor-form-area");
+    const btnEdit = document.getElementById("btn-integrated-action-edit");
+    const btnSave = document.getElementById("btn-integrated-action-save");
+    const workspace = document.getElementById("html-integrated-workspace");
 
-        function saveDutyEditorContent(index) {
-            const textarea = document.getElementById(`txt-duty-editor-input-${index}`);
-            if (!textarea) return;
+    if (displayArea && editorArea && btnEdit && btnSave && workspace) {
+    workspace.innerHTML = displayArea.innerHTML;
+    displayArea.style.display = "none";
+    editorArea.style.display = "block";
+    btnEdit.style.display = "none";
+    btnSave.style.display = "inline-block";
+    workspace.focus();
+    }
+    }
 
-            const nextTextValue = textarea.value.trim();
-            if (!nextTextValue) return alert("알림: 당직공지 내용을 공란으로 둘 수 없습니다.");
+    /**
+    * 🌟 [데이터 영구 세이브] 편집기 내부에서 최종 가공된 HTML 마크업 소스를 통째로 추출하여 대장에 트랜잭션 커밋
+    */
+    function saveIntegratedEditorContent(index, type, dbField) {
+    const workspace = document.getElementById("html-integrated-workspace");
+    if (!workspace) return;
 
-            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            if (recruitmentDB[index]) {
-                recruitmentDB[index].customDutyText = nextTextValue;
-                localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
-                if (typeof dataStoreRecruitment !== "undefined") window.dataStoreRecruitment = recruitmentDB;
-                if (typeof commitToLocalStorage === "function") commitToLocalStorage();
+    const nextHTMLContent = workspace.innerHTML.trim();
+    if (!nextHTMLContent || nextHTMLContent === "<br>") {
+    return alert("알림: 내용을 공란으로 작성할 수 없습니다.");
+    }
 
-                alert("🎉 당직공지 에디터 내용이 성공적으로 수정 저장되어 화면에 즉시 동기화되었습니다.");
-                openDutyModal(index);
-            }
-        }
+    let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+    if (recruitmentDB[index]) {
+    // 🎯 해당 공지의 고유 필드 스펙에 HTML 텍스트 문자열 통째로 박제 저장
+    recruitmentDB[index][dbField] = nextHTMLContent;
 
-        function closeDutyModal() {
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            if (overlay) overlay.style.display = "none";
-        }
+    // 💡 하방 호환성 가드: 목록 화면 및 타 서브 모듈 유실 방지를 위한 순수 텍스트 필드 동시 보완 백업
+    if (type === 'notice') recruitmentDB[index].notice = workspace.innerText;
 
-        // ==========================================================================
-        // 🎯 [모집공고 관리 - 신규 팝업 04] 소집공지 안내 전용 모달창 가동 엔진
-        // ==========================================================================
-        function openCallModal(index) {
-            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            const targetRow = recruitmentDB[index] || {};
-            const examTitle = targetRow.title || "지정 과제";
+    localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
+    if (typeof dataStoreRecruitment !== "undefined") window.dataStoreRecruitment = recruitmentDB;
+    if (typeof commitToLocalStorage === "function") commitToLocalStorage();
 
-            // 1번부터 10번까지의 소집공지 디폴트 안내문 세트 빌드
-            let callHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left; width: 100%;">`;
-            for (let i = 1; i <= 10; i++) {
-                callHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #3b82f6; font-weight: 700; margin-right: 6px;">${i}.</span> 소집공지 안내입니다.</div>`;
-            }
-            callHTML += `</div>`;
+    alert("📋 게시판형 HTML 서식이 마스터 대장에 실시간 영구 반영되었습니다.");
 
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            const contentBox = document.querySelector(".editor-modal-content");
-            if (!overlay || !contentBox) return console.error("소집공지 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
+    // 창을 닫지 않고 수정 완료된 모드로 팝업창 리프레시 새로고침
+    openIntegratedBoardModal(index, type);
+    }
+    }
 
-            contentBox.style.background = "var(--card-color)";
-            contentBox.style.border = "1px solid var(--border-color)";
-            contentBox.style.color = "var(--text-color)";
-            contentBox.style.width = "480px";
+    /**
+    * 🎯 통합 모달창 닫기 제어기
+    */
+    function closeIntegratedModal() {
+    const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
+    if (overlay) overlay.style.display = "none";
+    }
 
-            contentBox.innerHTML = `
-        <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: #60a5fa; font-size: 18px; font-weight: 800;">
-            <i class="fa-solid fa-bullhorn"></i> 소집공지 안내 [<span style="color:#ffffff;">${examTitle}</span>]
-        </h3>
-        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px; width: 100%;">
-            ${callHTML}
-        </div>
-        <div style="text-align: right;">
-            <button type="button" onclick="closeCallModal()" style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
-        </div>
-    `;
-            overlay.style.display = "flex";
-        }
 
-        function closeCallModal() {
-            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-            if (overlay) overlay.style.display = "none";
-        }
 
     </script>
 

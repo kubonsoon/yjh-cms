@@ -2280,12 +2280,17 @@
                 const callAgreed = (row.isCallAgreed || "대기").trim();
 
                 const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
-                let thClass = thNum === 2 || thNum === 3 ? "lvl-2" : thNum === 4 || thNum === 5 ? "lvl-4" : thNum >= 6 ? "lvl-6" : "lvl-1";
+
+                // [우선순위 가드 교정]: 1기부터 6기 이상까지 스위칭 체계를 기하학적으로 완벽히 밀봉 정렬했습니다.
+                let thClass = thNum === 1 ? "lvl-1" :
+                    (thNum === 2 || thNum === 3) ? "lvl-2" :
+                        (thNum === 4 || thNum === 5) ? "lvl-4" : "lvl-6";
+
                 let matchCnt = db.slice(0, index + 1).filter(item => item.title === row.title && item.th === row.th).length;
                 const totalQuota = row.count || "60";
                 const isEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index);
 
-                // 🌟 명칭 중복 충돌을 우회하고 구형 코드 명세(buildMiniBadgeHTML)를 정상 수용하는 익명 맵핑 구조 보완
+                // 명칭 중복 충돌을 우회하고 구형 코드 명세(buildMiniBadgeHTML)를 정상 수용하는 익명 맵핑 구조 보완
                 const buildCoreMiniStatusBadgeHTML = (label, val) => {
                     let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료' || s === '처리완료') s = '처리완료';
                     let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
@@ -2296,7 +2301,7 @@
                 };
                 const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
 
-                // 🌟 [당직/소집 전용 야광 3단 스위칭 배지 헬퍼]: 대기는 그레이, 동의는 그린, 미동의는 레드로 사출
+                // [당직/소집 전용 야광 3단 스위칭 배지 헬퍼]: 대기는 그레이, 동의는 그린, 미동의는 레드로 사출
                 const buildAgreementStatusBadgeHTML = (val) => {
                     let s = (val || '대기').trim();
                     let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";

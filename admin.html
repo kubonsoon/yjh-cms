@@ -1172,7 +1172,7 @@
                     <!-- 버튼들이 배치되는 부모 컨테이너 (정밀 간격 25px 제어) -->
                     <div class="admin-top-btn-group" style="display: inline-flex; align-items: center; gap: 25px;">
 
-                        <!-- 1. 인증서 로그인 버튼 -->
+                        <!-- 1. 민간 인증서 로그인 버튼 -->
                         <button type="button" id="btnOpenAuth" onclick="openCivilAuthBridge()"
                             style="background-color: #0284c7; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); transition: all 0.2s ease;"
                             onmouseover="this.style.background='#0ea5e9'" onmouseout="this.style.background='#0284c7'">
@@ -1181,9 +1181,16 @@
 
                         <!-- 2. 참여비 신청 버튼 (25px 간격 배치 완료) -->
                         <button onclick="openMobileForm()" type="button"
-                            style="background: #0e66e9; color: #ffffff; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(233, 156, 14, 0.3); transition: all 0.2s ease;"
-                            onmouseover="this.style.background='#f59e0b'" onmouseout="this.style.background='#0284c7'">
+                            style="background: #0e66e9; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 102, 233, 0.3); transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#0e66e9'">
                             <span>📱</span> 대상자 참여비 신청
+                        </button>
+
+                        <!-- 3. 모바일 인증서 로그인 버튼 (25px 간격 시스템 정밀 설계) -->
+                        <button type="button" id="btnOpenMobileAuth" onclick="openMobileAuthBridge()"
+                            style="background-color: #10b981; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#34d399'" onmouseout="this.style.background='#10b981'">
+                            <i class="fa-solid fa-id-card-clip"></i> 모바일 인증서 로그인
                         </button>
 
                     </div>
@@ -3540,6 +3547,28 @@
             window.open('join_login.html', 'civilAuthPopup', 'width=500, height=750, top=150, left=200');
         }
 
+
+        /**
+         * 신규 모바일 인증서 로그인 시뮬레이터(m-login.html) 연동 전산 허브 함수
+         */
+        function openMobileAuthBridge() {
+            // 실제 스마트폰 모바일 화면 해상도 비율 크기 락업
+            const width = 420;
+            const height = 860;
+
+            // 모니터 화면 해상도 기준 정중앙 배치 좌표 산출 공정
+            const left = (window.screen.width / 2) - (width / 2);
+            const top = (window.screen.height / 2) - (height / 2);
+
+            // 기존 양방향 전산망 동기화를 보존하기 위해 부모-자식 종속 구조 팝업 기동
+            window.open(
+                'm-login.html',
+                'ClinicalMobileCertificateAuthSimulator',
+                `width=${width}, height=${height}, top=${top}, left=${left}, resizable=no, scrollbars=yes, status=no, toolbar=no`
+            );
+        }
+
+
         // B. 목록 내에서 [사례비 신청 프로세스 관리] 또는 상단 테스트 버튼 클릭 시 adm_mem 오픈
         // 💡 팁: 목록 테이블 렌더링 시 버튼에 인자로 user 객체를 넘겨주거나(openAdminMemberController(user)), 
         // 인자 없이 호출하면(openAdminMemberController()) 방금 join_login을 통과한 유저를 제어하도록 다형성(Polymorphism)을 부여합니다.
@@ -4356,7 +4385,7 @@
         }
 
         /**
- * 🔥 [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 피험자의 마스터 상태값을 직접 변경하고
+ * [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 피험자의 마스터 상태값을 직접 변경하고
  * 하단 목록 테이블 및 상단 대시보드 4대 지표 카드를 새로고침 없이 즉각 100% 동기화 리프레시합니다.
  */
         function updateApplicantStatusViaModal(index, newStatus) {
@@ -4448,7 +4477,7 @@
                 currentHTMLContent += `</div>`;
             }
 
-            // 🌟 [백엔드 문자열 정밀 세척 연산 가드]: 텍스트 앞뒤 공백 및 특수문자 불일치로 인한 카운트 누락을 철저히 방어합니다.
+            // [백엔드 문자열 정밀 세척 연산 가드]: 텍스트 앞뒤 공백 및 특수문자 불일치로 인한 카운트 누락을 철저히 방어합니다.
             let agreeCnt = 0, disagreeCnt = 0;
             try {
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -4521,8 +4550,8 @@
             contentBox.style.color = "var(--text-color)";
             contentBox.style.width = "520px";
 
-            // 🌟 [통합 연동 피날레]: 지능형 문자열 세척 가드가 반영된 
-            // [popupStatLineHTML] 패널을 본문 하단에 정밀 마운팅하고 액션 단추를 우측으로 칼밀착 정렬합니다.
+            // 지능형 문자열 세척 가드가 반영된 
+            // 패널을 본문 하단에 정밀 마운팅하고 액션 단추를 우측으로 칼밀착 정렬합니다.
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: ${config.color}; font-size: 18px; font-weight: 800; text-align: left;">
             <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle}</span>]

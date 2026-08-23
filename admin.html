@@ -1898,7 +1898,6 @@
                     tr.style.setProperty("pointer-events", "auto", "important");
                     tr.style.cursor = "default";
 
-                    // 🌟 백틱 내부의 구형 한줄 주속(//)들을 HTML 표준 주석으로 변환하여 구문 깨짐을 완천 차단했습니다.
                     tr.innerHTML = `
         <!-- 1. 시험명 (너비 유연 장착 및 좌측 패딩 정렬) -->
         <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
@@ -1935,26 +1934,19 @@
             <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
         </td>
         
-        <!-- 7. 주의사항, 시험일정, 당직공지, 소집공지 보기 버튼 배지 유지 영역 -->
-<!-- 1. 주의사항 버튼 (notice 키워드 매립) -->
-<td style="width: 80px; vertical-align: middle; text-align: center;">
-    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-</td>
-
-<!-- 2. 시험일정 버튼 (schedule 키워드 매립) -->
-<td style="width: 80px; vertical-align: middle; text-align: center;">
-    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-</td>
-
-<!-- 3. 당직공지 버튼 (duty 키워드 매립) -->
-<td style="width: 80px; vertical-align: middle; text-align: center;">
-    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-</td>
-
-<!-- 4. 소집공지 버튼 (call 키워드 매립) -->
-<td style="width: 80px; vertical-align: middle; text-align: center;">
-    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-</td>
+        <!-- 🌟 [버그 원천 해결 구역]: 수정 상태의 인라인 폼 내부 버튼 onclick도 새롭게 정의한 대통합 함수(openIntegratedBoardModal)로 정밀 변환 안착 완료 -->
+        <td style="width: 80px; vertical-align: middle; text-align: center;">
+            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+        </td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;">
+            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+        </td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;">
+            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+        </td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;">
+            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+        </td>
         
         <!-- 11. 참여비 지급일정 (너비 150px 센터 정렬 및 잠금 해제) -->
         <td style="width: 150px; vertical-align: middle; text-align: center;">

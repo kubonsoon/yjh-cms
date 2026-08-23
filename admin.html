@@ -2376,8 +2376,21 @@
                 <td style="width:85px; min-width:85px; vertical-align:middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center;"></td>
                 <td style="width:125px; min-width:125px; vertical-align:middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${fmtPhone}" style="text-align:center;"></td>
                 <td style="vertical-align:middle; padding-left:6px;">${inlineSelectStackHTML}</td>
-                <td style="width:75px; min-width:75px; vertical-align:middle;"><input type="text" id="inline-app-duty-${index}" class="inline-input" value="${dutyAgreed}" style="text-align:center; font-weight:700;"></td>
-                <td style="width:75px; min-width:75px; vertical-align:middle;"><input type="text" id="inline-app-call-${index}" class="inline-input" value="${callAgreed}" style="text-align:center; font-weight:700;"></td>                <td style="vertical-align:middle;">${docsHTML}</td>
+                <td style="width:75px; min-width:75px; vertical-align:middle;">
+                    <select id="inline-app-duty-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;">
+                        <option value="대기" style="color:#94a3b8;" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
+                        <option value="동의" style="color:#34d399;" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+                        <option value="미동의" style="color:#f87171;" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                    </select>
+                </td>
+                <td style="width:75px; min-width:75px; vertical-align:middle;">
+                    <select id="inline-app-call-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;">
+                        <option value="대기" style="color:#94a3b8;" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
+                        <option value="동의" style="color:#34d399;" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
+                        <option value="미동의" style="color:#f87171;" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                    </select>
+                </td>
+                <td style="vertical-align:middle;">${docsHTML}</td>
                 <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;">
                     <button type="button" class="btn-inline save" onclick="if(typeof saveApplicantInline==='function'){saveApplicantInline(${index});}else{saveApplicantRecord(${index});}" style="background:#4ade80; color:#070a12; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">저장</button>
                     <button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex=null; if(typeof currentAppEditingIndex!=='undefined'){currentAppEditingIndex=null;} refreshApplicantView();" style="background:#475569; color:#fff; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">취소</button>
@@ -2455,6 +2468,9 @@
         function saveApplicantInline(index) {
             // 1. 로컬 스토리지 원본 데이터 배열 안전하게 로드 [원본 구조 100% 영속 유지]
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
+                adminApplicantDB = dataStoreApplicant;
+            }
             if (!adminApplicantDB[index]) {
                 alert("알림: 대장에서 해당 인덱스의 대상자를 찾을 수 없습니다.");
                 return;
@@ -2475,6 +2491,7 @@
                 const elS2 = document.getElementById(`inline-app-payStatus2-${index}`);
                 const elS3 = document.getElementById(`inline-app-payStatus3-${index}`);
 
+                // 🌟 [드롭다운 셀렉터 추적 락인]: 새로 개편된 대기, 동의, 미동의 셀렉트 돔 박스 정밀 캡처
                 const elDuty = document.getElementById(`inline-app-duty-${index}`);
                 const elCall = document.getElementById(`inline-app-call-${index}`);
 
@@ -2516,8 +2533,9 @@
                 adminApplicantDB[index].payStatus = finalPipelineStatus;
                 adminApplicantDB[index].result = finalPipelineStatus;
 
-                adminApplicantDB[index].isDutyAgreed = elDuty ? elDuty.value.trim() : (adminApplicantDB[index].isDutyAgreed || "동의");
-                adminApplicantDB[index].isCallAgreed = elCall ? elCall.value.trim() : (adminApplicantDB[index].isCallAgreed || "동의");
+                // 🌟 [드롭다운 벨류 정밀 박제]: .value 뒤에 붙어있던 구형 .trim() 문자열 파편을 소멸시키고 셀렉터 벨류를 무결하게 저장합니다.
+                adminApplicantDB[index].isDutyAgreed = elDuty ? elDuty.value : (adminApplicantDB[index].isDutyAgreed || "대기");
+                adminApplicantDB[index].isCallAgreed = elCall ? elCall.value : (adminApplicantDB[index].isCallAgreed || "대기");
                 adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
 
                 // 4. 🌟 [메모리 폭파 방지 가드]: 로컬 스토리지뿐 아니라, 메모리 전역 대장(배열 변수 2종 모두) 강제 동기화 시켜 유실 원천 차단
@@ -2531,7 +2549,7 @@
                 window.currentAppEditingIndex = null;
                 if (typeof currentAppEditingIndex !== 'undefined') currentAppEditingIndex = undefined;
                 if (typeof currentEditingApplicantIndex !== 'undefined') currentEditingApplicantIndex = null;
-                currentEditingUid = null;
+                if (typeof currentEditingUid !== 'undefined') currentEditingUid = null;
 
                 // 상단 대시보드 통계 실시간 재계산 함수 자동 리트리거 연동
                 if (typeof calculateLiveDashboardStats === 'function') {
@@ -2547,6 +2565,15 @@
                     window.location.reload();
                 }
 
+                // ==========================================================================
+                // 🌟 [양방향 동기화 결합]: 대상자 정보 저장이 끝나는 즉시 배후의 모집공고 통계 엔진을 연쇄 호출!
+                // 이 코드가 기동하면서 모집공고 팝업창 내의 동의/미동의자 실시간 통계 수치 지표가 완벽히 실시간 동적 갱신됩니다.
+                // ==========================================================================
+                if (typeof refreshRecruitmentView === 'function') {
+                    console.log("🔄 [양방향 동기화] 당직/소집 드롭다운 변경에 따른 모집공고 실시간 누적 카운터 리인프라 재가동");
+                    refreshRecruitmentView();
+                }
+
                 alert("📢 대상자 정보 및 1~3차 참여비 정산 프로세스 상태가 대장에 완전 반영되었습니다.");
 
             } catch (error) {
@@ -2554,6 +2581,9 @@
                 alert("시스템 오류: 저장 중 문제가 발생했습니다.");
             }
         }
+
+        // 💡 하방 호환성 안전 결합 (구형 명칭 경로 호출 완벽 지지 가드)
+        const saveApplicantRecord = saveApplicantInline;
 
         // 💡 하방 링크 안전 포워딩 가드 매칭
         function saveApplicantRecord(index) {

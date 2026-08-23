@@ -1942,32 +1942,6 @@
                     const dutyBtnStyle = hasCustomDuty ? "background: rgba(168, 85, 247, 0.15); border: 1px solid #c084fc; color: #c084fc;" : "background: #475569; border: none; color: #ffffff;";
                     const callBtnStyle = hasCustomCall ? "background: rgba(96, 165, 250, 0.15); border: 1px solid #60a5fa; color: #60a5fa;" : "background: #475569; border: none; color: #ffffff;";
 
-                    // 🌟 [거시적 실시간 통계 연산 가드]: 대상자 대장에서 현재 시험명과 기수가 일치하는 피험자들의 동의/미동의 건수를 즉시 실시간 연산 추출합니다.
-                    let dutyAgreeCnt = 0, dutyDisagreeCnt = 0;
-                    let callAgreeCnt = 0, callDisagreeCnt = 0;
-
-                    try {
-                        // 현재 속한 시험명과 기수를 스캔 필터링
-                        const targetApplicants = adminApplicantDB.filter(item => {
-                            const rowThNum = (row.th || "").replace(/[^0-9]/g, "");
-                            const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
-                            return item.title === row.title && rowThNum === itemThNum && rowThNum !== "";
-                        });
-
-                        // 당직 및 소집 동의 여부 개별 분기 팩트 건수 누적
-                        targetApplicants.forEach(user => {
-                            // 당직 통계 집계
-                            if ((user.isDutyAgreed || "").trim() === "동의") dutyAgreeCnt++;
-                            else if ((user.isDutyAgreed || "").trim() === "미동의") dutyDisagreeCnt++;
-
-                            // 소집 통계 집계
-                            if ((user.isCallAgreed || "").trim() === "동의") callAgreeCnt++;
-                            else if ((user.isCallAgreed || "").trim() === "미동의") callDisagreeCnt++;
-                        });
-                    } catch (err) {
-                        console.error("통계 연산 오류 가드 가동", err);
-                    }
-
                     // 지급일정 가변 3단 누적 정렬 파서
                     let multiLinePayHTML = "";
                     if (row.payDate1) multiLinePayHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px;">1차: ${row.payDate1}</div>`;
@@ -1984,29 +1958,23 @@
                 <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
                 <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
                 
+                <!-- 1. 주의사항 보기 버튼 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
+                <!-- 2. 시험일정 보기 버튼 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 
-                <!-- 9. 당직공지 버튼 구역 (🌟 요구사항 반영: 보기 단추 하단에 실시간 동의자/미동의자 복층 인원 통계 야광 정보 레이어 인가) -->
-                <td style="width: 80px; vertical-align: middle; text-align: center; padding-top: 6px; padding-bottom: 6px;">
+                <!-- 3. 당직공지 버튼 구역 (🌟 요구사항 반영: 보기 단추 하단에 난잡하게 밀려있던 통계 div 레이어를 완벽하게 철거 박멸했습니다) -->
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
-                    <div style="margin-top: 4px; font-size: 10px; line-height: 1.2; white-space: nowrap; font-weight: 700; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;">
-                        <span style="color: #34d399;">동의: ${dutyAgreeCnt}명</span>
-                        <span style="color: #f87171; ${dutyDisagreeCnt > 0 ? 'text-shadow: 0 0 6px rgba(248,113,113,0.4);' : ''}">미동의: ${dutyDisagreeCnt}명</span>
-                    </div>
                 </td>
                 
-                <!-- 10. 소집공지 버튼 구역 (🌟 요구사항 반영: 보기 단추 하단에 실시간 동의자/미동의자 복층 인원 통계 야광 정보 레이어 인가) -->
-                <td style="width: 80px; vertical-align: middle; text-align: center; padding-top: 6px; padding-bottom: 6px;">
+                <!-- 4. 소집공지 버튼 구역 (🌟 요구사항 반영: 보기 단추 하단에 난잡하게 밀려있던 통계 div 레이어를 완벽하게 철거 박멸했습니다) -->
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
-                    <div style="margin-top: 4px; font-size: 10px; line-height: 1.2; white-space: nowrap; font-weight: 700; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;">
-                        <span style="color: #34d399;">동의: ${callAgreeCnt}명</span>
-                        <span style="color: #f87171; ${callDisagreeCnt > 0 ? 'text-shadow: 0 0 6px rgba(248,113,113,0.4);' : ''}">미동의: ${callDisagreeCnt}명</span>
-                    </div>
                 </td>
                 
                 <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">

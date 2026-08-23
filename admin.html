@@ -4417,11 +4417,15 @@
             }
         }
 
+        // ==========================================================================
+        // [4대 공지 통합형 HTML 에디터 인프라]: 통계 한 줄 매핑 및 버튼 우측 정렬
+        // ==========================================================================
         function openIntegratedBoardModal(index, type) {
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const targetRow = recruitmentDB[index] || {};
             const examTitle = targetRow.title || "지정 과제";
 
+            // 1. 공지 속성별 타이틀, 아이콘, 전용 컬러 및 가상 DB 필드 맵 스펙 락인
             let config = { title: "", icon: "", color: "", dbField: "", label: "" };
             if (type === 'notice') {
                 config = { title: "주의사항 안내", icon: "fa-solid fa-triangle-exclamation", color: "var(--secondary-color, #0ea5e9)", dbField: "customNoticeHTML", label: "주의사항" };
@@ -4433,6 +4437,7 @@
                 config = { title: "소집공지 안내", icon: "fa-solid fa-bullhorn", color: "#60a5fa", dbField: "customCallHTML", label: "소집공지" };
             }
 
+            // 2. 대장에 세이브된 가변 HTML 텍스트 코드가 있다면 우선 로드, 없다면 순정 1~10번 조항 자동 사출
             let currentHTMLContent = "";
             if (targetRow[config.dbField]) {
                 currentHTMLContent = targetRow[config.dbField];
@@ -4444,6 +4449,41 @@
                 currentHTMLContent += `</div>`;
             }
 
+            // 3. 🌟 [동의/미동의 백엔드 집계 엔진 부착]: 대상자 데이터베이스 실시간 연산 스캔 가동
+            let agreeCnt = 0, disagreeCnt = 0;
+            try {
+                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                const targetApplicants = adminApplicantDB.filter(item => {
+                    const rowThNum = (targetRow.th || "").replace(/[^0-9]/g, "");
+                    const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
+                    return item.title === targetRow.title && rowThNum === itemThNum && rowThNum !== "";
+                });
+
+                targetApplicants.forEach(user => {
+                    if (type === 'duty') {
+                        if ((user.isDutyAgreed || "").trim() === "동의") agreeCnt++;
+                        else if ((user.isDutyAgreed || "").trim() === "미동의") disagreeCnt++;
+                    } else if (type === 'call') {
+                        if ((user.isCallAgreed || "").trim() === "동의") agreeCnt++;
+                        else if ((user.isCallAgreed || "").trim() === "미동의") disagreeCnt++;
+                    }
+                });
+            } catch (err) { console.error("실시간 팝업 통계 집계 실패 가드", err); }
+
+            // 🌟 [요구사항 반영]: 당직/소집 공지일 때 팝업창 내부에 렌더링될 세련된 한 줄 통계 패널 조립
+            let popupStatLineHTML = "";
+            if (type === 'duty' || type === 'call') {
+                popupStatLineHTML = `
+            <div style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; font-size: 13px; font-weight: 700; box-sizing: border-box;">
+                <span style="color: var(--text-muted);"><i class="fa-solid fa-chart-pie" style="color: ${config.color};"></i> 실시간 피험자 서명 현황:</span>
+                <div style="display: flex; gap: 12px;">
+                    <span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> 동의: ${agreeCnt}명</span>
+                    <span style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> 미동의: ${disagreeCnt}명</span>
+                </div>
+            </div>
+        `;
+            }
+
             const boardEditorHTML = `
         <div id="integrated-editor-form-area" style="display: none; width: 100%; text-align: left;">
             <label style="display: block; font-size: 12px; font-weight: 700; color: ${config.color}; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 게시판 에디터</label>
@@ -4453,16 +4493,15 @@
                 <button type="button" onclick="execIntegratedCmd('underline')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; text-decoration: underline; cursor: pointer;">U</button>
                 <button type="button" onclick="execIntegratedCmd('strikeThrough')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; text-decoration: line-through; cursor: pointer;">S</button>
                 <span style="border-left: 1px solid #475569; margin: 2px 4px;"></span>
-                <button type="button" onclick="execIntegratedCmd('foreColor', '#f87171')" style="background: #ef4444; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;" title="빨강"></button>
-                <button type="button" onclick="execIntegratedCmd('foreColor', '#fbbf24')" style="background: #f59e0b; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;" title="노랑"></button>
-                <button type="button" onclick="execIntegratedCmd('foreColor', '#4ade80')" style="background: #10b981; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;" title="초록"></button>
-                <button type="button" onclick="execIntegratedCmd('foreColor', '#38bdf8')" style="background: #0ea5e9; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;" title="파랑"></button>
-                <button type="button" onclick="execIntegratedCmd('foreColor', '#ffffff')" style="background: #ffffff; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;" title="흰색"></button>
+                <button type="button" onclick="execIntegratedCmd('foreColor', '#f87171')" style="background: #ef4444; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
+                <button type="button" onclick="execIntegratedCmd('foreColor', '#fbbf24')" style="background: #f59e0b; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
+                <button type="button" onclick="execIntegratedCmd('foreColor', '#4ade80')" style="background: #10b981; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
+                <button type="button" onclick="execIntegratedCmd('foreColor', '#38bdf8')" style="background: #0ea5e9; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
+                <button type="button" onclick="execIntegratedCmd('foreColor', '#ffffff')" style="background: #ffffff; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
             </div>
-            <div id="html-integrated-workspace" contenteditable="true" style="width: 100%; height: 220px; background: #0b0f19; border: 2px solid var(--border-color); border-radius: 0 0 8px 8px; color: #ffffff; padding: 14px; font-size: 14px; line-height: 1.6; outline: none; overflow-y: auto; box-sizing: border-box;"></div>
+            <div id="html-integrated-workspace" contenteditable="true" style="width: 100%; height: 200px; background: #0b0f19; border: 2px solid var(--border-color); border-radius: 0 0 8px 8px; color: #ffffff; padding: 14px; font-size: 14px; line-height: 1.6; outline: none; overflow-y: auto; box-sizing: border-box;"></div>
         </div>
     `;
-
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             const contentBox = document.querySelector(".editor-modal-content");
             if (!overlay || !contentBox) return console.error("통합 모달창 돔 오류");
@@ -4470,25 +4509,32 @@
             contentBox.style.background = "var(--card-color)";
             contentBox.style.border = "1px solid var(--border-color)";
             contentBox.style.color = "var(--text-color)";
-            contentBox.style.width = "480px"; // 순정 컴팩트 사이즈 복원
+            contentBox.style.width = "520px";
 
-            // 🌟 [정비 완수]: 하단 버튼 레이아웃에서 편의용 동의 버튼을 소멸시키고 오직 순정 단추만 락인 배치
+            // 🌟 [요구사항 반영]: 4대 공지 내용 글상자 하단에 [한 줄 통계 패널]을 배치하고, 
+            // [편집] 단추를 [닫기] 단추 바로 왼쪽으로 기하학적 수평 우측 밀착 배치를 집행 완료했습니다.
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: ${config.color}; font-size: 18px; font-weight: 800; text-align: left;">
             <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle}</span>]
         </h3>
-        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; width: 100%;">
+        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; width: 100%;">
             <div id="integrated-display-view-area" style="width: 100%; text-align: left;">${currentHTMLContent}</div>
             ${boardEditorHTML}
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <div>
-                <button type="button" id="btn-integrated-action-edit" onclick="switchIntegratedToEditorMode()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px;">편집</button>
-                <button type="button" id="btn-integrated-action-save" onclick="saveIntegratedEditorContent(${index}, '${type}', '${config.dbField}')" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px;">수정완료</button>
-            </div>
-            <div>
-                <button type="button" onclick="closeIntegratedModal()" style="background: #475569; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
-            </div>
+        
+        <!-- 실시간 가변 서명 한 줄 통계 패널 출력 존 -->
+        ${popupStatLineHTML}
+        
+        <!-- 하단 액션 버튼바: 전체 우측 정렬(flex-end) 개편 및 순서 스왑 완료 -->
+        <div style="display: flex; justify-content: flex-end; align-items: center; width: 100%; gap: 8px;">
+            <!-- 1. 편집 모드 스위칭 단추 (닫기 왼쪽에 밀착 스왑) -->
+            <button type="button" id="btn-integrated-action-edit" onclick="switchIntegratedToEditorMode()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">편집</button>
+            
+            <!-- 2. 수정완료 단추 (에디터 가동 시 편집 대신 노출되는 세이브 컨트롤러) -->
+            <button type="button" id="btn-integrated-action-save" onclick="saveIntegratedEditorContent(${index}, '${type}', '${config.dbField}')" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);">수정완료</button>
+            
+            <!-- 3. 마스터 닫기 단추 (맨 우측 고정 락업) -->
+            <button type="button" onclick="closeIntegratedModal()" style="background: #475569; color: white; border: none; padding: 8px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
         </div>
     `;
             overlay.style.display = "flex";

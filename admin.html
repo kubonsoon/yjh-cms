@@ -1936,18 +1936,25 @@
         </td>
         
         <!-- 7. 주의사항, 시험일정, 당직공지, 소집공지 보기 버튼 배지 유지 영역 -->
-        <td style="width: 80px; vertical-align: middle; text-align: center;">
-            <button type="button" class="btn-inline list" onclick="openNoticeModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-        </td>
-        <td style="width: 80px; vertical-align: middle; text-align: center;">
-            <button type="button" class="btn-inline list" onclick="openScheduleModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-        </td>
-        <td style="width: 80px; vertical-align: middle; text-align: center;">
-            <button type="button" class="btn-inline list" onclick="openDutyModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-        </td>
-        <td style="width: 80px; vertical-align: middle; text-align: center;">
-            <button type="button" class="btn-inline list" onclick="openCallModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-        </td>
+<!-- 1. 주의사항 버튼 (notice 키워드 매립) -->
+<td style="width: 80px; vertical-align: middle; text-align: center;">
+    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+</td>
+
+<!-- 2. 시험일정 버튼 (schedule 키워드 매립) -->
+<td style="width: 80px; vertical-align: middle; text-align: center;">
+    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+</td>
+
+<!-- 3. 당직공지 버튼 (duty 키워드 매립) -->
+<td style="width: 80px; vertical-align: middle; text-align: center;">
+    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+</td>
+
+<!-- 4. 소집공지 버튼 (call 키워드 매립) -->
+<td style="width: 80px; vertical-align: middle; text-align: center;">
+    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+</td>
         
         <!-- 11. 참여비 지급일정 (너비 150px 센터 정렬 및 잠금 해제) -->
         <td style="width: 150px; vertical-align: middle; text-align: center;">

@@ -2419,10 +2419,18 @@
                 </div>
             `;
 
+                    // 🌟 [기수 세척 가드]: 처음 진입 시 섞여 나오는 '(1차)', '(2차)' 구형 데이터 파편을 실시간 청소합니다.
+                    const cleanThValue = (row.th || '-').toString().replace(/\s*\(.*?\)\s*/g, '').trim();
+
                     tr.style.display = "table-row";
                     tr.innerHTML = `
                 <td style="text-align:left; padding-left:15px; font-weight:700; color:#f8fafc; white-space:normal; word-break:keep-all; vertical-align:middle;">${row.title || '-'}</td>
-                <td style="text-align:center; width:90px; min-width:90px; vertical-align:middle;"><span class="lvl-badge ${thClass}" style="padding:4px 8px; font-size:12px;">${row.th || '-'}</span></td>
+                
+                <!-- 🌟 기수 열 (과거 찌꺼기를 세척한 cleanThValue 변수로 정밀 안착 교정) -->
+                <td style="text-align:center; width:90px; min-width:90px; vertical-align:middle;">
+                    <span class="lvl-badge ${thClass}" style="padding:4px 8px; font-size:12px; display:inline-block; white-space:nowrap;">${cleanThValue}</span>
+                </td>
+                
                 <td style="text-align:center; width:75px; min-width:75px; font-weight:700; color:#ffffff; vertical-align:middle;">${matchCnt}/${totalQuota}</td>
                 <td style="text-align:center; width:65px; color:#94a3b8; vertical-align:middle;">${row.period || '-'}h</td>
                 <td style="text-align:center; width:80px; min-width:80px; font-weight:700; color:#ffffff; vertical-align:middle;">${cleanName}</td>

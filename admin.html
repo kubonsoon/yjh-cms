@@ -2479,11 +2479,11 @@
                 adminApplicantDB = dataStoreApplicant;
             }
             if (!adminApplicantDB[index]) {
-                alert("알림: 대장에서 해당 인덱스의 대상자를 찾을 수 없습니다.");
-                return;
+                return alert("알림: 대장에서 해당 인덱스의 대상자를 찾을 수 없습니다.");
             }
 
             try {
+                // 🎯 [핵심 버그 완전 킬러]: 수정 모드 상태인 현재 인덱스 행의 엘리먼트 존재 여부를 엄격하게 판독합니다.
                 const elTitle = document.getElementById(`inline-app-title-${index}`);
                 const elTh = document.getElementById(`inline-app-th-${index}`);
                 const elCount = document.getElementById(`inline-app-count-${index}`);
@@ -2492,18 +2492,25 @@
                 const elSsn = document.getElementById(`inline-app-ssn-${index}`);
                 const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
+                // 참여비 차수별 드롭다운 및 당직/소집 드롭다운 요소 확실하게 조준
                 const elS1 = document.getElementById(`inline-app-payStatus1-${index}`);
                 const elS2 = document.getElementById(`inline-app-payStatus2-${index}`);
                 const elS3 = document.getElementById(`inline-app-payStatus3-${index}`);
-
                 const elDuty = document.getElementById(`inline-app-duty-${index}`);
                 const elCall = document.getElementById(`inline-app-call-${index}`);
 
-                if (elName && !elName.value.trim()) {
-                    alert("대상자 성명은 필수 입력사항입니다.");
+                // 🎯 [유실 방지 안전 쉴드 가드]: 만약 사용자가 수정을 누르지 않은 행이라면 
+                // 돔 요소가 없으므로 기존 대장의 데이터 원본을 훼손하지 않고 그대로 유지(패스)시킵니다.
+                if (!elName || !elTh) {
+                    console.log(`⚠️ [세이브 패스] 인덱스 ${index}번 행은 현재 수정 활성화 상태가 아닙니다.`);
                     return;
                 }
 
+                if (!elName.value.trim()) {
+                    return alert("대상자 성명은 필수 입력사항입니다.");
+                }
+
+                // 3. 🌟 오직 활성화된 인풋/셀렉트가 존재할 때만 원본 대장에 선택 벨류를 안전 오버라이드 주입합니다.
                 adminApplicantDB[index].title = elTitle ? elTitle.value.trim() : adminApplicantDB[index].title;
                 adminApplicantDB[index].th = elTh ? elTh.value.trim() : adminApplicantDB[index].th;
                 adminApplicantDB[index].count = elCount ? elCount.value.trim() : adminApplicantDB[index].count;
@@ -2512,7 +2519,7 @@
                 adminApplicantDB[index].ssn = elSsn ? elSsn.value.trim() : adminApplicantDB[index].ssn;
                 adminApplicantDB[index].phone = elPhone ? elPhone.value.trim() : adminApplicantDB[index].phone;
 
-                // 🎯 [1~3차 독립 데이터 개별 대장 적재]
+                // 1~3차 참여비 정산 배지 정보 독립 스캔 및 기존 원본 폴백 가드 연결
                 const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
                 const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
                 const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
@@ -2521,7 +2528,7 @@
                 adminApplicantDB[index].payStatus2 = nextS2;
                 adminApplicantDB[index].payStatus3 = nextS3;
 
-                // 🎯 [통계 현황판 연쇄 연동] 1차~3차의 변경 상태를 조합하여 상단 4단계 통계 결과(result) 상태 자동 반영
+                // 🎯 [지능형 통계 현황판 연쇄 연동]: 1~3차 상태 조합을 통해 상단 4단계 상태 자동 산출
                 let finalPipelineStatus = "접수";
                 if (nextS1 === "처리완료" && nextS2 === "처리완료" && nextS3 === "처리완료") {
                     finalPipelineStatus = "지급완료";
@@ -2536,10 +2543,7 @@
                 adminApplicantDB[index].payStatus = finalPipelineStatus;
                 adminApplicantDB[index].result = finalPipelineStatus;
 
-                // ==========================================================================
-                // 🌟 [버그 원천 분쇄 락업 존]: 타 피험자 동의열 동시 오염 현상을 차단하기 위해,
-                // 오직 선택된 행(index)의 대상자 가상 DB 슬롯에만 정확히 드롭다운 벨류를 박제 격리 세이브합니다.
-                // ==========================================================================
+                // 🌟 [독립 보존 격리 존]: 활성화된 드롭다운 셀렉트 박스에서 받아온 밸류만 정확히 현재 타겟 행(Index)에 밀봉합니다.
                 adminApplicantDB[index].isDutyAgreed = elDuty ? elDuty.value : (adminApplicantDB[index].isDutyAgreed || "대기");
                 adminApplicantDB[index].isCallAgreed = elCall ? elCall.value : (adminApplicantDB[index].isCallAgreed || "대기");
                 adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
@@ -2570,16 +2574,16 @@
                 }
 
                 // ==========================================================================
-                // 🌟 [통계 먹통 해제 기믹]: 대상자 정보 저장이 끝나는 찰나,
-                // 배후의 모집공고 마스터 테이블 뷰 목록 함수를 즉시 연쇄 실행시킵니다.
-                // 이 파이프라인이 돌며 1/2파트의 고도화 집계 엔진이 재작동하여 팝업창 내 통계 수치를 바꿉니다.
+                // 🌟 [통계 즉시 연동 파이프라인]: 대상자 저장이 끝남과 동시에,
+                // 배후에 대기 중인 모집공고 마스터 테이블 뷰 목록 함수를 배후에서 강제 실행시킵니다.
+                // 이 로직이 작동하면서 모집공고 팝업창 내의 동의/미동의자 실시간 카운터 수치가 정밀하게 변환됩니다.
                 // ==========================================================================
                 if (typeof refreshRecruitmentView === 'function') {
-                    console.log("🔄 [양방향 동기화 완수] 대상자 당직/소집 정보 수정 검지로 모집공고 통계 가산기 릴레이 작동");
+                    console.log("🔄 [양방향 동기화 완수] 대상자 정보 격리 수정 검지로 모집공고 실시간 누적 카운터 동기화 작동");
                     refreshRecruitmentView();
                 }
 
-                alert("📢 대상자 정보 및 당직/소집 공지 정산 상태가 대장에 완전 반영되었습니다.");
+                alert("📢 선택하신 대상자의 정보 및 당직/소집 정산 상태가 대장에 완전 반영되었습니다.");
 
             } catch (error) {
                 console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);

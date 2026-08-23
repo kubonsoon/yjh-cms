@@ -1177,73 +1177,75 @@
                 <div class="dashboard-filter-stats-container"
                     style="width: 100%; margin-top: 20px; margin-bottom: 25px;">
 
-                    <!-- 🎯 [1층] 시험명 및 기수 필터 컨트롤 컨트롤러 (너비 50% 유지) -->
-                    <div class="dashboard-filter-control-layer"
-                        style="display: flex; gap: 12px; background: var(--card-color); border: 1px solid var(--border-color); padding: 15px 20px; border-radius: 10px; margin-bottom: 14px; align-items: center; width: 50%;">
-                        <span
-                            style="font-size: 13px; font-weight: 700; color: var(--secondary-color); white-space: nowrap;">
-                            <i class="fa-solid fa-filter"></i> 데이터 통계:
-                        </span>
-                        <select id="dashboard-filter-title" onchange="updateDashboardThOptions()"
-                            style="flex: 1; min-width: 0; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
-                            <option value="ALL">— 전체 시험 보기 —</option>
-                        </select>
-                        <select id="dashboard-filter-th" onchange="calculateLiveDashboardStats()"
-                            style="width: 140px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
-                            <option value="ALL">— 전체 기수 —</option>
-                        </select>
-                    </div>
+                    <!-- 🎯 [1층] 필터 컨트롤러 + 파일 업로드 버튼 수평 통합 라인 -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; background: var(--card-color); border: 1px solid var(--border-color); padding: 12px 20px; border-radius: 10px; margin-bottom: 16px; width: 100%; gap: 20px;">
 
-                    <!-- 🎯 [2층] 4단계 통계 현황판(좌측 75%) + 파일 업로드 존(우측 25%) 정밀 수평 결합 패널 -->
-                    <div style="display: flex; gap: 16px; align-items: stretch; width: 100%;">
-
-                        <!-- A. 좌측 구역: 4단계 라이브 정산 통계 스코어보드 (기존 ID 스펙 100% 보존) -->
-                        <div class="dashboard-stats-row" style="display: flex; gap: 14px; flex: 3.2;">
-                            <div class="stat-card"
-                                style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px; justify-content: center;">
-                                <span
-                                    style="font-size: 13px; color: var(--text-muted); font-weight: 700;">참여현황(참여/N수)</span>
-                                <span id="stat-total-count"
-                                    style="font-size: 24px; font-weight: 800; color: #ffffff;">0명</span>
-                            </div>
-                            <div class="stat-card"
-                                style="flex: 1; background: var(--card-color); border: 1px solid #38bdf8; padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px; justify-content: center;">
-                                <span style="font-size: 13px; color: #38bdf8; font-weight: 700;">청구서 접수 현황</span>
-                                <span id="stat-received-count"
-                                    style="font-size: 24px; font-weight: 800; color: #38bdf8;">0건</span>
-                            </div>
-                            <div class="stat-card"
-                                style="flex: 1; background: var(--card-color); border: 1px solid #fbbf24; padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px; justify-content: center;">
-                                <span style="font-size: 13px; color: #fbbf24; font-weight: 700;">재무 검토 (처리중)</span>
-                                <span id="stat-processing-count"
-                                    style="font-size: 24px; font-weight: 800; color: #fbbf24;">0건</span>
-                            </div>
-                            <div class="stat-card"
-                                style="flex: 1; background: var(--card-color); border: 1px solid #34d399; padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px; justify-content: center;">
-                                <span style="font-size: 13px; color: #34d399; font-weight: 700;">정산 종결 (지급완료)</span>
-                                <span id="stat-complete-count"
-                                    style="font-size: 24px; font-weight: 800; color: #34d399;">0건</span>
-                            </div>
+                        <!-- 좌측 구역: 시험명 및 기수 셀렉트 박스 (너비 유연하게 확장) -->
+                        <div class="dashboard-filter-control-layer"
+                            style="display: flex; gap: 12px; align-items: center; flex: 1;">
+                            <span
+                                style="font-size: 13px; font-weight: 700; color: var(--secondary-color); white-space: nowrap;">
+                                <i class="fa-solid fa-filter"></i> 데이터 통계:
+                            </span>
+                            <select id="dashboard-filter-title" onchange="updateDashboardThOptions()"
+                                style="max-width: 320px; flex: 1; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
+                                <option value="ALL">— 전체 시험 보기 —</option>
+                            </select>
+                            <select id="dashboard-filter-th" onchange="calculateLiveDashboardStats()"
+                                style="width: 140px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
+                                <option value="ALL">— 전체 기수 —</option>
+                            </select>
                         </div>
 
-                        <!-- B. 우측 구역: 통계판 옆으로 강제 이동 정렬된 [대상자 명단 파일 업로드 존] -->
+                        <!-- 🌟 우측 구역: 셀렉트 박스 옆으로 바짝 붙여 우측 정렬한 [대상자 파일 업로드 버튼] -->
                         <div class="upload-zone" onclick="document.getElementById('fileParser').click()"
-                            style="flex: 1; border: 2px dashed #10b981; padding: 12px; text-align: center; background-color: rgba(16, 185, 129, 0.04); border-radius: 10px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: 0;">
-                            <strong style="display: block; font-size: 14px; color: #4ade80; margin-bottom: 4px;">
-                                <i class="fa-solid fa-file-excel" style="color: #10b981; margin-right: 4px;"></i> 대상자 파일
-                                업로드
+                            style="border: 1px dashed #10b981; padding: 6px 16px; text-align: center; background-color: rgba(16, 185, 129, 0.04); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 10px; margin-top: 0; height: 36px; white-space: nowrap;">
+                            <strong
+                                style="font-size: 13px; color: #4ade80; display: flex; align-items: center; gap: 4px; margin: 0;">
+                                <i class="fa-solid fa-file-excel" style="color: #10b981;"></i> 대상자 파일 업로드
                             </strong>
-                            <p style="margin: 0; font-size: 11px; color: var(--text-muted); line-height: 1.3;">Excel,
-                                Word, HWP, TXT 문서를<br>드롭하거나 클릭하여 첨부하세요.</p>
+                            <span
+                                style="font-size: 11px; color: var(--text-muted); border-left: 1px solid #334155; padding-left: 10px;">Excel,
+                                Word, HWP, TXT 첨부</span>
                             <p id="selected-file-name"
-                                style="margin-top: 4px !important; font-weight: 700; color: var(--secondary-color); font-size: 12px; margin-bottom: 0;">
+                                style="margin: 0 !important; font-weight: 700; color: var(--secondary-color); font-size: 12px; padding-left: 4px;">
                             </p>
                             <input type="file" id="fileParser" accept=".xlsx, .xls, .docx, .doc, .hwp, .hwpx, .txt"
                                 style="display:none;" onchange="handleSmartFileImport(event)">
                         </div>
+                    </div>
 
+                    <!-- 🎯 [2층] 4단계 라이브 정산 통계 스코어보드 현황판 (기존 ID 스펙 100% 보존하며 시원하게 가로 100% 확장) -->
+                    <div class="dashboard-stats-row" style="display: flex; gap: 14px; width: 100%;">
+                        <div class="stat-card"
+                            style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px;">
+                            <span
+                                style="font-size: 13px; color: var(--text-muted); font-weight: 700;">참여현황(참여/N수)</span>
+                            <span id="stat-total-count"
+                                style="font-size: 24px; font-weight: 800; color: #ffffff;">0명</span>
+                        </div>
+                        <div class="stat-card"
+                            style="flex: 1; background: var(--card-color); border: 1px solid #38bdf8; padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px;">
+                            <span style="font-size: 13px; color: #38bdf8; font-weight: 700;">청구서 접수 현황</span>
+                            <span id="stat-received-count"
+                                style="font-size: 24px; font-weight: 800; color: #38bdf8;">0건</span>
+                        </div>
+                        <div class="stat-card"
+                            style="flex: 1; background: var(--card-color); border: 1px solid #fbbf24; padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px;">
+                            <span style="font-size: 13px; color: #fbbf24; font-weight: 700;">재무 검토 (처리중)</span>
+                            <span id="stat-processing-count"
+                                style="font-size: 24px; font-weight: 800; color: #fbbf24;">0건</span>
+                        </div>
+                        <div class="stat-card"
+                            style="flex: 1; background: var(--card-color); border: 1px solid #34d399; padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px;">
+                            <span style="font-size: 13px; color: #34d399; font-weight: 700;">정산 종결 (지급완료)</span>
+                            <span id="stat-complete-count"
+                                style="font-size: 24px; font-weight: 800; color: #34d399;">0건</span>
+                        </div>
                     </div>
                 </div>
+
 
                 <!-- [신규 대상자 등록] 인풋 폼 구역 -->
                 <div class="register-box" style="margin-top:20px;">

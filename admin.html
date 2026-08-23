@@ -2193,108 +2193,51 @@
         // ========================================================
         // 🎯 [완전 종결] 대상자 마스터 테이블 기수 문자열 싱크 및 배지 드로잉 엔진 (당직/소집 분리형)
         // ========================================================
-
         function refreshApplicantView() {
             const tbody = document.getElementById('dom-applicant-table');
-            if (!tbody) return;
-            tbody.innerHTML = ''; // 테이블 내부 초기화
+            if (!tbody) return; tbody.innerHTML = '';
+            let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 로컬 스토리지 최신 데이터 세트 로드 (unshift 구조)
-            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-            adminApplicantDB.forEach((row, index) => {
+            db.forEach((row, index) => {
                 const tr = document.createElement('tr');
-
-                // 성명 특수문자 파편 제거 정제
-                const rawName = row.name || '';
-                const cleanName = rawName.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
-
-                // 연락처 하이픈(-) 자동 변환 포맷 가드
+                const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
                 const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
-                let formattedPhone = '-';
-                if (rawPhone.length === 11) {
-                    formattedPhone = rawPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-                } else if (rawPhone.length === 10) {
-                    if (rawPhone.indexOf('02') === 0) {
-                        formattedPhone = rawPhone.replace(/(\d{2})(\d{4})(\d{4})/, '$1-$2-$3');
-                    } else {
-                        formattedPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-                    }
-                } else if (rawPhone.length > 0) { formattedPhone = row.phone; }
+                let fmtPhone = '-';
+                if (rawPhone.length === 11) fmtPhone = rawPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+                else if (rawPhone.length === 10) fmtPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+                else if (rawPhone.length > 0) fmtPhone = row.phone;
+                const hasId = row.idCard === true || row.idCard === "true" || (row.idCardImg && row.idCardImg.length > 20);
+                const hasBank = row.bankbook === true || row.bankbook === "true" || (row.bankBookImg && row.bankBookImg.length > 20);
+                let idSrc = row.idCardImg || "placeholder", bankSrc = row.bankBookImg || "placeholder";
 
-                // 증빙 서류 유효성 정밀 스캔 분석
-                const isIdImgValid = row.idCardImg && typeof row.idCardImg === 'string' && row.idCardImg.length > 20 && row.idCardImg.indexOf('fakepath') === -1 && row.idCardImg !== "placeholder";
-                const isIdUrlValid = row.idCardUrl && typeof row.idCardUrl === 'string' && row.idCardUrl.length > 20 && row.idCardUrl.indexOf('fakepath') === -1;
-                const hasIdCard = (row.idCard === true || row.idCard === "true" || isIdImgValid || isIdUrlValid) && (row.idCard !== false && row.idCard !== "false");
+                let docsHTML = `<div style="display:flex; gap:4px; justify-content:center;">`;
+                if (hasId && idSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${idSrc}', '${cleanName}-신분증')" style="padding:4px 8px; font-size:11px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4); font-weight:700; cursor:pointer;">신분증</button>`;
+                else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(148,163,184,0.2); border-radius:4px; font-weight:700;">신분증</span>`;
+                if (hasBank && bankSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${bankSrc}', '${cleanName}-통장')" style="padding:4px 8px; font-size:11px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); font-weight:700; cursor:pointer;">통장</button>`;
+                else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
+                docsHTML += `</div>`;
 
-                const isBankImgValid = row.bankBookImg && typeof row.bankBookImg === 'string' && row.bankBookImg.length > 20 && row.bankBookImg.indexOf('fakepath') === -1 && row.bankBookImg !== "placeholder";
-                const isBankUrlValid = row.bankBookUrl && typeof row.bankBookUrl === 'string' && row.bankBookUrl.length > 20 && row.bankBookUrl.indexOf('fakepath') === -1;
-                const hasBankBook = (row.bankbook === true || row.bankbook === "true" || isBankImgValid || isBankUrlValid) && (row.bankbook !== false && row.bankbook !== "false");
-
-                let finalIdCardSrc = isIdImgValid ? row.idCardImg : (isIdUrlValid ? row.idCardUrl : "placeholder");
-                let finalBankBookSrc = isBankImgValid ? row.bankBookImg : (isBankUrlValid ? row.bankBookUrl : "placeholder");
-
-                // 첨부서류 액션 앵커 배지 HTML 빌드
-                let documentLinksHTML = `<div style="display: flex; gap: 4px; justify-content: center; align-items: center; white-space: nowrap;">`;
-                if (hasIdCard && finalIdCardSrc !== "placeholder") {
-                    documentLinksHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${finalIdCardSrc}', '${cleanName} - 신분증')" style="padding: 4px 8px; font-size: 11px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; border-radius: 4px; font-weight: 700; cursor:pointer;"><i class="fa-solid fa-id-card"></i> 신분증</button>`;
-                } else {
-                    documentLinksHTML += `<span class="doc-badge status-none" style="padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(148, 163, 184, 0.2); color: #64748b; cursor: not-allowed;">신분증</span>`;
-                }
-                if (hasBankBook && finalBankBookSrc !== "placeholder") {
-                    documentLinksHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${finalBankBookSrc}', '${cleanName} - 통장사본')" style="padding: 4px 8px; font-size: 11px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; border-radius: 4px; font-weight: 700; cursor:pointer;"><i class="fa-solid fa-wallet"></i> 통장</button>`;
-                } else {
-                    documentLinksHTML += `<span class="doc-badge status-none" style="padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.2); color: #64748b; cursor: not-allowed;">통장</span>`;
-                }
-                documentLinksHTML += `</div>`;
-
-                const dutyAgreed = row.isDutyAgreed || row.isAgreed || "동의";
-                const callAgreed = row.isCallAgreed || row.isAgreed || "동의";
-
-                const thNumMatch = (row.th || "").match(/\d+/);
-                const thNum = thNumMatch ? parseInt(thNumMatch) : 1;
-                let thBadgeClass = "lvl-1";
-                if (thNum === 2 || thNum === 3) thBadgeClass = "lvl-2";
-                else if (thNum === 4 || thNum === 5) thBadgeClass = "lvl-4";
-                else if (thNum >= 6) thBadgeClass = "lvl-6";
-
-                const currentThKey = `${row.title}_${row.th}`;
-                let groupMatchCount = adminApplicantDB.slice(0, index + 1).filter(item => `${item.title}_${item.th}` === currentThKey).length;
+                const dutyAgreed = row.isDutyAgreed || "동의", callAgreed = row.isCallAgreed || "동의";
+                const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
+                let thClass = thNum === 2 || thNum === 3 ? "lvl-2" : thNum === 4 || thNum === 5 ? "lvl-4" : thNum >= 6 ? "lvl-6" : "lvl-1";
+                let matchCnt = db.slice(0, index + 1).filter(item => item.title === row.title && item.th === row.th).length;
                 const totalQuota = row.count || "60";
+                const isEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index);
 
-                // 3중 편집 제어 플래그 변수 바인딩
-                const isCurrentlyEditing =
-                    (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index) ||
-                    (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) ||
-                    (typeof currentEditingApplicantIndex !== 'undefined' && currentEditingApplicantIndex === index);
-
-                // 🌟 [중복 방어 코어]: 충돌을 막기 위해 3단 미니 배지 생산 헬퍼를 최상단에 1회만 선언합니다.
-                const buildMiniBadgeHTML = (label, statusValue) => {
-                    let status = statusValue || '대기';
-                    if (status === '확인' || status === '접수완료') status = '접수';
-                    if (status === '지급완료' || status === '처리완료') status = '처리완료';
-
-                    let inlineStyle = "background: var(--card-color); color: #94a3b8; border: 1px solid #334155;"; // 대기 기본
-                    if (status === '접수') inlineStyle = "background: var(--card-color); color: #38bdf8; border: 1px solid #38bdf8;";
-                    else if (status === '처리중') inlineStyle = "background: var(--card-color); color: #fbbf24; border: 1px solid #fbbf24;";
-                    else if (status === '처리완료') inlineStyle = "background: var(--card-color); color: #34d399; border: 1px solid #34d399;";
-
-                    const displayText = (status === '처리중') ? '검토중' : (status === '처리완료') ? '완료' : status;
-
-                    return `
-                <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px; white-space: nowrap;">
-                    <span style="color: #64748b; font-size: 10px; font-weight: 700; width: 22px; text-align: right;">${label}:</span>
-                    <span class="lvl-badge" style="${inlineStyle} padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: 700; display: inline-block; min-width: 44px; text-align: center; line-height: 1.2;">
-                        ${displayText}
-                    </span>
-                </div>
-            `;
+                // 🌟 중복 명칭 충돌을 우회하는 고유 명사 3단 미니 배지 헬퍼 1회만 단독 선언
+                const buildCoreMiniStatusBadgeHTML = (label, val) => {
+                    let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료' || s === '처리완료') s = '처리완료';
+                    let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
+                    if (s === '접수') st = "background:var(--card-color); color:#38bdf8; border:1px solid #38bdf8;";
+                    else if (s === '처리중') st = "background:var(--card-color); color:#fbbf24; border:1px solid #fbbf24;";
+                    else if (s === '처리완료') st = "background:var(--card-color); color:#34d399; border:1px solid #34d399;";
+                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s === '처리중' ? '검토중' : s === '처리완료' ? '완료' : s}</span></div>`;
                 };
 
                 // ----------------======================================================
-                // 💡 [A 분기]: 현재 대상자 행이 인라인 편집 수정 모드일 때
+                // 💡 [A 분기 진입]: 현재 대상자 행이 인라인 편집 수정 모드일 때 (드롭다운 준비)
                 // ----------------======================================================
-                if (isCurrentlyEditing) {
+                if (isEditing) {
                     let s1 = row.payStatus1 || '대기'; if (s1 === '확인' || s1 === '접수완료') s1 = '접수'; if (s1 === '지급완료') s1 = '처리완료';
                     let s2 = row.payStatus2 || '대기'; if (s2 === '확인' || s2 === '접수완료') s2 = '접수'; if (s2 === '지급완료') s2 = '처리완료';
                     let s3 = row.payStatus3 || '대기'; if (s3 === '확인' || s3 === '접수완료') s3 = '접수'; if (s3 === '지급완료') s3 = '처리완료';
@@ -2341,7 +2284,6 @@
                     </div>
                 </div>
             `;
-
                     tr.className = "editing-row"; tr.style.pointerEvents = "auto";
                     tr.innerHTML = `
                 <td style="padding-left:15px; vertical-align:middle;"><input type="text" id="inline-app-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700;"></td>
@@ -2354,27 +2296,25 @@
                 <td style="width:65px; min-width:65px; vertical-align:middle;"><input type="text" id="inline-app-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center;"></td>
                 <td style="width:80px; min-width:80px; vertical-align:middle;"><input type="text" id="inline-app-name-${index}" class="inline-input" value="${cleanName}" style="text-align:center; font-weight:700;"></td>
                 <td style="width:85px; min-width:85px; vertical-align:middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center;"></td>
-                <td style="width:125px; min-width:125px; vertical-align:middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${formattedPhone}" style="text-align:center;"></td>
+                <td style="width:125px; min-width:125px; vertical-align:middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${fmtPhone}" style="text-align:center;"></td>
                 <td style="vertical-align:middle; padding-left:6px;">${inlineSelectStackHTML}</td>
                 <td style="width:75px; min-width:75px; vertical-align:middle;"><input type="text" id="inline-app-duty-${index}" class="inline-input" value="${dutyAgreed}" style="text-align:center;"></td>
                 <td style="width:75px; min-width:75px; vertical-align:middle;"><input type="text" id="inline-app-call-${index}" class="inline-input" value="${callAgreed}" style="text-align:center;"></td>
-                <td style="vertical-align:middle;">${documentLinksHTML}</td>
+                <td style="vertical-align:middle;">${docsHTML}</td>
                 <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;">
                     <button type="button" class="btn-inline save" onclick="if(typeof saveApplicantInline==='function'){saveApplicantInline(${index});}else{saveApplicantRecord(${index});}" style="background:#4ade80; color:#070a12; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">저장</button>
                     <button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex=null; if(typeof currentAppEditingIndex!=='undefined'){currentAppEditingIndex=null;} refreshApplicantView();" style="background:#475569; color:#fff; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">취소</button>
                 </td>
             `;
                 }
-
                 // ----------------======================================================
-                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (야광 미니 배지 3단 스택)
-                // ----------------======================================================
+                // 💡 [B 분기 진입]: 일반 읽기 전용 상태 리스트 모드일 때 (독립 야광 배지 빌드)
+                // --------------------------------======================================
                 else {
                     let p1 = row.payStatus1 || row.result || '대기';
                     let p2 = row.payStatus2 || '대기';
                     let p3 = row.payStatus3 || '대기';
 
-                    // 🌟 [오피셜 시나리오 락인 가드]: 초기 3인의 상태 조건 데이터 정합성 유지
                     if (!row.payStatus1) {
                         if (index === 0 || cleanName.includes("홍길동")) p1 = "접수";
                         else if (index === 1 || cleanName.includes("강남구")) p1 = "처리중";
@@ -2383,25 +2323,25 @@
 
                     const finalBadgeStackHTML = `
                 <div style="display:flex; flex-direction:column; gap:2px; padding:2px 0;">
-                    ${buildMiniBadgeHTML('1차', p1)}
-                    ${buildMiniBadgeHTML('2차', p2)}
-                    ${buildMiniBadgeHTML('3차', p3)}
+                    ${buildCoreMiniStatusBadgeHTML('1차', p1)}
+                    ${buildCoreMiniStatusBadgeHTML('2차', p2)}
+                    ${buildCoreMiniStatusBadgeHTML('3차', p3)}
                 </div>
             `;
 
                     tr.style.display = "table-row";
                     tr.innerHTML = `
                 <td style="text-align:left; padding-left:15px; font-weight:700; color:#f8fafc; white-space:normal; word-break:keep-all; vertical-align:middle;">${row.title || '-'}</td>
-                <td style="text-align:center; width:90px; min-width:90px; vertical-align:middle;"><span class="lvl-badge ${thBadgeClass}" style="padding:4px 8px; font-size:12px;">${row.th || '-'}</span></td>
-                <td style="text-align:center; width:75px; min-width:75px; font-weight:700; color:#ffffff; vertical-align:middle;">${groupMatchCount}/${totalQuota}</td>
+                <td style="text-align:center; width:90px; min-width:90px; vertical-align:middle;"><span class="lvl-badge ${thClass}" style="padding:4px 8px; font-size:12px;">${row.th || '-'}</span></td>
+                <td style="text-align:center; width:75px; min-width:75px; font-weight:700; color:#ffffff; vertical-align:middle;">${matchCnt}/${totalQuota}</td>
                 <td style="text-align:center; width:65px; color:#94a3b8; vertical-align:middle;">${row.period || '-'}h</td>
                 <td style="text-align:center; width:80px; min-width:80px; font-weight:700; color:#ffffff; vertical-align:middle;">${cleanName}</td>
                 <td style="text-align:center; width:85px; min-width:85px; color:#cbd5e1; letter-spacing:0.5px; vertical-align:middle;">${row.ssn || '-'}</td>
-                <td style="text-align:center; width:125px; min-width:125px; color:#cbd5e1; font-size:13px; vertical-align:middle;">${formattedPhone}</td>
+                <td style="text-align:center; width:125px; min-width:125px; color:#cbd5e1; font-size:13px; vertical-align:middle;">${fmtPhone}</td>
                 <td style="vertical-align:middle; padding-left:10px;">${finalBadgeStackHTML}</td>
                 <td style="text-align:center; width:75px; min-width:75px; color:#34d399; font-weight:700; font-size:13px; vertical-align:middle;">${dutyAgreed}</td>
                 <td style="text-align:center; width:75px; min-width:75px; color:#34d399; font-weight:700; font-size:13px; vertical-align:middle;">${callAgreed}</td>
-                <td style="text-align:center; width:140px; min-width:140px; vertical-align:middle;">${documentLinksHTML}</td>
+                <td style="text-align:center; width:140px; min-width:140px; vertical-align:middle;">${docsHTML}</td>
                 <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;">
                     <button type="button" class="btn-inline save" onclick="openApplicantHistoryModal(${index})" style="background:var(--secondary-color); color:#ffffff; padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer; border:none;">이력조회</button>
                     <button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex = ${index}; if(typeof currentAppEditingIndex !== 'undefined') { currentAppEditingIndex = ${index}; } refreshApplicantView();" style="background:#334155; border:1px solid var(--border-color); color:var(--text-color); padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer;">수정</button>
@@ -2410,7 +2350,7 @@
             `;
                 }
 
-                // 🎯 [삭제 금지 코어]: 조립된 줄(tr)을 실제 HTML 화면 표(tbody)에 영구 부착
+                // 🎯 [사출 마감]: 5단계 파트를 관통해 조립된 tr 로우를 실제 마스터 테이블 본문에 최종 부착합니다.
                 tbody.appendChild(tr);
             });
         }

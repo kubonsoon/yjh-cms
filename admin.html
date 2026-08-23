@@ -4562,12 +4562,20 @@
             const workspace = document.getElementById("html-integrated-workspace");
             if (!workspace) return;
 
+            // 1. 에디터 워크스페이스 내부의 최종 HTML 소스 코드 추출
             const nextHTMLContent = workspace.innerHTML.trim();
             if (!nextHTMLContent || nextHTMLContent === "<br>") {
                 return alert("알림: 내용을 공란으로 작성할 수 없습니다.");
             }
 
+            // 2. 최신 로컬스토리지 대장 확실하게 로드
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+
+            // 글로벌 메모리 데이터 소스가 존재하면 우선권 싱크 매칭
+            if (typeof dataStoreRecruitment !== "undefined" && dataStoreRecruitment.length > 0) {
+                recruitmentDB = dataStoreRecruitment;
+            }
+
             if (recruitmentDB[index]) {
                 // 🎯 해당 공지의 고유 마스터 필드 스펙에 HTML 텍스트 문자열 통째로 박제 저장
                 recruitmentDB[index][dbField] = nextHTMLContent;
@@ -4575,14 +4583,40 @@
                 // 💡 하방 호환성 가드: 목록 화면 및 타 서브 모듈 유실 방지를 위한 순수 텍스트 필드 동시 보완 백업
                 if (type === 'notice') recruitmentDB[index].notice = workspace.innerText;
 
+                // 3. 가상 데이터베이스 영구 물리 세이브 최우선 안착
                 localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
                 if (typeof dataStoreRecruitment !== "undefined") window.dataStoreRecruitment = recruitmentDB;
+
+                // 데이터 파일 물리 커밋 백업망 가동
                 if (typeof commitToLocalStorage === "function") commitToLocalStorage();
 
                 alert("📋 게시판형 HTML 서식이 마스터 대장에 실시간 영구 반영되었습니다.");
 
-                // 창을 닫지 않고 수정 완료된 모드로 팝업창 리프레시 새로고침
-                openIntegratedBoardModal(index, type);
+                // ==========================================================================
+                // 🌟 [요구사항 원천 반영]: 깜빡임 없이 그 자리에서 보기 모드로 즉시 레이아웃 전환
+                // ==========================================================================
+                const displayArea = document.getElementById("integrated-display-view-area");
+                const editorArea = document.getElementById("integrated-editor-form-area");
+                const btnEdit = document.getElementById("btn-integrated-action-edit");
+                const btnSave = document.getElementById("btn-integrated-action-save");
+
+                if (displayArea && editorArea && btnEdit && btnSave) {
+                    // 🎯 방금 대표님이 수정한 따끈따끈한 HTML 코드를 조회 뷰 영역에 실시간 즉시 복사 주입
+                    displayArea.innerHTML = nextHTMLContent;
+
+                    // 🎯 답답한 에디터 작성 폼 영역을 지우고, 깨끗한 결과물 보기 영역을 활성화 개방
+                    editorArea.style.display = "none";
+                    displayArea.style.display = "block";
+
+                    // 🎯 하단 버튼 제어권을 다시 [편집] 단추로 안전하게 원격 복구 스왑
+                    btnEdit.style.display = "inline-block";
+                    btnSave.style.display = "none";
+                }
+
+                // 하단 마스터 테이블 목록 리스트도 배후에서 새로고침 리렌더링하여 데이터 일치
+                if (typeof refreshRecruitmentView === "function") {
+                    refreshRecruitmentView();
+                }
             }
         }
 

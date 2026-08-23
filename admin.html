@@ -2406,7 +2406,7 @@
             }
 
             try {
-                // 🎯 [핵심 버그 완전 킬러]: 수정 모드 상태인 현재 인덱스 행의 엘리먼트 존재 여부를 엄격하게 판독합니다.
+                // 인라인 테이블 활성화 폼의 핵심 엘리먼트 실시간 추적 스캔
                 const elTitle = document.getElementById(`inline-app-title-${index}`);
                 const elTh = document.getElementById(`inline-app-th-${index}`);
                 const elCount = document.getElementById(`inline-app-count-${index}`);
@@ -2415,34 +2415,28 @@
                 const elSsn = document.getElementById(`inline-app-ssn-${index}`);
                 const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
-                // 참여비 차수별 드롭다운 및 당직/소집 드롭다운 요소 확실하게 조준
                 const elS1 = document.getElementById(`inline-app-payStatus1-${index}`);
                 const elS2 = document.getElementById(`inline-app-payStatus2-${index}`);
                 const elS3 = document.getElementById(`inline-app-payStatus3-${index}`);
+
+                // 🌟 새로 개편된 대기/동의/미동의 가변 다크 셀렉터 드롭다운 돔 캡처
                 const elDuty = document.getElementById(`inline-app-duty-${index}`);
                 const elCall = document.getElementById(`inline-app-call-${index}`);
 
-                // 🎯 [유실 방지 안전 쉴드 가드]: 만약 사용자가 수정을 누르지 않은 행이라면 
-                // 돔 요소가 없으므로 기존 대장의 데이터 원본을 훼손하지 않고 그대로 유지(패스)시킵니다.
-                if (!elName || !elTh) {
-                    console.log(`⚠️ [세이브 패스] 인덱스 ${index}번 행은 현재 수정 활성화 상태가 아닙니다.`);
-                    return;
-                }
-
-                if (!elName.value.trim()) {
+                if (elName && !elName.value.trim()) {
                     return alert("대상자 성명은 필수 입력사항입니다.");
                 }
 
-                // 3. 🌟 오직 활성화된 인풋/셀렉트가 존재할 때만 원본 대장에 선택 벨류를 안전 오버라이드 주입합니다.
-                adminApplicantDB[index].title = elTitle ? elTitle.value.trim() : adminApplicantDB[index].title;
-                adminApplicantDB[index].th = elTh ? elTh.value.trim() : adminApplicantDB[index].th;
-                adminApplicantDB[index].count = elCount ? elCount.value.trim() : adminApplicantDB[index].count;
-                adminApplicantDB[index].period = elPeriod ? elPeriod.value.trim() : adminApplicantDB[index].period;
-                adminApplicantDB[index].name = elName ? elName.value.trim() : adminApplicantDB[index].name;
-                adminApplicantDB[index].ssn = elSsn ? elSsn.value.trim() : adminApplicantDB[index].ssn;
-                adminApplicantDB[index].phone = elPhone ? elPhone.value.trim() : adminApplicantDB[index].phone;
+                // 🎯 [세이브 패스 철거 및 안전 오버라이드]: 엘리먼트가 존재할 때만 대장에 주입하여 간섭 오염 원천 차단
+                if (elTitle) adminApplicantDB[index].title = elTitle.value.trim();
+                if (elTh) adminApplicantDB[index].th = elTh.value.trim();
+                if (elCount) adminApplicantDB[index].count = elCount.value.trim();
+                if (elPeriod) adminApplicantDB[index].period = elPeriod.value.trim();
+                if (elName) adminApplicantDB[index].name = elName.value.trim();
+                if (elSsn) adminApplicantDB[index].ssn = elSsn.value.trim();
+                if (elPhone) adminApplicantDB[index].phone = elPhone.value.trim();
 
-                // 1~3차 참여비 정산 배지 정보 독립 스캔 및 기존 원본 폴백 가드 연결
+                // 1~3차 참여비 정산 배지 정보 독립 스캔 및 기존 대장 보존 폴백 연동
                 const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
                 const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
                 const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");

@@ -2259,19 +2259,21 @@
             // [순정 데이터 정화 스캔 기믹]: 기존 let db = ... 라인 바로 아래에 그대로 붙여넣어 주세요!
             let isDataCleaned = false;
             db.forEach(user => {
-                if (!user.isDutyAgreed || user.isDutyAgreed === "동의" || user.isDutyAgreed === "") {
+                // 🌟 [교정 라인]: "동의" 조건 판독 필터를 완벽히 철거하여 관리자의 수정 벨류를 무결하게 전원 통과시킵니다.
+                if (user.isDutyAgreed === undefined || user.isDutyAgreed === null || user.isDutyAgreed === "") {
                     user.isDutyAgreed = "대기";
                     isDataCleaned = true;
                 }
-                if (!user.isCallAgreed || user.isCallAgreed === "동의" || user.isCallAgreed === "") {
+                if (user.isCallAgreed === undefined || user.isCallAgreed === null || user.isCallAgreed === "") {
                     user.isCallAgreed = "대기";
                     isDataCleaned = true;
                 }
             });
+
             if (isDataCleaned) {
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
                 if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = db;
-                console.log("📢 [CMS 대장 정화 완수] 초기 프리셋의 '동의' 유령 파편 데이터를 '대기' 상태로 전면 대전환 완료했습니다.");
+                console.log("📢 [CMS 대장 정화 완수] 누락된 공란 데이터셋 슬롯을 '대기' 상태로 영구 보정 세이브 완료했습니다.");
             }
 
             db.forEach((row, index) => {

@@ -9,6 +9,11 @@
     <link rel="icon"
         href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
     <script src="https://cloudflare.com"></script>
+
+    <!-- 고급 에디터 라이브러리 및 스킨 탑재 -->
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <script src="https://jsdelivr.net"></script>
+
     <style>
         /* =========================================================
    1. 글로벌 디자인 시스템 컬러 변수 정의 (고대비 및 가독성 업그레이드)
@@ -946,6 +951,38 @@
                 opacity: 1;
                 transform: scale(1);
             }
+        }
+
+
+        /* 💡 기존 CSS는 유지하고, 에디터의 쾌적한 환경을 위해 아래 서식만 추가합니다 */
+        .editor-modal-content {
+            width: 650px !important;
+            /* 에디터 툴바를 넉넉하게 배치하기 위해 가로폭 확장 */
+            background-color: #1e293b !important;
+            /* 백오피스 다크 테마와 일체화 처리 */
+        }
+
+        /* 고급 에디터 내부의 텍스트가 다크 테마에서 잘 보이도록 기본 글자색을 화이트로 지정 */
+        .ql-editor {
+            color: #ffffff !important;
+            min-height: 200px;
+        }
+
+        /* 에디터 상단 툴바 컨트롤러 박스 테두리 정밀 조정 */
+        .ql-toolbar.ql-snow {
+            border-color: var(--border-color) !important;
+            /* 기존 변수와 테두리 명도 동기화 */
+            background: #f1f5f9 !important;
+            /* 버튼 식별을 위한 밝은 배경 처리 */
+            border-radius: 8px 8px 0 0;
+        }
+
+        .ql-container.ql-snow {
+            border-color: var(--border-color) !important;
+            /* 기존 변수와 테두리 명도 동기화 */
+            background: #0b0f19 !important;
+            /* 입력창은 어두운 인디고 컬러 유지 */
+            border-radius: 0 0 8px 8px;
         }
     </style>
 
@@ -3178,20 +3215,36 @@
             document.body.removeChild(a);
         }
 
-        // 💥 [최종 해결책] 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가해 주세요.
+        // 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가해 주세요.
         // 모든 레거시 소스코드의 리셋 루틴이 끝난 후 0.05초 뒤에 기억된 메뉴를 강제로 최종 마운트합니다.
         window.addEventListener('DOMContentLoaded', function () {
+
+            // 💥 [태스크 1]: 주의사항·시험일정·당직·소집 통합형 에디터 엔진 즉시 기동
+            if (document.getElementById('modalRichEditor')) {
+                quillModal = new Quill('#modalRichEditor', {
+                    modules: { toolbar: '#modal-toolbar-container' },
+                    theme: 'snow'
+                });
+                console.log("[통합 전산망] 통합형 고급 리치 에디터 엔진이 정상 마운트되었습니다.");
+            }
+
+            // 📢 [태스크 2]: 에디터 안착 확인 후 50ms 미세 지연 시연 화면 자동 복구
             setTimeout(function () {
                 var savedViewport = localStorage.getItem('adminActiveViewportId');
                 if (savedViewport) {
                     if (typeof changeMainViewport === 'function') {
                         changeMainViewport(savedViewport);
                     }
+                } else {
+                    if (typeof changeMainViewport === 'function') {
+                        changeMainViewport('recruitmentView'); // 기록이 없을 때 기본 화면 지정
+                    }
                 }
-            }, 50); // 50ms 미세 지연을 통한 강제 우선순위 획득
+            }, 50); // 50ms 미세 지연을 통한 강제 우선순위 획득 및 에디터 찌그러짐 방지
+
         });
 
-        // 💥 [최종 절대 권한 해킹 체인] 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가하세요.
+        // 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가하세요.
         // 기존의 그 어떤 로직이나 세션 스크립트가 화면을 리셋하더라도, 0.15초 뒤에 무조건 덮어써서 메뉴를 강제 고정합니다.
         (function () {
             function forceRestoreViewport() {
@@ -3210,12 +3263,11 @@
                 if (targetView) targetView.style.display = 'block';
 
                 // 3. 좌측 메뉴 전체 하이라이트(.active) 강제 삭제
-                // 3. 💥 [버그 진압] 좌측 메뉴 전체 하이라이트(.active) 강제 삭제 루틴 교정
                 if (document.getElementById('menuRec')) document.getElementById('menuRec').classList.remove('active');
                 if (document.getElementById('menuApp')) document.getElementById('menuApp').classList.remove('active');
                 if (document.getElementById('menuGrade')) document.getElementById('menuGrade').classList.remove('active');
 
-                // 4. 💥 [최종 디자인 밀착 고정] 기억된 화면 뷰포트 ID 명칭에 맞춰 좌측 파란 불빛 강제 마운트 완료
+                // 4. 기억된 화면 뷰포트 ID 명칭에 맞춰 좌측 파란 불빛 강제 마운트 완료
                 if (savedViewport === 'recruitmentView' && document.getElementById('menuRec')) {
                     document.getElementById('menuRec').classList.add('active');
                 } else if (savedViewport === 'applicantView' && document.getElementById('menuApp')) {
@@ -3224,11 +3276,6 @@
                     document.getElementById('menuGrade').classList.add('active');
                 }
             }
-
-            // 브라우저 화면이 완전히 구성된 직후 1차 복구 가동
-            window.addEventListener('DOMContentLoaded', function () {
-                setTimeout(forceRestoreViewport, 50);
-            });
 
             // 전체 리소스와 세션 토큰 판정문이 완벽히 끝난 직후 2차 최종 강제 덮어쓰기 완료 (강력 제어)
             window.addEventListener('load', function () {
@@ -4209,12 +4256,23 @@
         }
 
         /**
-         * 5. 생명주기 초기 구동 리스너
-         */
+               * 5. 생명주기 초기 구동 리스너
+               * 앞선 에디터 안착 및 화면 복구(0~50ms) 공정이 안전하게 완료된 후,
+               * 600ms(0.6초) 디레이 오프셋을 통해 데이터 정산 현황판을 정식 셋업합니다.
+               */
         window.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
-                initDashboardFilter();
-            }, 600);
+                // 상단 통계 현황판(참여현황, 접수건수, 재무검토, 지급완료) 셀렉트 박스 엔진 기동
+                if (typeof initDashboardFilter === "function") {
+                    initDashboardFilter();
+                    console.log("[생명주기 - 태스크 3] 600ms 도달에 따른 initDashboardFilter 필터 엔진 최종 가동 완료.");
+                } else {
+                    // 폴백 세이프티 가드: 함수명 미매칭 대비 실시간 라이브 통계 연산 직접 트리거
+                    if (typeof calculateLiveDashboardStats === "function") {
+                        calculateLiveDashboardStats();
+                    }
+                }
+            }, 600); // 600ms 안정 지연을 통해 실시간 통계 숫자가 목록 대장과 100% 일치하도록 보장
         });
 
 

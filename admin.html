@@ -2280,41 +2280,13 @@
                 const callAgreed = (row.isCallAgreed || "대기").trim();
 
                 const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
-
-                // [우선순위 가드 교정]: 1기부터 6기 이상까지 스위칭 체계를 기하학적으로 완벽히 밀봉 정렬했습니다.
-                let thClass = thNum === 1 ? "lvl-1" :
-                    (thNum === 2 || thNum === 3) ? "lvl-2" :
-                        (thNum === 4 || thNum === 5) ? "lvl-4" : "lvl-6";
-
+                let thClass = thNum === 1 ? "lvl-1" : (thNum === 2 || thNum === 3) ? "lvl-2" : (thNum === 4 || thNum === 5) ? "lvl-4" : "lvl-6";
                 let matchCnt = db.slice(0, index + 1).filter(item => item.title === row.title && item.th === row.th).length;
                 const totalQuota = row.count || "60";
                 const isEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index);
 
-                // 명칭 중복 충돌을 우회하고 구형 코드 명세(buildMiniBadgeHTML)를 정상 수용하는 익명 맵핑 구조 보완
-                const buildCoreMiniStatusBadgeHTML = (label, val) => {
-                    let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료' || s === '처리완료') s = '처리완료';
-                    let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
-                    if (s === '접수') st = "background:var(--card-color); color:#38bdf8; border:1px solid #38bdf8;";
-                    else if (s === '처리중') st = "background:var(--card-color); color:#fbbf24; border:1px solid #fbbf24;";
-                    else if (s === '처리완료') st = "background:var(--card-color); color:#34d399; border:1px solid #34d399;";
-                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s === '처리중' ? '검토중' : s === '처리완료' ? '완료' : s}</span></div>`;
-                };
-                const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
-
-                // [당직/소집 전용 야광 3단 스위칭 배지 헬퍼]: 대기는 그레이, 동의는 그린, 미동의는 레드로 사출
-                const buildAgreementStatusBadgeHTML = (val) => {
-                    let s = (val || '대기').trim();
-                    let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
-                    if (s === '동의') {
-                        st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
-                    } else if (s === '미동의') {
-                        st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
-                    }
-                    return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
-                };
-
                 // ----------------======================================================
-                // 💡 [A 분기 진입]: 현재 대상자 행이 인라인 편집 수정 모드일 때 (드롭다운 준비)
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출
                 // ----------------======================================================
                 if (isEditing) {
                     let s1 = row.payStatus1 || '대기'; if (s1 === '확인' || s1 === '접수완료') s1 = '접수'; if (s1 === '지급완료') s1 = '처리완료';
@@ -2336,7 +2308,7 @@
                 <div style="display:flex; flex-direction:column; gap:4px; min-width:105px;">
                     <div style="display:flex; align-items:center; gap:3px;">
                         <span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">1차:</span>
-                        <select id="inline-app-payStatus1-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s1)} cursor:pointer; flex:1;" onchange="this.style.cssText='height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; cursor:pointer; flex:1; '+(this.value==='접수'?'color:#38bdf8!important;':this.value==='처리중'?'color:#fbbf24!important;':this.value==='처리완료'?'color:#34d399!important;':'color:#94a3b8!important;')">
+                        <select id="inline-app-payStatus1-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s1)} cursor:pointer; flex:1;">
                             <option value="대기" style="color:#94a3b8; background:#0f172a;" ${s1 === '대기' ? 'selected' : ''}>대기</option>
                             <option value="접수" style="color:#38bdf8; background:#0f172a;" ${s1 === '접수' ? 'selected' : ''}>접수</option>
                             <option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s1 === '처리중' ? 'selected' : ''}>검토중</option>
@@ -2345,7 +2317,7 @@
                     </div>
                     <div style="display:flex; align-items:center; gap:3px;">
                         <span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">2차:</span>
-                        <select id="inline-app-payStatus2-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s2)} cursor:pointer; flex:1;" onchange="this.style.cssText='height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; cursor:pointer; flex:1; '+(this.value==='접수'?'color:#38bdf8!important;':this.value==='처리중'?'color:#fbbf24!important;':this.value==='처리완료'?'color:#34d399!important;':'color:#94a3b8!important;')">
+                        <select id="inline-app-payStatus2-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s2)} cursor:pointer; flex:1;">
                             <option value="대기" style="color:#94a3b8; background:#0f172a;" ${s2 === '대기' ? 'selected' : ''}>대기</option>
                             <option value="접수" style="color:#38bdf8; background:#0f172a;" ${s2 === '접수' ? 'selected' : ''}>접수</option>
                             <option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s2 === '처리중' ? 'selected' : ''}>검토중</option>
@@ -2354,7 +2326,7 @@
                     </div>
                     <div style="display:flex; align-items:center; gap:3px;">
                         <span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">3차:</span>
-                        <select id="inline-app-payStatus3-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s3)} cursor:pointer; flex:1;" onchange="this.style.cssText='height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; cursor:pointer; flex:1; '+(this.value==='접수'?'color:#38bdf8!important;':this.value==='처리중'?'color:#fbbf24!important;':this.value==='처리완료'?'color:#34d399!important;':'color:#94a3b8!important;')">
+                        <select id="inline-app-payStatus3-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s3)} cursor:pointer; flex:1;">
                             <option value="대기" style="color:#94a3b8; background:#0f172a;" ${s3 === '대기' ? 'selected' : ''}>대기</option>
                             <option value="접수" style="color:#38bdf8; background:#0f172a;" ${s3 === '접수' ? 'selected' : ''}>접수</option>
                             <option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s3 === '처리중' ? 'selected' : ''}>검토중</option>
@@ -2363,18 +2335,11 @@
                     </div>
                 </div>
             `;
-                    tr.className = "editing-row";
-                    tr.style.pointerEvents = "auto";
+
+                    tr.className = "editing-row"; tr.style.pointerEvents = "auto";
                     tr.innerHTML = `
                 <td style="padding-left:15px; vertical-align:middle;"><input type="text" id="inline-app-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700;"></td>
-                <td style="width:90px; min-width:90px; text-align:center; vertical-align:middle;">
-                    <select id="inline-app-th-${index}" class="inline-input" style="height:32px; background:#1e293b; color:#fff; text-align:center;">
-                        <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
-                        <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
-                        <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
-                        <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
-                    </select>
-                </td>
+                <td style="width:90px; min-width:90px; text-align:center; vertical-align:middle;"><span class="lvl-badge ${thClass}" style="padding:4px 8px; font-size:12px; display:inline-block;">${row.th}</span></td>
                 <td style="width:75px; min-width:75px; vertical-align:middle;"><input type="text" id="inline-app-count-${index}" class="inline-input" value="${row.count || '60'}" style="text-align:center;"></td>
                 <td style="width:65px; min-width:65px; vertical-align:middle;"><input type="text" id="inline-app-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center;"></td>
                 <td style="width:80px; min-width:80px; vertical-align:middle;"><input type="text" id="inline-app-name-${index}" class="inline-input" value="${cleanName}" style="text-align:center; font-weight:700;"></td>
@@ -2402,6 +2367,7 @@
                 </td>
             `;
                 }
+
                 // ----------------======================================================
                 // 💡 [B 분기 진입]: 일반 읽기 전용 상태 리스트 모드일 때 (독립 야광 배지 빌드)
                 // --------------------------------======================================
@@ -2430,12 +2396,9 @@
                     tr.style.display = "table-row";
                     tr.innerHTML = `
                 <td style="text-align:left; padding-left:15px; font-weight:700; color:#f8fafc; white-space:normal; word-break:keep-all; vertical-align:middle;">${row.title || '-'}</td>
-                
-                <!-- 🌟 기수 열 (과거 찌꺼기를 세척한 cleanThValue 변수로 정밀 안착 교정) -->
                 <td style="text-align:center; width:90px; min-width:90px; vertical-align:middle;">
                     <span class="lvl-badge ${thClass}" style="padding:4px 8px; font-size:12px; display:inline-block; white-space:nowrap;">${cleanThValue}</span>
                 </td>
-                
                 <td style="text-align:center; width:75px; min-width:75px; font-weight:700; color:#ffffff; vertical-align:middle;">${matchCnt}/${totalQuota}</td>
                 <td style="text-align:center; width:65px; color:#94a3b8; vertical-align:middle;">${row.period || '-'}h</td>
                 <td style="text-align:center; width:80px; min-width:80px; font-weight:700; color:#ffffff; vertical-align:middle;">${cleanName}</td>
@@ -2453,9 +2416,9 @@
             `;
                 }
 
-                // 🎯 [사출 마감]: 5단계 파트를 관통해 조립된 tr 로우를 실제 마스터 테이블 본문에 최종 부착합니다.
+                // 🎯 [정렬 부착 완수]: 수많은 파트를 관통해 조립된 tr 로우를 마스터 테이블 본문에 최종 부착합니다.
                 tbody.appendChild(tr);
-            });
+            }); // 🎯 db.forEach 루프의 완벽한 마감 결합선
         }
 
 

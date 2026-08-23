@@ -4628,7 +4628,7 @@
             const filterThEl = document.getElementById("dashboard-filter-th");
 
             const activeFilterTitle = filterTitleEl ? filterTitleEl.value : "ALL";
-            const activeFilterTh = filterThEl ? filterThThEl.value : "ALL";
+            const activeFilterTh = filterThEl ? filterThEl.value : "ALL"; // 🎯 [복구완료]: filterThThEl 오타를 filterThEl로 안전 교정 완료
 
             // 3. 대상자 대장 전수 스캔하여 조건 매칭 슬롯 오버라이드 커밋
             applicantDB.forEach((user) => {
@@ -4659,7 +4659,8 @@
                 console.log("🔄 [원격 트랜잭션] 대상자 관리 목록 테이블 실시간 동기화 리렌더링 트리거 가동");
                 refreshApplicantView();
             }
-        }        
+        }
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

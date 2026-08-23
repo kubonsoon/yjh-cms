@@ -546,16 +546,32 @@
 
         <!-- [0단계 PANEL] QR코드 스캔 연동 시뮬레이터 -->
         <div class="step-panel active" id="layer0">
-            <div class="panel-header-title"><i class="fa-solid fa-qrcode"></i> 시연 시작 단계 : 스마트 링커 QR 스캔</div>
+            <div class="panel-header-title">
+                <i class="fa-solid fa-qrcode"></i> 시연 시작 단계 : 스마트 링커 QR 스캔
+            </div>
+
             <div class="qr-scan-zone">
-                <p style="font-size:14px; color:rgba(255,255,255,0.8); line-height:1.5;">병원 안내 메시지 속<br><span
-                        style="color:#06B6D4; font-weight:700;">QR코드를 스캔</span>하여 시스템에 접속합니다.</p>
-                <div class="qr-box" onclick="executeStep0QRScan()">
-                    <div class="scan-line"></div>
-                    <i class="fa-solid fa-qrcode"></i>
+                <p style="font-size:14px; color:rgba(255,255,255,0.8); line-height:1.5; margin-bottom: 5px;">
+                    안내 메시지의 <span style="color:#38bdf8; font-weight:700;">QR코드를 스캔</span>하여<br>모바일 인증 시스템에 접속합니다.
+                </p>
+
+                <!-- 💥 깃허브 원본 이미지 임베딩 프레임 박스 -->
+                <div class="qr-box" onclick="executeStep0QRScan()"
+                    style="width: 200px; height: 200px; border: 3px solid #38bdf8; border-radius: 24px; margin: 20px auto; display: flex; align-items: center; justify-content: center; background: #ffffff; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);">
+
+                    <!-- 위아래로 움직이는 모바일 레이저 가이드 선 -->
+                    <div class="scan-line"
+                        style="position: absolute; width: 90%; height: 2px; background: #38bdf8; animation: scanMove 2.5s infinite linear; box-shadow: 0 0 10px #38bdf8; z-index: 2;">
+                    </div>
+
+                    <!-- 요청하신 깃허브 실제 QR 이미지 정밀 축소 매핑 -->
+                    <img src="https://githubusercontent.com" alt="QR Code"
+                        style="width: 82%; height: 82%; object-fit: contain; position: relative; z-index: 1;">
                 </div>
-                <p style="font-size:11px; color:rgba(255,255,255,0.4); line-height:1.4;">* 시연 안내: 위 QR 영역을
-                    터치(클릭)하면<br>자동으로 다음 단계 화면으로 전환됩니다.</p>
+
+                <p style="font-size:11px; color:rgba(255,255,255,0.4); line-height:1.4;">
+                    * 시연 안내: 위의 실제 QR 이미지를 터치(클릭)하면<br>자동으로 다음 [모바일 인증서 선택] 화면으로 진입합니다.
+                </p>
             </div>
         </div>
 

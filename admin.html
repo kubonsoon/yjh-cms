@@ -2259,7 +2259,7 @@
             // [순정 데이터 정화 스캔 기믹]: 기존 let db = ... 라인 바로 아래에 그대로 붙여넣어 주세요!
             let isDataCleaned = false;
             db.forEach(user => {
-                // 🌟 [교정 라인]: "동의" 조건 판독 필터를 완벽히 철거하여 관리자의 수정 벨류를 무결하게 전원 통과시킵니다.
+                // 🌟 [핵심 수리 존]: "동의" 상태를 강제로 검문하던 필터를 완벽히 소멸시켜 관리자의 '동의' 세이브 벨류를 100% 프리패스로 통과시킵니다.
                 if (user.isDutyAgreed === undefined || user.isDutyAgreed === null || user.isDutyAgreed === "") {
                     user.isDutyAgreed = "대기";
                     isDataCleaned = true;
@@ -2269,11 +2269,10 @@
                     isDataCleaned = true;
                 }
             });
-
             if (isDataCleaned) {
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
                 if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = db;
-                console.log("📢 [CMS 대장 정화 완수] 누락된 공란 데이터셋 슬롯을 '대기' 상태로 영구 보정 세이브 완료했습니다.");
+                console.log("📢 [CMS 전산망 정화 완수] 누락된 공란 슬롯을 '대기' 상태로 영구 매칭 완료했습니다.");
             }
 
             db.forEach((row, index) => {
@@ -2521,7 +2520,7 @@
                 adminApplicantDB[index].payStatus = finalPipelineStatus;
                 adminApplicantDB[index].result = finalPipelineStatus;
 
-                // 🌟 [독립 보존 격리 존]: 활성화된 드롭다운 셀렉트 박스에서 받아온 밸류만 정확히 현재 타겟 행(Index)에 밀봉합니다.
+                // 활성화된 드롭다운 셀렉트 박스에서 받아온 밸류만 정확히 현재 타겟 행(Index)에 밀봉합니다.
                 adminApplicantDB[index].isDutyAgreed = elDuty ? elDuty.value : (adminApplicantDB[index].isDutyAgreed || "대기");
                 adminApplicantDB[index].isCallAgreed = elCall ? elCall.value : (adminApplicantDB[index].isCallAgreed || "대기");
                 adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;

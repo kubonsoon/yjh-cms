@@ -4426,7 +4426,6 @@
             const targetRow = recruitmentDB[index] || {};
             const examTitle = targetRow.title || "지정 과제";
 
-            // 1. 공지 속성별 타이틀, 아이콘, 전용 컬러 및 가상 DB 필드 맵 스펙 락인
             let config = { title: "", icon: "", color: "", dbField: "", label: "" };
             if (type === 'notice') {
                 config = { title: "주의사항 안내", icon: "fa-solid fa-triangle-exclamation", color: "var(--secondary-color, #0ea5e9)", dbField: "customNoticeHTML", label: "주의사항" };
@@ -4438,7 +4437,6 @@
                 config = { title: "소집공지 안내", icon: "fa-solid fa-bullhorn", color: "#60a5fa", dbField: "customCallHTML", label: "소집공지" };
             }
 
-            // 2. 대장에 세이브된 가변 HTML 텍스트 코드가 있다면 우선 로드, 없다면 순정 1~10번 조항 자동 사출
             let currentHTMLContent = "";
             if (targetRow[config.dbField]) {
                 currentHTMLContent = targetRow[config.dbField];
@@ -4450,24 +4448,25 @@
                 currentHTMLContent += `</div>`;
             }
 
-            // 3. [동의/미동의 백엔드 집계 엔진 부착]: 대상자 데이터베이스 실시간 연산 스캔 가동
+            // 🌟 [백엔드 문자열 정밀 세척 연산 가드]: 텍스트 앞뒤 공백 및 특수문자 불일치로 인한 카운트 누락을 철저히 방어합니다.
             let agreeCnt = 0, disagreeCnt = 0;
             try {
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                // 현재 조준된 모집공고의 순정 과제명 및 순정 기수(숫자만) 추출
-                const targetTitleClean = (targetRow.title || "").trim();
-                const targetThClean = (targetRow.th || "").replace(/[^0-9]/g, "");
+                // 🎯 [순정 토큰 추출]: 괄호나 특수문자 공백을 원천 소멸시킨 순수 문자열 매칭선 정렬
+                const getPureToken = (str) => (str || "").toString().replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, "").replace(/\s+/g, "").trim();
+
+                const targetTitleToken = getPureToken(targetRow.title);
+                const targetThNum = (targetRow.th || "").replace(/[^0-9]/g, "");
 
                 const targetApplicants = adminApplicantDB.filter(item => {
-                    const itemTitleClean = (item.title || "").trim();
-                    const itemThClean = (item.th || "").replace(/[^0-9]/g, "");
+                    const itemTitleToken = getPureToken(item.title);
+                    const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
 
-                    // 🎯 [3중 엄격 필터링 가드]: 과제명과 숫자로 된 기수가 동시에 자석처럼 일치하는 피험자만 정밀 골라냄
-                    return (itemTitleClean === targetTitleClean && itemThClean === targetThClean && targetThClean !== "");
+                    // 과제명 토큰과 숫자로 정제된 기수가 동시에 자석처럼 완벽히 일치하는 피험자만 정밀 스캔 격리
+                    return (itemTitleToken === targetTitleToken && itemThNum === targetThNum && targetThNum !== "");
                 });
 
-                // 추출된 타겟 피험자 그룹의 동의 현황 팩트 카운팅 누적
                 targetApplicants.forEach(user => {
                     if (type === 'duty') {
                         const dutyState = (user.isDutyAgreed || "").trim();
@@ -4479,13 +4478,9 @@
                         else if (callState === "미동의") disagreeCnt++;
                     }
                 });
+                console.log(`📊 [실시간 양방향 집계 성공] 토큰명: ${targetTitleToken} | 기수: ${targetThNum}기 | 동의: ${agreeCnt}명 | 미동의: ${disagreeCnt}명`);
+            } catch (err) { console.error("실시간 팝업 양방향 통계 집계 실패 가드 가동", err); }
 
-                console.log(`📊 [집계완료] 과제명: ${targetTitleClean} | 기수: ${targetThClean}기 | 동의: ${agreeCnt}명 | 미동의: ${disagreeCnt}명`);
-            } catch (err) {
-                console.error("실시간 팝업 통계 집계 실패 가드 가동", err);
-            }
-
-            // 당직/소집 공지일 때 팝업창 내부에 렌더링될 세련된 한 줄 통계 패널 조립
             let popupStatLineHTML = "";
             if (type === 'duty' || type === 'call') {
                 popupStatLineHTML = `
@@ -4526,8 +4521,8 @@
             contentBox.style.color = "var(--text-color)";
             contentBox.style.width = "520px";
 
-            // 🌟 [요구사항 반영]: 4대 공지 내용 글상자 하단에 [한 줄 통계 패널]을 배치하고, 
-            // [편집] 단추를 [닫기] 단추 바로 왼쪽으로 기하학적 수평 우측 밀착 배치를 집행 완료했습니다.
+            // 🌟 [통합 연동 피날레]: 지능형 문자열 세척 가드가 반영된 
+            // [popupStatLineHTML] 패널을 본문 하단에 정밀 마운팅하고 액션 단추를 우측으로 칼밀착 정렬합니다.
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: ${config.color}; font-size: 18px; font-weight: 800; text-align: left;">
             <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle}</span>]
@@ -4537,18 +4532,13 @@
             ${boardEditorHTML}
         </div>
         
-        <!-- 실시간 가변 서명 한 줄 통계 패널 출력 존 -->
+        <!-- 실시간 지능형 세척 반영 서명 한 줄 통계 누적 패널 출현 존 -->
         ${popupStatLineHTML}
         
-        <!-- 하단 액션 버튼바: 전체 우측 정렬(flex-end) 개편 및 순서 스왑 완료 -->
-        <div style="display: flex; justify-content: flex-end; align-items: center; width: 100%; gap: 8px;">
-            <!-- 1. 편집 모드 스위칭 단추 (닫기 왼쪽에 밀착 스왑) -->
+        <!-- 하단 액션 버튼바: 전체 우측 정렬(flex-end) 및 관리자 최적화 동선 단추 정렬 -->
+        <div style="display: flex; justify flex-end; align-items: center; width: 100%; gap: 8px;">
             <button type="button" id="btn-integrated-action-edit" onclick="switchIntegratedToEditorMode()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">편집</button>
-            
-            <!-- 2. 수정완료 단추 (에디터 가동 시 편집 대신 노출되는 세이브 컨트롤러) -->
             <button type="button" id="btn-integrated-action-save" onclick="saveIntegratedEditorContent(${index}, '${type}', '${config.dbField}')" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);">수정완료</button>
-            
-            <!-- 3. 마스터 닫기 단추 (맨 우측 고정 락업) -->
             <button type="button" onclick="closeIntegratedModal()" style="background: #475569; color: white; border: none; padding: 8px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
         </div>
     `;

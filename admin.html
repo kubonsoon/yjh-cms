@@ -2276,7 +2276,7 @@
                 else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
                 docsHTML += `</div>`;
 
-                // 🌟 [순서 인터셉터 가드]: 함수 최상단 배치로 ReferenceError 완벽 박멸
+                // 🌟 [순서 인터셉터 가드 안착]: 배지 생성 선언부를 루프 엔진 최상단으로 올림 (ReferenceError 영구 청산)
                 const buildCoreMiniStatusBadgeHTML = (label, val) => {
                     let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '처리완료';
                     let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
@@ -2286,7 +2286,6 @@
                     return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s === '처리중' ? '검토중' : s === '처리완료' ? '완료' : s}</span></div>`;
                 };
                 const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
-
                 const buildAgreementStatusBadgeHTML = (val) => {
                     let s = (val || '대기').trim();
                     let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
@@ -2375,7 +2374,6 @@
                 tbody.appendChild(tr);
             });
         }
-
 
 
 

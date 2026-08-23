@@ -2264,6 +2264,7 @@
                 if (rawPhone.length === 11) fmtPhone = rawPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
                 else if (rawPhone.length === 10) fmtPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
                 else if (rawPhone.length > 0) fmtPhone = row.phone;
+
                 const hasId = row.idCard === true || row.idCard === "true" || (row.idCardImg && row.idCardImg.length > 20);
                 const hasBank = row.bankbook === true || row.bankbook === "true" || (row.bankBookImg && row.bankBookImg.length > 20);
                 let idSrc = row.idCardImg || "placeholder", bankSrc = row.bankBookImg || "placeholder";
@@ -2275,7 +2276,28 @@
                 else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
                 docsHTML += `</div>`;
 
-                // 🎯 [초기값 대기 분기 락인 스펙]: 대장에 값이 없거나 공란이면 무조건 그레이 톤의 '대기' 상태로 레이아웃 고정
+                // 🌟 [순서 인터셉터 가드]: 함수 선언부의 순서를 끌어올려 ReferenceError를 완전히 원천 차단합니다.
+                const buildCoreMiniStatusBadgeHTML = (label, val) => {
+                    let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '처리완료';
+                    let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
+                    if (s === '접수') st = "background:var(--card-color); color:#38bdf8; border:1px solid #38bdf8;";
+                    else if (s === '처리중') st = "background:var(--card-color); color:#fbbf24; border:1px solid #fbbf24;";
+                    else if (s === '처리완료') st = "background:var(--card-color); color:#34d399; border:1px solid #34d399;";
+                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s === '처리중' ? '검토중' : s === '처리완료' ? '완료' : s}</span></div>`;
+                };
+                const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
+
+                const buildAgreementStatusBadgeHTML = (val) => {
+                    let s = (val || '대기').trim();
+                    let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
+                    if (s === '동의') {
+                        st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
+                    } else if (s === '미동의') {
+                        st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
+                    }
+                    return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
+                };
+
                 const dutyAgreed = (row.isDutyAgreed || "대기").trim();
                 const callAgreed = (row.isCallAgreed || "대기").trim();
 
@@ -2284,9 +2306,8 @@
                 let matchCnt = db.slice(0, index + 1).filter(item => item.title === row.title && item.th === row.th).length;
                 const totalQuota = row.count || "60";
                 const isEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index);
-
                 // ----------------======================================================
-                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출
+                // 💡 [A 분기]: 현재 대상자 행이 인라인 편집 수정 모드일 때
                 // ----------------======================================================
                 if (isEditing) {
                     let s1 = row.payStatus1 || '대기'; if (s1 === '확인' || s1 === '접수완료') s1 = '접수'; if (s1 === '지급완료') s1 = '처리완료';
@@ -2367,10 +2388,9 @@
                 </td>
             `;
                 }
-
                 // ----------------======================================================
-                // 💡 [B 분기 진입]: 일반 읽기 전용 상태 리스트 모드일 때 (독립 야광 배지 빌드)
-                // --------------------------------======================================
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (문법 오타 전면 세척 완수)
+                // ----------------======================================================
                 else {
                     let p1 = row.payStatus1 || row.result || '대기';
                     let p2 = row.payStatus2 || '대기';
@@ -2390,7 +2410,7 @@
                 </div>
             `;
 
-                    // 🌟 [기수 세척 가드]: 처음 진입 시 섞여 나오는 '(1차)', '(2차)' 구형 데이터 파편을 실시간 청소합니다.
+                    // [기수 세척 가드]: 처음 진입 시 섞여 나오는 과거 구형 데이터 파편을 실시간 청소합니다.
                     const cleanThValue = (row.th || '-').toString().replace(/\s*\(.*?\)\s*/g, '').trim();
 
                     tr.style.display = "table-row";
@@ -2411,15 +2431,15 @@
                 <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;">
                     <button type="button" class="btn-inline save" onclick="openApplicantHistoryModal(${index})" style="background:var(--secondary-color); color:#ffffff; padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer; border:none;">이력조회</button>
                     <button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex = ${index}; if(typeof currentAppEditingIndex !== 'undefined') { currentAppEditingIndex = ${index}; } refreshApplicantView();" style="background:#334155; border:1px solid var(--border-color); color:var(--text-color); padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer;">수정</button>
-                    <button type="button" class="btn-inline delete" onclick="if(typeof removeApplicantRecord==='function'){removeApplicantRecord('${row.uid}');}else{deleteApplicantRecord(${index});}" style="background:rgba(239,68,68,0.15); border:1px solid #f87171; color:#f87171; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; border:1px solid var(--danger-color);">삭제</button>
+                    <button type="button" class="btn-inline delete" onclick="if(typeof removeApplicantRecord==='function'){removeApplicantRecord('${row.uid}');}else{deleteApplicantRecord(${index});}" style="background:rgba(239, 68, 68, 0.15); border:1px solid #f87171; color:#f87171; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; border:1px solid var(--danger-color);">삭제</button>
                 </td>
             `;
                 }
 
-
+                // 🎯 조립이 완료된 tr 로우를 마스터 테이블 본문에 안전하게 부착
                 tbody.appendChild(tr);
-            });
-        }
+            }); // 🎯 db.forEach 루프의 마감 결합선
+        } // 💡 function refreshApplicantView 전체의 완전무결 마감 중괄호
 
 
         /**

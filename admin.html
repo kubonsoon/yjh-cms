@@ -4451,9 +4451,9 @@
         }
 
 
-        /**
-         * 🎯 [모집공고 관리 - 팝업 01] 주의사항 안내 전용 모달창 가동 엔진
-         */
+        // ==========================================================================
+        // 🎯 [모집공고 관리 - 팝업 01] 주의사항 안내 전용 모달창 가동 엔진
+        // ==========================================================================
         function openNoticeModal(index) {
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const targetRow = recruitmentDB[index] || {};
@@ -4468,13 +4468,13 @@
 
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             const contentBox = document.querySelector(".editor-modal-content");
-
             if (!overlay || !contentBox) return console.error("주의사항 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
 
             // 모달 내부 스타일 초기화 및 암전 가독성 주입
             contentBox.style.background = "var(--card-color)";
             contentBox.style.border = "1px solid var(--border-color)";
             contentBox.style.color = "var(--text-color)";
+            contentBox.style.width = "480px";
 
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: var(--secondary-color); font-size: 18px; font-weight: 800;">
@@ -4484,8 +4484,7 @@
             ${noticeHTML}
         </div>
         <div style="text-align: right;">
-            <button type="button" onclick="closeNoticeModal()" 
-                style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
+            <button type="button" onclick="closeNoticeModal()" style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
         </div>
     `;
             overlay.style.display = "flex";
@@ -4496,10 +4495,9 @@
             if (overlay) overlay.style.display = "none";
         }
 
-
-        /**
-         * 🎯 [모집공고 관리 - 팝업 02] 시험일정 안내 전용 모달창 가동 엔진
-         */
+        // ==========================================================================
+        // 🎯 [모집공고 관리 - 팝업 02] 시험일정 안내 전용 모달창 가동 엔진
+        // ==========================================================================
         function openScheduleModal(index) {
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const targetRow = recruitmentDB[index] || {};
@@ -4514,12 +4512,12 @@
 
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             const contentBox = document.querySelector(".editor-modal-content");
-
             if (!overlay || !contentBox) return console.error("시험일정 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
 
             contentBox.style.background = "var(--card-color)";
             contentBox.style.border = "1px solid var(--border-color)";
             contentBox.style.color = "var(--text-color)";
+            contentBox.style.width = "480px";
 
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: var(--secondary-color); font-size: 18px; font-weight: 800;">
@@ -4529,8 +4527,7 @@
             ${scheduleHTML}
         </div>
         <div style="text-align: right;">
-            <button type="button" onclick="closeScheduleModal()" 
-                style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
+            <button type="button" onclick="closeScheduleModal()" style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
         </div>
     `;
             overlay.style.display = "flex";
@@ -4542,15 +4539,15 @@
         }
 
 
-        /**
-         * 🎯 [모집공고 관리 - 신규 팝업 03] 당직공지 안내 전용 모달창 가동 엔진
-         */
+        // ==========================================================================
+        // 🎯 [모집공고 관리 - 신규 팝업 03] 당직공지 안내 전용 가변 실시간 에디터 모달 엔진
+        // ==========================================================================
         function openDutyModal(index) {
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const targetRow = recruitmentDB[index] || {};
             const examTitle = targetRow.title || "지정 과제";
 
-            // 🌟 [요구사항 반영]: 대장에 세이브된 텍스트가 있다면 그것을 출력하고, 없다면 1~10번 안내 문구를 기본 적재
+            // 🌟 대장에 세이브된 텍스트가 있다면 그것을 출력하고, 없다면 1~10번 안내 문구를 기본 적재
             let currentDutyLines = [];
             if (targetRow.customDutyText) {
                 currentDutyLines = targetRow.customDutyText.split('\n');
@@ -4560,10 +4557,9 @@
                 }
             }
 
-            let dutyHTML = `<div id="duty-display-view-area" style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left;">`;
+            let dutyHTML = `<div id="duty-display-view-area" style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left; width: 100%;">`;
             currentDutyLines.forEach(line => {
                 if (line.trim()) {
-                    // 번호 서식만 분리해 야광 보라색 스타일 매핑
                     const numMatch = line.match(/^(\d+\.)/);
                     if (numMatch) {
                         const restText = line.substring(numMatch[0].length);
@@ -4575,7 +4571,7 @@
             });
             dutyHTML += `</div>`;
 
-            // 🌟 에디터 작성 폼 돔 레이어 빌드 (비활성 숨김 상태 배정)
+            // 에디터 작성 폼 돔 레이어 빌드 (초기 숨김 상태 배정)
             const rawTextAreaValue = currentDutyLines.join('\n');
             const editorHTML = `
         <div id="duty-editor-form-area" style="display: none; width: 100%;">
@@ -4586,7 +4582,6 @@
 
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             const contentBox = document.querySelector(".editor-modal-content");
-
             if (!overlay || !contentBox) return console.error("당직공지 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
 
             contentBox.style.background = "var(--card-color)";
@@ -4598,18 +4593,15 @@
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: #c084fc; font-size: 18px; font-weight: 800;">
             <i class="fa-solid fa-user-shield"></i> 당직공지 안내 [<span style="color:#ffffff;">${examTitle}</span>]
         </h3>
-        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
+        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; width: 100%;">
             ${dutyHTML}
             ${editorHTML}
         </div>
-        
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <!-- 좌측: 모드 스위칭 액션 컨트롤러 버튼 -->
             <div>
-                <button type="button" id="btn-duty-action-edit" onclick="switchDutyToEditorMode('${rawTextAreaValue.replace(/'/g, "\\'")}')" style="background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; color: #c084fc; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px;">편집</button>
+                <button type="button" id="btn-duty-action-edit" onclick="switchDutyToEditorMode('${rawTextAreaValue.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')" style="background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; color: #c084fc; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px;">편집</button>
                 <button type="button" id="btn-duty-action-save" onclick="saveDutyEditorContent(${index})" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);">수정완료</button>
             </div>
-            <!-- 우측: 모달 닫기 단추 -->
             <div>
                 <button type="button" onclick="closeDutyModal()" style="background: #475569; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
             </div>
@@ -4618,16 +4610,11 @@
             overlay.style.display = "flex";
         }
 
-        /**
-         * 🌟 [에디터 서브 기능 01]: 편집 버튼 클릭 시 입력 텍스트 영역 가동 스왑
-         */
         function switchDutyToEditorMode(rawContent) {
             const displayArea = document.getElementById("duty-display-view-area");
             const editorArea = document.getElementById("duty-editor-form-area");
             const btnEdit = document.getElementById("btn-duty-action-edit");
             const btnSave = document.getElementById("btn-duty-action-save");
-
-            // 타겟 텍스트에어리어 엘리먼트 검색 추출
             const textarea = editorArea ? editorArea.querySelector("textarea") : null;
 
             if (displayArea && editorArea && btnEdit && btnSave && textarea) {
@@ -4635,19 +4622,11 @@
                 editorArea.style.display = "block";
                 btnEdit.style.display = "none";
                 btnSave.style.display = "inline-block";
-
                 textarea.value = rawContent;
                 textarea.focus();
-
-                // 포커스 네온 스타일 바인딩
-                textarea.onfocus = () => textarea.style.borderColor = '#a855f7';
-                textarea.onblur = () => textarea.style.borderColor = 'var(--border-color)';
             }
         }
 
-        /**
-         * 🌟 [에디터 서브 기능 02]: 수정완료 버튼 클릭 시 대장 영구 세이브 및 모달 실시간 동기화 리전개
-         */
         function saveDutyEditorContent(index) {
             const textarea = document.getElementById(`txt-duty-editor-input-${index}`);
             if (!textarea) return;
@@ -4655,23 +4634,62 @@
             const nextTextValue = textarea.value.trim();
             if (!nextTextValue) return alert("알림: 당직공지 내용을 공란으로 둘 수 없습니다.");
 
-            // 로컬스토리지 대장 실시간 강제 트랜잭션 커밋
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             if (recruitmentDB[index]) {
                 recruitmentDB[index].customDutyText = nextTextValue;
                 localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
                 if (typeof dataStoreRecruitment !== "undefined") window.dataStoreRecruitment = recruitmentDB;
-
                 if (typeof commitToLocalStorage === "function") commitToLocalStorage();
 
                 alert("🎉 당직공지 에디터 내용이 성공적으로 수정 저장되어 화면에 즉시 동기화되었습니다.");
-
-                // 닫지 않고 처음 모달창의 수정 완료된 모습으로 실시간 강제 새로고침 리바인딩
                 openDutyModal(index);
             }
         }
 
         function closeDutyModal() {
+            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
+            if (overlay) overlay.style.display = "none";
+        }
+
+        // ==========================================================================
+        // 🎯 [모집공고 관리 - 신규 팝업 04] 소집공지 안내 전용 모달창 가동 엔진
+        // ==========================================================================
+        function openCallModal(index) {
+            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            const targetRow = recruitmentDB[index] || {};
+            const examTitle = targetRow.title || "지정 과제";
+
+            // 1번부터 10번까지의 소집공지 디폴트 안내문 세트 빌드
+            let callHTML = `<div style="color: #cbd5e1; font-size: 14px; line-height: 1.8; text-align: left; width: 100%;">`;
+            for (let i = 1; i <= 10; i++) {
+                callHTML += `<div style="margin-bottom: 6px; font-weight: 500;"><span style="color: #3b82f6; font-weight: 700; margin-right: 6px;">${i}.</span> 소집공지 안내입니다.</div>`;
+            }
+            callHTML += `</div>`;
+
+            const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
+            const contentBox = document.querySelector(".editor-modal-content");
+            if (!overlay || !contentBox) return console.error("소집공지 모달창의 DOM 엘리먼트를 찾을 수 없습니다.");
+
+            contentBox.style.background = "var(--card-color)";
+            contentBox.style.border = "1px solid var(--border-color)";
+            contentBox.style.color = "var(--text-color)";
+            contentBox.style.width = "480px";
+
+            contentBox.innerHTML = `
+        <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: #60a5fa; font-size: 18px; font-weight: 800;">
+            <i class="fa-solid fa-bullhorn"></i> 소집공지 안내 [<span style="color:#ffffff;">${examTitle}</span>]
+        </h3>
+        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 15px; width: 100%;">
+            ${callHTML}
+        </div>
+        <div style="text-align: right;">
+            <button type="button" onclick="closeCallModal()" style="background: #475569; color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
+        </div>
+    `;
+            overlay.style.display = "flex";
+        }
+
+        function closeCallModal() {
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             if (overlay) overlay.style.display = "none";
         }

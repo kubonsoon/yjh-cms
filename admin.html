@@ -4455,28 +4455,42 @@
                 currentHTMLContent += `</div>`;
             }
 
-            // 3. 🌟 [동의/미동의 백엔드 집계 엔진 부착]: 대상자 데이터베이스 실시간 연산 스캔 가동
+            // 3. [동의/미동의 백엔드 집계 엔진 부착]: 대상자 데이터베이스 실시간 연산 스캔 가동
             let agreeCnt = 0, disagreeCnt = 0;
             try {
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+                // 현재 조준된 모집공고의 순정 과제명 및 순정 기수(숫자만) 추출
+                const targetTitleClean = (targetRow.title || "").trim();
+                const targetThClean = (targetRow.th || "").replace(/[^0-9]/g, "");
+
                 const targetApplicants = adminApplicantDB.filter(item => {
-                    const rowThNum = (targetRow.th || "").replace(/[^0-9]/g, "");
-                    const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
-                    return item.title === targetRow.title && rowThNum === itemThNum && rowThNum !== "";
+                    const itemTitleClean = (item.title || "").trim();
+                    const itemThClean = (item.th || "").replace(/[^0-9]/g, "");
+
+                    // 🎯 [3중 엄격 필터링 가드]: 과제명과 숫자로 된 기수가 동시에 자석처럼 일치하는 피험자만 정밀 골라냄
+                    return (itemTitleClean === targetTitleClean && itemThClean === targetThClean && targetThClean !== "");
                 });
 
+                // 추출된 타겟 피험자 그룹의 동의 현황 팩트 카운팅 누적
                 targetApplicants.forEach(user => {
                     if (type === 'duty') {
-                        if ((user.isDutyAgreed || "").trim() === "동의") agreeCnt++;
-                        else if ((user.isDutyAgreed || "").trim() === "미동의") disagreeCnt++;
+                        const dutyState = (user.isDutyAgreed || "").trim();
+                        if (dutyState === "동의") agreeCnt++;
+                        else if (dutyState === "미동의") disagreeCnt++;
                     } else if (type === 'call') {
-                        if ((user.isCallAgreed || "").trim() === "동의") agreeCnt++;
-                        else if ((user.isCallAgreed || "").trim() === "미동의") disagreeCnt++;
+                        const callState = (user.isCallAgreed || "").trim();
+                        if (callState === "동의") agreeCnt++;
+                        else if (callState === "미동의") disagreeCnt++;
                     }
                 });
-            } catch (err) { console.error("실시간 팝업 통계 집계 실패 가드", err); }
 
-            // 🌟 [요구사항 반영]: 당직/소집 공지일 때 팝업창 내부에 렌더링될 세련된 한 줄 통계 패널 조립
+                console.log(`📊 [집계완료] 과제명: ${targetTitleClean} | 기수: ${targetThClean}기 | 동의: ${agreeCnt}명 | 미동의: ${disagreeCnt}명`);
+            } catch (err) {
+                console.error("실시간 팝업 통계 집계 실패 가드 가동", err);
+            }
+
+            // 당직/소집 공지일 때 팝업창 내부에 렌더링될 세련된 한 줄 통계 패널 조립
             let popupStatLineHTML = "";
             if (type === 'duty' || type === 'call') {
                 popupStatLineHTML = `

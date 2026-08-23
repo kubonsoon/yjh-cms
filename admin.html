@@ -4265,46 +4265,45 @@
  * 하단 목록 테이블 및 상단 대시보드 4대 지표 카드를 새로고침 없이 즉각 100% 동기화 리프레시합니다.
  */
         function updateApplicantStatusViaModal(index, newStatus) {
-            // 1. 최신 로컬스토리지 대장 확보
+            // 1. 최신 로컬스토리지 대장 안전 확보
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
             if (index >= 0 && index < adminApplicantDB.length) {
                 const targetUser = adminApplicantDB[index];
                 const targetName = targetUser.name || "미정";
 
-                // 2. ⭐️ [데이터 원천 오버라이드]: 마스터 스키마의 두 상태 필드를 전달받은 신규 상태로 즉시 변경 조율
+                // 2. 🌟 [차수별 독립 오버라이드]: 마스터 스키마 상태값과 동시에 1차 참여비 상태 필드(payStatus1)를 즉시 수왑 조율합니다.
                 targetUser.payStatus = newStatus;
                 targetUser.result = newStatus;
+                targetUser.payStatus1 = newStatus; // 🎯 이 부분이 핵심입니다! 1차 정산 상태를 원격으로 강제 동기화시킵니다.
 
                 // 3. 변경 완료된 최신 배열을 로컬 스토리지에 물리 커밋 세이브
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
-                // 만약 글로벌 변수를 혼용하는 설계라면 전역 변수 동시 스왑
+                // 글로벌 메모리 변수 스왑 싱크 일치
                 if (typeof dataStoreApplicant !== "undefined") {
                     dataStoreApplicant = adminApplicantDB;
                 }
 
-                // 만약 commitToLocalStorage() 스토리지 저장 보조 함수가 존재하면 안전장치 호출
+                // 로컬스토리지 백업 함수 안전장치 호출
                 if (typeof commitToLocalStorage === "function") {
                     commitToLocalStorage();
                 }
 
-                // 4. 알림창 알림 (시연 설명력 강화)
-                alert(`📢 상태 변환 완료: [${targetName}] 피험자의 참여비 상태가 [${newStatus}] 상태로 수동 업데이트되었습니다.`);
+                // 4. 알림창 알림 (시연 설명력 및 피드백 강화)
+                alert(`📢 상태 변환 완료: [${targetName}] 피험자의 1차 참여비 상태가 [${newStatus}] 상태로 실시간 업데이트되었습니다.`);
 
-                // 5. ⭐️ [연쇄 리프레시]: 역순 정렬(reverse)로 인한 라벨 오작동을 원천 차단하기 위해 
-                // 텍스트 변환 필터링 포맷터를 거쳐 현재 열려있는 이력 모달 화면을 실시간으로 통째로 다시 렌더링 스왑합니다.
+                // 5. 🌟 [모달 라이브 리프레시]: 상태 변경 단추를 누르는 즉시 이력 모달 내부의 소집일자와 상태 텍스트를 최신으로 새로고침
                 if (typeof openApplicantHistoryModal === "function") {
-                    // 이 함수가 실행되면서 모달 내부의 모든 상태 텍스트와 소집일자가 완벽한 화이트 컬러 및 최신 상태로 새로고침됩니다.
                     openApplicantHistoryModal(index);
                 }
 
-                // 6. ⭐️ [화면 목록 동기화]: 하단 마스터 테이블 목록 tr을 최신 상태 배지 색상으로 새로 그리기 실행
+                // 6. 🌟 [화면 목록 동기화]: 하단 마스터 테이블 목록 tr을 최신 차수별 야광 배지 색상으로 실시간 리렌더링 새로 그리기 실행!
                 if (typeof refreshApplicantView === "function") {
                     refreshApplicantView();
                 }
 
-                // 7. ⭐️ [대시보드 폭발 갱신]: 변경된 최신 상태를 기반으로 상단 대시보드 카드 4종 건수 실시간 재연산 투사!
+                // 7. 🌟 [대시보드 실시간 반영]: 변경된 최신 상태를 기반으로 상단 대시보드 카드 4종 건수 실시간 재연산 투사!
                 if (typeof calculateLiveDashboardStats === "function") {
                     calculateLiveDashboardStats();
                 }

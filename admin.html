@@ -9,7 +9,6 @@
     <link rel="icon"
         href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
     <!-- 고급 에디터 라이브러리 및 스킨 탑재 -->
-    <link rel="stylesheet" href="https://cloudflare.com">
     <script src="https://cloudflare.com"></script>
 
     <style>
@@ -3217,30 +3216,48 @@
         // 모든 레거시 소스코드의 리셋 루틴이 끝난 후 0.05초 뒤에 기억된 메뉴를 강제로 최종 마운트합니다.
         window.addEventListener('DOMContentLoaded', function () {
 
-            // 💥 [태스크 1]: 주의사항·시험일정·당직·소집 통합형 에디터 엔진 즉시 기동
-            if (document.getElementById('modalRichEditor')) {
-                quillModal = new Quill('#modalRichEditor', {
-                    modules: { toolbar: '#modal-toolbar-container' },
-                    theme: 'snow'
+            // 💥 [태스크 1]: 단 하나의 텍스트 영역을 고급 메뉴 바 및 표(Table) 생성 엔진으로 즉시 변환
+            if (document.getElementById('modalSingleRichEditor')) {
+                tinymce.init({
+                    selector: '#modalSingleRichEditor',
+                    height: 380, // 넓고 쾌적한 일반 게시판 글쓰기 공간 확보
+                    language: 'ko_KR', // 툴바 및 메뉴 전체 완벽 한글화 가이드 적용
+                    plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount',
+                    menubar: 'file edit view insert format tools table help', // 파일, 편집, 삽입, 표 고급 메뉴 바 정식 장착
+                    toolbar: 'undo redo | blocks | bold italic underline strike | forecolor backcolor | alignleft aligncenter alignright | table image link | removeformat',
+                    branding: false,
+                    promotion: false,
+                    content_style: `
+                body { 
+                    background-color: #0b0f19 !important; 
+                    color: #f8fafc !important; 
+                    font-family: 'Malgun Gothic', sans-serif !important; 
+                    font-size: 14px !important; 
+                    line-height: 1.6 !important;
+                    padding: 10px !important;
+                }
+                table { border-color: #334155 !important; color: #ffffff !important; }
+            ` // 에디터 본문 글쓰기 내부 공간까지 백오피스 다크 테마로 완벽 동기화
                 });
-                console.log("[통합 전산망] 통합형 고급 리치 에디터 엔진이 정상 마운트되었습니다.");
+                console.log("[전산망 - 태스크 1] 단일 창 스왑형 상용 게시판 프리미엄 에디터 인프라가 정식 마운트되었습니다.");
             }
 
-            // 📢 [태스크 2]: 에디터 안착 확인 후 50ms 미세 지연 시연 화면 자동 복구
+            // 📢 [태스크 2 기존 규격 유지]: 에디터가 안착한 직후 50ms 오프셋 시차 화면 탭 복구 가동
             setTimeout(function () {
-                var savedViewport = localStorage.getItem('adminActiveViewportId');
-                if (savedViewport) {
-                    if (typeof changeMainViewport === 'function') {
-                        changeMainViewport(savedViewport);
-                    }
+                if (typeof forceRestoreViewport === 'function') {
+                    forceRestoreViewport();
                 } else {
-                    if (typeof changeMainViewport === 'function') {
-                        changeMainViewport('recruitmentView'); // 기록이 없을 때 기본 화면 지정
+                    var savedViewport = localStorage.getItem('adminActiveViewportId');
+                    if (savedViewport && typeof changeMainViewport === 'function') {
+                        changeMainViewport(savedViewport);
+                    } else if (typeof changeMainViewport === 'function') {
+                        changeMainViewport('recruitmentView');
                     }
                 }
-            }, 50); // 50ms 미세 지연을 통한 강제 우선순위 획득 및 에디터 찌그러짐 방지
+            }, 50); // 50ms 미세 지연 우선순위 확보로 에디터 찌그러짐 현상 원천 봉쇄
 
         });
+
 
         // 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가하세요.
         // 기존의 그 어떤 로직이나 세션 스크립트가 화면을 리셋하더라도, 0.15초 뒤에 무조건 덮어써서 메뉴를 강제 고정합니다.
@@ -4778,31 +4795,31 @@
     </div>
 
     <!-- 모집공고 상세 에디터 모달 팝업 (전체 인라인 스타일 제거 완료) -->
-    <div id="noticeEditorModal" class="editor-modal-overlay">
-        <div class="editor-modal-content">
-            <h3 id="modal-title" class="editor-modal-title">📋 세부 일정 및 주의사항 편집</h3>
+    <div id="noticeEditorModal" class="editor-modal-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 99999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div class="editor-modal-content"
+            style="width: 800px !important; background-color: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 14px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);">
+            <!-- 클릭한 버튼(주의사항, 당직 등)에 따라 상단 제목이 동적으로 변환됩니다 -->
+            <h3 id="modal-title" class="editor-modal-title"
+                style="color: #0ea5e9; font-weight: 800; font-size: 16px; margin: 0 0 15px 0; border-bottom: 1px solid #334155; padding-bottom: 10px; text-align: left;">
+                📋 세부 일정 및 주의사항 편집</h3>
 
+            <!-- 현재 편집 중인 행 번호와 필드 종류(notice, duty 등)를 추적할 히든 포인터 락업 -->
             <input type="hidden" id="modal-rec-id">
+            <input type="hidden" id="modal-rec-field-type">
 
-            <div class="editor-form-group">
-                <label>주의사항</label>
-                <textarea id="modal-rec-notice" class="editor-textarea" rows="4"
-                    placeholder="주의사항 및 공복 유지 지침 등을 입력하세요."></textarea>
+            <div class="board-editor-frame" style="margin: 15px 0; text-align: left;">
+                <!-- 💥 진짜 핵심: 파일, 편집, 삽입, 표(Table) 메뉴 바 전체가 주입될 단 하나의 상용 게시판 에디터 슬롯 -->
+                <textarea id="modalSingleRichEditor"></textarea>
             </div>
 
-            <div class="editor-form-group">
-                <label>시험일정</label>
-                <input type="text" id="modal-rec-examSchedule" class="editor-input" placeholder="예: 2026-08-15 오전 9시">
-            </div>
-
-            <div class="editor-form-group-last">
-                <label>참여비 지급일</label>
-                <input type="text" id="modal-rec-paySchedule" class="editor-input" placeholder="예: 시험 종료 후 2주 이내 지급">
-            </div>
-
-            <div class="editor-btn-group">
-                <button onclick="closeNoticeEditor()" class="editor-btn-cancel">취소</button>
-                <button onclick="saveNoticeEditorData()" class="editor-btn-save">저장 및 반영</button>
+            <!-- 하단 전산 통제 제어 액션 버튼 그룹 -->
+            <div class="editor-btn-group" style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
+                <button onclick="closeNoticeEditor()" class="editor-btn-cancel"
+                    style="background: #475569; color: #fff; border: none; padding: 10px 22px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13.5px;">취소</button>
+                <button onclick="saveNoticeEditorData()" class="editor-btn-save"
+                    style="background: #0ea5e9; color: #070a12; border: none; padding: 10px 22px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 13.5px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">저장
+                    및 반영</button>
             </div>
         </div>
     </div>

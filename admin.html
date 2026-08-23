@@ -2512,6 +2512,7 @@
                 adminApplicantDB[index].ssn = elSsn ? elSsn.value.trim() : adminApplicantDB[index].ssn;
                 adminApplicantDB[index].phone = elPhone ? elPhone.value.trim() : adminApplicantDB[index].phone;
 
+                // 🎯 [1~3차 독립 데이터 개별 대장 적재]
                 const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
                 const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
                 const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
@@ -2520,6 +2521,7 @@
                 adminApplicantDB[index].payStatus2 = nextS2;
                 adminApplicantDB[index].payStatus3 = nextS3;
 
+                // 🎯 [통계 현황판 연쇄 연동] 1차~3차의 변경 상태를 조합하여 상단 4단계 통계 결과(result) 상태 자동 반영
                 let finalPipelineStatus = "접수";
                 if (nextS1 === "처리완료" && nextS2 === "처리완료" && nextS3 === "처리완료") {
                     finalPipelineStatus = "지급완료";
@@ -2534,38 +2536,50 @@
                 adminApplicantDB[index].payStatus = finalPipelineStatus;
                 adminApplicantDB[index].result = finalPipelineStatus;
 
-                // 🌟 드롭다운 수정 결과 밸류를 대장에 오차 없이 영구 안착
+                // ==========================================================================
+                // 🌟 [버그 원천 분쇄 락업 존]: 타 피험자 동의열 동시 오염 현상을 차단하기 위해,
+                // 오직 선택된 행(index)의 대상자 가상 DB 슬롯에만 정확히 드롭다운 벨류를 박제 격리 세이브합니다.
+                // ==========================================================================
                 adminApplicantDB[index].isDutyAgreed = elDuty ? elDuty.value : (adminApplicantDB[index].isDutyAgreed || "대기");
                 adminApplicantDB[index].isCallAgreed = elCall ? elCall.value : (adminApplicantDB[index].isCallAgreed || "대기");
                 adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
 
+                // 4. [메모리 폭파 방지 가드] 전역 대장 배열 동기화
                 if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = adminApplicantDB;
                 if (typeof adminApplicantDBGlobal !== 'undefined') adminApplicantDBGlobal = adminApplicantDB;
 
+                // 5. 로컬 스토리지 최종 세이브 커밋
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
+                // 6. [편집 스위치 완전 초기화]
                 window.currentAppEditingIndex = null;
                 if (typeof currentAppEditingIndex !== 'undefined') currentAppEditingIndex = undefined;
                 if (typeof currentEditingApplicantIndex !== 'undefined') currentEditingApplicantIndex = null;
                 if (typeof currentEditingUid !== 'undefined') currentEditingUid = null;
 
+                // 상단 대시보드 통계 실시간 재계산 함수 자동 리트리거 연동
                 if (typeof calculateLiveDashboardStats === 'function') {
                     calculateLiveDashboardStats();
                 }
 
+                // 7. [안전 분기 리렌더링] 대상자 관리 테이블 실시간 리플래시 가동
                 if (typeof refreshApplicantView === 'function') {
                     refreshApplicantView();
                 } else if (typeof renderApplicantTable === 'function') {
                     renderApplicantTable();
                 }
 
-                // 🌟 [양방향 동기화]: 대상자 저장이 끝나는 즉시 배후의 모집공고 통계 카운터를 강제 릴레이 새로고침
+                // ==========================================================================
+                // 🌟 [통계 먹통 해제 기믹]: 대상자 정보 저장이 끝나는 찰나,
+                // 배후의 모집공고 마스터 테이블 뷰 목록 함수를 즉시 연쇄 실행시킵니다.
+                // 이 파이프라인이 돌며 1/2파트의 고도화 집계 엔진이 재작동하여 팝업창 내 통계 수치를 바꿉니다.
+                // ==========================================================================
                 if (typeof refreshRecruitmentView === 'function') {
-                    console.log("🔄 [양방향 트랜잭션] 당직/소집 정보 수정 검지로 모집공고 실시간 누적 카운터 리인프라 재가동");
+                    console.log("🔄 [양방향 동기화 완수] 대상자 당직/소집 정보 수정 검지로 모집공고 통계 가산기 릴레이 작동");
                     refreshRecruitmentView();
                 }
 
-                alert("📢 대상자 정보 및 1~3차 참여비 정산 프로세스 상태가 대장에 완전 반영되었습니다.");
+                alert("📢 대상자 정보 및 당직/소집 공지 정산 상태가 대장에 완전 반영되었습니다.");
 
             } catch (error) {
                 console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);

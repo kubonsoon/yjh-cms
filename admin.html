@@ -1824,32 +1824,22 @@
          */
         function refreshRecruitmentView() {
             const tbody = document.getElementById('dom-recruitment-table');
-            if (!tbody) return;
-            tbody.innerHTML = ''; // 테이블 초기화
+            if (!tbody) return; tbody.innerHTML = '';
 
-            // 마스터 전산 배열 싱크 확인
-            if (!window.dataStoreRecruitment || dataStoreRecruitment.length === 0) {
-                window.dataStoreRecruitment = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            }
-
-            // 디폴트 데이터 가드 (비어있을 때 복구)
-            if (dataStoreRecruitment.length === 0) {
-                dataStoreRecruitment = [
-                    { title: "애드파마 로잘탄+로수+에제", th: "2기", count: "60", period: "72", crc: "석정은", notice: "공복 유지 필수 및 소집 10분 전 대기", examSchedule: "2026-09-01", paySchedule: "2026-09-10" },
-                    { title: "신일제약-사쿠+발사", th: "4기", count: "46", period: "96", crc: "최미현", notice: "지정식 이외 취식 금지 및 격리 규정 준수", examSchedule: "2026-09-15", paySchedule: "2026-09-30" },
-                    { title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96", crc: "강은애", notice: "지정식 이외 취식 금지 및 격리 규정 준수", examSchedule: "2026-10-15", paySchedule: "2026-10-30" }
-                ];
-                localStorage.setItem('dataStoreRecruitment', JSON.stringify(dataStoreRecruitment));
+            // 🎯 최신 로컬스토리지 대장 확보 및 전역 싱크 제어
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            if (typeof dataStoreRecruitment !== "undefined" && dataStoreRecruitment.length > 0) {
+                recruitmentDB = dataStoreRecruitment;
             }
 
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            dataStoreRecruitment.forEach((row, index) => {
+            recruitmentDB.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
 
-                // 기수 배지 스타일 분기
-                const activeTargetTh = row ? row.th : (typeof item !== 'undefined' ? item.th : "");
+                // 기수 숫자 정밀 필터링 및 배지 레벨 자동 배정
+                const activeTargetTh = row ? row.th : "";
                 const thNumMatch = (activeTargetTh || "").toString().match(/\d+/);
                 const thNum = thNumMatch ? parseInt(thNumMatch[0], 10) : 1;
 
@@ -1858,31 +1848,21 @@
                 else if (thNum === 4 || thNum === 5) thBadgeClass = "lvl-4";
                 else if (thNum >= 6) thBadgeClass = "lvl-6";
 
-                // [안전 가드 교체] 기수(th) 데이터를 기준으로 카운트하여 글자 불일치 버그 차단
+                // [안전 가드]: 기수 숫자를 기준으로 타겟 피험자 그룹 실시간 매칭 카운트
                 let groupMatchCount = 0;
                 try {
                     groupMatchCount = adminApplicantDB.filter(item => {
-                        // 공고 기수와 대상자 기수에서 숫자만 추출하여 비교 (예: "4기"와 "4기" 또는 숫자 4 비교)
                         const rowThNum = (row.th || "").replace(/[^0-9]/g, "");
                         const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
                         return rowThNum === itemThNum && rowThNum !== "";
                     }).length;
-                } catch (e) {
-                    groupMatchCount = 0; // 에러 발생 시 0명으로 처리하고 목록은 정상 출력
-                }
+                } catch (e) { groupMatchCount = 0; }
 
                 const totalQuota = row.count || "60";
-
-                // 편집 제어 포인터 변수 2종 정밀 결합
-                const isRecEditing =
-                    (window.currentEditingRecruitmentIndex === index) ||
-                    (typeof currentEditingRecruitmentIndex !== 'undefined' && currentEditingRecruitmentIndex === index) ||
-                    (typeof recEditingUid !== 'undefined' && recEditingUid === row.uid);
-
-                // ==========================================================================
-                // 🎯 [모집공고 목록 - 2부] 인라인 수정창 내 컴팩트형 세로 3단 가변 피커 적재
-                // ==========================================================================
-                // [A 분기]: 모집공고 인라인 수정 모드 활성화 시 (1~3차 가변 달력 3단 레이아웃 마우스 락 해제)
+                const isRecEditing = (window.currentEditingRecruitmentIndex === index) || (typeof currentEditingRecruitmentIndex !== 'undefined' && currentEditingRecruitmentIndex === index);
+                // ----------------======================================================
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출
+                // ----------------======================================================
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
                     if (defaultDateVal === "미정" || !defaultDateVal || defaultDateVal.includes("년")) {
@@ -1893,170 +1873,120 @@
                         defaultDateVal = `${yyyy}-${mm}-${dd}`;
                     }
 
-                    // 🎯 [핵심 보안 해제 가드]: tr 전체와 내부 입력창들에 pointer-events 최고 우선순위 강제 개방 인가
                     tr.className = "editing-row";
                     tr.style.setProperty("pointer-events", "auto", "important");
                     tr.style.cursor = "default";
 
                     tr.innerHTML = `
-        <!-- 1. 시험명 (너비 유연 장착 및 좌측 패딩 정렬) -->
-        <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
-            <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
-        </td>
-        
-        <!-- 2. 기수 (너비 80px 센터 정렬) -->
-        <td style="width: 80px; text-align: center !important; vertical-align: middle;">
-            <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 24px 2px 6px; text-align:center; text-align-last:center; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
-                <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
-                <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
-                <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
-                <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
-            </select>
-        </td>
-        
-        <!-- 3. 인원수 (너비 100px 센터 정렬) -->
-        <td style="width: 100px; vertical-align: middle; text-align: center;">
-            <input type="text" id="inline-rec-count-${index}" class="inline-input" value="${row.count || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
-        </td>
-        
-        <!-- 4. 기간 (너비 100px 센터 정렬) -->
-        <td style="width: 100px; vertical-align: middle; text-align: center;">
-            <input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
-        </td>
-        
-        <!-- 5. 담당 CRC (너비 110px 센터 정렬) -->
-        <td style="width: 110px; vertical-align: middle; text-align: center;">
-            <input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
-        </td>
-        
-        <!-- 6. 소집일자 (너비 130px 센터 정렬 및 화이트 색상 락인) -->
-        <td style="width: 130px; vertical-align: middle; text-align: center;">
-            <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
-        </td>
-        
-        <!-- 🌟 [버그 원천 해결 구역]: 수정 상태의 인라인 폼 내부 버튼 onclick도 새롭게 정의한 대통합 함수(openIntegratedBoardModal)로 정밀 변환 안착 완료 -->
-        <td style="width: 80px; vertical-align: middle; text-align: center;">
-            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-        </td>
-        <td style="width: 80px; vertical-align: middle; text-align: center;">
-            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-        </td>
-        <td style="width: 80px; vertical-align: middle; text-align: center;">
-            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-        </td>
-        <td style="width: 80px; vertical-align: middle; text-align: center;">
-            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-        </td>
-        
-        <!-- 11. 참여비 지급일정 (너비 150px 센터 정렬 및 잠금 해제) -->
-        <td style="width: 150px; vertical-align: middle; text-align: center;">
-            <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; pointer-events: auto !important; align-items: center; width: 100%;">
-                <input type="date" id="inline-rec-pay1-${index}" class="inline-input" value="${row.payDate1 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;" title="1차 지급일 고치기">
-                <input type="date" id="inline-rec-pay2-${index}" class="inline-input" value="${row.payDate2 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;" title="2차 지급일 고치기">
-                <input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;" title="3차 지급일 고치기">
-            </div>
-        </td>
-
-        <!-- 12. 작업 제어 단추존 (너비 140px 및 여백 일치) -->
-        <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
-            <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important;">
-                <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
-                <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
-            </div>
-        </td>
-    `;
-                }
-
-                // ==========================================================================
-                // 🎯 [모집공고 목록 - 3부] 조회 모드 시 두 줄, 세 줄 수직 복층 스택 레이아웃 출력 및 마감
-                // ==========================================================================
-                else {
-                    // 🎯 [지능형 동적 분기 파싱 엔진]: 대장에 기억된 차수별 날짜 데이터를 추출하여 화면에 <br> 줄바꿈 태그로 정렬 가공합니다.
-                    let multiLinePayHTML = "";
-                    let payCount = 0;
-
-                    if (row.payDate1 && row.payDate1 !== "추후공지") {
-                        multiLinePayHTML += `<div style="line-height: 1.4;"><span style="color: #64748b; font-size: 11px;">1차:</span> <span style="color: #fbbf24; font-weight: 700; font-size: 12.5px;">${row.payDate1}</span></div>`;
-                        payCount++;
-                    }
-                    if (row.payDate2 && row.payDate2 !== "추후공지") {
-                        multiLinePayHTML += `<div style="line-height: 1.4; margin-top: 2px;"><span style="color: #64748b; font-size: 11px;">2차:</span> <span style="color: #fbbf24; font-weight: 700; font-size: 12.5px;">${row.payDate2}</span></div>`;
-                        payCount++;
-                    }
-                    if (row.payDate3 && row.payDate3 !== "추후공지") {
-                        multiLinePayHTML += `<div style="line-height: 1.4; margin-top: 2px;"><span style="color: #64748b; font-size: 11px;">3차:</span> <span style="color: #fbbf24; font-weight: 700; font-size: 12.5px;">${row.payDate3}</span></div>`;
-                        payCount++;
-                    }
-
-                    // 만약 대장에 기록된 개별 날짜가 없고 과거 텍스트 유실본(paySchedule)만 존재할 경우의 안전 폴백 스위칭 가드
-                    if (payCount === 0) {
-                        const legacyText = row.paySchedule || row.payDate || '추후공지';
-                        if (legacyText.includes('/')) {
-                            // 슬래시(/) 기호 단위로 글자를 강제 쪼개어 세로 줄바꿈 복층으로 리파인 렌더링
-                            multiLinePayHTML = legacyText.split('/').map(part => `<div style="line-height: 1.4; white-space: nowrap;">${part.trim()}</div>`).join('');
-                        } else {
-                            multiLinePayHTML = `<span style="color: #fbbf24; font-weight: 700; font-size: 12.5px;">${legacyText}</span>`;
-                        }
-                    }
-
-                    // 💡 기존 color: #fbbf24; 를 color: #ffffff !important; 로 전격 교체
-                    tr.innerHTML = `
-                    <!-- 1. 시험명 (좌측 정렬 및 여백 일치) -->
-                    <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
-               
-                    <!-- 2. 기수 (너비 80px 및 중앙 정렬) -->
-                    <td style="width: 80px; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span></td>
-    
-                    <!-- 3. 인원수 (너비 100px 및 중앙 정렬) -->
-                    <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${totalQuota}명</td>
-    
-                    <!-- 4. 기간 (너비 100px 및 중앙 정렬) -->
-                    <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
-    
-                    <!-- 5. 담당 CRC (너비 110px 및 중앙 정렬) -->
-                    <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
-    
-                    <!-- 6. 소집일자 (너비 130px 및 중앙 정렬, 오피셜 화이트 컬러 락인) -->
-                    <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
-    
-                    <!-- 7. 주의사항 버튼 (너비 80px 및 중앙 정렬) -->
-                    <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openNoticeModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-                    </td>
-    
-                    <!-- 8. 시험일정 버튼 (너비 80px 및 중앙 정렬) -->
-                    <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openScheduleModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-                    </td>
-    
-                    <!-- 9. 당직공지 버튼 (너비 80px 및 중앙 정렬) -->
-                    <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openDutyModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-                    </td>
-    
-                    <!-- 10. 소집공지 버튼 (너비 80px 및 중앙 정렬) -->
-                    <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openCallModal(${index})" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
-                    </td>
-    
-                    <!-- 11. 참여비 지급일정 (너비 150px 및 중앙 정렬 고대비 락인) -->
-                    <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
-                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
-                    ${multiLinePayHTML}
+                <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
+                    <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 80px; text-align: center !important; vertical-align: middle;">
+                    <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 24px 2px 6px; text-align:center; text-align-last:center; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
+                        <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
+                        <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
+                        <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
+                        <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
+                    </select>
+                </td>
+                <td style="width: 100px; vertical-align: middle; text-align: center;">
+                    <input type="text" id="inline-rec-count-${index}" class="inline-input" value="${row.count || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 100px; vertical-align: middle; text-align: center;">
+                    <input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 110px; vertical-align: middle; text-align: center;">
+                    <input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 130px; vertical-align: middle; text-align: center;">
+                    <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                </td>
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                </td>
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                </td>
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                </td>
+                <td style="width: 150px; vertical-align: middle; text-align: center;">
+                    <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; pointer-events: auto !important; align-items: center; width: 100%;">
+                        <input type="date" id="inline-rec-pay1-${index}" class="inline-input" value="${row.payDate1 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
+                        <input type="date" id="inline-rec-pay2-${index}" class="inline-input" value="${row.payDate2 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
+                        <input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
                     </div>
-                    </td>
-    
-                    <!-- 12. 작업 버튼 제어존 (너비 140px 및 패딩 여백 일치) -->
-                    <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
-                    <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
-                    <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
-                    <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
-                  </div>
-                  </td>
-`;
+                </td>
+                <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
+                    <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important;">
+                        <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
+                        <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
+                    </div>
+                </td>
+            `;
                 }
+                // ----------------======================================================
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (야광 스위칭 완전 융합)
+                // ----------------======================================================
+                else {
+                    const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
+                    const hasCustomSchedule = row.customScheduleHTML && row.customScheduleHTML.length > 5;
+                    const hasCustomDuty = row.customDutyHTML && row.customDutyHTML.length > 5;
+                    const hasCustomCall = row.customCallHTML && row.customCallHTML.length > 5;
+
+                    const noticeBtnStyle = hasCustomNotice ? "background: rgba(14, 165, 233, 0.15); border: 1px solid var(--secondary-color); color: var(--secondary-color);" : "background: #475569; border: none; color: #ffffff;";
+                    const scheduleBtnStyle = hasCustomSchedule ? "background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8;" : "background: #475569; border: none; color: #ffffff;";
+                    const dutyBtnStyle = hasCustomDuty ? "background: rgba(168, 85, 247, 0.15); border: 1px solid #c084fc; color: #c084fc;" : "background: #475569; border: none; color: #ffffff;";
+                    const callBtnStyle = hasCustomCall ? "background: rgba(96, 165, 250, 0.15); border: 1px solid #60a5fa; color: #60a5fa;" : "background: #475569; border: none; color: #ffffff;";
+
+                    // 지급일정 가변 3단 누적 정렬 파서
+                    let multiLinePayHTML = "";
+                    if (row.payDate1) multiLinePayHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px;">1차: ${row.payDate1}</div>`;
+                    if (row.payDate2) multiLinePayHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px; margin-top:2px;">2차: ${row.payDate2}</div>`;
+                    if (row.payDate3) multiLinePayHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px; margin-top:2px;">3차: ${row.payDate3}</div>`;
+                    if (!multiLinePayHTML) multiLinePayHTML = `<span style="color:#94a3b8; font-size:12px;">추후공지</span>`;
+
+                    tr.style.display = "table-row";
+                    tr.innerHTML = `
+                <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
+                <td style="width: 80px; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span></td>
+                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${totalQuota}명</td>
+                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
+                <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
+                <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
+                
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                </td>
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                </td>
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                </td>
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                </td>
+                <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
+                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
+                        ${multiLinePayHTML}
+                    </div>
+                </td>
+                <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
+                    <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
+                        <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
+                        <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
+                    </div>
+                </td>
+            `;
+                }
+
+                // 🎯 [정렬 부착 완수]: 수많은 파트를 관통해 조립된 tr 로우를 마스터 테이블 본문에 안전하게 부착
                 tbody.appendChild(tr);
-            });
+            }); // 🎯 recruitmentDB.forEach 마감 괄호
         }
 
 

@@ -2302,14 +2302,15 @@
                 let matchCnt = db.slice(0, index + 1).filter(item => item.title === row.title && item.th === row.th).length;
                 const totalQuota = row.count || "60";
                 const isEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index);
+                // ----------------======================================================
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (참여비 강제 변환 가드 폐기 버전)
+                // ----------------======================================================
                 if (isEditing) {
+                    // 🌟 [버그 원천 분쇄]: result 상태에 따라 s1, s2, s3를 강제로 '처리완료'로 덮어쓰던 구형 가드 조건문을 전면 삭제했습니다!
+                    // 이제 대장에 기록되어 있는 순정 1, 2, 3차 정산 상태값을 왜곡 없이 그대로 드롭다운에 매핑합니다.
                     let s1 = row.payStatus1 || '대기'; if (s1 === '확인' || s1 === '접수완료') s1 = '접수'; if (s1 === '지급완료') s1 = '처리완료';
                     let s2 = row.payStatus2 || '대기'; if (s2 === '확인' || s2 === '접수완료') s2 = '접수'; if (s2 === '지급완료') s2 = '처리완료';
                     let s3 = row.payStatus3 || '대기'; if (s3 === '확인' || s3 === '접수완료') s3 = '접수'; if (s3 === '지급완료') s3 = '처리완료';
-
-                    const cr = (row.result || "접수").toString().trim();
-                    if (cr === "처리중") s1 = "처리중";
-                    else if (cr === "지급완료" || cr === "완료") { s1 = "처리완료"; s2 = "처리완료"; s3 = "처리완료"; }
 
                     const getSelColor = (v) => {
                         if (v === '접수') return "color:#38bdf8!important;";
@@ -2320,11 +2321,36 @@
 
                     const inlineSelectStackHTML = `
                 <div style="display:flex; flex-direction:column; gap:4px; min-width:105px;">
-                    <div style="display:flex; align-items:center; gap:3px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px;">1차:</span><select id="inline-app-payStatus1-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s1)} cursor:pointer; flex:1;"><option value="대기" style="color:#94a3b8; background:#0f172a;" ${s1 === '대기' ? 'selected' : ''}>대기</option><option value="접수" style="color:#38bdf8; background:#0f172a;" ${s1 === '접수' ? 'selected' : ''}>접수</option><option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s1 === '처리중' ? 'selected' : ''}>검토중</option><option value="처리완료" style="color:#34d399; background:#0f172a;" ${s1 === '처리완료' ? 'selected' : ''}>완료</option></select></div>
-                    <div style="display:flex; align-items:center; gap:3px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px;">2차:</span><select id="inline-app-payStatus2-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s2)} cursor:pointer; flex:1;"><option value="대기" style="color:#94a3b8; background:#0f172a;" ${s2 === '대기' ? 'selected' : ''}>대기</option><option value="접수" style="color:#38bdf8; background:#0f172a;" ${s2 === '접수' ? 'selected' : ''}>접수</option><option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s2 === '처리중' ? 'selected' : ''}>검토중</option><option value="처리완료" style="color:#34d399; background:#0f172a;" ${s2 === '처리완료' ? 'selected' : ''}>완료</option></select></div>
-                    <div style="display:flex; align-items:center; gap:3px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px;">3차:</span><select id="inline-app-payStatus3-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s3)} cursor:pointer; flex:1;"><option value="대기" style="color:#94a3b8; background:#0f172a;" ${s3 === '대기' ? 'selected' : ''}>대기</option><option value="접수" style="color:#38bdf8; background:#0f172a;" ${s3 === '접수' ? 'selected' : ''}>접수</option><option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s3 === '처리중' ? 'selected' : ''}>검토중</option><option value="처리완료" style="color:#34d399; background:#0f172a;" ${s3 === '처리완료' ? 'selected' : ''}>완료</option></select></div>
+                    <div style="display:flex; align-items:center; gap:3px;">
+                        <span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">1차:</span>
+                        <select id="inline-app-payStatus1-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s1)} cursor:pointer; flex:1;">
+                            <option value="대기" style="color:#94a3b8; background:#0f172a;" ${s1 === '대기' ? 'selected' : ''}>대기</option>
+                            <option value="접수" style="color:#38bdf8; background:#0f172a;" ${s1 === '접수' ? 'selected' : ''}>접수</option>
+                            <option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s1 === '처리중' ? 'selected' : ''}>검토중</option>
+                            <option value="처리완료" style="color:#34d399; background:#0f172a;" ${s1 === '처리완료' ? 'selected' : ''}>완료</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:3px;">
+                        <span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">2차:</span>
+                        <select id="inline-app-payStatus2-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s2)} cursor:pointer; flex:1;">
+                            <option value="대기" style="color:#94a3b8; background:#0f172a;" ${s2 === '대기' ? 'selected' : ''}>대기</option>
+                            <option value="접수" style="color:#38bdf8; background:#0f172a;" ${s2 === '접수' ? 'selected' : ''}>접수</option>
+                            <option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s2 === '처리중' ? 'selected' : ''}>검토중</option>
+                            <option value="처리완료" style="color:#34d399; background:#0f172a;" ${s2 === '처리완료' ? 'selected' : ''}>완료</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:3px;">
+                        <span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">3차:</span>
+                        <select id="inline-app-payStatus3-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s3)} cursor:pointer; flex:1;">
+                            <option value="대기" style="color:#94a3b8; background:#0f172a;" ${s3 === '대기' ? 'selected' : ''}>대기</option>
+                            <option value="접수" style="color:#38bdf8; background:#0f172a;" ${s3 === '접수' ? 'selected' : ''}>접수</option>
+                            <option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s3 === '처리중' ? 'selected' : ''}>검토중</option>
+                            <option value="처리완료" style="color:#34d399; background:#0f172a;" ${s3 === '처리완료' ? 'selected' : ''}>완료</option>
+                        </select>
+                    </div>
                 </div>
             `;
+
                     tr.className = "editing-row"; tr.style.pointerEvents = "auto";
                     tr.innerHTML = `
                 <td style="padding-left:15px; vertical-align:middle;"><input type="text" id="inline-app-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700;"></td>
@@ -2335,10 +2361,25 @@
                 <td style="width:85px; min-width:85px; vertical-align:middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center;"></td>
                 <td style="width:125px; min-width:125px; vertical-align:middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${fmtPhone}" style="text-align:center;"></td>
                 <td style="vertical-align:middle; padding-left:6px;">${inlineSelectStackHTML}</td>
-                <td style="width:75px; min-width:75px; vertical-align:middle;"><select id="inline-app-duty-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;"><option value="대기" style="color:#94a3b8;" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option><option value="동의" style="color:#34d399;" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option><option value="미동의" style="color:#f87171;" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option></select></td>
-                <td style="width:75px; min-width:75px; vertical-align:middle;"><select id="inline-app-call-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;"><option value="대기" style="color:#94a3b8;" ${callAgreed === '대기' ? 'selected' : ''}>대기</option><option value="동의" style="color:#34d399;" ${callAgreed === '동의' ? 'selected' : ''}>동의</option><option value="미동의" style="color:#f87171;" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option></select></td>
+                <td style="width:75px; min-width:75px; vertical-align:middle;">
+                    <select id="inline-app-duty-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;">
+                        <option value="대기" style="color:#94a3b8;" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
+                        <option value="동의" style="color:#34d399;" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+                        <option value="미동의" style="color:#f87171;" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                    </select>
+                </td>
+                <td style="width:75px; min-width:75px; vertical-align:middle;">
+                    <select id="inline-app-call-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;">
+                        <option value="대기" style="color:#94a3b8;" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
+                        <option value="동의" style="color:#34d399;" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
+                        <option value="미동의" style="color:#f87171;" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                    </select>
+                </td>
                 <td style="vertical-align:middle;">${docsHTML}</td>
-                <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;"><button type="button" class="btn-inline save" onclick="if(typeof saveApplicantInline==='function'){saveApplicantInline(${index});}else{saveApplicantRecord(${index});}" style="background:#4ade80; color:#070a12; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">저장</button><button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex=null; if(typeof currentAppEditingIndex!=='undefined'){currentAppEditingIndex=null;} refreshApplicantView();" style="background:#475569; color:#fff; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">취소</button></td>
+                <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;">
+                    <button type="button" class="btn-inline save" onclick="if(typeof saveApplicantInline==='function'){saveApplicantInline(${index});}else{saveApplicantRecord(${index});}" style="background:#4ade80; color:#070a12; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">저장</button>
+                    <button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex=null; if(typeof currentAppEditingIndex!=='undefined'){currentAppEditingIndex=null;} refreshApplicantView();" style="background:#475569; color:#fff; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">취소</button>
+                </td>
             `;
                 }
                 else {

@@ -4012,20 +4012,34 @@
             const filterTitleSelect = document.getElementById('dashboard-filter-title');
             if (!filterTitleSelect) return;
 
+            // 1. [핵심] 최신 로컬스토리지 대장 두 곳을 동시에 모두 로드
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 첫 번째 옵션인 전체보기 제외하고 리셋
+            // 사용자가 현재 필터 선택박스에서 고르고 있던 기존 선택값 기억 (UI 풀림 방지)
+            const currentSelected = filterTitleSelect.value;
+
+            // 첫 번째 옵션인 전체보기 제외하고 깨끗하게 리셋
             filterTitleSelect.innerHTML = '<option value="ALL">— 전체 시험 보기 —</option>';
 
-            // 존재하는 모든 시험명을 중복 없이 추출
+            // 2. 존재하는 모든 시험명을 중복 없이 추출할 임시 배열
             let titles = [];
+
+            // A. [기획 핵심] 모집공고 대장에 등록된 시험명 먼저 추출하여 주입
+            recruitmentDB.forEach(row => {
+                if (row.title && !titles.includes(row.title)) {
+                    titles.push(row.title);
+                }
+            });
+
+            // B. [교차 방어] 혹시 공고 없이 대상자만 먼저 등록된 시험명이 있다면 누락 없이 합산
             adminApplicantDB.forEach(row => {
                 if (row.title && !titles.includes(row.title)) {
                     titles.push(row.title);
                 }
             });
 
-            // 셀렉트 박스에 주입
+            // 3. 추출된 모든 시험명을 가나다(알파벳)순 정렬 후 셀렉트 박스 옵션 태그로 동적 주입
             titles.sort().forEach(t => {
                 const option = document.createElement('option');
                 option.value = t;
@@ -4033,8 +4047,17 @@
                 filterTitleSelect.appendChild(option);
             });
 
-            // 초기 첫 선택에 맞춰 서브 기수 로딩
-            updateDashboardThOptions();
+            // 4. 필터가 새로고침되어 마운트된 후에도 이전에 고른 값이 남아있다면 복구, 없으면 ALL 고정
+            if (titles.includes(currentSelected)) {
+                filterTitleSelect.value = currentSelected;
+            } else {
+                filterTitleSelect.value = 'ALL';
+            }
+
+            // 5. 변경된 시험명 선택지에 맞춰 하위 서브 기수 드롭다운 연쇄 로딩
+            if (typeof updateDashboardThOptions === "function") {
+                updateDashboardThOptions();
+            }
         }
 
         /**

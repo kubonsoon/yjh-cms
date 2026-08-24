@@ -5006,27 +5006,30 @@
         // 🎯 [대표님 기획 의도 100% 완결] 순차 선택(시험명->기수) 확정 시에만 통계 산출 엔진
         // =========================================================================
         (function () {
-            // 1. 기존 오리지널 통계 함수(calculateLiveDashboardStats)를 인터셉터하여 2단계 필터 가드를 장착합니다.
+            // 1. [핵심 통계 가드]: 기존 오리지널 통계 함수를 인터셉터하여 2단계 순차 선택 충족 시에만 잠금을 해제합니다.
             const originalCalculateStats = window.calculateLiveDashboardStats;
 
             if (typeof originalCalculateStats === "function") {
                 window.calculateLiveDashboardStats = function () {
+                    // [정밀 타겟 스캔]: PDF 25페이지 1221라인에 설계된 상단 통계용 2셀렉트 박스 ID를 정확하게 락인
                     const filterTitleSelect = document.getElementById('dashboard-filter-title');
                     const filterThSelect = document.getElementById('dashboard-filter-th');
 
                     const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
                     const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
 
-                    // 🌟 [기획 핵심 가드]: 처음 진입했거나 1셀렉트만 고른 상태("ALL")라면 통계를 절대 계산하지 않고 0으로 가둡니다.
+                    // 🌟 [기획 의도 연동 차단벽]: 처음 진입했거나 시험명만 고르고 기수는 '전체' 상태("ALL")일 때는 
+                    // 절대로 통계를 내지 않고 상단 스코어보드를 강제로 '0'으로 깨끗하게 가두어 둡니다.
                     if (filterTitle === "ALL" || filterTh === "ALL" || filterTh === "") {
                         if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = "0명";
                         if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = "0건";
                         if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = "0건";
                         if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = "0건";
-                        return; // 엔진 즉시 종료
+                        return; // 집계 계산기 강제 즉시 종료
                     }
 
-                    // [🎯 수치 락 해제]: 오직 2단계 기수까지 최종 확정 선택했을 때만 대표님의 오리지널 통계 로직을 구동합니다.
+                    // 오직 사용자가 상단 2셀렉트 박스에서 특정 기수(1기, 4기 등)를 최종 마우스로 콕 집어 선택했을 때만 
+                    // 원래 짜여있던 오리지널 통계 로직을 구동하여 수치를 사출합니다.
                     originalCalculateStats();
                 };
             }
@@ -5035,59 +5038,45 @@
             const originalUpdateThOptions = window.updateDashboardThOptions;
             if (typeof originalUpdateThOptions === "function") {
                 window.updateDashboardThOptions = function () {
-                    // 오리지널 로직을 구동하여 2셀렉트 드롭다운 옵션들을 먼저 정상 빌드합니다.
+                    // 오리지널 로직을 구동하여 상단 2셀렉트 박스(dashboard-filter-th)의 기수 옵션 태그들을 먼저 빌드합니다.
                     originalUpdateThOptions();
 
-                    // 시험명만 바뀐 시점이므로 2셀렉트 값을 강제로 전체기수보기("ALL") 상태로 홀딩 가드합니다.
+                    // 시험명만 바뀐 시점이므로 상단 기수 필터의 선택값을 강제로 "ALL" 상태로 홀딩 정렬합니다.
                     const filterTh = document.getElementById('dashboard-filter-th');
                     if (filterTh) {
                         filterTh.value = "ALL";
                     }
 
-                    // 상단 수치판을 즉시 0명/0건으로 리셋 홀딩
+                    // 상단 수치판을 즉시 0명/0건으로 리셋 홀딩 처리
                     window.calculateLiveDashboardStats();
                 };
             }
 
-            // 3. [🎯 오리지널 숫자 규격 동기화 리스너]: 2셀렉트 박스가 변경되는 바로 그 순간 인터셉트!
+            // 3. [🎯 2단계 확정 실시간 마운트 리스너]: 상단 기수 필터가 최종 선택 완료되는 바로 그 순간!
             const filterThSelect = document.getElementById('dashboard-filter-th');
             if (filterThSelect) {
+                // 기존 HTML 태그 온체인 스크립트와 타이밍이 충돌하여 안 넘어가던 병목을 타임 세틀러(40ms)로 정밀 분쇄 결합
                 filterThSelect.addEventListener('change', function () {
-                    // 브라우저 밸류 안착 타이밍(40ms) 세틀러 적용
                     setTimeout(function () {
-                        const currentThValue = filterThSelect.value;
-
-                        // 🌟 [기획 핵심 핵심]: 만약 사용자가 특정 기수를 골랐다면 ("1기", "4기" 등)
-                        // 기존 PDF 원본 소스 코드의 숫자 매칭 규칙([^0-9])과 100% 호환되도록 
-                        // 셀렉트 박스의 value 속성 자체를 순수 숫자 알맹이("1", "4")로 실시간 변환 치환해 줍니다!
-                        if (currentThValue !== "ALL" && currentThValue !== "") {
-                            const pureNumberTh = currentThValue.replace(/[^0-9]/g, "");
-                            filterThSelect.value = pureNumberTh; // 오리지널 소스 코드가 인식할 수 있는 숫자로 강제 매핑 보정
-                        }
-
-                        // 규격이 100% 일치화되었으므로 차단벽을 깨부수고 통계와 하단 테이블 리스트를 즉시 동시 사출 마운트합니다.
+                        // 상단 기수 값("1기", "4기") 정렬 확인 완료 후 통계 계산기와 목록 리렌더러를 동시 완전 전격 가동합니다!
                         if (typeof window.calculateLiveDashboardStats === "function") {
                             window.calculateLiveDashboardStats();
                         }
                         if (typeof refreshApplicantView === "function") {
-                            refreshApplicantView(); // 하단 테이블 목록 실시간 동기화 출력
-                        }
-
-                        // 리렌더링이 완료된 후, 관리자 화면 UI 가독성을 위해 기수 필터 텍스트 명칭을 다시 오리지널 양식("1기", "4기")으로 부드럽게 복구해 둡니다.
-                        if (filterThSelect.value !== "ALL" && !filterThSelect.value.includes("기")) {
-                            filterThSelect.value = currentThValue;
+                            refreshApplicantView(); // 하단 마스터 테이블 리스트 동시 동기화 파싱 출력
                         }
                     }, 40);
                 });
             }
 
-            // 4. 좌측 메뉴 [대상자 관리] 탭 최초 진입 시 초기화 락인
+            // 4. 좌측 메뉴 [대상자 관리] 탭 최초 클릭 진입 시 디폴트 레이아웃 잠금 셋팅
             const originalChangeMainViewport = window.changeMainViewport;
             if (typeof originalChangeMainViewport === "function") {
                 window.changeMainViewport = function (viewName) {
                     originalChangeMainViewport(viewName);
                     if (viewName === 'applicantView') {
                         setTimeout(function () {
+                            // 최초 진입 시 필터를 마운트하되, 선택 전이므로 무조건 0명/0건 대기 상태로 홀딩 가드
                             if (typeof initDashboardFilter === "function") initDashboardFilter();
                             window.calculateLiveDashboardStats();
                         }, 60);

@@ -5032,98 +5032,6 @@
         // =========================================================================
         // 🎯 [대표님 기획 의도 100% 완결] 순차 선택(시험명->기수) 확정 시에만 통계 산출 엔진
         // =========================================================================
-        (function () {
-            // 1. [중복 파괴 및 새 시험 연동 코어] 
-            // 대표님의 오리지널 initThSelectOptions 함수를 완전히 정밀 보완하여 덮어씁니다.
-            function initThSelectOptions() {
-                const filterTitleSelect = document.getElementById('dashboard-filter-title');
-                const filterThSelect = document.getElementById('dashboard-filter-th');
-                if (!filterTitleSelect || !filterThSelect) return;
-
-                const currentSelected = filterTitleSelect.value;
-                filterTitleSelect.innerHTML = '<option value="ALL">— 전체 시험 보기 —</option>';
-
-                let titles = [];
-
-                // 공고 대장 알맹이 확보
-                dataStoreRecruitment.forEach(row => {
-                    if (row.title) {
-                        const clean = row.title.toString().trim();
-                        if (clean && !titles.includes(clean)) titles.push(clean);
-                    }
-                });
-
-                // 대상자 대장 알맹이 완벽 결합 (새 시험 연동 및 중복 원천 파괴)
-                dataStoreApplicant.forEach(row => {
-                    if (row.title) {
-                        const clean = row.title.toString().trim();
-                        if (clean && !titles.includes(clean)) titles.push(clean);
-                    }
-                });
-
-                // 가나다 순 정렬 마운트
-                titles.sort().forEach(t => {
-                    const option = document.createElement('option');
-                    option.value = t;
-                    option.innerText = t;
-                    filterTitleSelect.appendChild(option);
-                });
-
-                filterTitleSelect.value = titles.includes(currentSelected) ? currentSelected : 'ALL';
-
-                // 🌟 [기획 핵심 락인]: 처음 로드 시 상단 정산 현황판 스코어보드를 강제로 '0'으로 결착 차단합니다.
-                filterThSelect.innerHTML = '<option value="ALL">— 전체 기수 —</option>';
-                filterThSelect.value = "ALL";
-
-                if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = "0명";
-                if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = "0건";
-                if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = "0건";
-                if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = "0건";
-            }
-
-            // 3. 1셀렉트(시험명) 변경 시 연동되는 원본 함수(updateDashboardThOptions) 확장 보완
-            const originalUpdateThOptions = window.updateDashboardThOptions;
-            if (typeof originalUpdateThOptions === "function") {
-                window.updateDashboardThOptions = function () {
-                    originalUpdateThOptions();
-                    const filterTh = document.getElementById('dashboard-filter-th');
-                    if (filterTh) filterTh.value = "ALL"; // 시험명 변경 시 기수 필터 초기 락 홀딩
-                    window.calculateLiveDashboardStats(); // 수치판 즉시 0 리셋
-                };
-            }
-
-            // 4. [🎯 2단계 최종 확정 사출 리스너]: 2셀렉트(기수 필터)가 변경되는 바로 그 순간!
-            document.addEventListener('change', function (event) {
-                if (event.target && event.target.id === 'dashboard-filter-th') {
-                    setTimeout(function () {
-                        // 특정 기수가 최종 선택 완료되었으므로 잠금을 해제하고 통계와 하단 목록을 동시 출력합니다.
-                        window.calculateLiveDashboardStats();
-                        if (typeof refreshApplicantView === "function") refreshApplicantView();
-                    }, 30);
-                }
-            });
-
-            // 5. [🎯 38페이지 이중 선언 원천 제어]: 메뉴 클릭 시 오리지널 필터 빌더를 정확하게 리로딩
-            const menuAppBtn = document.getElementById('menuApp');
-            if (menuAppBtn) {
-                menuAppBtn.addEventListener('click', function () {
-                    setTimeout(function () {
-                        window.initThSelectOptions(); // 대표님의 오리지널 필터 리로더 구동
-                        const filterTh = document.getElementById('dashboard-filter-th');
-                        if (filterTh) filterTh.value = "ALL";
-                        window.calculateLiveDashboardStats();
-                    }, 80);
-                });
-            }
-
-            // 최초 새로고침 직후 셋팅 가드
-            window.addEventListener('load', function () {
-                setTimeout(function () {
-                    window.initThSelectOptions();
-                    window.calculateLiveDashboardStats();
-                }, 300);
-            });
-        })();
 
 
         (function () {
@@ -5146,7 +5054,7 @@
 
                 // 오직 1선택과 2선택이 완료되었을 때만 정밀 스캔 연산 시작
                 const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                const filteredData = adminApplicantDB.filter(item => {
+                const filteredData = adminApplicantDB.filter(function (item) {
                     if (!item.title) return false;
                     const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
                     const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
@@ -5154,17 +5062,17 @@
                 });
 
                 let totalCount = filteredData.length, receivedCount = 0, processingCount = 0, completeCount = 0;
-                filteredData.forEach(row => {
+                filteredData.forEach(function (row) {
                     const status = (row.result || row.payStatus || "대기").toString().trim();
                     if (status === "대기" || status === "접수") receivedCount++;
                     else if (status === "처리중") processingCount++;
                     else if (status === "지급완료" || status === "처리완료") completeCount++;
                 });
 
-                if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = `${totalCount}명`;
-                if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
-                if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
-                if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
+                if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = totalCount + "명";
+                if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = receivedCount + "건";
+                if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = processingCount + "건";
+                if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = completeCount + "건";
             };
 
             // B. 1셀렉트(시험명) 변경 시 기수 필터 초기 락 리셋 처리 함수
@@ -5182,7 +5090,7 @@
                 }
             }
 
-            // C. 🌟 [대표님 마스터 리스너 완벽 안착 구역] 2셀렉트 최종 선택 시 30ms 뒤 사출!
+            // C. 🌟 [대표님 마스터 리스너 완벽 안착] 2셀렉트 최종 선택 시 30ms 뒤 사출!
             document.addEventListener('change', function (event) {
                 if (event.target && event.target.id === 'dashboard-filter-th') {
                     setTimeout(function () {

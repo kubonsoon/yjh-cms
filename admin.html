@@ -1656,28 +1656,28 @@
             if (isUpdated) {
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             }
-        }
 
-        // 관리 임직원 프리셋 영역 [원안 보존]
-        if (dataStoreAdminMembers.length === 0) {
-            dataStoreAdminMembers.push(
-                { sabun: "admin", name: "시스템 관리자", duty: "시스템 관리자", dept: "전산팀", pw: "9793" },
-                { sabun: "m2993", name: "강남구", duty: "과장", dept: "임상관리팀", pw: "1234" },
-                { sabun: "m5792", name: "구본순", duty: "사원", dept: "임상관리팀", pw: "1234" }
-            );
-            isUpdated = true;
-        }
 
-        if (!dataStoreAdminMembers.some(m => m.sabun === "admin")) {
-            dataStoreAdminMembers.unshift({ sabun: "admin", name: "시스템 관리자", duty: "시스템 관리자", dept: "통합전산관리", pw: "9793" });
-            isUpdated = true;
-        }
+            // 관리 임직원 프리셋 영역 [원안 보존]
+            if (dataStoreAdminMembers.length === 0) {
+                dataStoreAdminMembers.push(
+                    { sabun: "admin", name: "시스템 관리자", duty: "시스템 관리자", dept: "전산팀", pw: "9793" },
+                    { sabun: "m2993", name: "강남구", duty: "과장", dept: "임상관리팀", pw: "1234" },
+                    { sabun: "m5792", name: "구본순", duty: "사원", dept: "임상관리팀", pw: "1234" }
+                );
+                isUpdated = true;
+            }
 
-        dataStoreAdminMembers.forEach(m => {
-            if (!m.pw) { m.pw = m.sabun ? m.sabun : "1234"; isUpdated = true; }
-        });
+            if (!dataStoreAdminMembers.some(m => m.sabun === "admin")) {
+                dataStoreAdminMembers.unshift({ sabun: "admin", name: "시스템 관리자", duty: "시스템 관리자", dept: "통합전산관리", pw: "9793" });
+                isUpdated = true;
+            }
 
-        if (isUpdated) commitToLocalStorage();
+            dataStoreAdminMembers.forEach(m => {
+                if (!m.pw) { m.pw = m.sabun ? m.sabun : "1234"; isUpdated = true; }
+            });
+
+            if (isUpdated) commitToLocalStorage();
         }
 
         /**

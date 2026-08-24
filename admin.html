@@ -2698,9 +2698,22 @@
                 // 4. ⭐️ 물리 파일 세이브 안착 확인 후 통계 엔진 리프레시 즉각 가동!
                 // 사용자가 체감하는 레이턴시를 줄이기 위해 타이머 시간을 100ms~200ms 정도로 살짝 당겨주면 연동이 훨씬 부드러워집니다.
                 setTimeout(() => {
+                    // [기획 핵심]: 신규 등록한 피험자가 하단 목록에 즉시 출력되도록 
+                    // 상단 검색/선택 필터를 '전체' 상태로 먼저 되돌려 원본 소스의 필터링 장벽을 해제합니다.
+                    const filterTitle = document.getElementById('dashboard-filter-title');
+                    const filterTh = document.getElementById('dashboard-filter-th');
+
+                    if (filterTitle) filterTitle.value = "ALL";
+                    if (filterTh) filterTh.innerHTML = `<option value="ALL">— 전체 기수 —</option>`;
+                    if (filterTh) filterTh.value = "ALL";
+
+                    // [연동 완료]: 필터가 리셋된 상태에서 기존 원본 소스 함수들을 순서대로 깨웁니다.
                     if (typeof initDashboardFilter === "function") initDashboardFilter();
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-                }, 150); // 레이턴시 타이머 최적화 튜닝 (150ms)
+
+                    // 원본 소스 대장 함수를 그대로 호출하여 기존 화면 파싱 기능을 100% 재활용합니다.
+                    if (typeof refreshApplicantView === "function") refreshApplicantView();
+                }, 150);
 
             } catch (error) {
                 console.error("대상자 신규 마스터 등록 중 치명적 오류 발생:", error);

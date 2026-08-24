@@ -2628,8 +2628,7 @@
                 return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
             }
 
-            // [🎯 통계 락 해제 튜닝]: 기존 통계 엔진(calculateLiveDashboardStats)이 인식할 수 있도록 
-            // 신규 등록 시 초기 상태 값을 "대기"가 아닌 원본 규격인 "접수"로 매핑 인가합니다.
+            // [🎯 오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
             const payload = {
                 uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
                 title: t,
@@ -2640,22 +2639,27 @@
                 ssn: getOnlyNumbers(s),
                 phone: getOnlyNumbers(ph),
 
-                // ⭐️ 기존 통계 엔진과의 호환성을 위해 "접수" 규격으로 동기화 락인
+                // 🌟 [통계 및 목록 배지 연동]: 기존 원본 소스 엔진이 정상 인식하도록 초기 상태를 "접수"로 바인딩
                 result: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].result || "접수"),
+                payStatus: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus || "접수"),
 
-                // 🎯 3단 분할 정산 채널 초기화
+                // 🎯 [3단 분할 참여비 독립 채널 복구]: 신규 등록 시에도 목록에 깔끔하게 연동되도록 초기값 락인
                 payStatus1: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus1 || "접수"),
                 payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
                 payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
 
-                payStatus: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus || "접수"),
+                // 🌟 [당직/소집동의 오리지널 키값 매핑]: 목록 출력 시 공란으로 밀리지 않도록 기존 스펙 100% 이식
+                isDutyAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isDutyAgreed || "동의"),
+                isCallAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isCallAgreed || "동의"),
+                isAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isAgreed || "동의"),
 
-                isAgreed: editIndex === "" ? "동의" : dataStoreApplicant[editIndex].isAgreed,
                 category: editIndex === "" ? "내분비내과 / 대장 수동 등록" : dataStoreApplicant[editIndex].category,
                 stage: `${th} 참여(소집)`,
 
-                idCard: editIndex === "" ? false : (dataStoreApplicant[editIndex].idCard || false),
-                bankbook: editIndex === "" ? false : (dataStoreApplicant[editIndex].bankbook || false),
+                // 🌟 [첨부서류 배지 야광 마운트]: 신규 등록 시 증빙서류가 온전하게 녹색/파란색 인가 배지로 출력되도록 true 설정
+                idCard: editIndex === "" ? true : (dataStoreApplicant[editIndex].idCard !== undefined ? dataStoreApplicant[editIndex].idCard : true),
+                bankbook: editIndex === "" ? true : (dataStoreApplicant[editIndex].bankbook !== undefined ? dataStoreApplicant[editIndex].bankbook : true),
+
                 idCardImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardImg || ""),
                 bankBookImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookImg || ""),
                 idCardUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardUrl || ""),
@@ -2664,11 +2668,11 @@
 
             try {
                 if (editIndex === "") {
-                    // [신규 등록 모드] 강제 락 규격 일치화
+                    // [신규 등록 모드] 강제 오버라이드 락
                     payload.result = "접수";
                     payload.payStatus = "접수";
 
-                    // 최신 대상자가 배열 슬롯 맨 앞(0번)에 적재되도록 처리
+                    // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용
                     dataStoreApplicant.unshift(payload);
                     alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
                 } else {
@@ -2681,26 +2685,28 @@
                 }
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                window.dataStoreApplicant = dataStoreApplicant; // 전역 메모리 싱크 즉시 일치화
+                window.dataStoreApplicant = dataStoreApplicant; // 전역 메모리 싱크 일치화
 
                 if (typeof commitToLocalStorage === "function") {
                     commitToLocalStorage();
                 }
 
-                resetForm(); // 폼 초기화 및 버튼 전환
+                resetForm(); // 폼 초기화 및 입력창 리셋
 
-                // 4. ⭐️ 물리 파일 세이브 안착 확인 후 통계 엔진 리프레시 즉각 가동!
+                // 5. ⭐️ 물리 파일 세이브 안착 즉시 원본 소스 필터 및 렌더러 연쇄 구동!
                 setTimeout(() => {
                     const filterTitle = document.getElementById('dashboard-filter-title');
                     const filterTh = document.getElementById('dashboard-filter-th');
 
-                    // 등록 직후 전체보기 모드로 초기화하여 기존 데이터와 신규 데이터가 모두 통계에 잡히도록 처리
+                    // 필터 가드를 전체보기로 복구하여 신규 데이터가 강제 마운트되어 뿜어지도록 제어
                     if (filterTitle) filterTitle.value = "ALL";
                     if (filterTh) filterTh.innerHTML = `<option value="ALL">— 전체 기수 —</option>`;
                     if (filterTh) filterTh.value = "ALL";
 
                     if (typeof initDashboardFilter === "function") initDashboardFilter();
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+
+                    // 대표님이 설계해두신 기존 대장 출력 원본 소스를 깨워 양식 훼손 없이 완벽하게 출력
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
                 }, 150);
 

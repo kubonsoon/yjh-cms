@@ -1794,18 +1794,6 @@
             }
         }
 
-        function getOnlyNumbers(v) { if (!v) return ''; return v.toString().replace(/[^0-9]/g, ''); }
-        function formatTh(v) { const n = getOnlyNumbers(v); return n ? `${n}기` : v; }
-
-        function changeMainViewport(targetId) {
-            document.querySelectorAll('.content-section').forEach(v => v.style.display = 'none');
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            recEditingUid = null; currentEditingUid = null;
-            const target = document.getElementById(targetId); if (target) target.style.display = 'block';
-            if (targetId === 'recruitmentView') { document.getElementById('menuRec').classList.add('active'); refreshRecruitmentView(); }
-            else if (targetId === 'applicantView') { document.getElementById('menuApp').classList.add('active'); refreshApplicantView(); }
-            else if (targetId === 'gradeView') { document.getElementById('menuGrade').classList.add('active'); refreshAdminMemberTableView(); }
-        }
 
         // -------------------------------------------------------------------------
         // 문자열 원천 정제 가공 처리를 위한 정규식 유틸리티 포맷터 엔진 [index: 0.1.5, 0.1.6]
@@ -5143,6 +5131,14 @@
                 }, 300);
             });
         })();
+
+
+        // 2셀렉트 박스(기수)를 고르는 바로 그 순간 원래 짜여있던 통계 및 목록 함수를 연쇄 구동시키는 마스터 링커
+        document.getElementById('dashboard-filter-th').onchange = function () {
+            if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+            if (typeof refreshApplicantView === "function") refreshApplicantView();
+        };
+
 
     </script>
 

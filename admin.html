@@ -2628,7 +2628,8 @@
                 return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
             }
 
-            // 신규 등록 및 수정 시 참여비 상태를 1차, 2차, 3차 독립 채널로 파티
+            // [🎯 통계 락 해제 튜닝]: 기존 통계 엔진(calculateLiveDashboardStats)이 인식할 수 있도록 
+            // 신규 등록 시 초기 상태 값을 "대기"가 아닌 원본 규격인 "접수"로 매핑 인가합니다.
             const payload = {
                 uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
                 title: t,
@@ -2639,17 +2640,15 @@
                 ssn: getOnlyNumbers(s),
                 phone: getOnlyNumbers(ph),
 
-                // ⭐️ [버그 원천 분쇄 1]: 신규 등록 시 무조건 "대기" 상태로 격리 인가
-                result: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].result || "대기"),
+                // ⭐️ 기존 통계 엔진과의 호환성을 위해 "접수" 규격으로 동기화 락인
+                result: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].result || "접수"),
 
-                // 🎯 [3단 분할 정산 엔진]: 1, 2, 3차 참여비 상태를 각각 독립적으로 관리하도록 신설
-                // 신규 등록 시에는 모두 "대기"로 초기화하고, 수정 시에는 기존 상태를 안전하게 보존합니다.
-                payStatus1: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus1 || "대기"),
+                // 🎯 3단 분할 정산 채널 초기화
+                payStatus1: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus1 || "접수"),
                 payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
                 payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
 
-                // 하방 호환성 유지를 위한 기존 payStatus (필요시 전체 상태 통합용으로 활용)
-                payStatus: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus || "대기"),
+                payStatus: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus || "접수"),
 
                 isAgreed: editIndex === "" ? "동의" : dataStoreApplicant[editIndex].isAgreed,
                 category: editIndex === "" ? "내분비내과 / 대장 수동 등록" : dataStoreApplicant[editIndex].category,
@@ -2665,17 +2664,15 @@
 
             try {
                 if (editIndex === "") {
-                    // [신규 등록 모드]
-                    // ⭐️ [버그 원천 분쇄 2]: 어떤 서브 함수가 오염을 일으켜도 무조건 "대기"가 들어가도록 저장 직전 한 번 더 강제 락
-                    payload.result = "대기";
-                    payload.payStatus = "대기";
+                    // [신규 등록 모드] 강제 락 규격 일치화
+                    payload.result = "접수";
+                    payload.payStatus = "접수";
 
-                    // 🎯 [정렬 교정 핵심]: 기존 push() 대신 unshift()를 사용하여 최신 대상자가 배열 슬롯 맨 앞(0번)에 적재되도록 처리
+                    // 최신 대상자가 배열 슬롯 맨 앞(0번)에 적재되도록 처리
                     dataStoreApplicant.unshift(payload);
                     alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
                 } else {
                     // [수정 완료 모드]
-                    // 🌟 [안전 가드]: 수정 완료 시 상단 폼에서 바꾼 상태 값이 payload에 없다면 기존 대장의 값을 유지하거나 강제 매핑 보존
                     if (!payload.result) payload.result = document.getElementById('form-app-result')?.value || dataStoreApplicant[editIndex].result || '접수';
                     if (!payload.payStatus) payload.payStatus = payload.result;
 
@@ -2683,35 +2680,27 @@
                     alert(`📋 정보 갱신 완료: [${n}] 피험자의 마스터 레코드가 업데이트되었습니다.`);
                 }
 
-                // ⭐️ [버그 원천 분쇄 3]: commitToLocalStorage() 내부의 자동 "접수" 변환 오작동을 무력화하기 위해 물리 세이브 강제 주입
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                 window.dataStoreApplicant = dataStoreApplicant; // 전역 메모리 싱크 즉시 일치화
 
-                // 원래 정의된 로컬스토리지 백업 함수 호출 (안전장치 유지)
                 if (typeof commitToLocalStorage === "function") {
                     commitToLocalStorage();
                 }
 
-                resetForm(); // 💡 폼 초기화 및 버튼 전환
-                refreshApplicantView(); // 🌟 목록 즉시 리렌더링 반영
+                resetForm(); // 폼 초기화 및 버튼 전환
 
                 // 4. ⭐️ 물리 파일 세이브 안착 확인 후 통계 엔진 리프레시 즉각 가동!
-                // 사용자가 체감하는 레이턴시를 줄이기 위해 타이머 시간을 100ms~200ms 정도로 살짝 당겨주면 연동이 훨씬 부드러워집니다.
                 setTimeout(() => {
-                    // [기획 핵심]: 신규 등록한 피험자가 하단 목록에 즉시 출력되도록 
-                    // 상단 검색/선택 필터를 '전체' 상태로 먼저 되돌려 원본 소스의 필터링 장벽을 해제합니다.
                     const filterTitle = document.getElementById('dashboard-filter-title');
                     const filterTh = document.getElementById('dashboard-filter-th');
 
+                    // 등록 직후 전체보기 모드로 초기화하여 기존 데이터와 신규 데이터가 모두 통계에 잡히도록 처리
                     if (filterTitle) filterTitle.value = "ALL";
                     if (filterTh) filterTh.innerHTML = `<option value="ALL">— 전체 기수 —</option>`;
                     if (filterTh) filterTh.value = "ALL";
 
-                    // [연동 완료]: 필터가 리셋된 상태에서 기존 원본 소스 함수들을 순서대로 깨웁니다.
                     if (typeof initDashboardFilter === "function") initDashboardFilter();
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-
-                    // 원본 소스 대장 함수를 그대로 호출하여 기존 화면 파싱 기능을 100% 재활용합니다.
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
                 }, 150);
 

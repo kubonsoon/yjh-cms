@@ -4025,55 +4025,54 @@
             const filterTitleSelect = document.getElementById('dashboard-filter-title');
             if (!filterTitleSelect) return;
 
-            // 1. [원본 수호] 최신 로컬스토리지 대장 두 곳을 온전하게 로드
+            // 1. [기존 소스 원형 보존] 최신 로컬스토리지 대장 로드
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 사용자가 현재 필터 선택박스에서 고르고 있던 기존 선택값 기억 (UI 풀림 방지)
+            // 현재 선택하고 있던 필터 값 유지 가드
             const currentSelected = filterTitleSelect.value;
 
-            // [원본 양식 보존] 첫 번째 옵션인 전체보기 제외하고 깨끗하게 리셋
+            // 원본 UI 양식 그대로 전체보기 옵션 제공 및 초기화
             filterTitleSelect.innerHTML = '<option value="ALL">— 전체 시험 보기 —</option>';
 
-            // 2. 존재하는 모든 시험명을 원본 문자열 그대로 중복 없이 추출할 배열
             let titles = [];
 
-            // A. [기획 연동] 모집공고 대장에 등록된 오리지널 시험명 추출하여 주입
+            // A. 모집공고 대장의 시험명을 원본 그대로 추출 (앞뒤 불필요한 공백만 제거)
             recruitmentDB.forEach(row => {
                 if (row.title) {
-                    const cleanTitle = row.title.trim(); // 양끝 공백만 정제
-                    if (!titles.includes(cleanTitle)) {
+                    const cleanTitle = row.title.toString().trim();
+                    if (cleanTitle && !titles.includes(cleanTitle)) {
                         titles.push(cleanTitle);
                     }
                 }
             });
 
-            // B. [원본 교차] PDF 기본 프리셋(애드파마, 신일제약, 경동제약) 및 등록된 대상자의 오리지널 시험명 합산
+            // B. [기존 프리셋 수호] 대상자 대장(애드파마, 신일제약, 경동제약 등)의 오리지널 시험명 정밀 합산
             adminApplicantDB.forEach(row => {
                 if (row.title) {
-                    const cleanTitle = row.title.trim(); // 양끝 공백만 정제
-                    if (!titles.includes(cleanTitle)) {
+                    const cleanTitle = row.title.toString().trim();
+                    if (cleanTitle && !titles.includes(cleanTitle)) {
                         titles.push(cleanTitle);
                     }
                 }
             });
 
-            // 3. [원본 가드] 기존 소스 엔진과의 정밀 매칭을 위해 원본 데이터 형태 그대로 셀렉트 박스에 주입
+            // 2. 기존 통계 엔진(calculateLiveDashboardStats)과 100% 텍스트를 일치시켜 가나다순 주입
             titles.sort().forEach(t => {
                 const option = document.createElement('option');
                 option.value = t;
-                option.innerText = t; // innerText 규격 유지
+                option.innerText = t; // 오리지널 innerText 스펙 유지
                 filterTitleSelect.appendChild(option);
             });
 
-            // 4. 필터가 새로고침되어 마운트된 후에도 이전에 고른 값이 남아있다면 복구, 없으면 ALL 고정
+            // 3. 이전 선택값 복구 구조 락인
             if (titles.includes(currentSelected)) {
                 filterTitleSelect.value = currentSelected;
             } else {
                 filterTitleSelect.value = 'ALL';
             }
 
-            // 5. 대표님이 설계해두신 기존 원본 기수 로딩 함수를 원형 그대로 호출 연동
+            // 4. 대표님이 설계해두신 기존 기수 드롭다운 연동 함수를 원형 그대로 호출
             if (typeof updateDashboardThOptions === "function") {
                 updateDashboardThOptions();
             }

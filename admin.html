@@ -4912,6 +4912,95 @@
             });
         })();
 
+        // =========================================================================
+        // 🎯 [원본 소스 완전 복구] 누락된 4단계 라이브 정산 통계 계산 엔진 (calculateLiveDashboardStats)
+        // =========================================================================
+        function calculateLiveDashboardStats() {
+            // 1. 상단 통계 필터(시험명 및 기수)의 현재 선택값 추출
+            const filterTitleSelect = document.getElementById('dashboard-filter-title');
+            const filterThSelect = document.getElementById('dashboard-filter-th');
+
+            const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
+            const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
+
+            // 2. 최신 대상자 대장(localStorage) 데이터 실시간 로드
+            const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 3. 유령 공백을 정밀 압착하여 선택된 필터 조건에 맞게 데이터 필터링
+            const filteredData = adminApplicantDB.filter(item => {
+                if (!item.title) return false;
+
+                // 텍스트 양끝 및 내부 공백 정제 비교 (신일제약 중복 및 통계 누수 원천 차단)
+                const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
+                const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
+
+                const matchTitle = (cleanFilterTitle === 'ALL' || cleanItemTitle === cleanFilterTitle);
+                const matchTh = (filterTh === 'ALL' || item.th === filterTh);
+
+                return matchTitle && matchTh;
+            });
+
+            // 4. 통계 카운트 변수 초기화
+            let totalCount = filteredData.length; // 참여현황 총 명수
+            let receivedCount = 0;               // 1단계: 청구서 접수 현황
+            let processingCount = 0;             // 2단계: 재무 검토 (처리중)
+            let completeCount = 0;               // 3단계: 정산 종결 (지급완료 / 처리완료)
+
+            // 5. 기획하신 상태 규격(대기/접수/처리중/처리완료)에 맞춰 실시간 집계 분기
+            filteredData.forEach(row => {
+                // row.result 또는 row.payStatus 기반으로 상태 스캔
+                const status = (row.result || row.payStatus || "대기").toString().trim();
+
+                if (status === "대기" || status === "접수") {
+                    receivedCount++; // 대기와 접수는 모두 [청구서 접수 현황]에 마운트
+                } else if (status === "처리중") {
+                    processingCount++; // 처리중은 [재무 검토]에 마운트
+                } else if (status === "지급완료" || status === "처리완료" || status === "완료") {
+                    completeCount++; // 지급완료와 처리완료는 모두 [정산 종결]에 마운트
+                }
+            });
+
+            // 6. PDF에 설계된 오리지널 통계판 ID 슬롯에 실시간 수치 강제 주입
+            if (document.getElementById('stat-total-count')) {
+                document.getElementById('stat-total-count').innerText = `${totalCount}명`;
+            }
+            if (document.getElementById('stat-received-count')) {
+                document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
+            }
+            if (document.getElementById('stat-processing-count')) {
+                document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
+            }
+            if (document.getElementById('stat-complete-count')) {
+                document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
+            }
+        }
+
+        // 🎯 [연동 트리거]: 탭 클릭 및 최초 로드 시 비어있던 통계 함수를 깨워주는 연결고리 배치
+        (function () {
+            const originalChangeMainViewport = window.changeMainViewport;
+            if (typeof originalChangeMainViewport === "function") {
+                window.changeMainViewport = function (viewName) {
+                    originalChangeMainViewport(viewName);
+                    if (viewName === 'applicantView') {
+                        // 대상자 관리 탭을 누르는 즉시 계산기 작동
+                        setTimeout(function () {
+                            if (typeof initDashboardFilter === "function") initDashboardFilter();
+                            calculateLiveDashboardStats();
+                            if (typeof refreshApplicantView === "function") refreshApplicantView();
+                        }, 50);
+                    }
+                };
+            }
+
+            // 페이지 처음 로딩될 때 기본 데이터(3명/1건/1건/1건) 즉시 집계 출력
+            window.addEventListener('load', function () {
+                setTimeout(function () {
+                    if (typeof initDashboardFilter === "function") initDashboardFilter();
+                    calculateLiveDashboardStats();
+                }, 250);
+            });
+        })();
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

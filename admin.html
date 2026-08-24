@@ -5006,7 +5006,8 @@
         // 🎯 [대표님 기획 의도 100% 완결] 순차 선택(시험명->기수) 확정 시에만 통계 산출 엔진
         // =========================================================================
         (function () {
-            // 1. 대표님이 설계해두신 기존 오리지널 통계 계산기를 인터셉트하여 필터 장벽을 재설계합니다.
+            // 1. [핵심 통계 재설계]: 기존에 꼬여있던 calculateLiveDashboardStats를 완전히 새로 덮어써서 
+            // 유령 공백을 파괴하고, 순차 필터링 장벽을 완벽하게 수립합니다.
             window.calculateLiveDashboardStats = function () {
                 const filterTitleSelect = document.getElementById('dashboard-filter-title');
                 const filterThSelect = document.getElementById('dashboard-filter-th');
@@ -5014,21 +5015,20 @@
                 const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
                 const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
 
-                // 🌟 [기획 핵심 차단 가드]: 
-                // 처음 진입했거나(둘 다 ALL), 시험명만 고르고 기수는 고르지 않은 대기 상태("ALL")일 때는
-                // 절대로 사전에 집계하지 못하도록 상단 스코어보드를 강제로 '0명/0건'으로 묶어둡니다.
+                // 🌟 [기획 핵심 가드]: 처음 진입(둘 다 ALL)했거나, 1셀렉트만 고르고 2셀렉트는 안 고른 상태("ALL")일 때는
+                // 화면 상단 4단계 정산 스코어보드를 강제로 '0명/0건'으로 묶어두고 집계를 차단합니다.
                 if (filterTitle === "ALL" || filterTh === "ALL" || filterTh === "") {
                     if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = "0명";
                     if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = "0건";
                     if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = "0건";
                     if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = "0건";
-                    return; // 통계 엔진을 연산 없이 즉시 종료
+                    return;
                 }
 
-                // 2. 오직 [특정 시험명]과 [특정 기수]가 완벽히 둘 다 확정 선택되었을 때만 정밀 스캔 가동
+                // 2. 오직 1선택(시험명)과 2선택(기수)이 완벽하게 완료되었을 때만 집계 연산 시작
                 const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                // 유령 공백 및 오타 노수를 방지하기 위한 문자열 정제 비교 체인
+                // 원본 데이터셋의 유령 공백을 실시간 정제하면서 조건 매칭 필터링
                 const filteredData = adminApplicantDB.filter(item => {
                     if (!item.title) return false;
                     const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
@@ -5042,7 +5042,7 @@
                 let processingCount = 0;
                 let completeCount = 0;
 
-                // 대표님의 참여비 상태 대장 스펙("대기", "접수", "처리중", "지급완료") 실시간 카운트 매핑
+                // 대기, 접수, 처리중, 처리완료 기수 정산 스펙 카운팅
                 filteredData.forEach(row => {
                     const status = (row.result || row.payStatus || "대기").toString().trim();
 
@@ -5055,58 +5055,54 @@
                     }
                 });
 
-                // 원본 화면 ID 슬롯에 실시간 수치 강제 마운트 주입
+                // 4단계 카드 슬롯에 수치 실시간 마운트 주입
                 if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = `${totalCount}명`;
                 if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
                 if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
                 if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
             };
 
-            // 3. 1셀렉트(시험명) 변경 시 연동되는 원본 기수 생성 함수(updateDashboardThOptions) 체인 보완
-            const originalUpdateThOptions = window.updateDashboardThOptions;
-            if (typeof originalUpdateThOptions === "function") {
-                window.updateDashboardThOptions = function () {
-                    // 오리지널 로직을 구동하여 2셀렉트 박스 내부의 서브 기수 옵션 태그들만 먼저 깨끗하게 빌드합니다.
-                    originalUpdateThOptions();
-
-                    // [기획 가드]: 시험명만 바뀐 시점이므로 2셀렉트의 포커스를 강제로 전체기수보기("ALL")로 고정합니다.
-                    const filterTh = document.getElementById('dashboard-filter-th');
-                    if (filterTh) {
-                        filterTh.value = "ALL";
-                    }
-                    // 상단 수치판을 즉시 0명/0건으로 묶어둡니다.
-                    window.calculateLiveDashboardStats();
-                };
-            }
-
-            // 4. [기획의 핵심]: 사용자가 2셀렉트 박스(기수)를 마우스로 최종 클릭하여 변경하는 바로 그 순간!
-            const filterThSelect = document.getElementById('dashboard-filter-th');
-            if (filterThSelect) {
-                filterThSelect.addEventListener('change', function () {
-                    // 브라우저 밸류 안착 타이밍 비동기 동기화를 위해 30ms 미세 세틀러 인가 후 사출
+            // 3. [🎯 38페이지 이중 선언 무력화 핵심]: 메뉴 탭 클릭 시 중복 함수 충돌을 피하기 위해 
+            // 사이드바 버튼 자체에 기획 필터 트리거 리스너를 물리적으로 직접 바인딩합니다.
+            const menuAppBtn = document.getElementById('menuApp');
+            if (menuAppBtn) {
+                menuAppBtn.addEventListener('click', function () {
+                    // 대상자 관리 화면이 활성화된 직후 필터 초기화 가드 가동
                     setTimeout(function () {
-                        // 특정 기수가 최종 선택 완료되었으므로 통계벽을 허물고 화면에 전격 마운트 처리합니다.
-                        window.calculateLiveDashboardStats();
-                        if (typeof refreshApplicantView === "function") {
-                            refreshApplicantView(); // 하단 마스터 테이블 리스트도 연동 출력
+                        if (typeof initDashboardFilter === "function") initDashboardFilter();
+
+                        // 1선택(시험명)이 바뀔 때 통계 누수가 없도록 2셀렉트를 ALL로 포커싱 락
+                        const filterTh = document.getElementById('dashboard-filter-th');
+                        if (filterTh) {
+                            filterTh.value = "ALL";
                         }
-                    }, 30);
+                        // 진입 초기이므로 통계판 수치를 0명/0건으로 강제 동기화 셋팅
+                        window.calculateLiveDashboardStats();
+                    }, 80);
                 });
             }
 
-            // 5. 좌측 메뉴 [대상자 관리] 탭 최초 진입 시 초기화 강제 락
-            const originalChangeMainViewport = window.changeMainViewport;
-            if (typeof originalChangeMainViewport === "function") {
-                window.changeMainViewport = function (viewName) {
-                    originalChangeMainViewport(viewName);
-                    if (viewName === 'applicantView') {
-                        setTimeout(function () {
-                            if (typeof initDashboardFilter === "function") initDashboardFilter();
-                            window.calculateLiveDashboardStats(); // 0명/0건 대기 상태 정렬
-                        }, 50);
-                    }
-                };
-            }
+            // 4. [🎯 2단계 최종 확정 사출]: 2셀렉트(기수 필터)가 최종 선택 변경되는 바로 그 순간!
+            // 브라우저 밸류 안착 속도를考慮하여 미세 타임 리액터 인가 후 완전 가동합니다.
+            document.addEventListener('change', function (event) {
+                if (event.target && event.target.id === 'dashboard-filter-th') {
+                    setTimeout(function () {
+                        // 특정 기수가 마우스로 확정 클릭되었으므로 차단벽을 깨고 통계와 하단 리스트를 동시 출력합니다.
+                        window.calculateLiveDashboardStats();
+                        if (typeof refreshApplicantView === "function") {
+                            refreshApplicantView();
+                        }
+                    }, 30);
+                }
+            });
+
+            // 5. 최초 새로고침 직후 전체 통계가 노출되는 현상을 원천 방어하기 위한 락 리액터
+            window.addEventListener('load', function () {
+                setTimeout(function () {
+                    if (typeof initDashboardFilter === "function") initDashboardFilter();
+                    window.calculateLiveDashboardStats(); // 강제 0 초기화
+                }, 300);
+            });
         })();
 
     </script>

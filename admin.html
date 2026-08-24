@@ -4769,6 +4769,77 @@
             }
         })();
 
+        // =========================================================================
+        // 🎯 [원본 소스 100% 수호] 로컬스토리지 유령 공백 원천 압착 및 마스터 동기화 가드
+        // =========================================================================
+        (function () {
+            function cleanAndSyncLocalStorage() {
+                // 1. 로컬스토리지 데이터 원본 긴급 로드
+                let recDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                let isChanged = false;
+
+                // 2. 모집공고 대장 내부의 모든 유령 공백 및 타이틀 공백 원천 압착 정제
+                recDB.forEach(row => {
+                    if (row.title) {
+                        const normalized = row.title.toString().replace(/\s+/g, ' ').trim();
+                        if (row.title !== normalized) {
+                            row.title = normalized;
+                            isChanged = true;
+                        }
+                    }
+                });
+
+                // 3. 대상자 대장 내부(신일제약 사쿠+발사 등)의 보이지 않는 공백 레이어 물리적 철거
+                appDB.forEach(row => {
+                    if (row.title) {
+                        const normalized = row.title.toString().replace(/\s+/g, ' ').trim();
+                        if (row.title !== normalized) {
+                            row.title = normalized;
+                            isChanged = true;
+                        }
+                    }
+                    // 4단 통계 누수를 방지하기 위해 result나 payStatus가 비어있다면 디폴트인 "접수"로 보완
+                    if (!row.result && (row.payStatus === "접수" || row.payStatus1 === "접수")) {
+                        row.result = "접수";
+                        isChanged = true;
+                    }
+                });
+
+                // 4. 오염된 찌꺼기가 발견되어 정제되었다면 로컬스토리지에 깨끗하게 최종 오버라이드 커밋
+                if (isChanged) {
+                    localStorage.setItem('dataStoreRecruitment', JSON.stringify(recDB));
+                    localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                    if (typeof dataStoreRecruitment !== 'undefined') window.dataStoreRecruitment = recDB;
+                    if (typeof dataStoreApplicant !== 'undefined') window.dataStoreApplicant = appDB;
+                    console.log("🎯 시스템 알림: 대장 내부의 유령 공백 정밀 정제 및 동기화 셋팅 안착 완료.");
+                }
+            }
+
+            // 5. 최초 페이지 로드 및 사용자가 대상자 관리 탭을 클릭하는 연동 순간마다 강제 가동
+            function forceExecuteCoreEngine() {
+                cleanAndSyncLocalStorage(); // 데이터 정제 먼저 가동
+                if (typeof initDashboardFilter === "function") initDashboardFilter();
+                if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+                if (typeof refreshApplicantView === "function") refreshApplicantView();
+            }
+
+            // A. 화면 최초 안착 시 정제 가동 (300ms 레이턴시 가드 타이머)
+            window.addEventListener('load', function () {
+                setTimeout(forceExecuteCoreEngine, 300);
+            });
+
+            // B. 좌측 내비게이션 [대상자 관리] 메뉴 탭을 클릭하는 찰나의 순간에 인터셉트 연동
+            const appMenuBtn = document.getElementById('menuApp');
+            if (appMenuBtn) {
+                const originalClick = appMenuBtn.onclick;
+                appMenuBtn.onclick = function (e) {
+                    if (originalClick) originalClick.call(this, e);
+                    setTimeout(forceExecuteCoreEngine, 50); // 정제 후 통계판 리계산 연쇄 구동
+                };
+            }
+        })();
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

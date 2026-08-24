@@ -1454,7 +1454,11 @@
         // =========================================================================
         // [2파트] 마스터 가상 DB 생성 엔진 및 관리자 보안 인증 체인
         // =========================================================================
-        // 2. 모집공고 데이터셋 로드 또는 초기화
+
+        /**
+         * CMS 피험자 마스터 대장(매칭 풀) 가상 DB 가동 상태 체크 [index: 0.1.26, 0.1.27]
+         * 중복 가동되던 생성 루틴을 통합 단일화하였습니다.
+         */
         function initializeCMSDatabase() {
             let isUpdated = false;
 
@@ -1462,38 +1466,172 @@
             if (dataStoreApplicant.length === 0) {
                 dataStoreApplicant.push(
                     {
-                        uid: 201, name: "홍길동", ssn: "950505", phone: "01012345678",
-                        title: "애드파마 로잘탄+로수+에제", th: "2기", count: "60", period: "72",
-                        category: "내분비내과 / 2 기 모집", stage: "🎁 2 기 1 차 일정 완료 (분할 허용)",
-                        result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
-                        isDutyAgreed: "동의", isCallAgreed: "동의", idCard: true, bankbook: true
+                        uid: 201,
+                        name: "홍길동",
+                        ssn: "950505",
+                        phone: "01012345678",
+                        title: "애드파마 로잘탄+로수+에제",
+                        th: "2기",
+                        count: "60",
+                        period: "72",
+                        category: "내분비내과 / 2 기 모집",
+                        stage: "🎁 2 기 1 차 일정 완료 (분할 허용)",
+                        result: "접수",       // 🌟 통계판 카운트 연동용 (1차 상태가 기준)
+                        payStatus: "접수",    // 🌟 목록 상태 출력용
+                        payStatus1: "접수",   // 🌟 1차: 접수
+                        payStatus2: "대기",   // 🌟 2차: 대기
+                        payStatus3: "대기",   // 🌟 3차: 대기
+                        isDutyAgreed: "동의",
+                        isCallAgreed: "동의",
+                        idCard: true,
+                        bankbook: true
                     },
                     {
-                        uid: 202, name: "강남구", ssn: "980101", phone: "01090956763",
-                        title: "신일제약 사쿠+발사", // 🌟 유령 공백 완벽 차단 정제 완료!
-                        th: "4기", count: "46", period: "96",
-                        category: "비뇨의학과 / 4 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
-                        result: "처리중", payStatus: "처리중", payStatus1: "처리중", payStatus2: "대기", payStatus3: "대기",
-                        isDutyAgreed: "동의", isCallAgreed: "동의", idCard: true, bankbook: true
+                        uid: 202,
+                        name: "강남구",
+                        ssn: "980101",
+                        phone: "01090956763",
+                        title: "신일제약 사쿠+발사",
+                        th: "4기",
+                        count: "46",
+                        period: "96",
+                        category: "비뇨의학과 / 4 기 모집",
+                        stage: "🎁 과제 심사 완료 (종합 정산 가능)",
+                        result: "처리중",     // 🌟 통계판 카운트 연동용 (1차 상태가 기준)
+                        payStatus: "처리중",  // 🌟 목록 상태 출력용
+                        payStatus1: "처리중", // 🌟 1차: 처리중
+                        payStatus2: "대기",   // 🌟 2차: 대기
+                        payStatus3: "대기",   // 🌟 3차: 대기
+                        isDutyAgreed: "동의",
+                        isCallAgreed: "동의",
+                        idCard: true,
+                        bankbook: true
                     },
                     {
-                        uid: 203, name: "진재영", ssn: "050607", phone: "01023469876",
-                        title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96",
-                        category: "비뇨의학과 / 4 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
-                        result: "지급완료", payStatus: "지급완료", payStatus1: "지급완료", payStatus2: "대기", payStatus3: "대기",
-                        isDutyAgreed: "동의", isCallAgreed: "동의", idCard: true, bankbook: true
+                        uid: 203,
+                        name: "진재영",
+                        ssn: "050607",
+                        phone: "01023469876",
+                        title: "경동제약 식후 임상시험",
+                        th: "4기",
+                        count: "46",
+                        period: "96",
+                        category: "비뇨의학과 / 4 기 모집",
+                        stage: "🎁 과제 심사 완료 (종합 정산 가능)",
+                        result: "지급완료",     // 🌟 통계판 카운트 연동용 (1차 상태가 기준)
+                        payStatus: "지급완료",  // 🌟 목록 상태 출력용
+                        payStatus1: "지급완료", // 🌟 1차: 지급완료
+                        payStatus2: "대기",     // 🌟 2차: 대기
+                        payStatus3: "대기",     // 🌟 3차: 대기
+                        isDutyAgreed: "동의",
+                        isCallAgreed: "동의",
+                        idCard: true,
+                        bankbook: true
                     }
                 );
                 isUpdated = true;
                 console.log("대상자 가상 DB 최초 생성 및 정산 초기 상태 락인 완료");
             } else {
-                // [캐시 킬러 가드 구역]: 대상자 데이터 대장(dataStoreApplicant)을 정확하게 정밀 트림 청소합니다.
+                // 🌟 [캐시 킬러 가드]: 브라우저 기억장치에 과거 흔적이 이미 저장되어 있어도 
+                // 접속하는 즉시 강제로 대표님이 명하신 차수별 정산 상태로 완벽히 덮어써서 교정합니다.
                 dataStoreApplicant.forEach(row => {
-                    if (row.title) row.title = row.title.toString().trim();
+                    if (row.name === "홍길동" && row.title.includes("애드파마")) {
+                        if (row.result !== "접수" || row.payStatus1 !== "접수" || row.payStatus2 !== "대기") {
+                            row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
+                        }
+                    }
+                    else if (row.name === "강남구" && row.title.includes("신일제약")) {
+                        if (row.result !== "처리중" || row.payStatus1 !== "처리중" || row.payStatus2 !== "대기") {
+                            row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
+                        }
+                    }
+                    else if (row.name === "진재영" && row.title.includes("경동제약")) {
+                        if (row.result !== "지급완료" || row.payStatus1 !== "지급완료" || row.payStatus2 !== "대기") {
+                            row.result = "지급완료"; row.payStatus = "지급완료"; row.payStatus1 = "지급완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
+                        }
+                    }
                 });
             }
 
-            // 🌟 [대표님 지시 사양]: 관리 임직원 프리셋 영역 100% 완벽 보존 장착
+            // 2. 변경 사항이 있을 때만 로컬스토리지 영구 커밋 연동
+            if (isUpdated) {
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
+            }
+        }
+
+        /**
+               * 🎯 [전면 교정] 마스터 초기 프리셋 데이터 적재 제어 스케줄러
+               * 대상자의 과제명/기수 정보와 100% 일치하도록 프리셋 데이터를 전격 동기화합니다.
+               */
+        function initializePresetMasterDatabase() {
+            let isUpdated = false;
+
+            // 1. 대상자 매칭 데이터셋 레이어 먼저 완벽 인스턴스화
+            initializeCMSDatabase();
+
+            // 2. 모집공고 데이터셋 로드 또는 초기화
+            if (dataStoreRecruitment.length === 0) {
+                dataStoreRecruitment = [
+                    {
+                        uid: 101,
+                        title: "애드파마 로잘탄+로수+에제",
+                        th: "2기",
+                        count: "60",
+                        period: "72",
+                        crc: "석정은",
+                        notice: "공복 유지 필수 및 소집 10분 전 대기",
+                        examSchedule: "2026-09-01",
+                        paySchedule: "1차: 2026-09-10",
+                        payDate1: "2026-09-10",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2026-08-10" // 🌟 디폴트 초기값 고정
+                    },
+                    {
+                        uid: 102,
+                        title: "신일제약 사쿠+발사",
+                        th: "4기",
+                        count: "46",
+                        period: "96",
+                        crc: "최미현",
+                        notice: "지정식 이외 취식 금지 및 격리 규정 준수",
+                        examSchedule: "2026-09-15",
+                        paySchedule: "1차: 2026-09-30",
+                        payDate1: "2026-09-30",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2026-08-30" // 🌟 디폴트 초기값 고정
+                    },
+                    {
+                        uid: 103,
+                        title: "경동제약 식후 임상시험",
+                        th: "4기",
+                        count: "46",
+                        period: "96",
+                        crc: "강은애",
+                        notice: "지정식 이외 취식 금지 및 격리 규정 준수",
+                        examSchedule: "2026-10-15",
+                        paySchedule: "1차: 2026-10-30",
+                        payDate1: "2026-10-30",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2026-09-30" // 🌟 디폴트 초기값 고정
+                    }
+                ];
+                isUpdated = true;
+            } else {
+                // 🌟 [핵심 캐시 킬러 가드]: 이미 데이터가 존재하더라도, 기존 초기 데이터 3종의 소집일가 
+                // "미정"이거나 누락되어 있다면 강제로 정확한 디폴트 날짜를 오버라이드하여 교정합니다.
+                dataStoreRecruitment.forEach(row => {
+                    if (!row.recDate || row.recDate === "미정" || row.recDate.trim() === "") {
+                        if (row.uid == 101 || row.title.includes("애드파마")) { row.recDate = "2026-08-10"; isUpdated = true; }
+                        else if (row.uid == 102 || row.title.includes("신일제약")) { row.recDate = "2026-08-30"; isUpdated = true; }
+                        else if (row.uid == 103 || row.title.includes("경동제약")) { row.recDate = "2026-09-30"; isUpdated = true; }
+                    }
+                });
+            }
+
+            // 관리 임직원 프리셋 영역 [원안 보존]
             if (dataStoreAdminMembers.length === 0) {
                 dataStoreAdminMembers.push(
                     { sabun: "admin", name: "시스템 관리자", duty: "시스템 관리자", dept: "전산팀", pw: "9793" },
@@ -1512,10 +1650,7 @@
                 if (!m.pw) { m.pw = m.sabun ? m.sabun : "1234"; isUpdated = true; }
             });
 
-            if (isUpdated) {
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                localStorage.setItem('dataStoreAdminMembers', JSON.stringify(dataStoreAdminMembers));
-            }
+            if (isUpdated) commitToLocalStorage();
         }
 
         /**
@@ -4871,86 +5006,144 @@
         // 🎯 [대표님 기획 의도 100% 완결] 순차 선택(시험명->기수) 확정 시에만 통계 산출 엔진
         // =========================================================================
         (function () {
-            // 1. [통계 가둠 가드]: 오리지널 통계 함수(calculateLiveDashboardStats)를 인터셉터 제어합니다.
-            const originalCalculateStats = window.calculateLiveDashboardStats;
+            // 1. [중복 파괴 및 새 시험 연동 코어] 
+            // 대표님의 오리지널 initThSelectOptions 함수를 완전히 정밀 보완하여 덮어씁니다.
+            window.initThSelectOptions = function () {
+                const filterTitleSelect = document.getElementById('dashboard-filter-title');
+                if (!filterTitleSelect) return;
 
-            if (typeof originalCalculateStats === "function") {
-                window.calculateLiveDashboardStats = function () {
-                    const filterTitleSelect = document.getElementById('dashboard-filter-title');
-                    const filterThSelect = document.getElementById('dashboard-filter-th');
+                // 최신 대장 세션 실시간 로드
+                let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                    const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
-                    const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
+                const currentSelected = filterTitleSelect.value;
+                filterTitleSelect.innerHTML = '<option value="ALL">— 전체 시험 보기 —</option>';
 
-                    // 🌟 [기획 의도 저격]: 처음 로드 시(둘 다 ALL) 또는 1선택(시험명)만 고르고 기수는 고르지 않은 상태("ALL")라면
-                    // 절대로 미리 통계를 집계하지 못하도록 상단 스코어보드를 강제로 '0명/0건'으로 깨끗하게 묶어둡니다.
-                    if (filterTitle === "ALL" || filterTh === "ALL" || filterTh === "") {
-                        if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = "0명";
-                        if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = "0건";
-                        if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = "0건";
-                        if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = "0건";
-                        return; // 엔진 원천 종료 (누수 방지)
+                let titles = [];
+
+                // 🌟 [유령 공백 압착 가드]: 공고 대장과 대상자 대장의 숨은 공백을 압착하여 중복 매칭을 원천 차단
+                recruitmentDB.forEach(row => {
+                    if (row.title) {
+                        const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
+                        if (cleanTitle && !titles.includes(cleanTitle)) titles.push(cleanTitle);
                     }
+                });
 
-                    // 오직 1선택과 2선택 조건이 모두 만족되었을 때만 원래 설계해두신 기존 통계 코드가 연산하도록 패스합니다.
+                adminApplicantDB.forEach(row => {
+                    if (row.title) {
+                        const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
+                        if (cleanTitle && !titles.includes(cleanTitle)) titles.push(cleanTitle);
+                    }
+                });
+
+                // 알파벳/가나다 정렬 후 원형 문자열 그대로 마운트
+                titles.sort().forEach(t => {
+                    const option = document.createElement('option');
+                    option.value = t;
+                    option.innerText = t;
+                    filterTitleSelect.appendChild(option);
+                });
+
+                if (titles.includes(currentSelected)) {
+                    filterTitleSelect.value = currentSelected;
+                } else {
+                    filterTitleSelect.value = 'ALL';
+                }
+
+                // 오리지널 서브 기수 로딩 함수 호출
+                if (typeof updateDashboardThOptions === "function") {
+                    updateDashboardThOptions();
+                }
+            };
+
+            // 2. [초기 통계 가둠 가드]: 오리지널 통계 함수(calculateLiveDashboardStats)를 인터셉트 제어
+            const originalCalculateStats = window.calculateLiveDashboardStats;
+            window.calculateLiveDashboardStats = function () {
+                const filterTitle = document.getElementById('dashboard-filter-title')?.value || 'ALL';
+                const filterTh = document.getElementById('dashboard-filter-th')?.value || 'ALL';
+
+                // 🌟 [기획 의도]: 처음 진입했거나(ALL), 1셀렉트만 고르고 2셀렉트는 안 고른 상태("ALL")일 때는
+                // 무조건 통계 수치판을 '0'으로 깨끗하게 묶어두고 집계 연산을 원천 차단합니다.
+                if (filterTitle === "ALL" || filterTh === "ALL" || filterTh === "") {
+                    if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = "0명";
+                    if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = "0건";
+                    if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = "0건";
+                    if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = "0건";
+                    return;
+                }
+
+                // 오직 2단계 기수까지 마우스로 콕 집어 선택 완료했을 때만 집계 연산 사출
+                if (typeof originalCalculateStats === "function") {
                     originalCalculateStats();
-                };
-            }
+                } else {
+                    // 오리지널 통계 로직 임베딩 처리 보완
+                    const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                    const filteredData = adminApplicantDB.filter(item => {
+                        if (!item.title) return false;
+                        const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
+                        const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
+                        return cleanItemTitle === cleanFilterTitle && item.th === filterTh;
+                    });
 
-            // 2. 1셀렉트(시험명) 변경 시 연동되는 오리지널 함수(updateDashboardThOptions) 확장 보완
+                    let totalCount = filteredData.length, receivedCount = 0, processingCount = 0, completeCount = 0;
+                    filteredData.forEach(row => {
+                        const status = (row.result || row.payStatus || "대기").toString().trim();
+                        if (status === "대기" || status === "접수") receivedCount++;
+                        else if (status === "처리중") processingCount++;
+                        else if (status === "지급완료" || status === "처리완료") completeCount++;
+                    });
+
+                    if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = `${totalCount}명`;
+                    if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
+                    if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
+                    if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
+                }
+            };
+
+            // 3. 1셀렉트(시험명) 변경 시 연동되는 원본 함수(updateDashboardThOptions) 확장 보완
             const originalUpdateThOptions = window.updateDashboardThOptions;
             if (typeof originalUpdateThOptions === "function") {
                 window.updateDashboardThOptions = function () {
-                    // 오리지널 로직을 구동하여 2셀렉트 박스 내부의 매칭 기수 옵션 태그들만 먼저 정상 빌드합니다.
                     originalUpdateThOptions();
-
-                    // 시험명만 바뀐 시점이므로 2셀렉트의 포커스를 강제로 전체기수보기("ALL") 상태로 고정 락인합니다.
                     const filterTh = document.getElementById('dashboard-filter-th');
-                    if (filterTh) {
-                        filterTh.value = "ALL";
-                    }
-                    // 상단 정산 수치판을 즉시 0명/0건 대기 상태로 강제 초기화 리셋
-                    window.calculateLiveDashboardStats();
+                    if (filterTh) filterTh.value = "ALL"; // 시험명 변경 시 기수 필터 초기 락 홀딩
+                    window.calculateLiveDashboardStats(); // 수치판 즉시 0 리셋
                 };
             }
 
-            // 3. 🌟 [대표님 마스터 리스너 완벽 결합]: 2셀렉트(기수 필터)가 최종 확정 변경되는 바로 그 순간!
-            const filterThSelect = document.getElementById('dashboard-filter-th');
-            if (filterThSelect) {
-                filterThSelect.addEventListener('change', function () {
-                    // 브라우저 밸류 안착 타이밍(30ms 타임 가드) 동기화 세틀러 적용
+            // 4. [🎯 2단계 최종 확정 사출 리스너]: 2셀렉트(기수 필터)가 변경되는 바로 그 순간!
+            document.addEventListener('change', function (event) {
+                if (event.target && event.target.id === 'dashboard-filter-th') {
                     setTimeout(function () {
-                        // 기수가 최종 콕 픽셀 선택 완료되었으므로 가두어둔 락을 풀고 통계와 목록을 실시간 동시 사출 마운트합니다.
+                        // 특정 기수가 최종 선택 완료되었으므로 잠금을 해제하고 통계와 하단 목록을 동시 출력합니다.
                         window.calculateLiveDashboardStats();
-                        if (typeof refreshApplicantView === "function") {
-                            refreshApplicantView(); // 하단 테이블 리스트 실시간 동기화 출력
-                        }
+                        if (typeof refreshApplicantView === "function") refreshApplicantView();
                     }, 30);
+                }
+            });
+
+            // 5. [🎯 38페이지 이중 선언 원천 제어]: 메뉴 클릭 시 오리지널 필터 빌더를 정확하게 리로딩
+            const menuAppBtn = document.getElementById('menuApp');
+            if (menuAppBtn) {
+                menuAppBtn.addEventListener('click', function () {
+                    setTimeout(function () {
+                        window.initThSelectOptions(); // 대표님의 오리지널 필터 리로더 구동
+                        const filterTh = document.getElementById('dashboard-filter-th');
+                        if (filterTh) filterTh.value = "ALL";
+                        window.calculateLiveDashboardStats();
+                    }, 80);
                 });
             }
 
-            // 4. 좌측 메뉴 [대상자 관리] 탭 최초 클릭 진입 및 로그인 직후 연동 정렬 가드
-            const originalChangeMainViewport = window.changeMainViewport;
-            if (typeof originalChangeMainViewport === "function") {
-                window.changeMainViewport = function (viewName) {
-                    originalChangeMainViewport(viewName);
-                    if (viewName === 'applicantView') {
-                        setTimeout(function () {
-                            // 최초 진입 시 필터를 마운트하되, 선택 전이므로 무조건 0명/0건 대기 상태 정렬
-                            if (typeof initThSelectOptions === "function") initThSelectOptions();
-                            window.calculateLiveDashboardStats();
-                        }, 60);
-                    }
-                };
-            }
+            // 최초 새로고침 직후 셋팅 가드
+            window.addEventListener('load', function () {
+                setTimeout(function () {
+                    window.initThSelectOptions();
+                    window.calculateLiveDashboardStats();
+                }, 300);
+            });
         })();
 
-
-        // 2셀렉트(기수)를 최종 마우스 클릭 완료하는 바로 그 순간 4단계 통계판과 하단 목록을 동시 마운트 출력
-        document.getElementById('dashboard-filter-th').onchange = function () {
-            if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-            if (typeof refreshApplicantView === "function") refreshApplicantView();
-        };
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

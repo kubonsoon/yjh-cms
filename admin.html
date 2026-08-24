@@ -2372,19 +2372,23 @@
                 <td style="width:85px; min-width:85px; vertical-align:middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center;"></td>
                 <td style="width:125px; min-width:125px; vertical-align:middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${fmtPhone}" style="text-align:center;"></td>
                 <td style="vertical-align:middle; padding-left:6px;">${inlineSelectStackHTML}</td>
-                <td style="width:75px; min-width:75px; vertical-align:middle;">
-                    <select id="inline-app-duty-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;">
-                        <option value="대기" style="color:#94a3b8;" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" style="color:#34d399;" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" style="color:#f87171;" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
+                
+                <!--당직동의 인라인 select 가변 전환 구역 -->
+                <td style="width: 85px; text-align: center; vertical-align: middle;">
+                 <select id="inline-app-duty‐${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer;">
+                  <option value="대기" ${row.isDutyAgreed === '대기' || !row.isDutyAgreed ? 'selected' : ''}>대기</option>
+                  <option value="동의" ${row.isDutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+                  <option value="미동의" ${row.isDutyAgreed === '미정' || row.isDutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                 </select>
                 </td>
-                <td style="width:75px; min-width:75px; vertical-align:middle;">
-                    <select id="inline-app-call-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;">
-                        <option value="대기" style="color:#94a3b8;" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" style="color:#34d399;" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" style="color:#f87171;" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
+        
+                <!--소집동의 인라인 select 가변 전환 구역 -->
+                <td style="width: 85px; text-align: center; vertical-align: middle;">
+                 <select id="inline-app-call‐${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer;">
+                  <option value="대기" ${row.isCallAgreed === '대기' || !row.isCallAgreed ? 'selected' : ''}>대기</option>
+                  <option value="동의" ${row.isCallAgreed === '동의' ? 'selected' : ''}>동의</option>
+                  <option value="미동의" ${row.isCallAgreed === '미정' || row.isCallAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                 </select>
                 </td>
                 <td style="vertical-align:middle;">${docsHTML}</td>
                 <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;">
@@ -2407,6 +2411,27 @@
                     const finalBadgeStackHTML = `<div style="display:flex; flex-direction:column; gap:2px; padding:2px 0;">${buildCoreMiniStatusBadgeHTML('1차', p1)}${buildCoreMiniStatusBadgeHTML('2차', p2)}${buildCoreMiniStatusBadgeHTML('3차', p3)}</div>`;
                     const cleanThValue = (row.th || '-').toString().replace(/\s*\(.*?\)\s*/g, '').trim();
 
+                    // 🌟 [기획 사양 매핑]: 당직 및 소집 배지 회색 레이아웃 통제 파서 튜닝
+                    const curDuty = (row.isDutyAgreed || "대기").toString().trim();
+                    const curCall = (row.isCallAgreed || "대기").toString().trim();
+
+                    // 초기 상태 "대기"인 경우 회색 배지 서식(status-none) 강제 탑재
+                    let dutyBadgeHTML = `<span class="doc-badge status-none" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">대기</span>`;
+                    let callBadgeHTML = `<span class="doc-badge status-none" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">대기</span>`;
+
+                    // 사용자가 수정 모드에서 "동의" 또는 "미동의"로 변경 저장 시 규격 배지로 실시간 변경 출력
+                    if (curDuty === "동의") {
+                        dutyBadgeHTML = `<span class="doc-badge status-id" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">동의</span>`;
+                    } else if (curDuty === "미동의") {
+                        dutyBadgeHTML = `<span class="doc-badge status-bank" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">미동의</span>`;
+                    }
+
+                    if (curCall === "동의") {
+                        callBadgeHTML = `<span class="doc-badge status-id" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">동의</span>`;
+                    } else if (curCall === "미동의") {
+                        callBadgeHTML = `<span class="doc-badge status-bank" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">미동의</span>`;
+                    }
+
                     tr.style.display = "table-row";
                     tr.innerHTML = `
                 <td style="text-align:left; padding-left:15px; font-weight:700; color:#f8fafc; white-space:normal; word-break:keep-all; vertical-align:middle;">${row.title || '-'}</td>
@@ -2417,8 +2442,8 @@
                 <td style="text-align:center; width:85px; min-width:85px; color:#cbd5e1; letter-spacing:0.5px; vertical-align:middle;">${row.ssn || '-'}</td>
                 <td style="text-align:center; width:125px; min-width:125px; color:#cbd5e1; font-size:13px; vertical-align:middle;">${fmtPhone}</td>
                 <td style="vertical-align:middle; padding-left:10px;">${finalBadgeStackHTML}</td>
-                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${buildAgreementStatusBadgeHTML(dutyAgreed)}</td>
-                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${buildAgreementStatusBadgeHTML(callAgreed)}</td>
+                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${dutyBadgeHTML}</td>
+                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${callBadgeHTML}</td>
                 <td style="text-align:center; width:140px; min-width:140px; vertical-align:middle;">${docsHTML}</td>
                 <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;"><button type="button" class="btn-inline save" onclick="openApplicantHistoryModal(${index})" style="background:var(--secondary-color); color:#ffffff; padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer; border:none;">이력조회</button><button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex = ${index}; if(typeof currentAppEditingIndex !== 'undefined') { currentAppEditingIndex = ${index}; } refreshApplicantView();" style="background:#334155; border:1px solid var(--border-color); color:var(--text-color); padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer;">수정</button><button type="button" class="btn-inline delete" onclick="if(typeof removeApplicantRecord==='function'){removeApplicantRecord('${row.uid}');}else{deleteApplicantRecord(${index});}" style="background:rgba(239, 68, 68, 0.15); border:1px solid #f87171; color:#f87171; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; border:1px solid var(--danger-color);">삭제</button></td>
             `;
@@ -4556,6 +4581,77 @@
         </div>
     `;
             overlay.style.display = "flex";
+
+            // =========================================================================
+            // 🎯 [3구역 수술 마감] openIntegratedBoardModal 함수 최하단 결합 구역
+            // =========================================================================
+            overlay.style.display = "flex";
+
+            // 🌟 [기획 연동 추가]: 팝업창이 열리는 바로 그 정밀 타이밍에 대상자 대장을 역추적하는 통계판 작동
+            setTimeout(function () {
+                if (typeof dataStoreRecruitment === "undefined") return;
+                const targetRec = dataStoreRecruitment[index];
+                if (!targetRec) return;
+
+                // 문자열 오타 및 유령 공백 방지를 위한 트림 정제
+                const targetTitle = (targetRec.title || "").toString().replace(/\s+/g, ' ').trim();
+                const targetTh = (targetRec.th || "").toString().trim();
+
+                // 대상자 마스터 대장을 실시간으로 열어 현재 과제 및 기수가 100% 일치하는 피험자들 도출
+                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                const matchedApplicants = adminApplicantDB.filter(function (item) {
+                    if (!item.title) return false;
+                    return item.title.toString().replace(/\s+/g, ' ').trim() === targetTitle && item.th === targetTh;
+                });
+
+                // 당직/소집 3대 지표 상태 누적 카운팅 스케줄러 세팅
+                let stats = {
+                    duty: { agree: 0, disagree: 0, wait: 0 },
+                    call: { agree: 0, disagree: 0, wait: 0 }
+                };
+
+                matchedApplicants.forEach(function (app) {
+                    const dVal = (app.isDutyAgreed || "대기").toString().trim();
+                    const cVal = (app.isCallAgreed || "대기").toString().trim();
+
+                    if (dVal === "동의") stats.duty.agree++;
+                    else if (dVal === "미동의") stats.duty.disagree++;
+                    else stats.duty.wait++;
+
+                    if (cVal === "동의") stats.call.agree++;
+                    else if (cVal === "미동의") stats.call.disagree++;
+                    else stats.call.wait++;
+                });
+
+                // 에디터 모달창 내부 상단 레이어 구역 스캔 후 야광 안내바 주입
+                const modalContentEl = document.querySelector('.editor-modal-content') || document.querySelector('.history-modal-box');
+                if (modalContentEl) {
+                    const oldBar = document.getElementById('live-consent-stats-bar');
+                    if (oldBar) oldBar.remove(); // 이중 마운트 찌꺼기 철거
+
+                    const statsBar = document.createElement('div');
+                    statsBar.id = 'live-consent-stats-bar';
+                    statsBar.style.cssText = 'background:#0b0f19; border:2px solid #334155; padding:14px 18px; border-radius:8px; margin-bottom:18px; font-size:13px; font-weight:700;';
+
+                    let html = `<div style="color:var(--secondary-color); font-size:14px; margin-bottom:6px;"><i class="fa-solid fa-chart-line"></i> [${targetTh} 피험자 실시간 동의 스캔 현황]</div>`;
+                    html += '<div style="display:flex; gap:16px; align-items:center; color:#e2e8f0; justify-content:center;">';
+                    html += `<div>당직동의: <span style="color:#4ade80;">동의 ${stats.duty.agree}명</span> / <span style="color:#f87171;">미동의 ${stats.duty.disagree}명</span> / <span style="color:#94a3b8;">대기 ${stats.duty.wait}명</span></div>`;
+                    html += '<div style="width:1px; height:12px; background:#334155;"></div>';
+                    html += `<div>소집동의: <span style="color:#4ade80;">동의 ${stats.call.agree}명</span> / <span style="color:#f87171;">미동의 ${stats.call.disagree}명</span> / <span style="color:#94a3b8;">대기 ${stats.call.wait}명</span></div>`;
+                    html += '</div>';
+
+                    statsBar.innerHTML = html;
+
+                    // 타이틀 헤더 컴포넌트 바로 하단에 실시간 인라인 주입 안착
+                    const modalTitle = modalContentEl.querySelector('.editor-modal-title') || modalContentEl.querySelector('h3') || modalContentEl.firstChild;
+                    if (modalTitle && modalTitle.nextSibling) {
+                        modalContentEl.insertBefore(statsBar, modalTitle.nextSibling);
+                    } else {
+                        modalContentEl.prepend(statsBar);
+                    }
+                }
+            }, 40);
+
         }
 
         /**

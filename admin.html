@@ -5003,74 +5003,81 @@
 
 
         // =========================================================================
-        // 🎯 [기획 의도 100% 완결] 초기 통계 완전 차단 및 2번째 기수 선택 시에만 마운트 엔진
+        // 🎯 [대표님 기획 의도 100% 완결] 순차 선택(시험명->기수) 확정 시에만 통계 산출 엔진
         // =========================================================================
         (function () {
-            // 1. [핵심] 대표님이 짜두신 기존 통계 엔진(calculateLiveDashboardStats)을 정밀 인터셉트 확장
+            // 1. [핵심 가드]: 기존 통계 계산기(calculateLiveDashboardStats)를 인터셉트하여 
+            // 대표님이 원하시는 조건이 충족되지 않으면 통계를 무조건 '0'으로 강제 가둠 처리합니다.
             const originalCalculateStats = window.calculateLiveDashboardStats;
 
             if (typeof originalCalculateStats === "function") {
                 window.calculateLiveDashboardStats = function () {
-                    const filterTitle = document.getElementById('dashboard-filter-title')?.value || 'ALL';
-                    const filterTh = document.getElementById('dashboard-filter-th')?.value || 'ALL';
+                    const filterTitleSelect = document.getElementById('dashboard-filter-title');
+                    const filterThSelect = document.getElementById('dashboard-filter-th');
 
-                    // 🌟 [기획 핵심 가드]: 2번째 기수 셀렉트 박스가 초기 상태("ALL")이거나 아직 시험명만 고른 상태라면,
-                    // 통계를 절대 계산하지 않고 화면 상단 4단계 스코어보드를 강제로 '0'으로 깨끗하게 묶어둡니다.
-                    if (filterTh === "ALL" || filterTitle === "ALL") {
+                    const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
+                    const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
+
+                    // 🌟 [기획 의도 저격 라인]: 
+                    // 처음 로드되었을 때(둘 다 ALL이거나 한쪽이 ALL일 때) 또는 시험명만 고르고 기수는 고르지 않았을 때("ALL")는
+                    // 절대 통계를 계산하지 않고 화면 상단 스코어보드를 강제로 '0'으로 깨끗하게 묶어둡니다.
+                    if (filterTitle === "ALL" || filterTh === "ALL" || filterTh === "") {
                         if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = "0명";
                         if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = "0건";
                         if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = "0건";
                         if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = "0건";
-                        return; // 집계 자체를 원천 차단하고 종료
+                        return; // 집계 함수를 즉시 강제 종료시킵니다.
                     }
 
-                    // 오직 사용자가 특정 기수(예: 1기, 4기 등)를 최종 확정 선택했을 때만 기존 원본 통계 로직을 돌려 수치를 뿜어냅니다.
+                    // 오직 사용자가 [특정 시험명]과 [특정 기수(1기, 4기 등)]를 모두 최종 확정 선택했을 때만 
+                    // 원래 짜여있던 오리지널 통계 코드를 돌려서 수치를 정확하게 뿜어냅니다.
                     originalCalculateStats();
                 };
             }
 
-            // 2. 기존 기수 드롭다운 생성 함수(updateDashboardThOptions) 인터셉트 연동
+            // 2. 1셀렉트(시험명) 변경 시 기수 드롭다운을 생성해주는 원본 함수(updateDashboardThOptions) 보완
             const originalUpdateThOptions = window.updateDashboardThOptions;
             if (typeof originalUpdateThOptions === "function") {
                 window.updateDashboardThOptions = function () {
-                    // 1셀렉트(시험명)를 바꿨을 때 기수 드롭다운 옵션 태그들만 안전하게 먼저 빌드합니다.
+                    // 시험명을 바꿨을 때 기수 드롭다운 옵션 태그들(2셀렉트)만 내부적으로 먼저 정상 빌드합니다.
                     originalUpdateThOptions();
 
-                    // 🌟 [연동 락인]: 시험명만 바뀐 시점에는 2셀렉트 값을 강제로 "ALL"로 초기 셋팅하여 통계가 미리 안 나오게 가둡니다.
+                    // 🌟 [기획 가드]: 시험명만 바뀐 바로 이 시점에는 2셀렉트의 초기 선택값을 강제로 "ALL"이나 첫 문항 대기 상태로 정렬하고,
+                    // 통계가 미리 누수되어 화면에 나오는 것을 원천 차단하기 위해 계산기를 호출하여 0으로 락인합니다.
                     const filterTh = document.getElementById('dashboard-filter-th');
                     if (filterTh) {
+                        // 대표님의 기존 코드에 맞춰 "ALL" 상태로 홀딩
                         filterTh.value = "ALL";
                     }
 
-                    // 변경된 상태에 맞춰 통계판을 0으로 초기화 리셋
+                    // 변경된 필터 락 상태에 맞춰 상단 수치판을 즉시 0명/0건으로 리셋 홀딩
                     window.calculateLiveDashboardStats();
                 };
             }
 
-            // 3. [기획 핵심 2]: 오직 두 번째 기수 셀렉트 박스를 마우스로 최종 선택 변경하는 바로 그 순간!
+            // 3. [기획 핵심 2]: 오직 두 번째 기수 셀렉트 박스(2셀렉트)를 사용자가 마우스로 최종 확정 변경하는 바로 그 순간!
             const filterThSelect = document.getElementById('dashboard-filter-th');
             if (filterThSelect) {
-                // 기존에 걸려있던 이벤트나 오리지널 온체인 로직이 유실되지 않도록 정밀 이벤트 리스너 결합
                 filterThSelect.addEventListener('change', function () {
-                    // 사용자가 기수까지 최종 선택을 완료했으므로 통계 장벽을 해제하고 수치와 하단 목록을 동시 마운트합니다.
+                    // 사용자가 기수까지 최종 선택을 완료했으므로 통계 가둠 장벽을 풀고 수치와 하단 목록을 동시 마운트합니다.
                     if (typeof window.calculateLiveDashboardStats === "function") {
                         window.calculateLiveDashboardStats();
                     }
                     if (typeof refreshApplicantView === "function") {
-                        refreshApplicantView(); // 하단 테이블 리스트도 확정 선택된 데이터로 정밀 필터링 출력
+                        refreshApplicantView(); // 하단 마스터 테이블 리스트도 확정 선택된 [시험+기수] 데이터로 정밀 필터링 출력
                     }
                 });
             }
 
-            // 4. 좌측 메뉴 [대상자 관리] 탭 최초 진입 시 통계 런타임 제어
+            // 4. 좌측 메뉴 [대상자 관리] 탭 최초 진입 및 새로고침 시 초기화 연동
             const originalChangeMainViewport = window.changeMainViewport;
             if (typeof originalChangeMainViewport === "function") {
                 window.changeMainViewport = function (viewName) {
                     originalChangeMainViewport(viewName);
                     if (viewName === 'applicantView') {
                         setTimeout(function () {
+                            // 최초 진입 시 필터를 마운트하되, 선택 전이므로 무조건 0명/0건으로 초기화 홀딩 가드
                             if (typeof initDashboardFilter === "function") initDashboardFilter();
-                            // 진입 초기에는 기수 선택 전이므로 무조건 0명/0건으로 홀딩 가드
                             window.calculateLiveDashboardStats();
                         }, 50);
                     }

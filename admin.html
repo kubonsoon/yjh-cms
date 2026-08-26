@@ -1464,7 +1464,8 @@
 
             // 1. 🎯 데이터가 아예 비어있는 완전 최초 접속 시 프리셋 적재
             if (dataStoreApplicant.length === 0) {
-                dataStoreApplicant.push(
+                // 🎯 [대표님 지적 완벽 교정]: push 뒤에 빠져있던 대괄호([)를 정확히 배치하여 하단 쌍과 싱크를 일치시켰습니다.
+                dataStoreApplicant.push([
                     {
                         uid: 201,
                         name: "홍길동",
@@ -1528,7 +1529,7 @@
                         idCard: true,
                         bankbook: true
                     }
-                );
+                ]); // 🎯 괄호와 대괄호 쌍이 한 쌍으로 완벽하게 마감되었습니다.
                 isUpdated = true;
                 console.log("대상자 가상 DB 최초 생성 및 정산 초기 상태 락인 완료");
             } else {
@@ -1558,6 +1559,7 @@
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             }
         }
+
 
         /**
                * 🎯 [전면 교정] 마스터 초기 프리셋 데이터 적재 제어 스케줄러

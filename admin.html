@@ -4176,14 +4176,11 @@
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // ----------------======================================================
-            // 💡 [버그 완전 척결]: 기수가 ALL(전체)이더라도 중간에 리턴(return)하여 계산을 잠가버리던 
-            // 구형 가드 블록을 완벽히 소멸시켜 아래의 진짜 연산 파이프라인이 정상 작동하도록 길을 열어줍니다.
-            // ----------------======================================================
+            // 🎯 [버그 해결 핵심]: 전체보기(ALL) 상태이더라도 강제 return하지 않고 아래 파이프라인으로 연산을 개방합니다.
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
-            // 공백, 기호, 특수기호 제거 정제 변환기 (원본 싱크 100% 유지)
+            // 문자열 공백 및 기호 제거 정제 변환기 (원본 싱크 100% 유지)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4224,7 +4221,6 @@
             if (totalQuotaSum === 0) {
                 totalQuotaSum = filterTitle === 'ALL' ? 60 : (parseInt(filteredList?.count, 10) || 60);
             }
-
             // 3. [상태 파이프라인 집계]: 각 피험자별 라이브 상태 카운트 (원본 분기 logic 100% 보존)
             let receivedCount = 0;
             let processingCount = 0;
@@ -4243,7 +4239,7 @@
                 }
             });
 
-            // 4. [🎯 최종 UI 바인딩 교정]: 대표님이 확인해주신 슬래시 형태의 "참여인원/N수명" 포맷으로 정확히 출력 주입
+            // 4. [🎯 최종 UI 바인딩 교정]: 대표님이 구성해주신 슬래시 형태의 "참여인원/N수명" 포맷으로 정확히 출력 주입
             if (lblTotal) {
                 lblTotal.innerText = `${totalActiveCount}/${totalQuotaSum}명`;
             }
@@ -4259,6 +4255,8 @@
 
             console.log(`📊 [정밀 통계 완수] 참여인원: ${totalActiveCount}명 / 모집공고 배정 N수: ${totalQuotaSum}명`);
         }
+
+
 
         /**
          * 이력조회 버튼 클릭 시 에러를 해결하고 피험자 데이터와 공고 마스터 일정을 교차 맵핑하여 모달창에 렌더링하는 함수

@@ -4132,12 +4132,7 @@
             const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
             const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
 
-            const lblTotal = document.getElementById('stat-total-count');
-            const lblReceived = document.getElementById('stat-received-count');
-            const lblProcessing = document.getElementById('stat-processing-count');
-            const lblComplete = document.getElementById('stat-complete-count');
-
-            // 🎯 [락업 해제]: 초기 진입 단계에서 강제로 return하던 구형 잠금장치를 전면 철거합니다.
+            // 🎯 [버그 해결 핵심]: 초기 진입 단계에서 강제로 return하여 화면을 묶어버리던 구형 잠금장치를 전면 철거합니다.
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
@@ -4162,7 +4157,7 @@
             let totalActiveCount = filteredList.length; // 실제 등록된 참여자 수 (분자)
             let totalQuotaSum = 0; // 목표 모집 배정 N수 (분모)
 
-            // 2. 🎯 [텍스트 충돌 완전 해결]: 모집공고의 '60명'과 대상자의 '60'이 무조건 매칭되도록 양쪽 다 숫자만 발라내어 검문합니다.
+            // 2. 🎯 [텍스트 충돌 완전 해결]: 모집공고의 '46명'과 대상자의 '46'이 무조건 매칭되도록 양쪽 다 숫자만 발라내어 검문합니다.
             const matchedRecs = recruitmentDB.filter(rec => {
                 const recTitleClean = cleanString(rec.title);
                 const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
@@ -4183,6 +4178,7 @@
             if (totalQuotaSum === 0) {
                 totalQuotaSum = filterTitle === 'ALL' ? 60 : (parseInt(filteredList?.count, 10) || 60);
             }
+
             // 3. [상태 파이프라인 집계]: 각 피험자별 라이브 상태 카운트 (원본 분기 logic 100% 보존)
             let receivedCount = 0;
             let processingCount = 0;
@@ -4201,38 +4197,30 @@
                 }
             });
 
-            // 4. [🎯 최종 UI 바인딩]: 단위 문자 간섭('명')에 영향받지 않고 정확히 계산된 수치를 "참여인원/N수명" 포맷으로 덮어씌웁니다.
-            // =========================================================================
-            // 🎯 [원본 ID 동일 유지형 최종 교정]: 화면 전체에서 동일한 ID를 모두 찾아 동시에 주입합니다.
-            // =========================================================================
-
-            // 1. 참여현황 (참여/N수) - 화면에 있는 'stat-total-count' 이름을 가진 모든 태그를 찾아 전부 덮어씁니다.
+            // 4. [🎯 최종 UI 바인딩 - 전수 주입식 교정]: querySelectorAll 방식을 도입하여 
+            // 화면에 존재하는 모든 동일 ID 카드 슬롯을 "참여인원/N수명" 포맷(예: 1/46명)으로 완벽하게 강제 치환합니다.
             const allTotals = document.querySelectorAll('#stat-total-count');
             allTotals.forEach(el => {
-                el.innerText = `${totalActiveCount}/${totalQuotaSum}명`; // 💡 대표님이 명하신 포맷 사수
+                el.innerText = `${totalActiveCount}/${totalQuotaSum}명`;
             });
 
-            // 2. 청구서 접수 현황 - 화면의 모든 'stat-received-count' 태그 동시 주입
             const allReceived = document.querySelectorAll('#stat-received-count');
             allReceived.forEach(el => {
                 el.innerText = `${receivedCount}건`;
             });
 
-            // 3. 재무 검토 (처리중) - 화면의 모든 'stat-processing-count' 태그 동시 주입
             const allProcessing = document.querySelectorAll('#stat-processing-count');
             allProcessing.forEach(el => {
                 el.innerText = `${processingCount}건`;
             });
 
-            // 4. 정산 종결 (지급완료) - 화면의 모든 'stat-complete-count' 태그 동시 주입
             const allCompletes = document.querySelectorAll('#stat-complete-count');
             allCompletes.forEach(el => {
                 el.innerText = `${completeCount}건`;
             });
 
-            console.log(`📊 [ID 공용 연동 완수] 참여인원: ${totalActiveCount}명 / 모집공고 배정 N수: ${totalQuotaSum}명`);
+            console.log(`📊 [정밀 통계 완수] 참여인원: ${totalActiveCount}명 / 모집공고 배정 N수: ${totalQuotaSum}명`);
         }
-
 
 
         /**

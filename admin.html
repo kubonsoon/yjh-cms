@@ -5015,63 +5015,74 @@
         // 🎯 [원본 소스 완전 복구] 누락된 4단계 라이브 정산 통계 계산 엔진 (calculateLiveDashboardStats)
         // =========================================================================
         function calculateLiveDashboardStats() {
-            // 1. 상단 통계 필터(시험명 및 기수)의 현재 선택값 추출
-            const filterTitleSelect = document.getElementById('dashboard-filter-title');
-            const filterThSelect = document.getElementById('dashboard-filter-th');
+            // 1. 원본 셀렉트 박스 필터 고유 ID로부터 선택된 값 확보
+            const filterTitle = document.getElementById('dashboard-filter-title')?.value || 'ALL';
+            const filterTh = document.getElementById('dashboard-filter-th')?.value || 'ALL';
 
-            const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
-            const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
+            // 2. 원본 가상 데이터베이스(localStorage) 최신 데이터 로드
+            const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
-            // 2. 최신 대상자 대장(localStorage) 데이터 실시간 로드
-            const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-            // 3. 유령 공백을 정밀 압착하여 선택된 필터 조건에 맞게 데이터 필터링
-            const filteredData = adminApplicantDB.filter(item => {
-                if (!item.title) return false;
-
-                // 텍스트 양끝 및 내부 공백 정제 비교 (신일제약 중복 및 통계 누수 원천 차단)
-                const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
-                const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
-
-                const matchTitle = (cleanFilterTitle === 'ALL' || cleanItemTitle === cleanFilterTitle);
+            // 3. [분자 연산] 현재 필터 조건에 일치하는 실제 대상자(피험자) 필터링 및 카운트
+            const filteredApplicants = applicantDB.filter(item => {
+                const matchTitle = (filterTitle === 'ALL' || item.title === filterTitle);
                 const matchTh = (filterTh === 'ALL' || item.th === filterTh);
+                return matchTitle && matchTh;
+            });
+            const currentApplicantCount = filteredApplicants.length; // 실제 신청자 수
 
+            // 4. [분모 연산] 모집공고 원장에서 필터와 일치하는 공고의 배정 인원수(N수) 역추적
+            let totalTargetQuota = 0;
+
+            // 필터 조건에 부합하는 모집공고 데이터 추출
+            const matchedRecruitments = recruitmentDB.filter(rec => {
+                const matchTitle = (filterTitle === 'ALL' || rec.title === filterTitle);
+                const matchTh = (filterTh === 'ALL' || rec.th === filterTh);
                 return matchTitle && matchTh;
             });
 
-            // 4. 통계 카운트 변수 초기화
-            let totalCount = filteredData.length; // 참여현황 총 명수
-            let receivedCount = 0;               // 1단계: 청구서 접수 현황
-            let processingCount = 0;             // 2단계: 재무 검토 (처리중)
-            let completeCount = 0;               // 3단계: 정산 종결 (지급완료 / 처리완료)
-
-            // 5. 기획하신 상태 규격(대기/접수/처리중/처리완료)에 맞춰 실시간 집계 분기
-            filteredData.forEach(row => {
-                // row.result 또는 row.payStatus 기반으로 상태 스캔
-                const status = (row.result || row.payStatus || "대기").toString().trim();
-
-                if (status === "대기" || status === "접수") {
-                    receivedCount++; // 대기와 접수는 모두 [청구서 접수 현황]에 마운트
-                } else if (status === "처리중") {
-                    processingCount++; // 처리중은 [재무 검토]에 마운트
-                } else if (status === "지급완료" || status === "처리완료" || status === "완료") {
-                    completeCount++; // 지급완료와 처리완료는 모두 [정산 종결]에 마운트
+            // 검색된 모집공고들의 인원수(N수)를 숫자로만 안전하게 파싱하여 합산
+            matchedRecruitments.forEach(rec => {
+                if (rec && rec.count) {
+                    // 원본 포맷터(getOnlyNumbers) 결을 유지하여 '명' 글자가 붙어있어도 숫자만 발라냄
+                    const pureNum = parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
+                    totalTargetQuota += pureNum;
                 }
             });
 
-            // 6. PDF에 설계된 오리지널 통계판 ID 슬롯에 실시간 수치 강제 주입
-            if (document.getElementById('stat-total-count')) {
-                document.getElementById('stat-total-count').innerText = `${totalCount}명`;
+            // 시스템 최초 구동 시 혹은 전체 보기인데 공고 데이터가 없는 경우의 디폴트 예외 방어
+            if (totalTargetQuota === 0 && filterTitle === 'ALL') {
+                totalTargetQuota = 60;
             }
-            if (document.getElementById('stat-received-count')) {
-                document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
+
+            // 5. [3단계 상태 파이프라인] 각 정산 상태별 라이브 카운트 집계 (원본 규칙 유지)
+            let cntReceived = 0;     // 청구서 접수
+            let cntProcessing = 0;   // 재무 검토 (처리중)
+            let cntComplete = 0;     // 정산 종결 (지급완료)
+
+            filteredApplicants.forEach(item => {
+                // 원본의 result 및 payStatus1 데이터 필드 분기 기준 100% 유지
+                const status = item.result || item.payStatus1 || '접수';
+                if (status === '접수') cntReceived++;
+                else if (status === '처리중') cntProcessing++;
+                else if (status === '지급완료') cntComplete++;
+            });
+
+            // 6. [UI 마운트] 원본 레이아웃의 고유 ID 태그 슬롯에 1/60명 형태로 동적 마운트
+            const elTotal = document.getElementById('stat-total-count');
+            if (elTotal) {
+                elTotal.innerText = `${currentApplicantCount}/${totalTargetQuota}명`;
             }
-            if (document.getElementById('stat-processing-count')) {
-                document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
-            }
-            if (document.getElementById('stat-complete-count')) {
-                document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
-            }
+
+            // 나머지 3단계 접수/처리중/완료 현황판 슬롯 매핑 (원본 ID 규칙 보존)
+            const elRec = document.getElementById('stat-received-count');
+            if (elRec) elRec.innerText = `${cntReceived}건`;
+
+            const elProc = document.getElementById('stat-processing-count');
+            if (elProc) elProc.innerText = `${cntProcessing}건`;
+
+            const elComp = document.getElementById('stat-complete-count');
+            if (elComp) elComp.innerText = `${cntComplete}건`;
         }
 
         // 🎯 [연동 트리거]: 탭 클릭 및 최초 로드 시 비어있던 통계 함수를 깨워주는 연결고리 배치

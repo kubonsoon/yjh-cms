@@ -5352,6 +5352,21 @@
             const pay2 = row.payStatus2 || '대기';
             const pay3 = row.payStatus3 || '대기';
 
+            // 🎯 [대표님 지시 핵심 이식]: 성명/생년월일/전화번호 알맹이 추출용 정형화 함수
+            const getPurePhone = (p) => (p || "").toString().replace(/[^0-9]/g, "").trim();
+            const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+
+            const targetNameToken = getPureString(row.name);
+            const targetSsnToken = getPureString(row.ssn);
+            const targetPhoneToken = getPurePhone(row.phone);
+
+            // 전역 대장에서 이름/생년월일/전화번호 번호가 100% 동일한 과거의 모든 참여 임상 이력을 긁어모읍니다.
+            const historyRecords = db.filter(item => {
+                return getPureString(item.name) === targetNameToken &&
+                    getPureString(item.ssn) === targetSsnToken &&
+                    getPurePhone(item.phone) === targetPhoneToken;
+            });
+
             // 라이브 정산 진행률 내부 미니 배지 렌더러
             const buildHistoryBadge = (val) => {
                 let s = val; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '완료';
@@ -5362,30 +5377,64 @@
                 return `<span class="lvl-badge" style="${style} padding:2px 8px; font-size:11px; font-weight:700; border-radius:4px;">${s}</span>`;
             };
 
-            // 4. [뼈대 프레임 인젝션]: 고대비 와이드 그리드 프레임 레이아웃 구조 선제 사출 [index: 0.1.17]
+            // 🎯 [실시간 과거 이력 스크롤 스케줄러 뼈대 조립]
+            let historyRowsHTML = "";
+            historyRecords.forEach((hist, hIdx) => {
+                let hStatus = (hist.result || hist.payStatus || '접수').toString().trim();
+                if (hStatus === '확인' || hStatus === '접수완료') hStatus = '접수';
+                if (hStatus === '지급완료') hStatus = '처리완료';
+
+                let hBadgeColor = hStatus === '접수' ? '#38bdf8' : hStatus === '처리중' ? '#fbbf24' : '#4ade80';
+
+                historyRowsHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:rgba(255,255,255,0.02); border:1px solid #1e293b; border-radius:6px; margin-bottom:6px; font-size:13px;">
+                <div style="display:flex; flex-direction:column; gap:2px; text-align:left;">
+                    <div style="font-weight:700; color:#ffffff;">${hist.title}</div>
+                    <div style="font-size:11px; color:var(--text-muted);">진행 기수: <span style="color:#38bdf8; font-weight:700;">${hist.th || '1기'}</span> &nbsp;|&nbsp; 인정시간: ${hist.period || '0'}시간</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:11px; color:#64748b;">지급상태:</span>
+                    <span style="color:${hBadgeColor}; font-weight:800; font-size:12px;">${hStatus === '처리중' ? '검토중' : hStatus === '처리완료' ? '완료' : hStatus}</span>
+                </div>
+            </div>
+        `;
+            });
+
+            if (!historyRowsHTML) {
+                historyRowsHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:15px 0;">과거 임상 참여 내역이 존재하지 않습니다.</div>`;
+            }
+
+            // 4. [뼈대 프레임 인젝션]: 고대비 와이드 그리드 프레임 레이아웃 구조 사출 [index: 0.1.17]
             overlay.innerHTML = `
-        <div class="history-modal-box" style="background: var(--card-color); border: 1px solid var(--border-color); padding: 35px; border-radius: 16px; width: 100%; max-width: 650px; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6); box-sizing: border-box; margin: 0 !important; animation: modalFadeIn 0.25s ease-out;">
-            <h3 style="margin-top:0; margin-bottom: 25px; font-size: 20px; font-weight: 800; color: var(--secondary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <div class="history-modal-box" style="background: var(--card-color); border: 1px solid var(--border-color); padding: 32px 35px; border-radius: 16px; width: 100%; max-width: 650px; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6); box-sizing: border-box; margin: 0 !important; animation: modalFadeIn 0.25s ease-out;">
+            <h3 style="margin-top:0; margin-bottom: 22px; font-size: 20px; font-weight: 800; color: var(--secondary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-id-card"></i> 피험자 개인 이력 종합 마스터 대장
             </h3>
             
-            <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 25px; text-align:left;">
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">참여 임상 시험명:</span> <div style="font-weight:700; color:#fff; margin-top:2px;">${row.title}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">적용 차수/기수:</span> <div style="margin-top:2px;"><span class="lvl-badge lvl-2" style="padding:2px 6px; font-size:11px;">${row.th || '1기'}</span></div></div>
+            <!-- 상단: 기본 인적 신상 정보리스트 그리드 -->
+            <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; text-align:left;">
                 <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">피험자 성명:</span> <div style="font-weight:700; color:var(--success-color); margin-top:2px;">${cleanName}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">생년월일 (주민 앞자리):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${row.ssn || '-'}</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">생년월일 (YYMMDD):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${row.ssn || '-'}</div></div>
                 <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">연락처 (휴대폰):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${fmtPhone}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">임상 참여 인정 시간:</span> <div style="font-weight:700; color:#fbbf24; margin-top:2px;">${row.period || '0'}시간</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">당직 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${dutyStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : dutyStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">소집 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${callStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : callStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 소속 기수명:</span> <div style="margin-top:2px;"><span class="lvl-badge lvl-2" style="padding:2px 6px; font-size:11px;">${row.th || '1기'}</span></div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 당직 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${dutyStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : dutyStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 소집 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${callStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : callStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
+            </div>
+
+            <!-- 🎯 [대표님 지시 완벽 정형]: 과거 임상 참여 전체 리스트 출력 구역 (높이 180px 제한 및 무결점 스크롤바 가드 장착) -->
+            <div style="width:100%; background:#0b0f19; border:1px solid var(--border-color); padding:14px; border-radius:8px; margin-bottom:18px; box-sizing:border-box;">
+                <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:10px; text-align:left;"><i class="fa-solid fa-clock-history"></i> 동일 피험자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)</div>
+                <div class="modal-history-scroll-zone" style="max-height:180px; overflow-y:auto; padding-right:4px; box-sizing:border-box;">
+                    ${historyRowsHTML}
+                </div>
             </div>
         </div>
     `;
 
-            // 5. [차수별 정산 타임라인 구성]: 미니 배지 엔진 결합 스트림 정의
+            // 5. [현재 참여비 진행률 현황판]: 라이브 정산 배지 엔진 연동 인젝션
             const payTimelineHTML = `
-        <div style="background:#0b0f19; border:1px solid var(--border-color); padding:16px 20px; border-radius:10px; margin-bottom:25px; text-align:left;">
-            <div style="font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom:12px;"><i class="fa-solid fa-money-bill-transfer"></i> 임상 참여비 차수별 지급 정산 진행률 현황</div>
+        <div style="background:#0b0f19; border:1px solid var(--border-color); padding:14px 18px; border-radius:8px; margin-bottom:20px; text-align:left;">
+            <div style="font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom:10px;"><i class="fa-solid fa-money-bill-transfer"></i> 현재 참여 과제 참여비 차수별 지급 정산 진행률</div>
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                 <div style="display:flex; align-items:center; gap:6px;"><span style="color:var(--text-muted); font-size:12px;">[1차 지급]:</span> ${buildHistoryBadge(pay1)}</div>
                 <div style="display:flex; align-items:center; gap:6px;"><span style="color:var(--text-muted); font-size:12px;">[2차 지급]:</span> ${buildHistoryBadge(pay2)}</div>
@@ -5394,7 +5443,7 @@
         </div>
     `;
 
-            // 6. [연쇄 결합 마운트]: 순서 꼬임 버그를 전면 박멸하고 내부 상자 구조에 안전하게 후입 누적 처리
+            // 6. [연쇄 결합 마운트]: 최종 상자 내부에 순차적으로 유연하게 후입 결합 처리
             const innerBox = overlay.querySelector('.history-modal-box');
             if (innerBox) {
                 innerBox.innerHTML += payTimelineHTML;
@@ -5405,7 +5454,7 @@
         `;
             }
 
-            // 최종 플렉스 전체 백드롭 모달 오버레이 물리적 작동 사출
+            // 최종 오버레이 패널 작동 사출
             overlay.style.display = 'flex';
         }
 
@@ -5418,7 +5467,6 @@
                 overlay.style.display = 'none';
             }
         }
-
 
 
     </script>

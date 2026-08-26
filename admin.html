@@ -1958,7 +1958,7 @@
             `;
                 }
                 // ----------------======================================================
-                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (원본 유지)
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (역슬래시 완전 제거 교정 완수)
                 // ----------------======================================================
                 else {
                     const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
@@ -1983,23 +1983,30 @@
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
                 </td>
-                <!-- 🎯 [버그 해결 완료]: 중복 합산 없이 정확히 일치하는 피험자 참여 수 / 공고 N수 포맷 동적 사출 -->
+                
+                <!-- 🎯 [인원수 슬롯 정상화]: 백틱 이스케이프(\)를 전면 제거하여 진짜 수치가 안전하게 찍힙니다 -->
                 <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${pureQuotaNum}명</td>
                 <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
                 <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
                 <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
+                
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
+                
+                <!-- 🎯 [당직공지 통계 버튼 장착]: '동의0명/미동의0명/대기1명' 문자열이 버튼에 실시간 연동 렌더링 꽂힙니다 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="${dutyBtnStyle} padding: 4px 4px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 10.5px; width: 145px; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;">${dutyStatsText}</button>
                 </td>
+                
+                <!-- 🎯 [소집공지 통계 버튼 장착]: '동의0명/미동의0명/대기1명' 문자열이 버튼에 실시간 연동 렌더링 꽂힙니다 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 4px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 10.5px; width: 145px; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;">${callStatsText}</button>
                 </td>
+                
                 <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
                     <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
                         ${multiLinePayHTML}
@@ -2017,7 +2024,6 @@
                 tbody.appendChild(tr);
             });
         }
-
 
         /**
          * 2. [교정] 수정 단추 선택 시 상단 타겟 인덱스를 락인하고 라인을 새로고침하는 진입점

@@ -5325,6 +5325,102 @@
             }, 150); // 150ms 정밀 디바운싱을 통해 레이턴시 충돌을 완전히 제어
         });
 
+        // =========================================================================
+        // 이력조회 부분
+        // =========================================================================
+        function openIndividualHistoryModal(index) {
+            // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드
+            let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            const row = db[index];
+            if (!row) return alert("시스템 알림: 해당 피험자의 이력 데이터를 추적할 수 없습니다.");
+
+            // 2. 원본 HTML 구조 내에 선언된 와이드 모달 오버레이 돔 요소 스캔 [index: 0.1.17]
+            const overlay = document.getElementById('historyModalOverlay') || document.querySelector('.history-modal-overlay');
+            if (!overlay) return alert("시스템 오류: 'history-modal-overlay' 엘리먼트를 찾을 수 없습니다.");
+
+            // 3. 성명 및 전화번호 정제 가공 유틸리티 가동 (원본 규격 일치화)
+            const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
+            const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
+            let fmtPhone = '-';
+            if (rawPhone.length === 11) fmtPhone = rawPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+            else if (rawPhone.length === 10) fmtPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+            else if (rawPhone.length > 0) fmtPhone = row.phone;
+
+            const dutyStatus = (row.isDutyAgreed || "대기").trim();
+            const callStatus = (row.isCallAgreed || "대기").trim();
+            const pay1 = row.payStatus1 || '접수';
+            const pay2 = row.payStatus2 || '대기';
+            const pay3 = row.payStatus3 || '대기';
+
+            // 라이브 정산 진행률 내부 미니 배지 렌더러
+            const buildHistoryBadge = (val) => {
+                let s = val; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '완료';
+                let style = "background:#334155; color:#cbd5e1;";
+                if (s === '접수') style = "background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3);";
+                else if (s === '처리중') style = "background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);";
+                else if (s === '완료' || s === '처리완료') style = "background:rgba(74,222,128,0.15); color:#4ade80; border:1px solid rgba(74,222,128,0.3);";
+                return `<span class="lvl-badge" style="${style} padding:2px 8px; font-size:11px; font-weight:700; border-radius:4px;">${s}</span>`;
+            };
+
+            // 4. [뼈대 프레임 인젝션]: 고대비 와이드 그리드 프레임 레이아웃 구조 선제 사출 [index: 0.1.17]
+            overlay.innerHTML = `
+        <div class="history-modal-box" style="background: var(--card-color); border: 1px solid var(--border-color); padding: 35px; border-radius: 16px; width: 100%; max-width: 650px; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6); box-sizing: border-box; margin: 0 !important; animation: modalFadeIn 0.25s ease-out;">
+            <h3 style="margin-top:0; margin-bottom: 25px; font-size: 20px; font-weight: 800; color: var(--secondary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-id-card"></i> 피험자 개인 이력 종합 마스터 대장
+            </h3>
+            
+            <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 25px; text-align:left;">
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">참여 임상 시험명:</span> <div style="font-weight:700; color:#fff; margin-top:2px;">${row.title}</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">적용 차수/기수:</span> <div style="margin-top:2px;"><span class="lvl-badge lvl-2" style="padding:2px 6px; font-size:11px;">${row.th || '1기'}</span></div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">피험자 성명:</span> <div style="font-weight:700; color:var(--success-color); margin-top:2px;">${cleanName}</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">생년월일 (주민 앞자리):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${row.ssn || '-'}</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">연락처 (휴대폰):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${fmtPhone}</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">임상 참여 인정 시간:</span> <div style="font-weight:700; color:#fbbf24; margin-top:2px;">${row.period || '0'}시간</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">당직 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${dutyStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : dutyStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">소집 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${callStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : callStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
+            </div>
+        </div>
+    `;
+
+            // 5. [차수별 정산 타임라인 구성]: 미니 배지 엔진 결합 스트림 정의
+            const payTimelineHTML = `
+        <div style="background:#0b0f19; border:1px solid var(--border-color); padding:16px 20px; border-radius:10px; margin-bottom:25px; text-align:left;">
+            <div style="font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom:12px;"><i class="fa-solid fa-money-bill-transfer"></i> 임상 참여비 차수별 지급 정산 진행률 현황</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div style="display:flex; align-items:center; gap:6px;"><span style="color:var(--text-muted); font-size:12px;">[1차 지급]:</span> ${buildHistoryBadge(pay1)}</div>
+                <div style="display:flex; align-items:center; gap:6px;"><span style="color:var(--text-muted); font-size:12px;">[2차 지급]:</span> ${buildHistoryBadge(pay2)}</div>
+                <div style="display:flex; align-items:center; gap:6px;"><span style="color:var(--text-muted); font-size:12px;">[3차 지급]:</span> ${buildHistoryBadge(pay3)}</div>
+            </div>
+        </div>
+    `;
+
+            // 6. [연쇄 결합 마운트]: 순서 꼬임 버그를 전면 박멸하고 내부 상자 구조에 안전하게 후입 누적 처리
+            const innerBox = overlay.querySelector('.history-modal-box');
+            if (innerBox) {
+                innerBox.innerHTML += payTimelineHTML;
+                innerBox.innerHTML += `
+            <div style="display: flex; justify-content: flex-end; width: 100%; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                <button type="button" onclick="closeIndividualHistoryModal()" style="background: #475569; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13.5px; transition: opacity 0.2s;">닫기</button>
+            </div>
+        `;
+            }
+
+            // 최종 플렉스 전체 백드롭 모달 오버레이 물리적 작동 사출
+            overlay.style.display = 'flex';
+        }
+
+        /**
+         * 🎯 개인 이력 종합 마스터 대장 모달 팝업 오버레이 제거 함수 (중복 제거 통합 단일 선언)
+         */
+        function closeIndividualHistoryModal() {
+            const overlay = document.getElementById('historyModalOverlay') || document.querySelector('.history-modal-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
+
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

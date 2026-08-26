@@ -2678,15 +2678,15 @@
                 payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
                 payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
 
-                // 🌟 [당직/소집동의 오리지널 키값 매핑]: 목록 출력 시 공란으로 밀리지 않도록 기존 스펙 100% 이식
-                isDutyAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isDutyAgreed || "동의"),
-                isCallAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isCallAgreed || "동의"),
-                isAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isAgreed || "동의"),
+                // 신규 등록(editIndex === "") 시 기존 구형 '동의' 흔적을 전면 소멸시키고 무조건 순정 "대기"로 탄생시킵니다.
+                isDutyAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isDutyAgreed || "대기"),
+                isCallAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isCallAgreed || "대기"),
+                isAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isAgreed || "대기"),
 
                 category: editIndex === "" ? "내분비내과 / 대장 수동 등록" : dataStoreApplicant[editIndex].category,
                 stage: `${th} 참여(소집)`,
 
-                // 🌟 [첨부서류 배지 야광 마운트]: 신규 등록 시 증빙서류가 온전하게 녹색/파란색 인가 배지로 출력되도록 true 설정
+                // 🌟 [첨부서류 배지 야광 마운트]: 신규 등록 시 증빙서류가 온전하게 녹색/파란색 인가 배지로 출력되도록 true 설정 (원형 유지)
                 idCard: editIndex === "" ? true : (dataStoreApplicant[editIndex].idCard !== undefined ? dataStoreApplicant[editIndex].idCard : true),
                 bankbook: editIndex === "" ? true : (dataStoreApplicant[editIndex].bankbook !== undefined ? dataStoreApplicant[editIndex].bankbook : true),
 
@@ -2702,13 +2702,23 @@
                     payload.result = "접수";
                     payload.payStatus = "접수";
 
-                    // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용
+                    // 🎯 [대표님 지시 완결 이식]: 신규 등록자는 기존의 구형 '동의' 흔적을 전면 소멸시키고 무조건 "대기"로 탄생시킵니다.
+                    payload.isDutyAgreed = "대기";
+                    payload.isCallAgreed = "대기";
+                    payload.isAgreed = "대기";
+
+                    // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용 (원형 유지)
                     dataStoreApplicant.unshift(payload);
                     alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
                 } else {
-                    // [수정 완료 모드]
+                    // [수정 완료 모드] (기존 데이터 구조 유실 방지 가드 상속 원형 유지)
                     if (!payload.result) payload.result = document.getElementById('form-app-result')?.value || dataStoreApplicant[editIndex].result || '접수';
                     if (!payload.payStatus) payload.payStatus = payload.result;
+
+                    // 수정 시에는 관리자가 선택해둔 기존 상태를 그대로 유지 및 상속
+                    payload.isDutyAgreed = dataStoreApplicant[editIndex].isDutyAgreed || "대기";
+                    payload.isCallAgreed = dataStoreApplicant[editIndex].isCallAgreed || "대기";
+                    payload.isAgreed = dataStoreApplicant[editIndex].isAgreed || "대기";
 
                     dataStoreApplicant[editIndex] = payload;
                     alert(`📋 정보 갱신 완료: [${n}] 피험자의 마스터 레코드가 업데이트되었습니다.`);

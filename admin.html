@@ -4137,11 +4137,11 @@
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // 🎯 [버그 해결 핵심]: 전체보기(ALL) 상태이더라도 강제 return하지 않고 아래 파이프라인으로 연산을 개방합니다.
+            // 🎯 [락업 해제]: 초기 진입 단계에서 강제로 return하던 구형 잠금장치를 전면 철거합니다.
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
-            // 문자열 공백 및 기호 제거 정제 변환기 (원본 싱크 100% 유지)
+            // 공백, 기호, 특수기호 제거 포맷터 (원본 알고리즘 싱크 100% 일치화)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4160,9 +4160,9 @@
             });
 
             let totalActiveCount = filteredList.length; // 실제 등록된 참여자 수 (분자)
+            let totalQuotaSum = 0; // 목표 모집 배정 N수 (분모)
 
-            // 2. [분모 계산]: 모집공고 원장(recruitmentDB)에서 필터와 일치하는 공고의 순수 배정 N수 합산
-            let totalQuotaSum = 0;
+            // 2. 🎯 [텍스트 충돌 완전 해결]: 모집공고의 '60명'과 대상자의 '60'이 무조건 매칭되도록 양쪽 다 숫자만 발라내어 검문합니다.
             const matchedRecs = recruitmentDB.filter(rec => {
                 const recTitleClean = cleanString(rec.title);
                 const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
@@ -4173,12 +4173,13 @@
 
             matchedRecs.forEach(rec => {
                 if (rec && rec.count) {
-                    // '60명', '60' 등 포맷에서 숫자만 발라내어 차곡차곡 누적
-                    totalQuotaSum += parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
+                    // 🎯 글자 뒤에 '명' 자가 붙어 있더라도 순수 숫자 알맹이만 안전하게 누적 연산합니다.
+                    const pureNum = parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
+                    totalQuotaSum += pureNum;
                 }
             });
 
-            // 매칭 실패 시 최종 예외 방어선 디폴트 모수 지정 (원본 규칙 보존)
+            // 매칭 실패 시 최종 예외 방어선 디폴트 모수 지정
             if (totalQuotaSum === 0) {
                 totalQuotaSum = filterTitle === 'ALL' ? 60 : (parseInt(filteredList?.count, 10) || 60);
             }
@@ -4200,7 +4201,7 @@
                 }
             });
 
-            // 4. [🎯 최종 UI 바인딩 교정]: 대표님이 구성해주신 슬래시 형태의 "참여인원/N수명" 포맷으로 정확히 출력 주입
+            // 4. [🎯 최종 UI 바인딩]: 단위 문자 간섭('명')에 영향받지 않고 정확히 계산된 수치를 "참여인원/N수명" 포맷으로 덮어씌웁니다.
             if (lblTotal) {
                 lblTotal.innerText = `${totalActiveCount}/${totalQuotaSum}명`;
             }

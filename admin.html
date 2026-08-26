@@ -4176,7 +4176,19 @@
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // 💡 [원본 락업 해제 및 교정]: 시험명이나 기수가 ALL인 초기 상태에서도 연산 흐름이 끊기지 않도록 가드를 걷어내고 실시간 계산을 전격 개시합니다.
+            // 🎯 [원본 원칙 고수]: 기수가 아직 'ALL' 상태라면 무조건 0/0명으로 화면 락인 홀딩 (원본 규칙 유지)
+            if (filterTitle === 'ALL' || filterTh === 'ALL' || filterTh === '') {
+                if (lblTotal) lblTotal.innerText = "0/0명";
+                if (lblReceived) lblReceived.innerText = "0건";
+                if (lblProcessing) lblProcessing.innerText = "0건";
+                if (lblComplete) lblComplete.innerText = "0건";
+                console.log(`🔒 [통계 락업 활성화] 기수 미선택(ALL) 조건 충족으로 통계 수치가 0으로 홀딩 대기됩니다.`);
+                return;
+            }
+
+            // ----------------======================================================
+            // 💡 [안전 패스 통과 구역]: 시험명과 특정 기수가 매칭 픽스되었으므로 실시간 연산 시작
+            // ----------------======================================================
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
@@ -4203,7 +4215,7 @@
             let totalActiveCount = filteredList.length; // 실제 신청자 수 (분자)
             let totalQuotaSum = 0; // 목표 모집 배정 N수 (분모)
 
-            // 2. 🎯 [핵심 분모 연산] 피험자 대장의 불안정한 데이터 대신, 진짜 모집공고 원장(recruitmentDB)에서 입력된 N수를 정확히 추적 매칭합니다.
+            // 2. 🎯 [버그 해결 핵심 구역] matchedRecs는 배열이므로, 루프를 돌며 rec.count를 하나씩 꺼내 축적해야 분모가 완벽해집니다.
             const matchedRecs = recruitmentDB.filter(rec => {
                 const recTitleClean = cleanString(rec.title);
                 const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
@@ -4214,15 +4226,16 @@
                 return matchTitle && matchTh;
             });
 
+            // 🎯 배열 내부의 각 공고 개체로부터 count 값을 안전하게 수집 및 누적 연산
             matchedRecs.forEach(rec => {
                 if (rec && rec.count) {
-                    // 원본 포맷터 결을 유지하여 '명' 자가 포함되어 있어도 순수 숫자만 발라내 누적 합산
+                    // 포맷 깨짐 방지용 정규식 숫자 정제 처리 후 가동 인상
                     const pureNum = parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
                     totalQuotaSum += pureNum;
                 }
             });
 
-            // 만약 예외 상황이거나 데이터 로딩 전일 경우 원본 백업 폴백 로직 작동 (원본 유지)
+            // 예외 상황 발생 시 대상자 대장 데이터(row.count)에서 추출하는 원본 백업 폴백 (원본 유지)
             if (totalQuotaSum === 0) {
                 filteredList.forEach(row => {
                     const pureCount = parseInt(row.count?.toString().replace(/[^0-9]/g, ''), 10) || 0;
@@ -4233,11 +4246,11 @@
             }
 
             if (totalQuotaSum === 0 && filteredList.length > 0) {
-                totalQuotaSum = parseInt(filteredList.count) || 60;
+                totalQuotaSum = parseInt(filteredList[0].count) || 60;
             }
 
             if (totalQuotaSum === 0) {
-                totalQuotaSum = 60; // 최종 디폴트 방어선
+                totalQuotaSum = 60; // 최종 디폴트 안전선
             }
 
             // 3. 3단계 상태 현황 분류 파이프라인 (원본 logic 100% 원형 보존)
@@ -4258,13 +4271,13 @@
                 }
             });
 
-            // 4. [UI 바인딩 정밀 매칭]: 공백 없이 원하셨던 정확한 형태인 "참여인원/N수명" 포맷 주입
+            // 4. [UI 바인딩 정밀 사출]: 공백을 완전히 제거하여 정확히 "1/50명" 양식으로 결합 렌더링
             if (lblTotal) lblTotal.innerText = `${totalActiveCount}/${totalQuotaSum}명`;
             if (lblReceived) lblReceived.innerText = `${receivedCount}건`;
             if (lblProcessing) lblProcessing.innerText = `${processingCount}건`;
             if (lblComplete) lblComplete.innerText = `${completeCount}건`;
 
-            console.log(`📊 [2단계 필터 통과 정밀 통계 완료] 필터링 매칭인원: ${filteredList.length}명 / 배정 모수(N수): ${totalQuotaSum}명`);
+            console.log(`📊 [정밀 통계 완료] 참여인원: ${totalActiveCount}명 / 모집공고 배정 N수: ${totalQuotaSum}명`);
         }
 
         /**

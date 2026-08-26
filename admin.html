@@ -1958,7 +1958,7 @@
             `;
                 }
                 // ----------------======================================================
-                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (역슬래시 완전 제거 교정 완수)
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (순정 "보기" 버튼 양식 100% 복원)
                 // ----------------======================================================
                 else {
                     const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
@@ -1983,28 +1983,23 @@
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
                 </td>
-                
-                <!-- 🎯 [인원수 슬롯 정상화]: 백틱 이스케이프(\)를 전면 제거하여 진짜 수치가 안전하게 찍힙니다 -->
                 <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${pureQuotaNum}명</td>
                 <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
                 <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
                 <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
                 
+                <!-- 🎯 [순정 복원] 주의사항, 시험일정, 당직공지, 소집공지 모두 "보기" 배지 단추 형태로 컴백 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
-                
-                <!-- 🎯 [당직공지 통계 버튼 장착]: '동의0명/미동의0명/대기1명' 문자열이 버튼에 실시간 연동 렌더링 꽂힙니다 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="${dutyBtnStyle} padding: 4px 4px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 10.5px; width: 145px; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;">${dutyStatsText}</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
-                
-                <!-- 🎯 [소집공지 통계 버튼 장착]: '동의0명/미동의0명/대기1명' 문자열이 버튼에 실시간 연동 렌더링 꽂힙니다 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 4px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 10.5px; width: 145px; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;">${callStatsText}</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 
                 <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
@@ -4478,6 +4473,7 @@
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const targetRow = recruitmentDB[index] || {};
             const examTitle = targetRow.title || "지정 과제";
+            const examTh = targetRow.th || "1기";
 
             let config = { title: "", icon: "", color: "", dbField: "", label: "" };
             if (type === 'notice') {
@@ -4501,12 +4497,10 @@
                 currentHTMLContent += `</div>`;
             }
 
-            // [백엔드 문자열 정밀 세척 연산 가드]: 텍스트 앞뒤 공백 및 특수문자 불일치로 인한 카운트 누락을 철저히 방어합니다.
-            let agreeCnt = 0, disagreeCnt = 0;
+            // [백엔드 문자열 정밀 세척 연산 가드]: 대표님 원본 로직 사수 및 대기자수(waitCnt) 변수 추가
+            let agreeCnt = 0, disagreeCnt = 0, waitCnt = 0;
             try {
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-                // 🎯 [순정 토큰 추출]: 괄호나 특수문자 공백을 원천 소멸시킨 순수 문자열 매칭선 정렬
                 const getPureToken = (str) => (str || "").toString().replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, "").replace(/\s+/g, "").trim();
 
                 const targetTitleToken = getPureToken(targetRow.title);
@@ -4515,38 +4509,27 @@
                 const targetApplicants = adminApplicantDB.filter(item => {
                     const itemTitleToken = getPureToken(item.title);
                     const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
-
-                    // 과제명 토큰과 숫자로 정제된 기수가 동시에 자석처럼 완벽히 일치하는 피험자만 정밀 스캔 격리
                     return (itemTitleToken === targetTitleToken && itemThNum === targetThNum && targetThNum !== "");
                 });
 
                 targetApplicants.forEach(user => {
                     if (type === 'duty') {
-                        const dutyState = (user.isDutyAgreed || "").trim();
+                        const dutyState = (user.isDutyAgreed || "대기").toString().trim();
                         if (dutyState === "동의") agreeCnt++;
                         else if (dutyState === "미동의") disagreeCnt++;
+                        else waitCnt++;
                     } else if (type === 'call') {
-                        const callState = (user.isCallAgreed || "").trim();
+                        const callState = (user.isCallAgreed || "대기").toString().trim();
                         if (callState === "동의") agreeCnt++;
                         else if (callState === "미동의") disagreeCnt++;
+                        else waitCnt++;
                     }
                 });
-                console.log(`📊 [실시간 양방향 집계 성공] 토큰명: ${targetTitleToken} | 기수: ${targetThNum}기 | 동의: ${agreeCnt}명 | 미동의: ${disagreeCnt}명`);
-            } catch (err) { console.error("실시간 팝업 양방향 통계 집계 실패 가드 가동", err); }
+            } catch (err) { console.error("실시간 통계 집계 에러 가드 가동", err); }
 
+            // 🎯 [상단 현황판 차단막 제거]: 구형 popupStatLineHTML 변수 문자열을 완전히 공백 소멸 처리합니다.
             let popupStatLineHTML = "";
-            if (type === 'duty' || type === 'call') {
-                popupStatLineHTML = `
-            <div style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; font-size: 13px; font-weight: 700; box-sizing: border-box;">
-                <span style="color: var(--text-muted);"><i class="fa-solid fa-chart-pie" style="color: ${config.color};"></i> 실시간 피험자 서명 현황:</span>
-                <div style="display: flex; gap: 12px;">
-                    <span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> 동의: ${agreeCnt}명</span>
-                    <span style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> 미동의: ${disagreeCnt}명</span>
-                </div>
-            </div>
-        `;
-            }
-
+            // 에디터 마크업 변수 선언 구역 (원본 원형 100% 무결점 보존)
             const boardEditorHTML = `
         <div id="integrated-editor-form-area" style="display: none; width: 100%; text-align: left;">
             <label style="display: block; font-size: 12px; font-weight: 700; color: ${config.color}; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 게시판 에디터</label>
@@ -4565,6 +4548,7 @@
             <div id="html-integrated-workspace" contenteditable="true" style="width: 100%; height: 200px; background: #0b0f19; border: 2px solid var(--border-color); border-radius: 0 0 8px 8px; color: #ffffff; padding: 14px; font-size: 14px; line-height: 1.6; outline: none; overflow-y: auto; box-sizing: border-box;"></div>
         </div>
     `;
+
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             const contentBox = document.querySelector(".editor-modal-content");
             if (!overlay || !contentBox) return console.error("통합 모달창 돔 오류");
@@ -4574,100 +4558,46 @@
             contentBox.style.color = "var(--text-color)";
             contentBox.style.width = "520px";
 
-            // 지능형 문자열 세척 가드가 반영된 
-            // 패널을 본문 하단에 정밀 마운팅하고 액션 단추를 우측으로 칼밀착 정렬합니다.
+            // 🎯 [하단 레이아웃 완벽 이식]: 닫기 단추 바로 위에 한 줄 수평 정렬로 안착될 동의/미동의/대기 스코어 판넬 구성
+            let footerStatsLineHTML = "";
+            if (type === 'duty' || type === 'call') {
+                footerStatsLineHTML = `
+            <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px; margin-bottom: 15px; font-size: 13px; font-weight: 700; box-sizing: border-box;">
+                <span style="color: var(--text-color);"><i class="fa-solid fa-chart-pie" style="color: ${config.color};"></i> 실시간 피험자 서명 현황:</span>
+                <div style="display: flex; gap: 12px;">
+                    <span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> 동의: ${agreeCnt}명</span>
+                    <span style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> 미동의: ${disagreeCnt}명</span>
+                    <span style="color: #94a3b8;"><i class="fa-regular fa-circle-dot"></i> 대기: ${waitCnt}명</span>
+                </div>
+            </div>
+        `;
+            }
+
+            // 🎯 [제목 결합 및 레이아웃 출력]: 지저분한 40ms 상단 기습 바를 차단하고 요구하신 디자인을 강제 인젝션합니다.
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: ${config.color}; font-size: 18px; font-weight: 800; text-align: left;">
-            <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle}</span>]
+            <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle} ${examTh}</span>]
         </h3>
         <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; width: 100%;">
             <div id="integrated-display-view-area" style="width: 100%; text-align: left;">${currentHTMLContent}</div>
             ${boardEditorHTML}
         </div>
         
-        <!-- 실시간 지능형 세척 반영 서명 한 줄 통계 누적 패널 출현 존 -->
-        ${popupStatLineHTML}
+        <!-- 🎯 최하단 액션 버튼바 윗줄에 정확히 달라붙는 수평 한 줄 통계 패널 슬롯 -->
+        ${footerStatsLineHTML}
         
-        <!-- 하단 액션 버튼바: 전체 우측 정렬(flex-end) 및 관리자 최적화 동선 단추 정렬 -->
-        <div style="display: flex; justify flex-end; align-items: center; width: 100%; gap: 8px;">
+        <!-- 하단 액션 버튼바: 전체 우측 정렬(flex-end) 및 오리지널 버튼 세트 보존 -->
+        <div style="display: flex; justify-content: flex-end; align-items: center; width: 100%; gap: 8px;">
             <button type="button" id="btn-integrated-action-edit" onclick="switchIntegratedToEditorMode()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">편집</button>
             <button type="button" id="btn-integrated-action-save" onclick="saveIntegratedEditorContent(${index}, '${type}', '${config.dbField}')" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);">수정완료</button>
             <button type="button" onclick="closeIntegratedModal()" style="background: #475569; color: white; border: none; padding: 8px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
         </div>
     `;
             overlay.style.display = "flex";
-
-            // =========================================================================
-            // [3구역 수술 마감] openIntegratedBoardModal 함수 최하단 결합 구역
-            // =========================================================================
-            overlay.style.display = "flex";
-
-            // 🌟 [기획 연동 추가]: 팝업창이 열리는 바로 그 정밀 타이밍에 대상자 대장을 역추적하는 통계판 작동
-            setTimeout(function () {
-                if (typeof dataStoreRecruitment === "undefined") return;
-                const targetRec = dataStoreRecruitment[index];
-                if (!targetRec) return;
-
-                // 문자열 오타 및 유령 공백 방지를 위한 트림 정제
-                const targetTitle = (targetRec.title || "").toString().replace(/\s+/g, ' ').trim();
-                const targetTh = (targetRec.th || "").toString().trim();
-
-                // 대상자 마스터 대장을 실시간으로 열어 현재 과제 및 기수가 100% 일치하는 피험자들 도출
-                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                const matchedApplicants = adminApplicantDB.filter(function (item) {
-                    if (!item.title) return false;
-                    return item.title.toString().replace(/\s+/g, ' ').trim() === targetTitle && item.th === targetTh;
-                });
-
-                // 당직/소집 3대 지표 상태 누적 카운팅 스케줄러 세팅
-                let stats = {
-                    duty: { agree: 0, disagree: 0, wait: 0 },
-                    call: { agree: 0, disagree: 0, wait: 0 }
-                };
-
-                matchedApplicants.forEach(function (app) {
-                    const dVal = (app.isDutyAgreed || "대기").toString().trim();
-                    const cVal = (app.isCallAgreed || "대기").toString().trim();
-
-                    if (dVal === "동의") stats.duty.agree++;
-                    else if (dVal === "미동의") stats.duty.disagree++;
-                    else stats.duty.wait++;
-
-                    if (cVal === "동의") stats.call.agree++;
-                    else if (cVal === "미동의") stats.call.disagree++;
-                    else stats.call.wait++;
-                });
-
-                // 에디터 모달창 내부 상단 레이어 구역 스캔 후 야광 안내바 주입
-                const modalContentEl = document.querySelector('.editor-modal-content') || document.querySelector('.history-modal-box');
-                if (modalContentEl) {
-                    const oldBar = document.getElementById('live-consent-stats-bar');
-                    if (oldBar) oldBar.remove(); // 이중 마운트 찌꺼기 철거
-
-                    const statsBar = document.createElement('div');
-                    statsBar.id = 'live-consent-stats-bar';
-                    statsBar.style.cssText = 'background:#0b0f19; border:2px solid #334155; padding:14px 18px; border-radius:8px; margin-bottom:18px; font-size:13px; font-weight:700;';
-
-                    let html = `<div style="color:var(--secondary-color); font-size:14px; margin-bottom:6px;"><i class="fa-solid fa-chart-line"></i> [${targetTh} 피험자 실시간 동의 스캔 현황]</div>`;
-                    html += '<div style="display:flex; gap:16px; align-items:center; color:#e2e8f0; justify-content:center;">';
-                    html += `<div>당직동의: <span style="color:#4ade80;">동의 ${stats.duty.agree}명</span> / <span style="color:#f87171;">미동의 ${stats.duty.disagree}명</span> / <span style="color:#94a3b8;">대기 ${stats.duty.wait}명</span></div>`;
-                    html += '<div style="width:1px; height:12px; background:#334155;"></div>';
-                    html += `<div>소집동의: <span style="color:#4ade80;">동의 ${stats.call.agree}명</span> / <span style="color:#f87171;">미동의 ${stats.call.disagree}명</span> / <span style="color:#94a3b8;">대기 ${stats.call.wait}명</span></div>`;
-                    html += '</div>';
-
-                    statsBar.innerHTML = html;
-
-                    // 타이틀 헤더 컴포넌트 바로 하단에 실시간 인라인 주입 안착
-                    const modalTitle = modalContentEl.querySelector('.editor-modal-title') || modalContentEl.querySelector('h3') || modalContentEl.firstChild;
-                    if (modalTitle && modalTitle.nextSibling) {
-                        modalContentEl.insertBefore(statsBar, modalTitle.nextSibling);
-                    } else {
-                        modalContentEl.prepend(statsBar);
-                    }
-                }
-            }, 40);
-
         }
+
+
+
 
         /**
          * 🌟 [통합 에디터 명령어]: 마우스로 드래그 선택된 텍스트 영역에 볼드, 이탤릭, 컬러 태그 실시간 주입

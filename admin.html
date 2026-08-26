@@ -2362,7 +2362,7 @@
                 // ----------------======================================================
                 // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (원본 양식 백틱 완전 보존)
                 // ----------------======================================================
-                if (isAppEditing) {
+                if (isEditing) {
                     tr.className = "editing-row";
                     tr.innerHTML = `
                 <td style="vertical-align: middle; padding-left: 15px;"><input type="text" id="inline-app-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;"></td>
@@ -2391,33 +2391,32 @@
             `;
                 }
                 // ----------------======================================================
-                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (역슬래시 완전 제거 교정 완료)
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (원본 양식 백틱 완벽 복원)
                 // ----------------======================================================
                 else {
-                    // 증빙 서류 가변 배지 상태 서식 디자인 (원본 규격 100% 보존)
-                    const idCardBadgeHTML = row.idCard
-                        ? `<span class="doc-badge status-id"><i class="fa-solid fa-address-card"></i> 신분증</span>`
-                        : `<span class="doc-badge status-none">미제출</span>`;
-
-                    const bankbookBadgeHTML = row.bankbook
-                        ? `<span class="doc-badge status-bank"><i class="fa-solid fa-money-check-dollar"></i> 통장</span>`
-                        : `<span class="doc-badge status-none">미제출</span>`;
+                    // 차수별 라이브 정산 배지 생성 엔진 연산 가동
+                    let payStatusBadgeLinesHTML = "";
+                    payStatusBadgeLinesHTML += buildMiniBadgeHTML("1차", row.payStatus1 || '접수');
+                    payStatusBadgeLinesHTML += buildMiniBadgeHTML("2차", row.payStatus2 || '대기');
+                    payStatusBadgeLinesHTML += buildMiniBadgeHTML("3차", row.payStatus3 || '대기');
 
                     tr.innerHTML = `
                 <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
-                <td style="width: 90px; vertical-align: middle; text-align: center;"><span class="lvl-badge lvl-2" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span></td>
-                <!-- 🎯 [연동 복구 완수]: 목록의 N수 분모 슬래시 뒤에 공백 없이 칼같이 동 동기화 출력 -->
-                <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">1/${currentQuota}</td>
-                <td style="width: 65px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}h</td>
+                <td style="width: 90px; vertical-align: middle; text-align: center;">
+                    <span class="lvl-badge ${thClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
+                </td>
+                <!-- 🎯 [버그 해결 완수]: 실시간 연산 매칭된 누적 분자 / 공고 대장 N수 분모 형태로 완벽 복원 출력 -->
+                <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">${matchCnt}/${currentQuota}</td>
+                <td style="width: 65px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
                 <td style="width: 80px; vertical-align: middle; text-align: center; color: #ffffff; font-weight: 700;">${row.name}</td>
                 <td style="width: 85px; vertical-align: middle; text-align: center; color: #94a3b8;">${row.ssn}</td>
-                <td style="width: 125px; vertical-align: middle; text-align: center; color: #e2e8f0; font-family: monospace;">${formatPhone(row.phone)}</td>
-                <td style="width: 85px; vertical-align: middle; text-align: center;"><span class="lvl-badge lvl-4" style="color: #fbbf24; font-weight:700;">${row.payStatus1 || '접수'}</span></td>
-                <td style="width: 75px; vertical-align: middle; text-align: center; color: #cbd5e1;">${row.isDutyAgreed || '동의'}</td>
-                <td style="width: 75px; vertical-align: middle; text-align: center; color: #cbd5e1;">${row.isCallAgreed || '동의'}</td>
-                <td style="width: 140px; vertical-align: middle; text-align: center;">
-                    <div style="display: inline-flex; gap: 2px;">${idCardBadgeHTML}${bankbookBadgeHTML}</div>
+                <td style="width: 125px; vertical-align: middle; text-align: center; color: #e2e8f0; font-family: monospace;">${fmtPhone}</td>
+                <td style="width: 85px; vertical-align: middle; text-align: center;">
+                    <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">${payStatusBadgeLinesHTML}</div>
                 </td>
+                <td style="width: 75px; vertical-align: middle; text-align: center;">${buildAgreementStatusBadgeHTML(dutyAgreed)}</td>
+                <td style="width: 75px; vertical-align: middle; text-align: center;">${buildAgreementStatusBadgeHTML(callAgreed)}</td>
+                <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
                         <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal(${index})" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>

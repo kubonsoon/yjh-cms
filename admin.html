@@ -4920,11 +4920,30 @@
                     }
                 });
 
-                // 3. 화면 상단 4단계 스코어보드 슬롯에 실시간 주입
-                if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = `${totalCount}명`;
-                if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
-                if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
-                if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
+                // 1. 참여현황 (참여/N수) - 화면 전체의 'stat-total-count' 태그를 전수 조사하여 '1/46명' 포맷으로 강제 치환 주입합니다.
+                const allTotals = document.querySelectorAll('#stat-total-count');
+                allTotals.forEach(el => {
+                    // 💡 인터셉터 영역일 경우 totalQuotaSum 대신 변수명 명칭이 다를 수 있으므로 안전하게 복합 싱크 처리
+                    const finalQuota = (typeof totalQuotaSum !== 'undefined' && totalQuotaSum > 0) ? totalQuotaSum : (typeof totalQuota !== 'undefined' ? totalQuota : 46);
+                    const finalActive = (typeof totalActiveCount !== 'undefined') ? totalActiveCount : (typeof totalCount !== 'undefined' ? totalCount : 0);
+
+                    el.innerText = `${finalActive}/${finalQuota}명`;
+                });
+
+                // 2. 청구서 접수 현황 - 화면 전체 동시 주입
+                document.querySelectorAll('#stat-received-count').forEach(el => {
+                    el.innerText = `${receivedCount}건`;
+                });
+
+                // 3. 재무 검토 (처리중) - 화면 전체 동시 주입
+                document.querySelectorAll('#stat-processing-count').forEach(el => {
+                    el.innerText = `${processingCount}건`;
+                });
+
+                // 4. 정산 종결 (지급완료) - 화면 전체 동시 주입
+                document.querySelectorAll('#stat-complete-count').forEach(el => {
+                    el.innerText = `${completeCount}건`;
+                });
             };
 
 

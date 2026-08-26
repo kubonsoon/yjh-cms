@@ -1249,7 +1249,7 @@
                             <span
                                 style="font-size: 13px; color: var(--text-muted); font-weight: 700;">참여현황(참여/N수)</span>
                             <span id="stat-total-count"
-                                style="font-size: 24px; font-weight: 800; color: #ffffff;">0명</span>
+                                style="font-size: 24px; font-weight: 800; color: #ffffff;">0/0명</span>
                         </div>
                         <div class="stat-card"
                             style="flex: 1; background: var(--card-color); border: 1px solid #38bdf8; padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px;">
@@ -4176,11 +4176,14 @@
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // 🎯 [락업 해제]: 기수 선택이 ALL 상태이더라도 강제 리턴하지 않고 전체 모수를 연산하도록 개방합니다.
+            // ----------------======================================================
+            // 💡 [버그 완전 척결]: 기수가 ALL(전체)이더라도 중간에 리턴(return)하여 계산을 잠가버리던 
+            // 구형 가드 블록을 완벽히 소멸시켜 아래의 진짜 연산 파이프라인이 정상 작동하도록 길을 열어줍니다.
+            // ----------------======================================================
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
-            // 문자열 공백 및 기호 제거 정제 변환기 (원본 싱크 유지)
+            // 공백, 기호, 특수기호 제거 정제 변환기 (원본 싱크 100% 유지)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4212,15 +4215,16 @@
 
             matchedRecs.forEach(rec => {
                 if (rec && rec.count) {
-                    // '60명', '60' 등 포맷에서 숫자만 발라내어 누적
+                    // '60명', '60' 등 포맷에서 숫자만 발라내어 차곡차곡 누적
                     totalQuotaSum += parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
                 }
             });
 
-            // 매칭 실패 시 최종 예외 방어선 디폴트 모수 지정
+            // 매칭 실패 시 최종 예외 방어선 디폴트 모수 지정 (원본 규칙 보존)
             if (totalQuotaSum === 0) {
-                totalQuotaSum = filterTitle === 'ALL' ? 60 : (parseInt(filteredList[0]?.count, 10) || 60);
+                totalQuotaSum = filterTitle === 'ALL' ? 60 : (parseInt(filteredList?.count, 10) || 60);
             }
+
             // 3. [상태 파이프라인 집계]: 각 피험자별 라이브 상태 카운트 (원본 분기 logic 100% 보존)
             let receivedCount = 0;
             let processingCount = 0;
@@ -4239,7 +4243,7 @@
                 }
             });
 
-            // 4. [🎯 최종 UI 바인딩 교정]: 요구하신 슬래시 형태의 "참여인원/N수명" 포맷으로 정확히 출력 주입
+            // 4. [🎯 최종 UI 바인딩 교정]: 대표님이 확인해주신 슬래시 형태의 "참여인원/N수명" 포맷으로 정확히 출력 주입
             if (lblTotal) {
                 lblTotal.innerText = `${totalActiveCount}/${totalQuotaSum}명`;
             }
@@ -4255,7 +4259,6 @@
 
             console.log(`📊 [정밀 통계 완수] 참여인원: ${totalActiveCount}명 / 모집공고 배정 N수: ${totalQuotaSum}명`);
         }
-
 
         /**
          * 이력조회 버튼 클릭 시 에러를 해결하고 피험자 데이터와 공고 마스터 일정을 교차 맵핑하여 모달창에 렌더링하는 함수

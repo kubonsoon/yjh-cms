@@ -5161,62 +5161,95 @@
                     return;
                 }
 
-                // 오직 2단계 기수까지 마우스로 콕 집어 선택 완료했을 때만 집계 연산 사출
+                // 오직 2단계 기수까지 마우스로 콕 집어 선택 완료했을 때만 집계 연산 사출 (원본 규칙 보존)
                 if (typeof originalCalculateStats === "function") {
                     originalCalculateStats();
                 } else {
-                    // 오리지널 통계 로직 임베딩 처리 보완
+                    // 🎯 [인터셉터 내 백업 연산부 무결점 교정] 오리지널 통계 로직 누락 방지 임베딩 보완 파이프라인
                     const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                    const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || []; // 🎯 공고 원장 결합
+
+                    const cleanString = (str) => {
+                        if (!str) return "";
+                        return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                    };
+
+                    const cleanFilterTitle = cleanString(filterTitle);
+                    const cleanFilterThNum = filterTh.replace(/[^0-9]/g, "");
+
+                    // 분자 추출용 실제 신청 피험자 필터링
                     const filteredData = adminApplicantDB.filter(item => {
                         if (!item.title) return false;
-                        const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
-                        const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
-                        return cleanItemTitle === cleanFilterTitle && item.th === filterTh;
+                        const cleanItemTitle = cleanString(item.title);
+                        const rowThNum = (item.th || "").toString().replace(/[^0-9]/g, "");
+                        return (cleanItemTitle === cleanFilterTitle || cleanItemTitle.includes(cleanFilterTitle)) && rowThNum === cleanFilterThNum;
                     });
 
-                    let totalCount = filteredData.length, receivedCount = 0, processingCount = 0, completeCount = 0;
+                    let totalCount = filteredData.length; // 실제 등록 참여자 수 (분자)
+                    let totalQuotaSum = 0; // 목표 모집 배정수 N수 (분모)
+
+                    // 🎯 모집공고 원장에서 배정 N수를 숫자로만 안전하게 발라내어 조인 (텍스트 충돌 차단)
+                    const matchedRecs = recruitmentDB.filter(rec => {
+                        const recTitleClean = cleanString(rec.title);
+                        const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
+                        return (recTitleClean === cleanFilterTitle || recTitleClean.includes(cleanFilterTitle)) && recThNum === cleanFilterThNum;
+                    });
+
+                    matchedRecs.forEach(rec => {
+                        if (rec && rec.count) {
+                            totalQuotaSum += parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
+                        }
+                    });
+
+                    if (totalQuotaSum === 0) {
+                        totalQuotaSum = 60; // 최소 안전 폴백 대책
+                    }
+
+                    let receivedCount = 0, processingCount = 0, completeCount = 0;
                     filteredData.forEach(row => {
-                        const status = (row.result || row.payStatus || "대기").toString().trim();
-                        if (status === "대기" || status === "접수") receivedCount++;
-                        else if (status === "처리중") processingCount++;
-                        else if (status === "지급완료" || status === "처리완료") completeCount++;
+                        let status = (row.result || row.payStatus || '접수').toString().trim();
+                        if (status === '확인' || status === '접수완료') status = '접수';
+
+                        if (status === '접수') receivedCount++;
+                        else if (status === '처리중') processingCount++;
+                        else if (status === '처리완료' || status === '지급완료' || status === '완료') completeCount++;
                     });
 
-                    if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = `${totalCount}명`;
-                    if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
-                    if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
-                    if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
+                    // 🎯 [UI 동시 렌더링]: querySelectorAll 전수 주입 방식을 도입하여 두 화면 카드를 동시에 1/60명 형태로 갱신합니다.
+                    document.querySelectorAll('#stat-total-count').forEach(el => el.innerText = `${totalCount}/${totalQuotaSum}명`);
+                    document.querySelectorAll('#stat-received-count').forEach(el => el.innerText = `${receivedCount}건`);
+                    document.querySelectorAll('#stat-processing-count').forEach(el => el.innerText = `${processingCount}건`);
+                    document.querySelectorAll('#stat-complete-count').forEach(el => el.innerText = `${completeCount}건`);
                 }
             };
 
-            // 3. 1셀렉트(시험명) 변경 시 연동되는 원본 함수(updateDashboardThOptions) 확장 보완
+            // 3. 1셀렉트(시험명) 변경 시 연동되는 원본 함수(updateDashboardThOptions) 확장 보완 (원본 유지)
             const originalUpdateThOptions = window.updateDashboardThOptions;
             if (typeof originalUpdateThOptions === "function") {
                 window.updateDashboardThOptions = function () {
                     originalUpdateThOptions();
                     const filterTh = document.getElementById('dashboard-filter-th');
                     if (filterTh) filterTh.value = "ALL"; // 시험명 변경 시 기수 필터 초기 락 홀딩
-                    window.calculateLiveDashboardStats(); // 수치판 즉시 0 리셋
+                    window.calculateLiveDashboardStats(); // 수치판 즉시 0/0명 리셋
                 };
             }
 
-            // 4. [🎯 2단계 최종 확정 사출 리스너]: 2셀렉트(기수 필터)가 변경되는 바로 그 순간!
+            // 4. [🎯 2단계 최종 확정 사출 리스너]: 2셀렉트(기수 필터)가 변경되는 바로 그 순간! (원본 유지)
             document.addEventListener('change', function (event) {
                 if (event.target && event.target.id === 'dashboard-filter-th') {
                     setTimeout(function () {
-                        // 특정 기수가 최종 선택 완료되었으므로 잠금을 해제하고 통계와 하단 목록을 동시 출력합니다.
                         window.calculateLiveDashboardStats();
                         if (typeof refreshApplicantView === "function") refreshApplicantView();
                     }, 30);
                 }
             });
 
-            // 5. [🎯 38페이지 이중 선언 원천 제어]: 메뉴 클릭 시 오리지널 필터 빌더를 정확하게 리로딩
+            // 5. [🎯 38페이지 이중 선언 원천 제어]: 메뉴 클릭 시 오리지널 필터 빌더를 정확하게 리로딩 (원본 유지)
             const menuAppBtn = document.getElementById('menuApp');
             if (menuAppBtn) {
                 menuAppBtn.addEventListener('click', function () {
                     setTimeout(function () {
-                        window.initThSelectOptions(); // 대표님의 오리지널 필터 리로더 구동
+                        window.initThSelectOptions();
                         const filterTh = document.getElementById('dashboard-filter-th');
                         if (filterTh) filterTh.value = "ALL";
                         window.calculateLiveDashboardStats();
@@ -5224,7 +5257,7 @@
                 });
             }
 
-            // 최초 새로고침 직후 셋팅 가드
+            // 최초 새로고침 직후 셋팅 가드 (원본 유지)
             window.addEventListener('load', function () {
                 setTimeout(function () {
                     window.initThSelectOptions();
@@ -5233,12 +5266,13 @@
             });
         })();
 
-
-        // 2셀렉트 박스(기수)를 고르는 바로 그 순간 원래 짜여있던 통계 및 목록 함수를 연쇄 구동시키는 마스터 링커
-        document.getElementById('dashboard-filter-th').onchange = function () {
-            if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-            if (typeof refreshApplicantView === "function") refreshApplicantView();
-        };
+        // 2셀렉트 박스(기수)를 고르는 바로 그 순간 원래 짜여있던 통계 및 목록 함수를 연쇄 구동시키는 마스터 링커 (원본 유지)
+        if (document.getElementById('dashboard-filter-th')) {
+            document.getElementById('dashboard-filter-th').onchange = function () {
+                if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+                if (typeof refreshApplicantView === "function") refreshApplicantView();
+            };
+        }
 
 
         // =========================================================================

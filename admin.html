@@ -4172,11 +4172,23 @@
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // 💡 [원본 락업 해제 및 교정]: 전체보기(ALL) 상태에서도 통계가 가동되도록 기존 잠금 조건을 걷어내고 실시간 연산을 개시합니다.
-            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            // 🎯 [요구사항 원칙 고수]: 기수가 아직 'ALL'(— 전체 기수 — 또는 안내창) 상태라면 무조건 0으로 락인 고정 (원본 원형 유지)
+            if (filterTitle === 'ALL' || filterTh === 'ALL' || filterTh === '') {
+                if (lblTotal) lblTotal.innerText = "0/0명"; // 💡 원하시는 포맷에 맞춰 공백 제거 완료
+                if (lblReceived) lblReceived.innerText = "0건";
+                if (lblProcessing) lblProcessing.innerText = "0건";
+                if (lblComplete) lblComplete.innerText = "0건";
+                console.log(`🔒 [통계 락업 활성화] 기수 미선택(ALL) 조건 충족으로 통계 수치가 0으로 홀딩 대기됩니다.`);
+                return;
+            }
 
-            // 공백, 기호, 특수기호 제거 포맷터 (원본 알고리즘 싱크 100% 유지)
+            // ----------------======================================================
+            // 💡 [안전 패스 통과 구역]: 1번 시험명과 2번 특정 기수가 완전하게 매칭 픽스되었을 때만 연산 개시 (원본 유지)
+            // ----------------======================================================
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || []; // 🎯 [원본 보완] 모집공고 원장 로드라인 결합
+
+            // 공백, 기호, 특수기호 제거 포맷터 (원본 알고리즘 싱크 100% 일치화)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4185,50 +4197,52 @@
             const targetTitleClean = cleanString(filterTitle);
             const filterThNum = filterTh.replace(/[^0-9]/g, "");
 
-            // 1. [분자 연산] 정밀 교차 필터링으로 조건에 일치하는 "실제 참여 신청자"만 추출
+            // 정밀 교차 필터링 (분자 추출용 원본 logic 유지)
             let filteredList = adminApplicantDB.filter(row => {
                 const rowTitleClean = cleanString(row.title);
                 const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
 
-                const matchTitle = (filterTitle === 'ALL' || rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
-                const matchTh = (filterTh === 'ALL' || filterTh === '' || rowThNum === filterThNum);
+                const matchTitle = (rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
+                const matchTh = (rowThNum === filterThNum);
 
                 return matchTitle && matchTh;
             });
 
+            let totalQuotaSum = 0;
             let totalActiveCount = filteredList.length; // 실제 신청자 수 (분자)
 
-            // 2. 🎯 [핵심 교정 고리 - 분모 연산] 모집공고 원장(recruitmentDB)에서 필터 조건에 맞는 공고들의 등록 N수를 추출하여 합산
-            let totalQuotaSum = 0;
-
-            const matchedRecruitments = recruitmentDB.filter(rec => {
+            // 🎯 [핵심 버그 교정 구역] 모집공고 원장 배열(matchedRecs)에서 첫 번째 데이터([0])의 count 값을 정확하게 타겟팅하여 N수(분모)로 주입합니다.
+            const matchedRecs = recruitmentDB.filter(rec => {
                 const recTitleClean = cleanString(rec.title);
                 const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
-
-                const matchTitle = (filterTitle === 'ALL' || recTitleClean === targetTitleClean || recTitleClean.includes(targetTitleClean) || targetTitleClean.includes(recTitleClean));
-                const matchTh = (filterTh === 'ALL' || filterTh === '' || recThNum === filterThNum);
-
-                return matchTitle && matchTh;
+                return (recTitleClean === targetTitleClean || recTitleClean.includes(targetTitleClean)) && recThNum === filterThNum;
             });
 
-            matchedRecruitments.forEach(rec => {
-                if (rec && rec.count) {
-                    // 원본의 숫자 추출 규칙을 반영하여 '명' 글자가 있어도 숫자만 안전하게 파싱
-                    const pureNum = parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
-                    totalQuotaSum += pureNum;
-                }
-            });
-
-            // 시스템 최초 구동 시 혹은 예외 상황 대처를 위한 원본 디폴트 방어막 유지
-            if (totalQuotaSum === 0 && filterTitle === 'ALL') {
-                totalQuotaSum = 60;
+            if (matchedRecs.length > 0 && matchedRecs[0].count) {
+                // '60명' 혹은 '60' 등 포맷 깨짐 방지용 정규식 숫자 필터 처리 후 파싱
+                totalQuotaSum = parseInt(matchedRecs[0].count.toString().replace(/[^0-9]/g, ''), 10) || 0;
             }
 
-            // 3. [상태 파이프라인] 각 정산 상태별 라이브 카운트 집계 (원본 대조 분기 logic 100% 유지)
+            // 모집공고 원장 매칭 실패 시 대상자 데이터(row.count)에서 추출하는 원본 백업 폴백 로직 작동 (원본 유지)
+            if (totalQuotaSum === 0) {
+                filteredList.forEach(row => {
+                    const pureCount = parseInt(row.count?.toString().replace(/[^0-9]/g, ''), 10) || 0;
+                    if (pureCount > totalQuotaSum) {
+                        totalQuotaSum = pureCount;
+                    }
+                });
+            }
+
+            // 최종 예외 방어용 원본 디폴트값 세팅 (원본 유지)
+            if (totalQuotaSum === 0 && filteredList.length > 0) {
+                totalQuotaSum = parseInt(filteredList[0].count) || 60;
+            }
+
             let receivedCount = 0;
             let processingCount = 0;
             let completeCount = 0;
 
+            // 3단계 상태값 분류 파이프라인 (원본 logic 100% 보존)
             filteredList.forEach(row => {
                 let status = (row.result || row.payStatus || '접수').toString().trim();
                 if (status === '확인' || status === '접수완료') status = '접수';
@@ -4242,13 +4256,13 @@
                 }
             });
 
-            // 4. [UI 바인딩] 원본 서식과 완벽히 일치하는 포맷으로 통계 보드 최종 렌더링 스왑 주입
-            if (lblTotal) lblTotal.innerText = `${totalActiveCount} / ${totalQuotaSum}명`;
+            // 🎯 [UI 바인딩 정밀 매칭]: 슬래시 앞뒤 공백을 철저히 소멸시키고 정확히 요구하신 "1/60명" 형태로 교정 출력
+            if (lblTotal) lblTotal.innerText = `${totalActiveCount}/${totalQuotaSum}명`;
             if (lblReceived) lblReceived.innerText = `${receivedCount}건`;
             if (lblProcessing) lblProcessing.innerText = `${processingCount}건`;
             if (lblComplete) lblComplete.innerText = `${completeCount}건`;
 
-            console.log(`📊 [교정 완료] 필터링 매칭인원: ${filteredList.length}명 / 총 목표 배정수(N수): ${totalQuotaSum}명`);
+            console.log(`📊 [2단계 필터 통과 정밀 통계 완료] 필터링 매칭인원: ${filteredList.length}명`);
         }
 
         /**

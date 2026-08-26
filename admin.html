@@ -1481,8 +1481,8 @@
                         payStatus1: "접수",   // 🌟 1차: 접수
                         payStatus2: "대기",   // 🌟 2차: 대기
                         payStatus3: "대기",   // 🌟 3차: 대기
-                        isDutyAgreed: "동의",
-                        isCallAgreed: "동의",
+                        isDutyAgreed: "대기",
+                        isCallAgreed: "대기",
                         idCard: true,
                         bankbook: true
                     },
@@ -1502,8 +1502,8 @@
                         payStatus1: "처리중", // 🌟 1차: 처리중
                         payStatus2: "대기",   // 🌟 2차: 대기
                         payStatus3: "대기",   // 🌟 3차: 대기
-                        isDutyAgreed: "동의",
-                        isCallAgreed: "동의",
+                        isDutyAgreed: "대기",
+                        isCallAgreed: "대기",
                         idCard: true,
                         bankbook: true
                     },
@@ -1523,8 +1523,8 @@
                         payStatus1: "지급완료", // 🌟 1차: 지급완료
                         payStatus2: "대기",     // 🌟 2차: 대기
                         payStatus3: "대기",     // 🌟 3차: 대기
-                        isDutyAgreed: "동의",
-                        isCallAgreed: "동의",
+                        isDutyAgreed: "대기",
+                        isCallAgreed: "대기",
                         idCard: true,
                         bankbook: true
                     }
@@ -1549,6 +1549,14 @@
                         if (row.result !== "지급완료" || row.payStatus1 !== "지급완료" || row.payStatus2 !== "대기") {
                             row.result = "지급완료"; row.payStatus = "지급완료"; row.payStatus1 = "지급완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
+                    }
+
+                    // 🎯 [초기값 대기 강제 락인]: 과거 흔적에 동의 여부가 없거나 "동의"로 고정되어 있다면 강제로 기본 출발선인 "대기"로 전형 제어합니다.
+                    if (row.isDutyAgreed === undefined || row.isDutyAgreed === null || row.isDutyAgreed === "" || row.isDutyAgreed === "동의") {
+                        row.isDutyAgreed = "대기"; isUpdated = true;
+                    }
+                    if (row.isCallAgreed === undefined || row.isCallAgreed === null || row.isCallAgreed === "" || row.isCallAgreed === "동의") {
+                        row.isCallAgreed = "대기"; isUpdated = true;
                     }
                 });
             }

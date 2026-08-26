@@ -1819,14 +1819,14 @@
             const tbody = document.getElementById('dom-recruitment-table');
             if (!tbody) return; tbody.innerHTML = '';
 
-            // 최신 로컬스토리지 대장 확보 및 전역 싱크 제어 (원본 명칭 100% 보존 유지)
+            // 🎯 최신 로컬스토리지 대장 확보 및 전역 싱크 제어 (원본 유지)
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             if (typeof dataStoreRecruitment !== "undefined" && dataStoreRecruitment.length > 0) {
                 recruitmentDB = dataStoreRecruitment;
             }
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 공백, 기호, 특수기호 제거 포맷터 (원본 알고리즘 싱크 100% 일치화)
+            // 문자열 공백 및 기호 제거 포맷터 (원본 알고리즘 유지)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -1836,7 +1836,6 @@
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
 
-                // 기수 숫자 정밀 필터링 및 배지 레벨 자동 배정 (원본 원형 유지)
                 const activeTargetTh = row ? row.th : "";
                 const thNumMatch = (activeTargetTh || "").toString().match(/\d+/);
                 const thNum = thNumMatch ? parseInt(thNumMatch, 10) : 1;
@@ -1846,7 +1845,7 @@
                 else if (thNum === 4 || thNum === 5) thBadgeClass = "lvl-4";
                 else if (thNum >= 6) thBadgeClass = "lvl-6";
 
-                // 🎯 [정밀 매칭 참여인원 & 당직/소집동의 동시 전수 조사 집계 엔진]
+                // 🎯 [지점 1 교체]: 참여 인원수 연산과 동시에 '동의/미동의/대기' 상태를 한 번에 전수 집계합니다.
                 let groupMatchCount = 0;
                 let dutyAgreedCnt = 0, dutyDisagreedCnt = 0, dutyWaitCnt = 0;
                 let callAgreedCnt = 0, callDisagreedCnt = 0, callWaitCnt = 0;
@@ -1855,43 +1854,43 @@
                     const currentRecTitleClean = cleanString(row.title);
                     const rowThNum = (row.th || "").replace(/[^0-9]/g, "");
 
-                    // 해당 시험명과 기수가 완벽히 일치하는 피험자들만 검문 선별
+                    // 1. 해당 공고의 기수 및 시험명 조건과 일치하는 실제 신청 피험자 배열 추출
                     const matchedApplicants = adminApplicantDB.filter(item => {
                         const itemTitleClean = cleanString(item.title);
                         const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
-                        return (itemTitleClean === currentRecTitleClean || itemTitleClean.includes(currentRecTitleClean) || currentRecTitleClean.includes(itemTitleClean)) && rowThNum === itemThNum && rowThNum !== "";
+                        const isTitleMatched = (itemTitleClean === currentRecTitleClean || itemTitleClean.includes(currentRecTitleClean) || currentRecTitleClean.includes(itemTitleClean));
+                        const isThMatched = (rowThNum === itemThNum && rowThNum !== "");
+                        return isTitleMatched && isThMatched;
                     });
 
-                    groupMatchCount = matchedApplicants.length; // 실제 신청자 수 (분자)
+                    groupMatchCount = matchedApplicants.length; // 실제 매칭 참여인원 (기존 분자값 복원)
 
-                    // 🎯 [대표님 지시 사항 완벽 정형]: 선별된 피험자들의 동의 상태값 카운트 파이프라인
+                    // 2. 🎯 [라이브 동의 통계 엔진]: 선별된 피험자 명단을 루프 돌며 상태별 글자를 카운팅 누적
                     matchedApplicants.forEach(item => {
                         const dStatus = (item.isDutyAgreed || "대기").toString().trim();
                         const cStatus = (item.isCallAgreed || "대기").toString().trim();
 
-                        // 당직동의 통계 분류
+                        // 당직동의 3단계 정산 분류
                         if (dStatus === "동의") dutyAgreedCnt++;
                         else if (dStatus === "미동의") dutyDisagreedCnt++;
                         else dutyWaitCnt++;
 
-                        // 소집동의 통계 분류
+                        // 소집동의 3단계 정산 분류
                         if (cStatus === "동의") callAgreedCnt++;
                         else if (cStatus === "미동의") callDisagreedCnt++;
                         else callWaitCnt++;
                     });
-
                 } catch (e) { groupMatchCount = 0; }
 
-                // 최종 문자열 포맷 조립 (예: 동의1명/미동의0명/대기0명)
+                // 3. 하단 버튼 백틱 문장에 사출 결합해 줄 실시간 변수 문자열 최종 포맷팅
                 const dutyStatsText = `동의${dutyAgreedCnt}명/미동의${dutyDisagreedCnt}명/대기${dutyWaitCnt}명`;
                 const callStatsText = `동의${callAgreedCnt}명/미동의${callDisagreedCnt}명/대기${callWaitCnt}명`;
 
                 const rawQuota = row.count || "60";
                 const pureQuotaNum = parseInt(rawQuota.toString().replace(/[^0-9]/g, ''), 10) || 60;
                 const isRecEditing = (window.currentEditingRecruitmentIndex === index) || (typeof currentEditingRecruitmentIndex !== 'undefined' && currentEditingRecruitmentIndex === index);
-
                 // ----------------======================================================
-                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (원본 원형 100% 보존)
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (원본 유지)
                 // ----------------======================================================
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
@@ -1959,7 +1958,7 @@
             `;
                 }
                 // ----------------======================================================
-                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (동의 상태 실시간 통계 연동 반영)
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (원본 유지)
                 // ----------------======================================================
                 else {
                     const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
@@ -1984,40 +1983,32 @@
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
                 </td>
-                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">\${groupMatchCount}/\${pureQuotaNum}명</td>
-                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">\${row.period}시간</td>
-                <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">\${row.crc || '-'}</td>
-                <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> \${row.recDate || '미정'}</td>
-                
-                <!-- 주의사항 보기 버튼 구역 (원본 유지) -->
+                <!-- 🎯 [버그 해결 완료]: 중복 합산 없이 정확히 일치하는 피험자 참여 수 / 공고 N수 포맷 동적 사출 -->
+                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${pureQuotaNum}명</td>
+                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
+                <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
+                <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(\${index}, 'notice')" style="\${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
-                
-                <!-- 시험일정 보기 버튼 구역 (원본 유지) -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(\${index}, 'schedule')" style="\${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
-                
-                <!-- 🎯 [당직공지 버튼 구역]: 대표님 지시대로 '동의0명/미동의0명/대기0명' 연산 텍스트를 버튼 글자로 실시간 사출합니다 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(\${index}, 'duty')" style="\${dutyBtnStyle} padding: 4px 4px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 10.5px; width: 145px; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;">\${dutyStatsText}</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="${dutyBtnStyle} padding: 4px 4px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 10.5px; width: 145px; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;">${dutyStatsText}</button>
                 </td>
-                
-                <!-- 🎯 [소집공지 버튼 구역]: 대표님 지시대로 '동의0명/미동의0명/대기0명' 연산 텍스트를 버튼 글자로 실시간 사출합니다 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(\${index}, 'call')" style="\${callBtnStyle} padding: 4px 4px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 10.5px; width: 145px; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;">\${callStatsText}</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 4px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 10.5px; width: 145px; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;">${callStatsText}</button>
                 </td>
-                
                 <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
                     <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
-                        \${multiLinePayHTML}
+                        ${multiLinePayHTML}
                     </div>
                 </td>
                 <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
-                        <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(\${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
-                        <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('\${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
+                        <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
+                        <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
                     </div>
                 </td>
             `;
@@ -2026,8 +2017,6 @@
                 tbody.appendChild(tr);
             });
         }
-
-
 
 
         /**

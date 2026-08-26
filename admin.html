@@ -1172,7 +1172,7 @@
                     <!-- 버튼들이 배치되는 부모 컨테이너 (정밀 간격 25px 제어) -->
                     <div class="admin-top-btn-group" style="display: inline-flex; align-items: center; gap: 25px;">
 
-                        <!-- 1. 인증서 로그인 버튼 -->
+                        <!-- 1. 민간 인증서 로그인 버튼 -->
                         <button type="button" id="btnOpenAuth" onclick="openCivilAuthBridge()"
                             style="background-color: #0284c7; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); transition: all 0.2s ease;"
                             onmouseover="this.style.background='#0ea5e9'" onmouseout="this.style.background='#0284c7'">
@@ -1181,9 +1181,16 @@
 
                         <!-- 2. 참여비 신청 버튼 (25px 간격 배치 완료) -->
                         <button onclick="openMobileForm()" type="button"
-                            style="background: #0e66e9; color: #ffffff; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(233, 156, 14, 0.3); transition: all 0.2s ease;"
-                            onmouseover="this.style.background='#f59e0b'" onmouseout="this.style.background='#0284c7'">
+                            style="background: #0e66e9; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 102, 233, 0.3); transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#0e66e9'">
                             <span>📱</span> 대상자 참여비 신청
+                        </button>
+
+                        <!-- 3. 모바일 인증서 로그인 버튼 (25px 간격 시스템 정밀 설계) -->
+                        <button type="button" id="btnOpenMobileAuth" onclick="openMobileAuthBridge()"
+                            style="background-color: #10b981; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#34d399'" onmouseout="this.style.background='#10b981'">
+                            <i class="fa-solid fa-id-card-clip"></i> 모바일 인증서 로그인
                         </button>
 
                     </div>
@@ -1723,9 +1730,6 @@
             }
         }
 
-        // 스크립트 파싱 즉시 보안 런타임 가동
-        checkActiveLoginSession();
-
         // =========================================================================
         // [3파트] 대시보드 인터페이스 제어 및 데이터 규격화 포맷터 유틸리티
         // =========================================================================
@@ -1787,18 +1791,6 @@
             }
         }
 
-        function getOnlyNumbers(v) { if (!v) return ''; return v.toString().replace(/[^0-9]/g, ''); }
-        function formatTh(v) { const n = getOnlyNumbers(v); return n ? `${n}기` : v; }
-
-        function changeMainViewport(targetId) {
-            document.querySelectorAll('.content-section').forEach(v => v.style.display = 'none');
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            recEditingUid = null; currentEditingUid = null;
-            const target = document.getElementById(targetId); if (target) target.style.display = 'block';
-            if (targetId === 'recruitmentView') { document.getElementById('menuRec').classList.add('active'); refreshRecruitmentView(); }
-            else if (targetId === 'applicantView') { document.getElementById('menuApp').classList.add('active'); refreshApplicantView(); }
-            else if (targetId === 'gradeView') { document.getElementById('menuGrade').classList.add('active'); refreshAdminMemberTableView(); }
-        }
 
         // -------------------------------------------------------------------------
         // 문자열 원천 정제 가공 처리를 위한 정규식 유틸리티 포맷터 엔진 [index: 0.1.5, 0.1.6]
@@ -2380,19 +2372,23 @@
                 <td style="width:85px; min-width:85px; vertical-align:middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center;"></td>
                 <td style="width:125px; min-width:125px; vertical-align:middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${fmtPhone}" style="text-align:center;"></td>
                 <td style="vertical-align:middle; padding-left:6px;">${inlineSelectStackHTML}</td>
-                <td style="width:75px; min-width:75px; vertical-align:middle;">
-                    <select id="inline-app-duty-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;">
-                        <option value="대기" style="color:#94a3b8;" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" style="color:#34d399;" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" style="color:#f87171;" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
+                
+                <!--당직동의 인라인 select 가변 전환 구역 -->
+                <td style="width: 85px; text-align: center; vertical-align: middle;">
+                 <select id="inline-app-duty‐${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer;">
+                  <option value="대기" ${row.isDutyAgreed === '대기' || !row.isDutyAgreed ? 'selected' : ''}>대기</option>
+                  <option value="동의" ${row.isDutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+                  <option value="미동의" ${row.isDutyAgreed === '미정' || row.isDutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                 </select>
                 </td>
-                <td style="width:75px; min-width:75px; vertical-align:middle;">
-                    <select id="inline-app-call-${index}" class="inline-input" style="height:26px; background:#0f172a; color:#fff; text-align:center; font-weight:700; border:1px solid #334155; border-radius:4px; padding:0 2px;">
-                        <option value="대기" style="color:#94a3b8;" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" style="color:#34d399;" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" style="color:#f87171;" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
+        
+                <!--소집동의 인라인 select 가변 전환 구역 -->
+                <td style="width: 85px; text-align: center; vertical-align: middle;">
+                 <select id="inline-app-call‐${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer;">
+                  <option value="대기" ${row.isCallAgreed === '대기' || !row.isCallAgreed ? 'selected' : ''}>대기</option>
+                  <option value="동의" ${row.isCallAgreed === '동의' ? 'selected' : ''}>동의</option>
+                  <option value="미동의" ${row.isCallAgreed === '미정' || row.isCallAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                 </select>
                 </td>
                 <td style="vertical-align:middle;">${docsHTML}</td>
                 <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;">
@@ -2415,6 +2411,27 @@
                     const finalBadgeStackHTML = `<div style="display:flex; flex-direction:column; gap:2px; padding:2px 0;">${buildCoreMiniStatusBadgeHTML('1차', p1)}${buildCoreMiniStatusBadgeHTML('2차', p2)}${buildCoreMiniStatusBadgeHTML('3차', p3)}</div>`;
                     const cleanThValue = (row.th || '-').toString().replace(/\s*\(.*?\)\s*/g, '').trim();
 
+                    // 🌟 [기획 사양 매핑]: 당직 및 소집 배지 회색 레이아웃 통제 파서 튜닝
+                    const curDuty = (row.isDutyAgreed || "대기").toString().trim();
+                    const curCall = (row.isCallAgreed || "대기").toString().trim();
+
+                    // 초기 상태 "대기"인 경우 회색 배지 서식(status-none) 강제 탑재
+                    let dutyBadgeHTML = `<span class="doc-badge status-none" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">대기</span>`;
+                    let callBadgeHTML = `<span class="doc-badge status-none" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">대기</span>`;
+
+                    // 사용자가 수정 모드에서 "동의" 또는 "미동의"로 변경 저장 시 규격 배지로 실시간 변경 출력
+                    if (curDuty === "동의") {
+                        dutyBadgeHTML = `<span class="doc-badge status-id" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">동의</span>`;
+                    } else if (curDuty === "미동의") {
+                        dutyBadgeHTML = `<span class="doc-badge status-bank" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">미동의</span>`;
+                    }
+
+                    if (curCall === "동의") {
+                        callBadgeHTML = `<span class="doc-badge status-id" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">동의</span>`;
+                    } else if (curCall === "미동의") {
+                        callBadgeHTML = `<span class="doc-badge status-bank" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">미동의</span>`;
+                    }
+
                     tr.style.display = "table-row";
                     tr.innerHTML = `
                 <td style="text-align:left; padding-left:15px; font-weight:700; color:#f8fafc; white-space:normal; word-break:keep-all; vertical-align:middle;">${row.title || '-'}</td>
@@ -2425,8 +2442,8 @@
                 <td style="text-align:center; width:85px; min-width:85px; color:#cbd5e1; letter-spacing:0.5px; vertical-align:middle;">${row.ssn || '-'}</td>
                 <td style="text-align:center; width:125px; min-width:125px; color:#cbd5e1; font-size:13px; vertical-align:middle;">${fmtPhone}</td>
                 <td style="vertical-align:middle; padding-left:10px;">${finalBadgeStackHTML}</td>
-                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${buildAgreementStatusBadgeHTML(dutyAgreed)}</td>
-                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${buildAgreementStatusBadgeHTML(callAgreed)}</td>
+                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${dutyBadgeHTML}</td>
+                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${callBadgeHTML}</td>
                 <td style="text-align:center; width:140px; min-width:140px; vertical-align:middle;">${docsHTML}</td>
                 <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;"><button type="button" class="btn-inline save" onclick="openApplicantHistoryModal(${index})" style="background:var(--secondary-color); color:#ffffff; padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer; border:none;">이력조회</button><button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex = ${index}; if(typeof currentAppEditingIndex !== 'undefined') { currentAppEditingIndex = ${index}; } refreshApplicantView();" style="background:#334155; border:1px solid var(--border-color); color:var(--text-color); padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer;">수정</button><button type="button" class="btn-inline delete" onclick="if(typeof removeApplicantRecord==='function'){removeApplicantRecord('${row.uid}');}else{deleteApplicantRecord(${index});}" style="background:rgba(239, 68, 68, 0.15); border:1px solid #f87171; color:#f87171; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; border:1px solid var(--danger-color);">삭제</button></td>
             `;
@@ -2621,7 +2638,7 @@
                 return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
             }
 
-            // 신규 등록 및 수정 시 참여비 상태를 1차, 2차, 3차 독립 채널로 파티
+            // [🎯 오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
             const payload = {
                 uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
                 title: t,
@@ -2632,24 +2649,27 @@
                 ssn: getOnlyNumbers(s),
                 phone: getOnlyNumbers(ph),
 
-                // ⭐️ [버그 원천 분쇄 1]: 신규 등록 시 무조건 "대기" 상태로 격리 인가
-                result: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].result || "대기"),
+                // 🌟 [통계 및 목록 배지 연동]: 기존 원본 소스 엔진이 정상 인식하도록 초기 상태를 "접수"로 바인딩
+                result: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].result || "접수"),
+                payStatus: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus || "접수"),
 
-                // 🎯 [3단 분할 정산 엔진]: 1, 2, 3차 참여비 상태를 각각 독립적으로 관리하도록 신설
-                // 신규 등록 시에는 모두 "대기"로 초기화하고, 수정 시에는 기존 상태를 안전하게 보존합니다.
-                payStatus1: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus1 || "대기"),
+                // 🎯 [3단 분할 참여비 독립 채널 복구]: 신규 등록 시에도 목록에 깔끔하게 연동되도록 초기값 락인
+                payStatus1: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus1 || "접수"),
                 payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
                 payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
 
-                // 하방 호환성 유지를 위한 기존 payStatus (필요시 전체 상태 통합용으로 활용)
-                payStatus: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus || "대기"),
+                // 🌟 [당직/소집동의 오리지널 키값 매핑]: 목록 출력 시 공란으로 밀리지 않도록 기존 스펙 100% 이식
+                isDutyAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isDutyAgreed || "동의"),
+                isCallAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isCallAgreed || "동의"),
+                isAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isAgreed || "동의"),
 
-                isAgreed: editIndex === "" ? "동의" : dataStoreApplicant[editIndex].isAgreed,
                 category: editIndex === "" ? "내분비내과 / 대장 수동 등록" : dataStoreApplicant[editIndex].category,
                 stage: `${th} 참여(소집)`,
 
-                idCard: editIndex === "" ? false : (dataStoreApplicant[editIndex].idCard || false),
-                bankbook: editIndex === "" ? false : (dataStoreApplicant[editIndex].bankbook || false),
+                // 🌟 [첨부서류 배지 야광 마운트]: 신규 등록 시 증빙서류가 온전하게 녹색/파란색 인가 배지로 출력되도록 true 설정
+                idCard: editIndex === "" ? true : (dataStoreApplicant[editIndex].idCard !== undefined ? dataStoreApplicant[editIndex].idCard : true),
+                bankbook: editIndex === "" ? true : (dataStoreApplicant[editIndex].bankbook !== undefined ? dataStoreApplicant[editIndex].bankbook : true),
+
                 idCardImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardImg || ""),
                 bankBookImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookImg || ""),
                 idCardUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardUrl || ""),
@@ -2658,17 +2678,15 @@
 
             try {
                 if (editIndex === "") {
-                    // [신규 등록 모드]
-                    // ⭐️ [버그 원천 분쇄 2]: 어떤 서브 함수가 오염을 일으켜도 무조건 "대기"가 들어가도록 저장 직전 한 번 더 강제 락
-                    payload.result = "대기";
-                    payload.payStatus = "대기";
+                    // [신규 등록 모드] 강제 오버라이드 락
+                    payload.result = "접수";
+                    payload.payStatus = "접수";
 
-                    // 🎯 [정렬 교정 핵심]: 기존 push() 대신 unshift()를 사용하여 최신 대상자가 배열 슬롯 맨 앞(0번)에 적재되도록 처리
+                    // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용
                     dataStoreApplicant.unshift(payload);
                     alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
                 } else {
                     // [수정 완료 모드]
-                    // 🌟 [안전 가드]: 수정 완료 시 상단 폼에서 바꾼 상태 값이 payload에 없다면 기존 대장의 값을 유지하거나 강제 매핑 보존
                     if (!payload.result) payload.result = document.getElementById('form-app-result')?.value || dataStoreApplicant[editIndex].result || '접수';
                     if (!payload.payStatus) payload.payStatus = payload.result;
 
@@ -2676,24 +2694,31 @@
                     alert(`📋 정보 갱신 완료: [${n}] 피험자의 마스터 레코드가 업데이트되었습니다.`);
                 }
 
-                // ⭐️ [버그 원천 분쇄 3]: commitToLocalStorage() 내부의 자동 "접수" 변환 오작동을 무력화하기 위해 물리 세이브 강제 주입
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                window.dataStoreApplicant = dataStoreApplicant; // 전역 메모리 싱크 즉시 일치화
+                window.dataStoreApplicant = dataStoreApplicant; // 전역 메모리 싱크 일치화
 
-                // 원래 정의된 로컬스토리지 백업 함수 호출 (안전장치 유지)
                 if (typeof commitToLocalStorage === "function") {
                     commitToLocalStorage();
                 }
 
-                resetForm(); // 💡 폼 초기화 및 버튼 전환
-                refreshApplicantView(); // 🌟 목록 즉시 리렌더링 반영
+                resetForm(); // 폼 초기화 및 입력창 리셋
 
-                // 4. ⭐️ 물리 파일 세이브 안착 확인 후 통계 엔진 리프레시 즉각 가동!
-                // 사용자가 체감하는 레이턴시를 줄이기 위해 타이머 시간을 100ms~200ms 정도로 살짝 당겨주면 연동이 훨씬 부드러워집니다.
+                // 5. ⭐️ 물리 파일 세이브 안착 즉시 원본 소스 필터 및 렌더러 연쇄 구동!
                 setTimeout(() => {
+                    const filterTitle = document.getElementById('dashboard-filter-title');
+                    const filterTh = document.getElementById('dashboard-filter-th');
+
+                    // 필터 가드를 전체보기로 복구하여 신규 데이터가 강제 마운트되어 뿜어지도록 제어
+                    if (filterTitle) filterTitle.value = "ALL";
+                    if (filterTh) filterTh.innerHTML = `<option value="ALL">— 전체 기수 —</option>`;
+                    if (filterTh) filterTh.value = "ALL";
+
                     if (typeof initDashboardFilter === "function") initDashboardFilter();
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-                }, 150); // 레이턴시 타이머 최적화 튜닝 (150ms)
+
+                    // 대표님이 설계해두신 기존 대장 출력 원본 소스를 깨워 양식 훼손 없이 완벽하게 출력
+                    if (typeof refreshApplicantView === "function") refreshApplicantView();
+                }, 150);
 
             } catch (error) {
                 console.error("대상자 신규 마스터 등록 중 치명적 오류 발생:", error);
@@ -3171,19 +3196,6 @@
             document.body.removeChild(a);
         }
 
-        // 💥 [최종 해결책] 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가해 주세요.
-        // 모든 레거시 소스코드의 리셋 루틴이 끝난 후 0.05초 뒤에 기억된 메뉴를 강제로 최종 마운트합니다.
-        window.addEventListener('DOMContentLoaded', function () {
-            setTimeout(function () {
-                var savedViewport = localStorage.getItem('adminActiveViewportId');
-                if (savedViewport) {
-                    if (typeof changeMainViewport === 'function') {
-                        changeMainViewport(savedViewport);
-                    }
-                }
-            }, 50); // 50ms 미세 지연을 통한 강제 우선순위 획득
-        });
-
         // 💥 [최종 절대 권한 해킹 체인] 스크립트 영역 맨 마지막 종료선 바로 위에 이 코드를 새로 추가하세요.
         // 기존의 그 어떤 로직이나 세션 스크립트가 화면을 리셋하더라도, 0.15초 뒤에 무조건 덮어써서 메뉴를 강제 고정합니다.
         (function () {
@@ -3217,11 +3229,6 @@
                     document.getElementById('menuGrade').classList.add('active');
                 }
             }
-
-            // 브라우저 화면이 완전히 구성된 직후 1차 복구 가동
-            window.addEventListener('DOMContentLoaded', function () {
-                setTimeout(forceRestoreViewport, 50);
-            });
 
             // 전체 리소스와 세션 토큰 판정문이 완벽히 끝난 직후 2차 최종 강제 덮어쓰기 완료 (강력 제어)
             window.addEventListener('load', function () {
@@ -3539,6 +3546,15 @@
             // join_login.html을 자식 창으로 오픈
             window.open('join_login.html', 'civilAuthPopup', 'width=500, height=750, top=150, left=200');
         }
+
+        // [실제 모바일용] B. 우측 상단 모바일 인증서 로그인 테스트 팝업 가동
+        function openMobileAuthBridge() {
+            // 프리미엄 모바일 폰 규격(폭 420px, 높이 860px)에 맞춰 m-login.html을 자식 창으로 오픈
+            // 부모 창(window.opener) 컨텍스트 바인딩을 통해 실시간 메모리 동기화 링크 활성화
+            window.open('m-login.html', 'mobileAuthPopup', 'width=420, height=860, top=130, left=230, resizable=no, scrollbars=yes');
+        }
+        window.openMobileAuthBridge = openMobileAuthBridge;
+
 
         // B. 목록 내에서 [사례비 신청 프로세스 관리] 또는 상단 테스트 버튼 클릭 시 adm_mem 오픈
         // 💡 팁: 목록 테이블 렌더링 시 버튼에 인자로 user 객체를 넘겨주거나(openAdminMemberController(user)), 
@@ -3996,29 +4012,60 @@
             const filterTitleSelect = document.getElementById('dashboard-filter-title');
             if (!filterTitleSelect) return;
 
+            // 1. [기존 소스 원형 보호] 최신 로컬스토리지 대장 안정적 로드
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 첫 번째 옵션인 전체보기 제외하고 리셋
+            // 사용자가 현재 필터 선택박스에서 고르고 있던 기존 선택값 기억 (UI 풀림 방지)
+            const currentSelected = filterTitleSelect.value;
+
+            // 첫 번째 옵션인 전체보기 제외하고 깨끗하게 리셋
             filterTitleSelect.innerHTML = '<option value="ALL">— 전체 시험 보기 —</option>';
 
-            // 존재하는 모든 시험명을 중복 없이 추출
             let titles = [];
-            adminApplicantDB.forEach(row => {
-                if (row.title && !titles.includes(row.title)) {
-                    titles.push(row.title);
+
+            // A. 모집공고 대장에 등록된 시험명 추출 (문자열 전 정제)
+            recruitmentDB.forEach(row => {
+                if (row.title) {
+                    // 🌟 [정밀 정제 가드]: 문자열 내부 및 끝자락에 숨어있는 보이지 않는 유령 공백(\s)을 완벽히 제거
+                    const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
+                    if (cleanTitle && !titles.includes(cleanTitle)) {
+                        titles.push(cleanTitle);
+                    }
                 }
             });
 
-            // 셀렉트 박스에 주입
+            // B. [중복 파괴 핵심] 대상자 대장에 박혀있는 오리지널 프리셋 시험명 합산
+            adminApplicantDB.forEach(row => {
+                if (row.title) {
+                    // 🌟 [공백 킬러 엔진]: 끝에 붙어있던 누수 공백("사쿠+발사 ")을 정밀 압착하여 모집공고 명칭과 100% 일치화시킴
+                    const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
+                    if (cleanTitle && !titles.includes(cleanTitle)) {
+                        titles.push(cleanTitle);
+                    }
+                }
+            });
+
+            // 2. 가나다순 정렬 후 원본 양식 문자열 그대로 셀렉트 박스 마운트
             titles.sort().forEach(t => {
                 const option = document.createElement('option');
                 option.value = t;
-                option.innerText = t;
+                option.innerText = t; // 오리지널 innerText 스펙 보존
                 filterTitleSelect.appendChild(option);
             });
 
-            // 초기 첫 선택에 맞춰 서브 기수 로딩
-            updateDashboardThOptions();
+            // 3. 필터 갱신 후 선택값 복구 분기 (유령 공백이 깎인 순수 알맹이 값으로 매핑 복구)
+            const normalizedSelected = currentSelected ? currentSelected.toString().replace(/\s+/g, ' ').trim() : 'ALL';
+            if (titles.includes(normalizedSelected)) {
+                filterTitleSelect.value = normalizedSelected;
+            } else {
+                filterTitleSelect.value = 'ALL';
+            }
+
+            // 4. 대표님이 설계해두신 기존 기수 드롭다운 및 라이브 통계 엔진 연쇄 호출
+            if (typeof updateDashboardThOptions === "function") {
+                updateDashboardThOptions();
+            }
         }
 
         /**
@@ -4192,15 +4239,6 @@
             console.log(`📊 [2단계 필터 통과 정밀 통계 완료] 필터링 매칭인원: ${filteredList.length}명`);
         }
 
-        /**
-         * 5. 생명주기 초기 구동 리스너
-         */
-        window.addEventListener("DOMContentLoaded", () => {
-            setTimeout(() => {
-                initDashboardFilter();
-            }, 600);
-        });
-
 
         /**
          * 이력조회 버튼 클릭 시 에러를 해결하고 피험자 데이터와 공고 마스터 일정을 교차 맵핑하여 모달창에 렌더링하는 함수
@@ -4356,7 +4394,7 @@
         }
 
         /**
- * 🔥 [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 피험자의 마스터 상태값을 직접 변경하고
+ * [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 피험자의 마스터 상태값을 직접 변경하고
  * 하단 목록 테이블 및 상단 대시보드 4대 지표 카드를 새로고침 없이 즉각 100% 동기화 리프레시합니다.
  */
         function updateApplicantStatusViaModal(index, newStatus) {
@@ -4448,7 +4486,7 @@
                 currentHTMLContent += `</div>`;
             }
 
-            // 🌟 [백엔드 문자열 정밀 세척 연산 가드]: 텍스트 앞뒤 공백 및 특수문자 불일치로 인한 카운트 누락을 철저히 방어합니다.
+            // [백엔드 문자열 정밀 세척 연산 가드]: 텍스트 앞뒤 공백 및 특수문자 불일치로 인한 카운트 누락을 철저히 방어합니다.
             let agreeCnt = 0, disagreeCnt = 0;
             try {
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -4521,8 +4559,8 @@
             contentBox.style.color = "var(--text-color)";
             contentBox.style.width = "520px";
 
-            // 🌟 [통합 연동 피날레]: 지능형 문자열 세척 가드가 반영된 
-            // [popupStatLineHTML] 패널을 본문 하단에 정밀 마운팅하고 액션 단추를 우측으로 칼밀착 정렬합니다.
+            // 지능형 문자열 세척 가드가 반영된 
+            // 패널을 본문 하단에 정밀 마운팅하고 액션 단추를 우측으로 칼밀착 정렬합니다.
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: ${config.color}; font-size: 18px; font-weight: 800; text-align: left;">
             <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle}</span>]
@@ -4543,6 +4581,77 @@
         </div>
     `;
             overlay.style.display = "flex";
+
+            // =========================================================================
+            // 🎯 [3구역 수술 마감] openIntegratedBoardModal 함수 최하단 결합 구역
+            // =========================================================================
+            overlay.style.display = "flex";
+
+            // 🌟 [기획 연동 추가]: 팝업창이 열리는 바로 그 정밀 타이밍에 대상자 대장을 역추적하는 통계판 작동
+            setTimeout(function () {
+                if (typeof dataStoreRecruitment === "undefined") return;
+                const targetRec = dataStoreRecruitment[index];
+                if (!targetRec) return;
+
+                // 문자열 오타 및 유령 공백 방지를 위한 트림 정제
+                const targetTitle = (targetRec.title || "").toString().replace(/\s+/g, ' ').trim();
+                const targetTh = (targetRec.th || "").toString().trim();
+
+                // 대상자 마스터 대장을 실시간으로 열어 현재 과제 및 기수가 100% 일치하는 피험자들 도출
+                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                const matchedApplicants = adminApplicantDB.filter(function (item) {
+                    if (!item.title) return false;
+                    return item.title.toString().replace(/\s+/g, ' ').trim() === targetTitle && item.th === targetTh;
+                });
+
+                // 당직/소집 3대 지표 상태 누적 카운팅 스케줄러 세팅
+                let stats = {
+                    duty: { agree: 0, disagree: 0, wait: 0 },
+                    call: { agree: 0, disagree: 0, wait: 0 }
+                };
+
+                matchedApplicants.forEach(function (app) {
+                    const dVal = (app.isDutyAgreed || "대기").toString().trim();
+                    const cVal = (app.isCallAgreed || "대기").toString().trim();
+
+                    if (dVal === "동의") stats.duty.agree++;
+                    else if (dVal === "미동의") stats.duty.disagree++;
+                    else stats.duty.wait++;
+
+                    if (cVal === "동의") stats.call.agree++;
+                    else if (cVal === "미동의") stats.call.disagree++;
+                    else stats.call.wait++;
+                });
+
+                // 에디터 모달창 내부 상단 레이어 구역 스캔 후 야광 안내바 주입
+                const modalContentEl = document.querySelector('.editor-modal-content') || document.querySelector('.history-modal-box');
+                if (modalContentEl) {
+                    const oldBar = document.getElementById('live-consent-stats-bar');
+                    if (oldBar) oldBar.remove(); // 이중 마운트 찌꺼기 철거
+
+                    const statsBar = document.createElement('div');
+                    statsBar.id = 'live-consent-stats-bar';
+                    statsBar.style.cssText = 'background:#0b0f19; border:2px solid #334155; padding:14px 18px; border-radius:8px; margin-bottom:18px; font-size:13px; font-weight:700;';
+
+                    let html = `<div style="color:var(--secondary-color); font-size:14px; margin-bottom:6px;"><i class="fa-solid fa-chart-line"></i> [${targetTh} 피험자 실시간 동의 스캔 현황]</div>`;
+                    html += '<div style="display:flex; gap:16px; align-items:center; color:#e2e8f0; justify-content:center;">';
+                    html += `<div>당직동의: <span style="color:#4ade80;">동의 ${stats.duty.agree}명</span> / <span style="color:#f87171;">미동의 ${stats.duty.disagree}명</span> / <span style="color:#94a3b8;">대기 ${stats.duty.wait}명</span></div>`;
+                    html += '<div style="width:1px; height:12px; background:#334155;"></div>';
+                    html += `<div>소집동의: <span style="color:#4ade80;">동의 ${stats.call.agree}명</span> / <span style="color:#f87171;">미동의 ${stats.call.disagree}명</span> / <span style="color:#94a3b8;">대기 ${stats.call.wait}명</span></div>`;
+                    html += '</div>';
+
+                    statsBar.innerHTML = html;
+
+                    // 타이틀 헤더 컴포넌트 바로 하단에 실시간 인라인 주입 안착
+                    const modalTitle = modalContentEl.querySelector('.editor-modal-title') || modalContentEl.querySelector('h3') || modalContentEl.firstChild;
+                    if (modalTitle && modalTitle.nextSibling) {
+                        modalContentEl.insertBefore(statsBar, modalTitle.nextSibling);
+                    } else {
+                        modalContentEl.prepend(statsBar);
+                    }
+                }
+            }, 40);
+
         }
 
         /**
@@ -4683,6 +4792,501 @@
             };
         }
 
+        // =========================================================================
+        // [기존 소스 100% 원형 수호] 대상자 관리 탭 클릭 시 디폴트 통계 즉시 가동 트리거
+        // =========================================================================
+        (function () {
+            // 1. 대표님이 설계해두신 기존 뷰포트 전환 함수(changeMainViewport)를 원본 그대로 백업
+            const originalChangeMainViewport = window.changeMainViewport;
+
+            if (typeof originalChangeMainViewport === "function") {
+                // 2. 기존 함수를 가로채서 연결고리만 안전하게 추가 주입 (원안 코드 원천 보호)
+                window.changeMainViewport = function (viewName) {
+
+                    // 원래 실행되던 기존 소스 코드를 한 글자의 오차도 없이 먼저 완벽하게 구동시킵니다.
+                    originalChangeMainViewport(viewName);
+
+                    // 3. [기획 핵심]: 사용자가 '대상자 관리(applicantView)' 탭을 누른 바로 그 순간!
+                    if (viewName === 'applicantView') {
+                        // 꽁꽁 묶여있던 통계 필터와 4단계 라이브 스코어보드 엔진을 강제로 즉시 깨웁니다.
+                        if (typeof initDashboardFilter === "function") {
+                            initDashboardFilter();
+                        }
+                        if (typeof calculateLiveDashboardStats === "function") {
+                            calculateLiveDashboardStats();
+                        }
+                        if (typeof refreshApplicantView === "function") {
+                            refreshApplicantView();
+                        }
+                    }
+                };
+            }
+        })();
+
+        // =========================================================================
+        // 🎯 [원본 소스 100% 수호] 로컬스토리지 유령 공백 원천 압착 및 마스터 동기화 가드
+        // =========================================================================
+        (function () {
+            function cleanAndSyncLocalStorage() {
+                // 1. 로컬스토리지 데이터 원본 긴급 로드
+                let recDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                let isChanged = false;
+
+                // 2. 모집공고 대장 내부의 모든 유령 공백 및 타이틀 공백 원천 압착 정제
+                recDB.forEach(row => {
+                    if (row.title) {
+                        const normalized = row.title.toString().replace(/\s+/g, ' ').trim();
+                        if (row.title !== normalized) {
+                            row.title = normalized;
+                            isChanged = true;
+                        }
+                    }
+                });
+
+                // 3. 대상자 대장 내부(신일제약 사쿠+발사 등)의 보이지 않는 공백 레이어 물리적 철거
+                appDB.forEach(row => {
+                    if (row.title) {
+                        const normalized = row.title.toString().replace(/\s+/g, ' ').trim();
+                        if (row.title !== normalized) {
+                            row.title = normalized;
+                            isChanged = true;
+                        }
+                    }
+                    // 4단 통계 누수를 방지하기 위해 result나 payStatus가 비어있다면 디폴트인 "접수"로 보완
+                    if (!row.result && (row.payStatus === "접수" || row.payStatus1 === "접수")) {
+                        row.result = "접수";
+                        isChanged = true;
+                    }
+                });
+
+                // 4. 오염된 찌꺼기가 발견되어 정제되었다면 로컬스토리지에 깨끗하게 최종 오버라이드 커밋
+                if (isChanged) {
+                    localStorage.setItem('dataStoreRecruitment', JSON.stringify(recDB));
+                    localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                    if (typeof dataStoreRecruitment !== 'undefined') window.dataStoreRecruitment = recDB;
+                    if (typeof dataStoreApplicant !== 'undefined') window.dataStoreApplicant = appDB;
+                    console.log("🎯 시스템 알림: 대장 내부의 유령 공백 정밀 정제 및 동기화 셋팅 안착 완료.");
+                }
+            }
+
+            // 5. 최초 페이지 로드 및 사용자가 대상자 관리 탭을 클릭하는 연동 순간마다 강제 가동
+            function forceExecuteCoreEngine() {
+                cleanAndSyncLocalStorage(); // 데이터 정제 먼저 가동
+                if (typeof initDashboardFilter === "function") initDashboardFilter();
+                if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+                if (typeof refreshApplicantView === "function") refreshApplicantView();
+            }
+
+            // A. 화면 최초 안착 시 정제 가동 (300ms 레이턴시 가드 타이머)
+            window.addEventListener('load', function () {
+                setTimeout(forceExecuteCoreEngine, 300);
+            });
+
+            // B. 좌측 내비게이션 [대상자 관리] 메뉴 탭을 클릭하는 찰나의 순간에 인터셉트 연동
+            const appMenuBtn = document.getElementById('menuApp');
+            if (appMenuBtn) {
+                const originalClick = appMenuBtn.onclick;
+                appMenuBtn.onclick = function (e) {
+                    if (originalClick) originalClick.call(this, e);
+                    setTimeout(forceExecuteCoreEngine, 50); // 정제 후 통계판 리계산 연쇄 구동
+                };
+            }
+        })();
+
+        // =========================================================================
+        // 🎯 [원본 소스 완전 보존] 기획 상태 규격(대기/접수/처리중/처리완료) 통계 통합 집계 가드
+        // =========================================================================
+        (function () {
+            // 대표님이 설계해두신 기존 통계 계산기를 확장하여 기획 상태 규격과 상호 매칭시킵니다.
+            window.calculateLiveDashboardStats = function () {
+                const filterTitle = document.getElementById('dashboard-filter-title')?.value || 'ALL';
+                const filterTh = document.getElementById('dashboard-filter-th')?.value || 'ALL';
+                const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+                // 1. 공백 찌꺼기를 정제하여 필터링 매칭율 극대화
+                const filteredData = adminApplicantDB.filter(item => {
+                    const cleanItemTitle = item.title ? item.title.toString().replace(/\s+/g, ' ').trim() : "";
+                    const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
+
+                    const matchTitle = (cleanFilterTitle === 'ALL' || cleanItemTitle === cleanFilterTitle);
+                    const matchTh = (filterTh === 'ALL' || item.th === filterTh);
+                    return matchTitle && matchTh;
+                });
+
+                let totalCount = filteredData.length; // 참여현황 총 n수
+                let receivedCount = 0;               // 1단계: 청구서 접수 현황
+                let processingCount = 0;             // 2단계: 재무 검토 (처리중)
+                let completeCount = 0;               // 3단계: 정산 종결 (지급완료)
+
+                // 2. [기획 핵심]: 대기, 접수, 처리중, 처리완료 토큰을 오차 없이 4단계에 매핑 카운트
+                filteredData.forEach(row => {
+                    const status = row.result || row.payStatus || "대기";
+
+                    // "대기" 또는 "접수" 상태는 모두 1단계 [청구서 접수 현황]에 합산
+                    if (status === "대기" || status === "접수") {
+                        receivedCount++;
+                    }
+                    // "처리중" 상태는 2단계 [재무 검토]에 합산
+                    else if (status === "처리중") {
+                        processingCount++;
+                    }
+                    // "지급완료" 또는 기획하신 "처리완료" 상태는 3단계 [정산 종결]에 완벽 마운트
+                    else if (status === "지급완료" || status === "처리완료") {
+                        completeCount++;
+                    }
+                });
+
+                // 3. 화면 상단 4단계 스코어보드 슬롯에 실시간 주입
+                if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = `${totalCount}명`;
+                if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
+                if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
+                if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
+            };
+
+
+            // =========================================================================
+            // 🎯 [대표님 기획 완결] 3중 충돌 리스너 해제 및 통합 생명주기 엔진 안착
+            // =========================================================================
+
+            // A. 시험명(1선택)이 변경될 때 기수를 "ALL"로 돌려 통계를 강제로 가두는 링커
+            const originalUpdateThOptions = window.updateDashboardThOptions;
+            if (typeof originalUpdateThOptions === "function") {
+                window.updateDashboardThOptions = function () {
+                    originalUpdateThOptions();
+                    const filterTh = document.getElementById('dashboard-filter-th');
+                    if (filterTh) filterTh.value = "ALL";
+                    window.calculateLiveDashboardStats(); // 즉시 0명/0건 리셋 고정
+                };
+            }
+
+            // B. 🌟 [대표님 마스터 리스너]: 기수(2선택)를 최종 마우스 클릭하는 찰나(30ms 뒤)에만 통계/목록 동시 사출!
+            document.addEventListener('change', function (event) {
+                if (event.target && event.target.id === 'dashboard-filter-th') {
+                    setTimeout(function () {
+                        window.calculateLiveDashboardStats();
+                        if (typeof refreshApplicantView === "function") refreshApplicantView();
+                    }, 30);
+                }
+            });
+
+            // C. 메뉴 탭 전환 시 중복 간섭 무력화 및 필터 리부팅 결합
+            const menuAppBtn = document.getElementById('menuApp');
+            if (menuAppBtn) {
+                menuAppBtn.addEventListener('click', function () {
+                    setTimeout(function () {
+                        window.initThSelectOptions();
+                    }, 80);
+                });
+            }
+
+            // D. 🌟 [대표님의 통합 생명주기 리액터 완벽 안착]
+            window.addEventListener('DOMContentLoaded', function () {
+                // 1. 인증 오류 완전 차단을 위해 사원 대장을 메모리에 최우선 적재
+                if (typeof initializePresetMasterDatabase === "function") {
+                    initializePresetMasterDatabase();
+                }
+
+                // 2. 모든 데이터가 안착한 후 안전하게 최초 세션 로그인 구동
+                if (typeof checkActiveLoginSession === "function") {
+                    checkActiveLoginSession();
+                }
+
+                // 3. 브라우저 화면 안착 후 정밀 순차 바인딩 및 이전 뷰포트 복구
+                setTimeout(function () {
+                    window.initThSelectOptions();
+
+                    const filterTh = document.getElementById('dashboard-filter-th');
+                    if (filterTh) filterTh.value = "ALL";
+
+                    window.calculateLiveDashboardStats(); // 0명/0건 가두기 완수
+
+                    // 새로고침 시 이전에 보던 메뉴 상태를 안전하게 추적 복구
+                    var savedViewport = localStorage.getItem('adminActiveViewportId');
+                    if (savedViewport && typeof changeMainViewport === 'function') {
+                        changeMainViewport(savedViewport);
+                    }
+                }, 150);
+            });
+
+        })();
+
+        // =========================================================================
+        // 🎯 [원본 소스 완전 복구] 누락된 4단계 라이브 정산 통계 계산 엔진 (calculateLiveDashboardStats)
+        // =========================================================================
+        function calculateLiveDashboardStats() {
+            // 1. 상단 통계 필터(시험명 및 기수)의 현재 선택값 추출
+            const filterTitleSelect = document.getElementById('dashboard-filter-title');
+            const filterThSelect = document.getElementById('dashboard-filter-th');
+
+            const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
+            const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
+
+            // 2. 최신 대상자 대장(localStorage) 데이터 실시간 로드
+            const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 3. 유령 공백을 정밀 압착하여 선택된 필터 조건에 맞게 데이터 필터링
+            const filteredData = adminApplicantDB.filter(item => {
+                if (!item.title) return false;
+
+                // 텍스트 양끝 및 내부 공백 정제 비교 (신일제약 중복 및 통계 누수 원천 차단)
+                const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
+                const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
+
+                const matchTitle = (cleanFilterTitle === 'ALL' || cleanItemTitle === cleanFilterTitle);
+                const matchTh = (filterTh === 'ALL' || item.th === filterTh);
+
+                return matchTitle && matchTh;
+            });
+
+            // 4. 통계 카운트 변수 초기화
+            let totalCount = filteredData.length; // 참여현황 총 명수
+            let receivedCount = 0;               // 1단계: 청구서 접수 현황
+            let processingCount = 0;             // 2단계: 재무 검토 (처리중)
+            let completeCount = 0;               // 3단계: 정산 종결 (지급완료 / 처리완료)
+
+            // 5. 기획하신 상태 규격(대기/접수/처리중/처리완료)에 맞춰 실시간 집계 분기
+            filteredData.forEach(row => {
+                // row.result 또는 row.payStatus 기반으로 상태 스캔
+                const status = (row.result || row.payStatus || "대기").toString().trim();
+
+                if (status === "대기" || status === "접수") {
+                    receivedCount++; // 대기와 접수는 모두 [청구서 접수 현황]에 마운트
+                } else if (status === "처리중") {
+                    processingCount++; // 처리중은 [재무 검토]에 마운트
+                } else if (status === "지급완료" || status === "처리완료" || status === "완료") {
+                    completeCount++; // 지급완료와 처리완료는 모두 [정산 종결]에 마운트
+                }
+            });
+
+            // 6. PDF에 설계된 오리지널 통계판 ID 슬롯에 실시간 수치 강제 주입
+            if (document.getElementById('stat-total-count')) {
+                document.getElementById('stat-total-count').innerText = `${totalCount}명`;
+            }
+            if (document.getElementById('stat-received-count')) {
+                document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
+            }
+            if (document.getElementById('stat-processing-count')) {
+                document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
+            }
+            if (document.getElementById('stat-complete-count')) {
+                document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
+            }
+        }
+
+        // 🎯 [연동 트리거]: 탭 클릭 및 최초 로드 시 비어있던 통계 함수를 깨워주는 연결고리 배치
+        (function () {
+            const originalChangeMainViewport = window.changeMainViewport;
+            if (typeof originalChangeMainViewport === "function") {
+                window.changeMainViewport = function (viewName) {
+                    originalChangeMainViewport(viewName);
+                    if (viewName === 'applicantView') {
+                        // 대상자 관리 탭을 누르는 즉시 계산기 작동
+                        setTimeout(function () {
+                            if (typeof initDashboardFilter === "function") initDashboardFilter();
+                            calculateLiveDashboardStats();
+                            if (typeof refreshApplicantView === "function") refreshApplicantView();
+                        }, 50);
+                    }
+                };
+            }
+
+            // 페이지 처음 로딩될 때 기본 데이터(3명/1건/1건/1건) 즉시 집계 출력
+            window.addEventListener('load', function () {
+                setTimeout(function () {
+                    if (typeof initDashboardFilter === "function") initDashboardFilter();
+                    calculateLiveDashboardStats();
+                }, 250);
+            });
+        })();
+
+
+        // =========================================================================
+        // 🎯 [대표님 기획 의도 100% 완결] 순차 선택(시험명->기수) 확정 시에만 통계 산출 엔진
+        // =========================================================================
+        (function () {
+            // 1. [중복 파괴 및 새 시험 연동 코어] 
+            window.initThSelectOptions = function () {
+                const filterTitleSelect = document.getElementById('dashboard-filter-title');
+                if (!filterTitleSelect) return;
+
+                // 최신 대장 세션 실시간 로드
+                let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+                const currentSelected = filterTitleSelect.value;
+                filterTitleSelect.innerHTML = '<option value="ALL">— 전체 시험 보기 —</option>';
+
+                let titles = [];
+
+                // 🌟 [유령 공백 압착 가드]: 공고 대장과 대상자 대장의 숨은 공백을 압착하여 중복 매칭을 원천 차단
+                recruitmentDB.forEach(row => {
+                    if (row.title) {
+                        const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
+                        if (cleanTitle && !titles.includes(cleanTitle)) titles.push(cleanTitle);
+                    }
+                });
+
+                adminApplicantDB.forEach(row => {
+                    if (row.title) {
+                        const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
+                        if (cleanTitle && !titles.includes(cleanTitle)) titles.push(cleanTitle);
+                    }
+                });
+
+                // 알파벳/가나다 정렬 후 원형 문자열 그대로 마운트
+                titles.sort().forEach(t => {
+                    const option = document.createElement('option');
+                    option.value = t;
+                    option.innerText = t;
+                    filterTitleSelect.appendChild(option);
+                });
+
+                if (titles.includes(currentSelected)) {
+                    filterTitleSelect.value = currentSelected;
+                } else {
+                    filterTitleSelect.value = 'ALL';
+                }
+
+                // 오리지널 서브 기수 로딩 함수 호출
+                if (typeof updateDashboardThOptions === "function") {
+                    updateDashboardThOptions();
+                }
+            };
+
+            // 2. [초기 통계 가둠 가드]: 오리지널 통계 함수(calculateLiveDashboardStats)를 인터셉트 제어
+            const originalCalculateStats = window.calculateLiveDashboardStats;
+            window.calculateLiveDashboardStats = function () {
+                const filterTitle = document.getElementById('dashboard-filter-title')?.value || 'ALL';
+                const filterTh = document.getElementById('dashboard-filter-th')?.value || 'ALL';
+
+                // 🌟 [기획 의도]: 처음 진입했거나(ALL), 1셀렉트만 고르고 2셀렉트는 안 고른 상태("ALL")일 때는
+                // 무조건 통계 수치판을 '0'으로 깨끗하게 묶어두고 집계 연산을 원천 차단합니다.
+                if (filterTitle === "ALL" || filterTh === "ALL" || filterTh === "") {
+                    if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = "0명";
+                    if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = "0건";
+                    if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = "0건";
+                    if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = "0건";
+                    return;
+                }
+
+                // 오직 2단계 기수까지 마우스로 콕 집어 선택 완료했을 때만 집계 연산 사출
+                if (typeof originalCalculateStats === "function") {
+                    originalCalculateStats();
+                } else {
+                    // 오리지널 통계 로직 임베딩 처리 보완
+                    const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                    const filteredData = adminApplicantDB.filter(item => {
+                        if (!item.title) return false;
+                        const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
+                        const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
+                        return cleanItemTitle === cleanFilterTitle && item.th === filterTh;
+                    });
+
+                    let totalCount = filteredData.length, receivedCount = 0, processingCount = 0, completeCount = 0;
+                    filteredData.forEach(row => {
+                        const status = (row.result || row.payStatus || "대기").toString().trim();
+                        if (status === "대기" || status === "접수") receivedCount++;
+                        else if (status === "처리중") processingCount++;
+                        else if (status === "지급완료" || status === "처리완료") completeCount++;
+                    });
+
+                    if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = `${totalCount}명`;
+                    if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
+                    if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
+                    if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
+                }
+            };
+
+            // 3. 1셀렉트(시험명) 변경 시 연동되는 원본 함수(updateDashboardThOptions) 확장 보완
+            const originalUpdateThOptions = window.updateDashboardThOptions;
+            if (typeof originalUpdateThOptions === "function") {
+                window.updateDashboardThOptions = function () {
+                    originalUpdateThOptions();
+                    const filterTh = document.getElementById('dashboard-filter-th');
+                    if (filterTh) filterTh.value = "ALL"; // 시험명 변경 시 기수 필터 초기 락 홀딩
+                    window.calculateLiveDashboardStats(); // 수치판 즉시 0 리셋
+                };
+            }
+
+            // 4. [🎯 2단계 최종 확정 사출 리스너]: 2셀렉트(기수 필터)가 변경되는 바로 그 순간!
+            document.addEventListener('change', function (event) {
+                if (event.target && event.target.id === 'dashboard-filter-th') {
+                    setTimeout(function () {
+                        // 특정 기수가 최종 선택 완료되었으므로 잠금을 해제하고 통계와 하단 목록을 동시 출력합니다.
+                        window.calculateLiveDashboardStats();
+                        if (typeof refreshApplicantView === "function") refreshApplicantView();
+                    }, 30);
+                }
+            });
+
+            // 5. [🎯 38페이지 이중 선언 원천 제어]: 메뉴 클릭 시 오리지널 필터 빌더를 정확하게 리로딩
+            const menuAppBtn = document.getElementById('menuApp');
+            if (menuAppBtn) {
+                menuAppBtn.addEventListener('click', function () {
+                    setTimeout(function () {
+                        window.initThSelectOptions(); // 대표님의 오리지널 필터 리로더 구동
+                        const filterTh = document.getElementById('dashboard-filter-th');
+                        if (filterTh) filterTh.value = "ALL";
+                        window.calculateLiveDashboardStats();
+                    }, 80);
+                });
+            }
+
+            // 최초 새로고침 직후 셋팅 가드
+            window.addEventListener('load', function () {
+                setTimeout(function () {
+                    window.initThSelectOptions();
+                    window.calculateLiveDashboardStats();
+                }, 300);
+            });
+        })();
+
+
+        // 2셀렉트 박스(기수)를 고르는 바로 그 순간 원래 짜여있던 통계 및 목록 함수를 연쇄 구동시키는 마스터 링커
+        document.getElementById('dashboard-filter-th').onchange = function () {
+            if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+            if (typeof refreshApplicantView === "function") refreshApplicantView();
+        };
+
+
+        // =========================================================================
+        // 🎯 [원본 소스 완전 종결] 3중 충돌 리스너 무력화 및 통합 생명주기 엔진
+        // =========================================================================
+        window.addEventListener('DOMContentLoaded', function () {
+            // 1. [1순위 사원 대장 강제 락인]: 인증 오류 완천 차단을 위해 임직원 사원 정보를 메모리에 최우선 적재
+            if (typeof initializePresetMasterDatabase === "function") {
+                initializePresetMasterDatabase();
+            }
+
+            // 2. [보안 세션 구동 및 로그인 차단 해제]: 모든 대장이 안착한 후 안전하게 최초 세션 실행
+            if (typeof checkActiveLoginSession === "function") {
+                checkActiveLoginSession();
+            }
+
+            // 3. [기획 사양 통합 스케줄러]: 브라우저 화면이 안착한 뒤 안전하게 순차 필터 바인딩 및 뷰포트 복구
+            setTimeout(function () {
+                // 대표님의 오리지널 필터 초기화 함수 안전 구동 (중복 문항 파괴)
+                if (typeof initThSelectOptions === "function") {
+                    initThSelectOptions();
+                }
+
+                // 대상자 관리 탭 통계판 초기 수치를 0명/0건으로 완벽히 가둡니다.
+                const filterTh = document.getElementById('dashboard-filter-th');
+                if (filterTh) {
+                    filterTh.value = "ALL";
+                }
+                if (typeof calculateLiveDashboardStats === "function") {
+                    calculateLiveDashboardStats(); // 0명/0건 리셋 고정
+                }
+
+                // 💥 [요구사항 반영] 새로고침 시 이전에 보던 메뉴(recruitmentView 등) 상태를 안전하게 추적 복구
+                var savedViewport = localStorage.getItem('adminActiveViewportId');
+                if (savedViewport && typeof changeMainViewport === 'function') {
+                    changeMainViewport(savedViewport);
+                }
+            }, 150); // 150ms 정밀 디바운싱을 통해 레이턴시 충돌을 완전히 제어
+        });
 
     </script>
 

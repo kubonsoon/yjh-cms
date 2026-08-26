@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>민간인증 로그인 | 대상자 모바일 화면</title>
+    <!-- 구글 폰트 및 아이콘 라이브러리 추가 -->
+    <link rel="stylesheet" href="https://cloudflare.com">
+
+    <style>
+        /* ========================================================
+        1. 글로벌 초기화 및 프리미엄 모바일 백그라운드 시스템
+        ======================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background: #091731;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            padding: 10px;
+        }
+
+        /* 모바일 디바이스 프레임 고정 */
+        .mobile-container {
+            width: 100%;
+            max-width: 420px;
+            height: 840px;
+            background: linear-gradient(135deg, #091731 0%, #0d2857 100%);
+            border-radius: 36px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 상단 마스터 헤더 영역 */
+        .simulator-title {
+            text-align: center;
+            padding: 20px 15px 10px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .simulator-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #06B6D4;
+        }
+
+        .simulator-title p {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 4px;
+        }
+
+        /* 단계별 모바일 패널 시스템 */
+        .step-panel {
+            display: none;
+            flex: 1;
+            padding: 25px 20px;
+            flex-direction: column;
+            overflow-y: auto;
+            animation: slideIn 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .step-panel.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 대분류 타이틀 레이아웃 */
+        .panel-header-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ========================================================
+        2. 단계별 특화 UI 스킨 스타일링
+        ======================================================== */
+        /* [0단계: QR 스캔 시뮬레이션] */
+        .qr-scan-zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-top: -45px;
+        }
+
+        .qr-box {
+            width: 180px;
+            height: 180px;
+            border: 3px dashed #06B6D4;
+            border-radius: 20px;
+            margin: 25px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(6, 182, 212, 0.05);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .qr-box:hover {
+            background: rgba(6, 182, 212, 0.15);
+            transform: scale(1.02);
+        }
+
+        .qr-box i {
+            font-size: 64px;
+            color: #06B6D4;
+        }
+
+        /* 💥 추가: 깃허브 실물 QR 이미지 규격 고정 기술 서식 */
+        .qr-box img {
+            width: 84%;
+            height: 84%;
+            object-fit: contain;
+            position: relative;
+            z-index: 1;
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 90%;
+            height: 2px;
+            background: #06B6D4;
+            animation: scanMove 2s infinite linear;
+            box-shadow: 0 0 8px #06B6D4;
+        }
+
+        @keyframes scanMove {
+            0% {
+                top: 10%;
+            }
+
+            50% {
+                top: 90%;
+            }
+
+            100% {
+                top: 10%;
+            }
+        }
+
+        /* [1단계: 간편인증 선택] */
+        .login-header-mini {
+            margin-bottom: 20px;
+        }
+
+        .login-header-mini .badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 6px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .login-header-mini h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .login-header-mini .subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .auth-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .auth-group h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .btn-auth {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .btn-auth:active {
+            transform: scale(0.98);
+        }
+
+        .btn-auth .icon-wrapper {
+            width: 50px;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        .btn-auth .text-wrapper {
+            flex: 1;
+            text-align: center;
+            padding-right: 50px;
+        }
+
+        .btn-kakao {
+            background: #FEE500;
+            color: #191919;
+        }
+
+        .btn-naver {
+            background: #03C75A;
+            color: #fff;
+        }
+
+        .btn-toss {
+            background: #0064FF;
+            color: #fff;
+        }
+
+        .btn-pass {
+            background: #E61E25;
+            color: #fff;
+        }
+
+        /* [2단계: 본인인증 서식] */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            height: 46px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 0 14px;
+            font-size: 13px;
+            color: #fff;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #0072f0;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .agree-box {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agree-box input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            width: 100%;
+            height: 50px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #fff;
+            transition: background 0.2s;
+        }
+
+        .theme-btn-default {
+            background: #0072f0;
+        }
+
+        .theme-btn-kakao {
+            background: #FEE500;
+            color: #191919;
+        }
+
+        .theme-btn-naver {
+            background: #03C75A;
+        }
+
+        .theme-btn-toss {
+            background: #0064FF;
+        }
+
+        .theme-btn-pass {
+            background: #E61E25;
+        }
+
+        /* [3단계: 결과 알림 팝업 전용] */
+        .popup-display-zone {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .embedded-result-popup {
+            background: #ffffff;
+            border-radius: 20px;
+            width: 100%;
+            padding: 25px 18px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .pop-icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 26px;
+            margin-bottom: 12px;
+        }
+
+        .pop-theme-pass .pop-icon-box {
+            background: #e6f7ed;
+            color: #03C75A;
+        }
+
+        .pop-theme-pass .pop-title-text {
+            color: #03C75A;
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .pop-theme-fail .pop-icon-box {
+            background: #fbebe3;
+            color: #E61E25;
+        }
+
+        .pop-theme-fail .pop-title-text {
+            color: #E61E25;
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .pop-body-message {
+            color: #333333;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-align: left;
+            white-space: pre-line;
+        }
+
+        .btn-pop-next {
+            width: 100%;
+            height: 44px;
+            background: #0072f0;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* [4단계: 정산 청구서 및 사례비 신청] */
+        .trial-list-card {
+            border-radius: 14px;
+            background-color: #122442;
+            border: 1px solid #1E293B;
+            padding: 14px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .trial-info h4 {
+            font-size: 13px;
+            margin-bottom: 4px;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        .meta-row {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .badge.bg-blue {
+            background-color: #0056B3;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .status-history-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: #0A142F;
+            border-radius: 6px;
+            border: 1px solid #1E293B;
+            font-size: 10.5px;
+            margin-bottom: 12px;
+        }
+
+        .settlement-card {
+            background-color: #112240;
+            border: 1px solid #1E293B;
+            border-radius: 16px;
+            padding: 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .settlement-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #06B6D4;
+            border-bottom: 1px solid #1E293B;
+            padding-bottom: 4px;
+        }
+
+        .progress-status {
+            background-color: #07132B;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #94A3B8;
+            border: 1px solid #1E293B;
+            line-height: 1.4;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 95px 1fr;
+            gap: 6px;
+        }
+
+        .form-select,
+        .form-input {
+            height: 34px;
+            background-color: #07132B;
+            border: 1px solid #1E293B;
+            border-radius: 6px;
+            color: #FFF;
+            padding: 0 8px;
+            font-size: 11.5px;
+            outline: none;
+        }
+
+        .upload-box-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .upload-box {
+            border: 1.5px dashed #1E293B;
+            border-radius: 8px;
+            padding: 12px 6px;
+            background-color: #07132B;
+            text-align: center;
+            font-size: 11px;
+            color: #94A3B8;
+        }
+
+        .btn-submit-form {
+            width: 100%;
+            height: 44px;
+            background-color: #9ca3af;
+            border: none;
+            border-radius: 10px;
+            color: #FFF;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: not-allowed;
+            transition: all 0.3s;
+            margin-top: 5px;
+        }
+
+        @keyframes scanMove {
+            0% {
+                top: 8%;
+            }
+
+            50% {
+                top: 92%;
+            }
+
+            100% {
+                top: 8%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 스마트폰 디바이스 프레임 구현 외곽선 컨테이너 -->
+    <div class="mobile-container">
+
+        <!-- 상단 공통 타이틀 헤더 바 -->
+        <div class="simulator-title">
+            <h1>임상시험 스마트 연동 시스템</h1>
+            <p id="system-subtitle">대상자 모바일 인증 프로세스</p>
+        </div>
+
+        <!-- [0단계 PANEL] QR코드 스캔 연동 시뮬레이터 -->
+        <div class="step-panel active" id="layer0">
+            <div class="panel-header-title">
+                <i class="fa-solid fa-qrcode"></i> 시연 시작 단계 : 스마트 링커 QR 스캔
+            </div>
+
+            <div class="qr-scan-zone">
+                <p style="font-size:16px; color:rgba(255,255,255,0.8); line-height:1.5; margin-bottom: 5px;">
+                    게시되는<span style="color:#38bdf8; font-weight:700;">QR코드를 스캔</span>하여<br>모바일 인증 시스템에 접속합니다.
+                </p>
+
+                <div class="qr-box" onclick="executeStep0QRScan()">
+                    <!-- 위아래로 투사되는 움직이는 가이드 레이저 라인 -->
+                    <div class="scan-line"></div>
+                    <!-- 요청하신 깃허브 원본 이미지 소스 다이렉트 바인딩 (엑박 방지 Raw 주소 적용) -->
+                    <img src="https://github.com/kubonsoon/yjh-cms/blob/main/qr-code.png?raw=true" alt="QR Code Link">
+                </div>
+
+                <p style="font-size:11px; color:rgba(255,255,255,0.4); line-height:1.4;">
+                    * 시연 안내: 위의 실제 QR 이미지를 터치(클릭)하면<br>자동으로 다음 [모바일 인증서 선택] 화면으로 진입합니다.
+                </p>
+            </div>
+        </div>
+
+        <!-- [1단계 PANEL] 민간인증 로그인 수단 선택 스위치 -->
+        <div class="step-panel" id="layer1">
+            <div class="panel-header-title"><i class="fa-solid fa-key"></i> 1 단계: 간편인증 로그인 수단</div>
+            <div class="login-header-mini">
+                <div class="badge">스마트 솔루션 (CMS)</div>
+                <h2>임상시험 로그인</h2>
+                <p class="subtitle">H+ YANGJI HOSPITAL 의생명연구원</p>
+            </div>
+            <div class="auth-group">
+                <h3>인증 수단 선택</h3>
+                <button id="btn_kakao" class="btn-auth btn-kakao" onclick="executeStep1Select('kakao', '카카오톡')">
+                    <span class="icon-wrapper"><i class="fa-solid fa-comment"></i></span>
+                    <span class="text-wrapper">카카오톡으로 시작하기</span>
+                </button>
+                <button id="btn_naver" class="btn-auth btn-naver" onclick="executeStep1Select('naver', '네이버')">
+                    <span class="icon-wrapper"><i class="fa-solid fa-n"></i></span>
+                    <span class="text-wrapper">네이버로 시작하기</span>
+                </button>
+                <button id="btn_toss" class="btn-auth btn-toss" onclick="executeStep1Select('toss', '토스')">
+                    <span class="icon-wrapper"><i class="fa-solid fa-t"></i></span>
+                    <span class="text-wrapper">토스로 시작하기</span>
+                </button>
+                <button id="btn_pass" class="btn-auth btn-pass" onclick="executeStep1Select('pass', 'PASS')">
+                    <span class="icon-wrapper"><i class="fa-solid fa-shield-halved"></i></span>
+                    <span class="text-wrapper">PASS로 시작하기</span>
+                </button>
+            </div>
+        </div>
+        <!-- [2단계 PANEL] 본인 식별 데이터 기입 폼 -->
+        <div class="step-panel" id="layer2">
+            <div class="panel-header-title"><i class="fa-solid fa-pen-to-square"></i> 2 단계: 본인인증 입력 서식</div>
+            <div style="flex:1;">
+                <div class="form-group">
+                    <label id="lblDynamicForm">이름</label>
+                    <input type="text" id="txtUserName" placeholder="이름을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label>생년월일 (6 or 8 자리)</label>
+                    <input type="text" id="txtUserBirth" placeholder="예: 950505">
+                </div>
+                <div class="form-group">
+                    <label>휴대폰 번호 (숫자만)</label>
+                    <input type="text" id="txtUserPhone" placeholder="예: 01012345678">
+                </div>
+                <div class="agree-box">
+                    <input type="checkbox" id="chkAgree">
+                    <label for="chkAgree" style="cursor:pointer; font-weight:500;">이용약관 및 정보 수집 전체 동의</label>
+                </div>
+                <button id="btnSubmitForm" class="btn-submit theme-btn-default" onclick="executeStep2Submit()">인증
+                    요청</button>
+            </div>
+        </div>
+
+        <!-- [3단계 PANEL] 검증 처리 결과 안내 모달 알림 스크린 -->
+        <div class="step-panel" id="layer3">
+            <div class="panel-header-title"><i class="fa-solid fa-bell"></i> 3 단계: 본인확인 처리 결과</div>
+            <div class="popup-display-zone">
+                <div class="embedded-result-popup" id="popupEmbedded3">
+                    <div class="pop-icon-box"><i id="icoPop" class="fa-solid fa-circle-check"></i></div>
+                    <div class="pop-title-text" id="txtPopTitle">본인식별 상태</div>
+                    <div class="pop-body-message" id="txtPopMessage">내용 조회 중...</div>
+                    <button id="btnActionPop" class="btn-pop-next" onclick="executeStep3ConfirmNext()">확인</button>
+                </div>
+            </div>
+        </div>
+        <!-- [4단계 PANEL] 스마트 청구서 계좌 서식 및 사례비 접수 처리 -->
+        <div class="step-panel" id="layer4">
+            <div class="panel-header-title"><i class="fa-solid fa-money-check-dollar"></i> 4 단계: 정산 정보 등록 및 사례비 신청</div>
+
+            <!-- 연동 대상자 전산 카드 정보 컴포넌트 -->
+            <div id="ui_trial_card" class="trial-list-card">
+                <div class="trial-info" style="text-align: left;">
+                    <span id="lblTrialCategory"
+                        style="font-size: 10px; font-weight: bold; color: #06B6D4; background: rgba(6, 182, 212, 0.15); padding: 2px 5px; border-radius: 4px; display: inline-block; margin-bottom: 3px;">내분비내과
+                        / 2기 과제</span>
+                    <h4 id="lblTrialTitle">임상과제 정보 로딩 중...</h4>
+                    <div class="meta-row">
+                        <div>대상자: <span id="lblSetTarget">-</span></div>
+                        <div>담당: 관리자</div>
+                    </div>
+                </div>
+                <span id="cms-badge" class="badge bg-blue">참여(소집)</span>
+            </div>
+
+            <!-- 실시간 소켓 상태 모니터 바 -->
+            <div class="status-history-bar">
+                <span>실시간 연결: <b style="color:#4ade80;">연결중</b></span>
+                <span>◀ 상태: <b id="history-log" style="color: #06B6D4;">승인체킹 가동중</b></span>
+            </div>
+
+            <!-- 정산 인프라 기입 카드 -->
+            <div class="settlement-card">
+                <div class="settlement-title">참여비 지급 신청 서식</div>
+                <div class="progress-status" id="ui_stage_text">
+                    ⏳ <b>차수 전산 검증 단계</b><br>
+                    <span style="font-size:11px;color:#94A3B8;">* 관리자 허브창에서 [신청가능] 상태를 승인해 주시면 아래 입력 양식 잠금이 자동
+                        해제됩니다.</span>
+                </div>
+
+                <div class="form-grid">
+                    <select class="form-select" id="ui_bank_select" disabled>
+                        <option value="">은행 선택</option>
+                        <option value="국민">KB국민은행</option>
+                        <option value="우리">우리은행</option>
+                        <option value="하나">하나은행</option>
+                        <option value="신한">신한은행</option>
+                        <option value="농협">NH농협은행</option>
+                        <option value="카카오">카카오뱅크</option>
+                        <option value="토스">토스뱅크</option>
+                    </select>
+                    <input type="text" class="form-input" id="ui_bank_input" disabled placeholder="계좌번호 입력(숫자만)"
+                        value="110-123-456789">
+                </div>
+
+                <div class="upload-box-wrapper">
+                    <div class="upload-box" id="doc_box_1">
+                        <span class="status-text" style="font-weight:700; color:#f87171;">❌ 신분증 미첨부</span>
+                    </div>
+                    <div class="upload-box" id="doc_box_2">
+                        <span class="status-text" style="font-weight:700; color:#f87171;">❌ 통장사본 미첨부</span>
+                    </div>
+                </div>
+
+                <button id="ui_submit_btn" class="btn-submit-form" onclick="submitFinalSettlementForm()" disabled>관리자 승인
+                    대기 중 (신청 불가)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================================
+        // 1. 비동기 전산 트래킹 및 데이터 보존 마스터 전역 변수
+        // ========================================================
+        let currentChannel = "";
+        let currentChannelName = "";
+        let matchedPatientData = null;
+        let temporaryVerifiedName = "";
+
+        // 모바일 화면 패널을 순차적으로 제어하는 인터페이스 스위칭 엔진
+        function navigateToStep(stepNumber) {
+            document.querySelectorAll('.step-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            const targetPanel = document.getElementById('layer' + stepNumber);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+        }
+        // 💥 0단: QR코드 터치 스캔 시뮬레이션 처리
+        function executeStep0QRScan() {
+            alert("[QR 인식 성공] H+양지병원 임상시험 서버와 연동되었습니다. 본인 인증 단계로 진입합니다.");
+            navigateToStep(1);
+        }
+
+        // 💥 1단: 간편인증 수단 버튼 타겟팅 핸들러
+        function executeStep1Select(provider, providerName) {
+            currentChannel = provider;
+            currentChannelName = providerName;
+
+            // 선택된 인증사에 맞춰 2단계 서식창 텍스트와 테마 동적 주입
+            document.getElementById('lblDynamicForm').innerText = `이름 (${providerName} 명의 정보)`;
+
+            const submitBtn = document.getElementById('btnSubmitForm');
+            if (submitBtn) {
+                submitBtn.className = "btn-submit theme-btn-" + provider;
+            }
+
+            // 2단계 모바일 서식 창으로 화면 전환
+            navigateToStep(2);
+        }
+
+        // 💥 2단: [버그 완전 해결] 입력 데이터 마스터 DB 대조 및 본인인증 크로스 체킹
+        function executeStep2Submit() {
+            const name = document.getElementById('txtUserName').value.trim();
+            const birth = document.getElementById('txtUserBirth').value.trim().replace(/[^0-9]/g, '');
+            const phone = document.getElementById('txtUserPhone').value.trim().replace(/[^0-9]/g, '');
+            const isAgreed = document.getElementById('chkAgree').checked;
+
+            if (!name || !birth || !phone) return alert('본인 식별을 위한 입력 필드를 빠짐없이 채워주세요.');
+            if (!isAgreed) return alert('개인정보 활용 동의 체크박스 수락이 필요합니다.');
+
+            temporaryVerifiedName = name;
+
+            // 로컬 스토리지 데이터 동기화 연동
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            const cleanInputBirth6 = birth.length === 8 ? birth.substring(2) : birth;
+
+            // 마스터 대장 정보와 실시간 교차 검증 스캔
+            matchedPatientData = adminApplicantDB.find(user => {
+                const dbBirth = (user.ssn || '').toString().replace(/[^0-9]/g, '');
+                const cleanDbBirth6 = dbBirth.length === 8 ? dbBirth.substring(2) : dbBirth;
+                const cleanDbPhone = (user.phone || '').toString().replace(/[^0-9]/g, '');
+                return user.name === name && cleanDbBirth6 === cleanInputBirth6 && cleanDbPhone === phone;
+            });
+
+            const popup = document.getElementById('popupEmbedded3');
+
+            if (matchedPatientData) {
+                // 브라우저 락업 시스템에 데이터 동적 각인
+                sessionStorage.setItem('certifiedUserName', name);
+                if (window.opener && !window.opener.closed) {
+                    window.opener.currentCertifiedUser = matchedPatientData;
+                }
+
+                let adminRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                const matchedRec = adminRecruitmentDB.find(rec => rec.title === matchedPatientData.title && String(rec.th) === String(matchedPatientData.th));
+                const payScheduleText = (matchedRec && matchedRec.payDate) ? matchedRec.payDate.trim() : "추후 공지 예정";
+
+                popup.parentElement.className = "popup-display-zone pop-theme-pass";
+                if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
+                document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
+                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 피험자명: ${name}\n\n📢 [사례비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
+            } else {
+                matchedPatientData = null;
+                popup.parentElement.className = "popup-display-zone pop-theme-fail";
+                if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-xmark";
+                document.getElementById('txtPopTitle').innerText = "본인인증 실패 (FAIL)";
+                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName}\n\n입력하신 정보가 임상시험 관리 시스템에 등록된 대상자 대장 서식 정보와 일치하지 않습니다.`;
+            }
+
+            // 3단계 결과 레이어로 이동
+            navigateToStep(3);
+        }
+        // 💥 3단: 처리 결과 승인 확인 및 4단계 하브 마운트 공정
+        function executeStep3ConfirmNext() {
+            if (matchedPatientData) {
+                navigateToStep(4);
+
+                // 화면 텍스트 전산 매핑 데이터 주입
+                document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
+
+                const userBirthInput = document.getElementById('txtUserBirth').value.trim();
+                document.getElementById('lblSetTarget').innerText = `${matchedPatientData.name} 피험자님 (${userBirthInput})`;
+
+                if (matchedPatientData.stage) {
+                    document.getElementById('ui_stage_text').innerHTML = matchedPatientData.stage;
+                }
+
+                // 4단계 입력 서식 초기 잠금 및 백오피스 관측 엔진 가동
+                setMobileFormActive(false);
+                startAdminApprovalMonitor();
+
+            } else {
+                // 매칭 실패 정보 복귀 시 안전 모드로 1단계 원격 리셋 처리
+                navigateToStep(1);
+                alert("인증 정보가 파괴되었거나 부적격 상태입니다. 다시 로그인해 주세요.");
+            }
+        }
+
+        // 🎯 4단 스마트 폼 비동기 장벽 원격 해제 스위치 
+        function setMobileFormActive(isActive) {
+            const isDisable = !isActive;
+
+            if (document.getElementById('ui_bank_select')) document.getElementById('ui_bank_select').disabled = isDisable;
+            if (document.getElementById('ui_bank_input')) document.getElementById('ui_bank_input').disabled = isDisable;
+
+            const submitBtn = document.getElementById('ui_submit_btn');
+            if (submitBtn) {
+                submitBtn.disabled = isDisable;
+                if (isActive) {
+                    submitBtn.style.background = "#0284c7";
+                    submitBtn.style.cursor = "pointer";
+                    submitBtn.innerText = "지급 신청하기 (관리자 승인 완료)";
+
+                    // 서류 연동 시뮬레이션 상태 변경
+                    document.getElementById('doc_box_1').innerHTML = '<span style="font-weight:700; color:#4ade80;">✅ 신분증 자동 연동됨</span>';
+                    document.getElementById('doc_box_2').innerHTML = '<span style="font-weight:700; color:#4ade80;">✅ 통장사본 자동 연동됨</span>';
+                } else {
+                    submitBtn.style.background = "#9ca3af";
+                    submitBtn.style.cursor = "not-allowed";
+                    submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
+                }
+            }
+        }
+
+        // 🎯 부모 관리자 시스템(admin.html)의 글로벌 시그널을 실시간 추적하는 폴링 루프
+        function startAdminApprovalMonitor() {
+            const monitorInterval = setInterval(function () {
+                if (window.opener && !window.opener.closed && window.opener.currentCertifiedUser) {
+                    const currentStatus = window.opener.currentCertifiedUser.payStatus;
+
+                    // 관리자가 백오피스 대장에서 [신청가능] 플래그를 할당한 연동 시점 포착
+                    if (currentStatus === "신청가능") {
+                        setMobileFormActive(true);
+                        clearInterval(monitorInterval);
+                        document.getElementById('history-log').innerHTML = "<span style='color:#4ade80;'>승인 신호 포착</span>";
+                        console.log("[모바일] 관리자 허브 승인 신호 감지에 따라 서식 폼 양식 입력 락 해제 완료.");
+                    }
+                }
+            }, 1000);
+        }
+
+        // 💥 4단: 최종 정산 데이터 전산 패킷 트랜잭션 전송 공정
+        function submitFinalSettlementForm() {
+            const bankSelect = document.getElementById('ui_bank_select');
+            const accountInput = document.getElementById('ui_bank_input');
+
+            const selectedBankName = bankSelect ? bankSelect.options[bankSelect.selectedIndex].text : "";
+            const inputtedAccount = accountInput ? accountInput.value.trim() : "";
+
+            if (!bankSelect.value) return alert("알림: 참여비를 수령하실 은행을 선택해 주세요.");
+            if (inputtedAccount === "") return alert("알림: 정산 처리를 위한 계좌번호를 입력해 주세요.");
+
+            const finalFinancialInfo = `${selectedBankName} ${inputtedAccount}`;
+
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            const idx = adminApplicantDB.findIndex(user => String(user.uid) === String(matchedPatientData.uid));
+
+            if (idx !== -1) {
+                adminApplicantDB[idx].payStatus = "접수";
+                adminApplicantDB[idx].accountInfo = finalFinancialInfo;
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+
+                alert(`[전산 접수 완료]\n\n${temporaryVerifiedName} 피험자님의 사례비 청구서가 [${finalFinancialInfo}] 허브를 통해 전산 최종 접수 완료되었습니다.`);
+
+                // 전산 완료 상태로 폼 잠금 및 배지 고정 업데이트
+                const targetBtn = document.getElementById('ui_submit_btn');
+                targetBtn.disabled = true;
+                targetBtn.innerText = "✔ 지급 신청 완료 (전산 전송됨)";
+                targetBtn.style.background = "#475569";
+
+                document.getElementById('cms-badge').innerText = "접수";
+                document.getElementById('cms-badge').style.background = "#38bdf8";
+                document.getElementById('history-log').innerHTML = "<strong style='color:#38bdf8;'>[접수완료]</strong>";
+            } else {
+                alert("전산 오류: 데이터 동기화 유실로 인해 청구 접수가 거절되었습니다.");
+            }
+        }
+    </script>
+</body>
+
+</html>

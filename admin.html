@@ -2382,7 +2382,7 @@
                 if (isAppEditing) {
                     tr.className = "editing-row";
                     tr.innerHTML = `
-                <td style="vertical-align: middle; padding-left: 15px;"><input type="text" id="inline-app-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;"></td>
+                   <td style="vertical-align: middle; padding-left: 15px;"><input type="text" id="inline-app-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;"></td>
                 <td style="width: 90px; vertical-align: middle;"><input type="text" id="inline-app-th-${index}" class="inline-input" value="${row.th || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
                 <td style="width: 75px; vertical-align: middle;"><input type="text" id="inline-app-count-${index}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
                 <td style="width: 65px; vertical-align: middle;"><input type="text" id="inline-app-period-${index}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
@@ -2396,8 +2396,25 @@
                         <option value="지급완료" ${row.payStatus1 === '지급완료' ? 'selected' : ''}>지급완료</option>
                     </select>
                 </td>
-                <td style="width: 75px; vertical-align: middle;"><input type="text" id="inline-app-duty-${index}" class="inline-input" value="${row.isDutyAgreed || '동의'}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 75px; vertical-align: middle;"><input type="text" id="inline-app-call-${index}" class="inline-input" value="${row.isCallAgreed || '동의'}" style="text-align:center; background: var(--card-color) !important;"></td>
+                
+                <!-- 🎯 [당직동의 수정 칸]: 수정 클릭 시 선택 가능한 select 드롭다운 컴포넌트 탑재 -->
+                <td style="width: 75px; vertical-align: middle;">
+                    <select id="inline-app-duty-${index}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
+                        <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
+                        <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+                        <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                    </select>
+                </td>
+                
+                <!-- 🎯 [소집동의 수정 칸]: 수정 클릭 시 선택 가능한 select 드롭다운 컴포넌트 탑재 -->
+                <td style="width: 75px; vertical-align: middle;">
+                    <select id="inline-app-call-${index}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
+                        <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
+                        <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
+                        <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                    </select>
+                </td>
+                
                 <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px;">교재 중 변경불가</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
@@ -2417,7 +2434,7 @@
                     payStatusBadgeLinesHTML += buildMiniBadgeHTML("3차", row.payStatus3 || '대기');
 
                     tr.innerHTML = `
-                <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
+                  <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
                 <td style="width: 90px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
                 </td>
@@ -2429,8 +2446,11 @@
                 <td style="width: 85px; vertical-align: middle; text-align: center;">
                     <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">${payStatusBadgeLinesHTML}</div>
                 </td>
+                
+                <!-- 🎯 [출력 구멍 수리 완료]: 하드코딩 '동의' 글자를 완전히 걷어내고, 정화 필터를 거친 실제 3단 배지 함수를 주입 사출합니다 -->
                 <td style="width: 75px; vertical-align: middle; text-align: center;">${buildAgreementStatusBadgeHTML(dutyAgreed)}</td>
                 <td style="width: 75px; vertical-align: middle; text-align: center;">${buildAgreementStatusBadgeHTML(callAgreed)}</td>
+                
                 <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">

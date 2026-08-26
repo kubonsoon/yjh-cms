@@ -4078,6 +4078,9 @@
 
             const selectedTitle = filterTitle.value ? filterTitle.value.trim() : "";
 
+            // 🎯 [원본 보존] 현재 사용자가 선택하고 있던 기수 값을 미리 기억해 둡니다 (리셋 방지용 가드)
+            const previousSelectedTh = filterTh.value || "ALL";
+
             // 1. 🎯 '전체 시험 보기' 상태일 때는 기수 선택지를 완전히 가림 (안내문구 고정)
             if (selectedTitle === "ALL" || !selectedTitle) {
                 filterTh.innerHTML = `<option value="ALL">— 시험을 먼저 선택하세요 —</option>`;
@@ -4093,7 +4096,7 @@
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 🌟 [정밀 정제 변환기]: 특수문자, 대시(-), 플러스(+), 공백을 완전히 파괴하고 순수 알맹이 글자만 추출
+            // 🌟 [정밀 정제 변환기]: 특수문자, 대시(-), 플러스(+), 공백을 완전히 파괴하고 순수 알맹이 글자만 추출 (원본 유지)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4133,16 +4136,22 @@
             });
 
             filterTh.innerHTML = htmlOptions;
-            filterTh.value = "ALL"; // 시험명 변경 시 기수는 '전체 기수'가 기본 선택되도록 강제 락인
 
-            // 🌟 [핵심 바인딩]: innerHTML로 태그를 새로 쓸 때 유실될 수 있는 클릭 이벤트를 자바스크립트 레벨에서 강제 복구
+            // 🎯 [핵심 교정 포인트]: 무조건 "ALL"로 초기화하는 대신, 기존에 선택 가능한 기수가 생성되었다면 유저가 보던 기수 값을 안정적으로 복원 유지합니다.
+            if (availableThs.includes(previousSelectedTh)) {
+                filterTh.value = previousSelectedTh;
+            } else {
+                filterTh.value = "ALL";
+            }
+
+            // 🌟 [핵심 바인딩]: innerHTML로 태그를 새로 쓸 때 유실될 수 있는 클릭 이벤트를 자바스크립트 레벨에서 강제 복구 (원본 유지)
             filterTh.onchange = function () {
                 if (typeof calculateLiveDashboardStats === "function") {
                     calculateLiveDashboardStats();
                 }
             };
 
-            // 5. 기수 목록 빌드가 끝나면 최종 통계 스코어보드 라이브 리계산 호출 (요구사항 규칙에 의해 초기에는 0으로 홀딩됨)
+            // 5. 기수 목록 빌드가 끝나면 최종 통계 스코어보드 라이브 리계산 호출
             if (typeof calculateLiveDashboardStats === "function") {
                 calculateLiveDashboardStats();
             }
@@ -4163,22 +4172,11 @@
             const lblProcessing = document.getElementById('stat-processing-count');
             const lblComplete = document.getElementById('stat-complete-count');
 
-            // 🎯 [요구사항 원칙 고수]: 기수가 아직 'ALL'(— 전체 기수 — 또는 안내창) 상태라면 무조건 0으로 락인 고정
-            if (filterTitle === 'ALL' || filterTh === 'ALL' || filterTh === '') {
-                if (lblTotal) lblTotal.innerText = "0 / 0명";
-                if (lblReceived) lblReceived.innerText = "0건";
-                if (lblProcessing) lblProcessing.innerText = "0건";
-                if (lblComplete) lblComplete.innerText = "0건";
-                console.log(`🔒 [통계 락업 활성화] 기수 미선택(ALL) 조건 충족으로 통계 수치가 0으로 홀딩 대기됩니다.`);
-                return;
-            }
-
-            // ----------------======================================================
-            // 💡 [안전 패스 통과 구역]: 1번 시험명과 2번 특정 기수가 완전하게 매칭 픽스되었을 때만 연산 개시
-            // --------------------------------======================================
+            // 💡 [원본 락업 해제 및 교정]: 전체보기(ALL) 상태에서도 통계가 가동되도록 기존 잠금 조건을 걷어내고 실시간 연산을 개시합니다.
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
-            // 공백, 기호, 특수기호 제거 포맷터 (동일 알고리즘 싱크 일치화)
+            // 공백, 기호, 특수기호 제거 포맷터 (원본 알고리즘 싱크 100% 유지)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4187,33 +4185,51 @@
             const targetTitleClean = cleanString(filterTitle);
             const filterThNum = filterTh.replace(/[^0-9]/g, "");
 
-            // 정밀 교차 필터링
+            // 1. [분자 연산] 정밀 교차 필터링으로 조건에 일치하는 "실제 참여 신청자"만 추출
             let filteredList = adminApplicantDB.filter(row => {
                 const rowTitleClean = cleanString(row.title);
                 const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
 
-                const matchTitle = (rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
-                const matchTh = (rowThNum === filterThNum);
+                const matchTitle = (filterTitle === 'ALL' || rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
+                const matchTh = (filterTh === 'ALL' || filterTh === '' || rowThNum === filterThNum);
 
                 return matchTitle && matchTh;
             });
 
-            let totalQuotaSum = 0;
-            let totalActiveCount = filteredList.length;
+            let totalActiveCount = filteredList.length; // 실제 신청자 수 (분자)
 
+            // 2. 🎯 [핵심 교정 고리 - 분모 연산] 모집공고 원장(recruitmentDB)에서 필터 조건에 맞는 공고들의 등록 N수를 추출하여 합산
+            let totalQuotaSum = 0;
+
+            const matchedRecruitments = recruitmentDB.filter(rec => {
+                const recTitleClean = cleanString(rec.title);
+                const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
+
+                const matchTitle = (filterTitle === 'ALL' || recTitleClean === targetTitleClean || recTitleClean.includes(targetTitleClean) || targetTitleClean.includes(recTitleClean));
+                const matchTh = (filterTh === 'ALL' || filterTh === '' || recThNum === filterThNum);
+
+                return matchTitle && matchTh;
+            });
+
+            matchedRecruitments.forEach(rec => {
+                if (rec && rec.count) {
+                    // 원본의 숫자 추출 규칙을 반영하여 '명' 글자가 있어도 숫자만 안전하게 파싱
+                    const pureNum = parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
+                    totalQuotaSum += pureNum;
+                }
+            });
+
+            // 시스템 최초 구동 시 혹은 예외 상황 대처를 위한 원본 디폴트 방어막 유지
+            if (totalQuotaSum === 0 && filterTitle === 'ALL') {
+                totalQuotaSum = 60;
+            }
+
+            // 3. [상태 파이프라인] 각 정산 상태별 라이브 카운트 집계 (원본 대조 분기 logic 100% 유지)
             let receivedCount = 0;
             let processingCount = 0;
             let completeCount = 0;
 
-            let quotaMap = {};
-
             filteredList.forEach(row => {
-                const quotaKey = `${cleanString(row.title)}_${row.th}`;
-                if (!quotaMap[quotaKey]) {
-                    quotaMap[quotaKey] = parseInt(row.count) || 0;
-                    totalQuotaSum += quotaMap[quotaKey];
-                }
-
                 let status = (row.result || row.payStatus || '접수').toString().trim();
                 if (status === '확인' || status === '접수완료') status = '접수';
 
@@ -4226,19 +4242,14 @@
                 }
             });
 
-            if (totalQuotaSum === 0 && filteredList.length > 0) {
-                totalQuotaSum = parseInt(filteredList[0].count) || 60;
-            }
-
-            // 통계 보드 최종 렌더링 스왑 바인딩
+            // 4. [UI 바인딩] 원본 서식과 완벽히 일치하는 포맷으로 통계 보드 최종 렌더링 스왑 주입
             if (lblTotal) lblTotal.innerText = `${totalActiveCount} / ${totalQuotaSum}명`;
             if (lblReceived) lblReceived.innerText = `${receivedCount}건`;
             if (lblProcessing) lblProcessing.innerText = `${processingCount}건`;
             if (lblComplete) lblComplete.innerText = `${completeCount}건`;
 
-            console.log(`📊 [2단계 필터 통과 정밀 통계 완료] 필터링 매칭인원: ${filteredList.length}명`);
+            console.log(`📊 [교정 완료] 필터링 매칭인원: ${filteredList.length}명 / 총 목표 배정수(N수): ${totalQuotaSum}명`);
         }
-
 
         /**
          * 이력조회 버튼 클릭 시 에러를 해결하고 피험자 데이터와 공고 마스터 일정을 교차 맵핑하여 모달창에 렌더링하는 함수

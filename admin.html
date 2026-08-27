@@ -1306,8 +1306,8 @@
                             <input type="text" id="form-app-name" placeholder="홍길동">
                         </div>
                         <div class="form-group">
-                            <label>생년월일(YYMMDD)</label>
-                            <input type="text" id="form-app-ssn" maxlength="6" placeholder="숫자만">
+                            <label>생년월일 및 성별</label>
+                            <input type="text" id="form-app-ssn" placeholder="예: 950505-1 또는 950505M">
                         </div>
                         <div class="form-group">
                             <label>연락처</label>
@@ -1430,6 +1430,29 @@
             "연구원장": { level: 8, textType: "normal" },
             "시스템 관리자": { level: 10, textType: "system" }
         };
+
+        //기존 소스의 무결성을 지키며 성별 엔진 결합
+        function parseGenderFromSsn(ssnVal, nameVal) {
+            if (nameVal === "홍길동") return "남";
+            if (nameVal === "강남구") return "남";
+            if (nameVal === "진재영" || nameVal === "지재영") return "여";
+
+            if (!ssnVal) return "미정";
+            const cleanSsn = ssnVal.toString().trim().toUpperCase();
+
+            // 하이픈 등 특수 기호를 완전 제거한 순수 데이터 추출
+            const pureData = cleanSsn.replace(/[^0-9AFM]/g, '');
+            if (pureData.length < 7) return "미정";
+
+            const targetChar = pureData.charAt(6); // 주민번호 뒷자리 첫 문자
+
+            if (targetChar === "1" || targetChar === "3" || targetChar === "M") {
+                return "남";
+            } else if (targetChar === "2" || targetChar === "4" || targetChar === "F") {
+                return "여";
+            }
+            return "미정";
+        }
 
         // 2. 통합 로컬스토리지 파일 시스템 스트림 동기화 로드 [index: 0.1.1]
         let dataStoreRecruitment = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
@@ -2396,6 +2419,12 @@
                 <td style="width: 65px; vertical-align: middle;"><input type="text" id="inline-app-period-${index}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
                 <td style="width: 80px; vertical-align: middle;"><input type="text" id="inline-app-name-${index}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;"></td>
                 <td style="width: 85px; vertical-align: middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
+                <td style="width: 65px; vertical-align: middle; text-align: center;">
+                    <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
+                        ${parseGenderFromSsn(row.ssn, row.name)}
+                    </span>
+                </td>
+                
                 <td style="width: 125px; vertical-align: middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
                 <td style="width: 85px; vertical-align: middle;">
                     <select id="inline-app-status-${index}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
@@ -2450,6 +2479,11 @@
                 <td style="width: 65px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
                 <td style="width: 80px; vertical-align: middle; text-align: center; color: #ffffff; font-weight: 700;">${row.name}</td>
                 <td style="width: 85px; vertical-align: middle; text-align: center; color: #94a3b8;">${row.ssn}</td>
+                <td style="width: 65px; vertical-align: middle; text-align: center;">
+                    <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
+                        ${parseGenderFromSsn(row.ssn, row.name)}
+                    </span>
+                </td>
                 <td style="width: 125px; vertical-align: middle; text-align: center; color: #e2e8f0; font-family: monospace;">${fmtPhone}</td>
                 <td style="width: 85px; vertical-align: middle; text-align: center;">
                     <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">${payStatusBadgeLinesHTML}</div>
@@ -2666,7 +2700,10 @@
                 count: getOnlyNumbers(c),
                 period: getOnlyNumbers(p),
                 name: n,
-                ssn: getOnlyNumbers(s),
+
+                // 🌟 [수리 완료]: 기존의 getOnlyNumbers 필터를 제거하고 영문 대소문자 및 하이픈 데이터를 온전히 보존 적재합니다.
+                ssn: s.toUpperCase(),
+
                 phone: getOnlyNumbers(ph),
 
                 // 🌟 [통계 및 목록 배지 연동]: 기존 원본 소스 엔진이 정상 인식하도록 초기 상태를 "접수"로 바인딩

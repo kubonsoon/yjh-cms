@@ -1140,21 +1140,19 @@
                     <table>
                         <thead>
                             <tr>
-                                <th style="text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff;">시험명
-                                </th>
-                                <th style="text-align: center; width: 90px; min-width: 90px;">기수</th>
-                                <th style="text-align: center; width: 75px; min-width: 75px;">인원수</th>
-                                <th style="text-align: center; width: 65px; min-width: 65px;">기간</th>
-                                <th style="text-align: center; width: 80px; min-width: 80px;">이름</th>
-                                <th style="text-align: center; width: 85px; min-width: 85px;">생년월일</th>
-                                <th style="text-align: center; width: 65px; min-width: 65px;">성별</th>
-                                <th style="text-align: center; width: 125px; min-width: 125px;">전화번호</th>
-                                <th style="text-align: center; width: 85px; min-width: 85px;">참여비</th>
-                                <th style="text-align: center; width: 75px; min-width: 75px;">당직동의</th>
-                                <th style="text-align: center; width: 75px; min-width: 75px;">소집동의</th>
-                                <th style="text-align: center; width: 140px; min-width: 140px;">첨부서류</th>
-                                <th style="text-align: center; width: 180px; min-width: 180px; padding-right: 15px;">작업
-                                </th>
+                                <th style="min-width: 220px; max-width: 400px; text-align: left; padding-left: 15px;">
+                                    시험명</th>
+                                <th style="width: 80px; text-align: center;">기수</th>
+                                <th style="width: 100px; text-align: center;">인원수</th>
+                                <th style="width: 100px; text-align: center;">기간(시간)</th>
+                                <th style="width: 110px; text-align: center;">담당 CRC</th>
+                                <th style="width: 130px; text-align: center;">소집일</th>
+                                <th style="width: 80px; text-align: center;">주의사항</th>
+                                <th style="width: 80px; text-align: center;">시험일정</th>
+                                <th style="width: 80px; text-align: center;">당직공지</th>
+                                <th style="width: 80px; text-align: center;">소집공지</th>
+                                <th style="width: 150px; text-align: center;">참여비 지급일</th>
+                                <th style="width: 140px; text-align: center; padding-right: 15px;">작업</th>
                             </tr>
                         </thead>
                         <tbody id="dom-recruitment-table"></tbody>
@@ -1804,7 +1802,7 @@
 
 
         // -------------------------------------------------------------------------
-        // 문자열 원천 정제 가공 처리를 위한 정규식 유틸리티 포맷터 엔진
+        // 문자열 원천 정제 가공 처리를 위한 정규식 유틸리티 포맷터 엔진 [index: 0.1.5, 0.1.6]
         // -------------------------------------------------------------------------
         function getOnlyNumbers(v) { if (!v) return ''; return v.toString().replace(/[^0-9]/g, ''); }
         function formatTh(v) { const n = getOnlyNumbers(v); return n ? `${n}기` : v; }
@@ -1817,37 +1815,6 @@
             return v;
         }
 
-        /**
-         * 🎯 [신규 구현] 생년월일/주민번호 기반 가변 성별 추출 알고리즘 (원본 무결성 가드)
-         * YYMMDD 외 뒤에 1,2,3,4 및 F, M 조합이 들어와도 완벽하게 판정합니다.
-         */
-        function parseGenderFromSsn(ssnVal, nameVal) {
-            // A. 프리셋 데이터 기본 락인 정책 (홍길동-남, 강남구-남, 진재영-여 보존)
-            if (nameVal === "홍길동") return "남";
-            if (nameVal === "강남구") return "남";
-            if (nameVal === "진재영") return "여";
-
-            if (!ssnVal) return "미정";
-
-            // 알파벳 소문자 대응을 위한 대문자 치환 및 공백 제거
-            const cleanSsn = ssnVal.toString().trim().toUpperCase();
-
-            // B. [예외 차단 가드 튜닝] 생년월일 6자리 문자열 위치 파괴 방지 알고리즘
-            // 하이픈(-) 등 특수 기호를 먼저 정제한 후 순수 데이터에서 6번째 인덱스(뒷자리 첫 글자)를 정확히 잡아냅니다.
-            const pureData = cleanSsn.replace(/[^0-9AFM]/g, '');
-            if (pureData.length < 7) return "미정"; // 뒷자리 성별 식별값이 없는 경우 미정 반환
-
-            const targetChar = pureData.charAt(6); // 0부터 시작하므로 6번째 인덱스가 주민번호 7번째 자리(뒷자리 첫 문자)입니다.
-
-            // C. 가변 성별 기호 매칭 체인 연산
-            if (targetChar === "1" || targetChar === "3" || targetChar === "M") {
-                return "남";
-            } else if (targetChar === "2" || targetChar === "4" || targetChar === "F") {
-                return "여";
-            }
-
-            return "미정";
-        }
         // ========================================================
         // 🎯 [인라인 편집 통합 코어] 모집공고 실시간 해당 라인 수정 엔진
         // ========================================================
@@ -2429,10 +2396,6 @@
                 <td style="width: 65px; vertical-align: middle;"><input type="text" id="inline-app-period-${index}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
                 <td style="width: 80px; vertical-align: middle;"><input type="text" id="inline-app-name-${index}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;"></td>
                 <td style="width: 85px; vertical-align: middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 65px; vertical-align: middle; text-align: center;">
-                <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                ${parseGenderFromSsn(row.ssn, row.name)}</span>
-                </td>
                 <td style="width: 125px; vertical-align: middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
                 <td style="width: 85px; vertical-align: middle;">
                     <select id="inline-app-status-${index}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
@@ -2487,11 +2450,6 @@
                 <td style="width: 65px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
                 <td style="width: 80px; vertical-align: middle; text-align: center; color: #ffffff; font-weight: 700;">${row.name}</td>
                 <td style="width: 85px; vertical-align: middle; text-align: center; color: #94a3b8;">${row.ssn}</td>
-                <td style="width: 65px; vertical-align: middle; text-align: center;">
-                  <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                   ${parseGenderFromSsn(row.ssn, row.name)}
-                  </span>
-                </td>
                 <td style="width: 125px; vertical-align: middle; text-align: center; color: #e2e8f0; font-family: monospace;">${fmtPhone}</td>
                 <td style="width: 85px; vertical-align: middle; text-align: center;">
                     <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">${payStatusBadgeLinesHTML}</div>

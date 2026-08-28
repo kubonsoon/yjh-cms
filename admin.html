@@ -5908,12 +5908,16 @@
         // 이력조회 부분
         // =========================================================================
         function openIndividualHistoryModal(index) {
-            // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드 [INDEX]
+            // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
+                db = dataStoreApplicant;
+            }
+
             const row = db[index];
             if (!row) return alert("시스템 알림: 해당 대상자의 이력 데이터를 추적할 수 없습니다.");
 
-            // 2. 형님께서 지정하신 진짜 원본 HTML 모달 레이어 프레임 돔 요소 스캔 [INDEX]
+            // 2. 형님께서 지정하신 진짜 원본 HTML 모달 레이어 프레임 돔 요소 스캔
             const mainOverlay = document.getElementById('applicantHistoryModal');
             const contentSlot = document.getElementById('history-modal-content-slot');
             const actionSlot = document.getElementById('history-modal-action-slot');
@@ -5922,7 +5926,7 @@
                 return alert("시스템 오류: 'applicantHistoryModal' 또는 슬롯 엘리먼트를 찾을 수 없습니다.");
             }
 
-            // 3. 성명 및 전화번호 정제 가공 유틸리티 가동 (원본 규격 100% 반영 일치화) [INDEX]
+            // 3. 성명 및 전화번호 정제 가공 유틸리티 가동 (원본 규격 100% 반영 일치화)
             const cleanName = (row.name || '').replace(/[^\w\s ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
             const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
             let fmtPhone = '-';
@@ -5936,11 +5940,12 @@
             const pay2 = row.payStatus2 || '대기';
             const pay3 = row.payStatus3 || '대기';
 
-            // 💡 [성별 추출 최적화]: 이미 정제된 날짜 데이터를 원본 엔진에 우회 대조하여 성별 배지 사출 [index: 0.1.29]
-            const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(row.ssn, row.name) : "미정";
-            const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185';
+            // 💡 [에러 원천 차단]: row.ssn 변수를 확실하게 안전 락인하여 ReferenceError 소멸 처리
+            const validSsn = row.ssn || "-";
+            const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(validSsn, row.name) : "미정";
+            const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185'; // 남 스카이블루, 여 로즈레드 고대비 서식
 
-            // 💡 [3중 알맹이 추출 매칭]: 이름, 전화번호, 생년월일 날짜값 자체를 1:1 완전 비교 대조 [index: 0.1.133]
+            // 💡 [원본 지시 핵심 이식]: 성명/생년월일/전화번호 알맹이 추출용 정형화 함수 및 검색 조건 일치화
             const getPurePhone = (p) => (p || "").toString().replace(/[^0-9]/g, "").trim();
             const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9 가-힣]/g, "").trim();
 
@@ -5948,18 +5953,13 @@
             const targetSsnToken = getPureString(row.ssn);
             const targetPhoneToken = getPurePhone(row.phone);
 
-            // 전역 대장에서 이름/생년월일/전화번호 번호가 100% 동일한 과거의 모든 참여 임상 이력을 긁어모읍니다. [INDEX]
+            // 전역 대장에서 이름/생년월일/전화번호 번호가 100% 동일한 과거의 모든 참여 임상 이력을 긁어모읍니다.
             const historyRecords = db.filter(item => {
                 return getPureString(item.name) === targetNameToken &&
                     getPureString(item.ssn) === targetSsnToken &&
                     getPurePhone(item.phone) === targetPhoneToken;
             });
-
-            // =========================================================================
-            // [대상자 관리] 피험자 누적 참여 이력 전수 추적 및 원본 슬롯 매칭 엔진 (2부) [INDEX]
-            // =========================================================================
-
-            // 라이브 정산 진행률 내부 미니 배지 렌더러 (원본 소스 1:1 이식 보존) [INDEX]
+            // 라이브 정산 진행률 내부 미니 배지 렌더러 (원본 소스 1:1 이식 보존)
             const buildHistoryBadge = (val) => {
                 let s = val;
                 if (s === '확인' || s === '접수완료') s = '접수';
@@ -5973,10 +5973,9 @@
                 return `<span class="lvl-badge" style="${style} padding:2px 8px; font-size:11px; font-weight:700; border-radius:4px; display:inline-block;">${s}</span>`;
             };
 
-            // 💡 [실시간 과거 이력 스크롤 스케줄러 뼈대 조립]: 요구사항 피드백 반영 리팩토링 [INDEX]
+            // [실시간 과거 이력 스크롤 스케줄러 뼈대 조립]
             let historyRowsHTML = "";
             historyRecords.forEach((hist, hIdx) => {
-                // 고유 식별자 또는 임상시험명/기수 대조 방식을 통한 현재 진행 과제 판단식 [INDEX]
                 const isCurrentJob = (hist.uid && row.uid && hist.uid === row.uid) ||
                     (hist.title === row.title && hist.th === row.th);
 
@@ -6007,7 +6006,7 @@
                 historyRowsHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:15px 0;">과거 임상 참여 내역이 존재하지 않습니다.</div>`;
             }
 
-            // 4. [4단계 예고 구역 처리]: 순정 인젝션 구조 보존하며 가변 슬롯 데이터 투사 [INDEX]
+            // 4. [4단계 예고 구역 처리]: 원본 인젝션 구조 보존하며 가변 슬롯 데이터 투사
             contentSlot.innerHTML = `
         <!-- 상단: 기본 인적 신상 정보리스트 그리드 -->
         <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top:15px; margin-bottom: 20px; text-align:left;">
@@ -6018,7 +6017,7 @@
             <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
                 <!-- 💡 요구사항 1 결합: 주민번호 데이터와 동적 성별 판단 문자열 통합 가공 사출 -->
                 <span style="color:var(--text-muted); font-size:12px; font-weight:700;">생년월일(성별):</span>
-                <div style="font-weight: 700; color: #ffffff; margin-top:2px;">${rawSsn} <span style="color: ${genderColor}; font-weight:800;">(${genderSign})</span></div>
+                <div style="font-weight: 700; color: #ffffff; margin-top:2px;">${validSsn} <span style="color: ${genderColor}; font-weight:800;">(${genderSign})</span></div>
             </div>
             <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
                 <span style="color:var(--text-muted); font-size:12px; font-weight:700;">연락처 (휴대폰):</span>
@@ -6044,13 +6043,13 @@
                 동일 대상자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)
             </span>
             
-            <!-- 🎯 가변형 컴포넌트 래퍼: 최대 높이 240px 제한, 초과 시 다크 스크롤바 작동 보장 [INDEX] -->
+            <!-- 🎯 가변형 컴포넌트 래퍼: 최대 높이 240px 제한, 초과 시 다크 스크롤바 작동 보장 -->
             <div id="modal-history-scroll-zone" style="max-height: 240px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px; box-sizing:border-box; width:100%;">
                 ${historyRowsHTML}
             </div>
         </div>
 
-        <!-- 5. [현재 참여비 진행률 현황판]: 라이브 정산 배지 엔진 연동 인젝션 [INDEX] -->
+        <!-- 5. [현재 참여비 진행률 현황판]: 라이브 정산 배지 엔진 연동 인젝션 -->
         <div style="background:#0b0f19; border:1px solid var(--border-color); padding:14px 18px; border-radius:8px; margin-bottom:5px; text-align:left;">
             <div style="font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom:10px;"><i class="fa-solid fa-money-bill-transfer"></i> 현재 참여 과제 참여비 차수별 지급 정산 진행률</div>
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -6073,7 +6072,7 @@
         }
 
         /**
-         * 개인 이력 종합 마스터 대장 모달 팝업 오버레이 제거 함수 (원본 명칭 100% 보존) [INDEX]
+         * 개인 이력 종합 마스터 대장 모달 팝업 오버레이 제거 함수 (원본 명칭 100% 보존)
          */
         function closeIndividualHistoryModal() {
             const mainOverlay = document.getElementById('applicantHistoryModal');
@@ -6082,10 +6081,11 @@
             }
         }
 
-        // 💡 호환성 링크: 혹시 다른 이름으로 호출되더라도 무력화되지 않도록 예비 락인 처리 [INDEX]
+        // 💡 호환성 링크: 혹시 다른 이름으로 호출되더라도 무력화되지 않도록 예비 락인 처리
         function openAppHistoryDetailModal(index) {
             openIndividualHistoryModal(index);
         }
+
 
         // ────────────────────────────────────────────────────────────────────────
         // 🌟 [누락 복구 완수]: 시간 설정 버튼 클릭 및 데이터 커밋을 전담하는 마스터 함수 세트

@@ -5856,17 +5856,22 @@
         // 이력조회 부분
         // =========================================================================
         function openIndividualHistoryModal(index) {
-            // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드
+            // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드 [INDEX]
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             const row = db[index];
             if (!row) return alert("시스템 알림: 해당 대상자의 이력 데이터를 추적할 수 없습니다.");
 
-            // 2. 원본 HTML 구조 내에 선언된 와이드 모달 오버레이 돔 요소 스캔 [index: 0.1.17]
-            const overlay = document.getElementById('historyModalOverlay') || document.querySelector('.history-modal-overlay');
-            if (!overlay) return alert("시스템 오류: 'history-modal-overlay' 엘리먼트를 찾을 수 없습니다.");
+            // 2. 형님께서 지정하신 진짜 원본 HTML 모달 레이어 프레임 돔 요소 스캔 [INDEX]
+            const mainOverlay = document.getElementById('applicantHistoryModal');
+            const contentSlot = document.getElementById('history-modal-content-slot');
+            const actionSlot = document.getElementById('history-modal-action-slot');
 
-            // 3. 성명 및 전화번호 정제 가공 유틸리티 가동 (원본 규격 일치화)
-            const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
+            if (!mainOverlay || !contentSlot || !actionSlot) {
+                return alert("시스템 오류: 'applicantHistoryModal' 또는 슬롯 엘리먼트를 찾을 수 없습니다.");
+            }
+
+            // 3. 성명 및 전화번호 정제 가공 유틸리티 가동 (원본 규격 100% 반영 일치화) [INDEX]
+            const cleanName = (row.name || '').replace(/[^\w\s ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
             const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
             let fmtPhone = '-';
             if (rawPhone.length === 11) fmtPhone = rawPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
@@ -5879,47 +5884,67 @@
             const pay2 = row.payStatus2 || '대기';
             const pay3 = row.payStatus3 || '대기';
 
-            // 🎯 [대표님 지시 핵심 이식]: 성명/생년월일/전화번호 알맹이 추출용 정형화 함수
+            // 💡 [순정 엔진 결합]: 주민번호 기반 성별 분석 모듈 호출 및 텍스트 락인 가공 [INDEX]
+            const rawSsn = row.ssn || "-";
+            const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(rawSsn, row.name) : "미정";
+            const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185'; // 남 스카이블루, 여 로즈레드 고대비 서식 [INDEX]
+
+            // 💡 [원본 지시 핵심 이식]: 성명/생년월일/전화번호 알맹이 추출용 정형화 함수 및 검색 조건 일치화 [INDEX]
             const getPurePhone = (p) => (p || "").toString().replace(/[^0-9]/g, "").trim();
-            const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+            const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9 가-힣]/g, "").trim();
 
             const targetNameToken = getPureString(row.name);
             const targetSsnToken = getPureString(row.ssn);
             const targetPhoneToken = getPurePhone(row.phone);
 
-            // 전역 대장에서 이름/생년월일/전화번호 번호가 100% 동일한 과거의 모든 참여 임상 이력을 긁어모읍니다.
+            // 전역 대장에서 이름/생년월일/전화번호 번호가 100% 동일한 과거의 모든 참여 임상 이력을 긁어모읍니다. [INDEX]
             const historyRecords = db.filter(item => {
                 return getPureString(item.name) === targetNameToken &&
                     getPureString(item.ssn) === targetSsnToken &&
                     getPurePhone(item.phone) === targetPhoneToken;
             });
 
-            // 라이브 정산 진행률 내부 미니 배지 렌더러
+            // =========================================================================
+            // [대상자 관리] 피험자 누적 참여 이력 전수 추적 및 원본 슬롯 매칭 엔진 (2부) [INDEX]
+            // =========================================================================
+
+            // 라이브 정산 진행률 내부 미니 배지 렌더러 (원본 소스 1:1 이식 보존) [INDEX]
             const buildHistoryBadge = (val) => {
-                let s = val; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '완료';
+                let s = val;
+                if (s === '확인' || s === '접수완료') s = '접수';
+                if (s === '지급완료') s = '완료';
                 let style = "background:#334155; color:#cbd5e1;";
+
                 if (s === '접수') style = "background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3);";
                 else if (s === '처리중') style = "background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);";
                 else if (s === '완료' || s === '처리완료') style = "background:rgba(74,222,128,0.15); color:#4ade80; border:1px solid rgba(74,222,128,0.3);";
-                return `<span class="lvl-badge" style="${style} padding:2px 8px; font-size:11px; font-weight:700; border-radius:4px;">${s}</span>`;
+
+                return `<span class="lvl-badge" style="${style} padding:2px 8px; font-size:11px; font-weight:700; border-radius:4px; display:inline-block;">${s}</span>`;
             };
 
-            // 🎯 [실시간 과거 이력 스크롤 스케줄러 뼈대 조립]
+            // 💡 [실시간 과거 이력 스크롤 스케줄러 뼈대 조립]: 요구사항 피드백 반영 리팩토링 [INDEX]
             let historyRowsHTML = "";
             historyRecords.forEach((hist, hIdx) => {
+                // 고유 식별자 또는 임상시험명/기수 대조 방식을 통한 현재 진행 과제 판단식 [INDEX]
+                const isCurrentJob = (hist.uid && row.uid && hist.uid === row.uid) ||
+                    (hist.title === row.title && hist.th === row.th);
+
                 let hStatus = (hist.result || hist.payStatus || '접수').toString().trim();
                 if (hStatus === '확인' || hStatus === '접수완료') hStatus = '접수';
                 if (hStatus === '지급완료') hStatus = '처리완료';
 
                 let hBadgeColor = hStatus === '접수' ? '#38bdf8' : hStatus === '처리중' ? '#fbbf24' : '#4ade80';
+                const prefixTag = isCurrentJob
+                    ? `<span style="color:#0ea5e9; font-weight:800; margin-right:6px;">[현재시험]</span>`
+                    : `<span style="color:#94a3b8; font-weight:700; margin-right:6px;">[과거시험]</span>`;
 
                 historyRowsHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:rgba(255,255,255,0.02); border:1px solid #1e293b; border-radius:6px; margin-bottom:6px; font-size:13px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:${isCurrentJob ? 'rgba(14,165,233,0.03)' : 'rgba(255,255,255,0.01)'}; border:1px solid ${isCurrentJob ? '#0ea5e9' : '#1e293b'}; border-radius:6px; font-size:13px; box-sizing:border-box; width:100%;">
                 <div style="display:flex; flex-direction:column; gap:2px; text-align:left;">
-                    <div style="font-weight:700; color:#ffffff;">${hist.title}</div>
+                    <div style="font-weight:700; color:#ffffff;">${prefixTag}${hist.title}</div>
                     <div style="font-size:11px; color:var(--text-muted);">진행 기수: <span style="color:#38bdf8; font-weight:700;">${hist.th || '1기'}</span> &nbsp;|&nbsp; 인정시간: ${hist.period || '0'}시간</div>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
+                <div style="display:flex; align-items:center; gap:6px; white-space:nowrap;">
                     <span style="font-size:11px; color:#64748b;">지급상태:</span>
                     <span style="color:${hBadgeColor}; font-weight:800; font-size:12px;">${hStatus === '처리중' ? '검토중' : hStatus === '처리완료' ? '완료' : hStatus}</span>
                 </div>
@@ -5931,43 +5956,51 @@
                 historyRowsHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:15px 0;">과거 임상 참여 내역이 존재하지 않습니다.</div>`;
             }
 
-            // 4. [뼈대 프레임 인젝션]: 고대비 와이드 그리드 프레임 레이아웃 구조 사출 [index: 0.1.17]
-            overlay.innerHTML = `
-        <div class="history-modal-box" style="background: var(--card-color); border: 1px solid var(--border-color); padding: 32px 35px; border-radius: 16px; width: 100%; max-width: 650px; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6); box-sizing: border-box; margin: 0 !important; animation: modalFadeIn 0.25s ease-out;">
-            <h3 style="margin-top:0; margin-bottom: 22px; font-size: 20px; font-weight: 800; color: var(--secondary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-id-card"></i> 대상자 개인별 참여 이력 대장
-            </h3>
-            
-            <!-- 상단: 기본 인적 신상 정보리스트 그리드 -->
-            <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; text-align:left;">
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">대상자 성명:</span> <div style="font-weight:700; color:var(--success-color); margin-top:2px;">${cleanName}</div></div>
-              <div>
-            <span class="label">생년월일(성별):</span>
-            <span id="modal-app-ssn-gender" style="font-weight: 700; color: #ffffff;">-</span>
-        </div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">연락처 (휴대폰):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${fmtPhone}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 참여 시험명 및 기수:</span> <div style="margin-top:2px;"><span class="lvl-badge lvl-2" style="padding:2px 6px; font-size:11px;">${row.th || '1기'}</span></div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 당직 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${dutyStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : dutyStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 소집 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${callStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : callStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
+            // 4. [4단계 예고 구역 처리]: 순정 인젝션 구조 보존하며 가변 슬롯 데이터 투사 [INDEX]
+            contentSlot.innerHTML = `
+        <!-- 상단: 기본 인적 신상 정보리스트 그리드 -->
+        <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top:15px; margin-bottom: 20px; text-align:left;">
+            <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
+                <span style="color:var(--text-muted); font-size:12px; font-weight:700;">대상자 성명:</span>
+                <div style="font-weight:700; color:var(--success-color); margin-top:2px;">${cleanName}</div>
             </div>
-
-              <!-- 💡 요구사항 2: 동일 피험자 과거 임상시험 참여 누적 내역 래퍼 (길어지면 스크롤바 활성화) -->
-    <div style="margin-bottom: 20px;">
-        <span class="label" style="display: block; margin-bottom: 8px;" id="modal-history-count-title">
-            동일 대상자 과거 임상시험 참여 누적 내역 (0건)
-        </span>
-        
-        <!-- 🎯 스크롤 컴포넌트 박스: 최대 높이 240px 제한, 넘어가면 스크롤바 사출 -->
-        <div id="modal-history-scroll-zone" style="max-height: 240px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px;">
-            <!-- 자바스크립트 엔진에 의해 [현재시험] 및 [과거시험] 템플릿 카드가 실시간 빌드됩니다 -->
+            <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
+                <!-- 💡 요구사항 1 결합: 주민번호 데이터와 동적 성별 판단 문자열 통합 가공 사출 -->
+                <span style="color:var(--text-muted); font-size:12px; font-weight:700;">생년월일(성별):</span>
+                <div style="font-weight: 700; color: #ffffff; margin-top:2px;">${rawSsn} <span style="color: ${genderColor}; font-weight:800;">(${genderSign})</span></div>
+            </div>
+            <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
+                <span style="color:var(--text-muted); font-size:12px; font-weight:700;">연락처 (휴대폰):</span>
+                <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${fmtPhone}</div>
+            </div>
+            <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
+                <span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 참여 시험 기수:</span>
+                <div style="margin-top:2px;"><span class="lvl-badge lvl-2" style="padding:2px 6px; font-size:11px;">${row.th || '1기'}</span></div>
+            </div>
+            <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
+                <span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 당직 동의 현황:</span>
+                <div style="font-weight:700; margin-top:2px;">${dutyStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : dutyStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div>
+            </div>
+            <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
+                <span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 소집 동의 현황:</span>
+                <div style="font-weight:700; margin-top:2px;">${callStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : callStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div>
+            </div>
         </div>
-    </div>
-        </div>
-    `;
 
-            // 5. [현재 참여비 진행률 현황판]: 라이브 정산 배지 엔진 연동 인젝션
-            const payTimelineHTML = `
-        <div style="background:#0b0f19; border:1px solid var(--border-color); padding:14px 18px; border-radius:8px; margin-bottom:20px; text-align:left;">
+        <!-- 💡 요구사항 2 결합: 동일 대상자 과거 임상시험 참여 누적 내역 구역 -->
+        <div style="margin-bottom: 20px; text-align:left;">
+            <span style="display: block; font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom: 8px;">
+                동일 대상자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)
+            </span>
+            
+            <!-- 🎯 가변형 컴포넌트 래퍼: 최대 높이 240px 제한, 초과 시 다크 스크롤바 작동 보장 [INDEX] -->
+            <div id="modal-history-scroll-zone" style="max-height: 240px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px; box-sizing:border-box; width:100%;">
+                ${historyRowsHTML}
+            </div>
+        </div>
+
+        <!-- 5. [현재 참여비 진행률 현황판]: 라이브 정산 배지 엔진 연동 인젝션 [INDEX] -->
+        <div style="background:#0b0f19; border:1px solid var(--border-color); padding:14px 18px; border-radius:8px; margin-bottom:5px; text-align:left;">
             <div style="font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom:10px;"><i class="fa-solid fa-money-bill-transfer"></i> 현재 참여 과제 참여비 차수별 지급 정산 진행률</div>
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                 <div style="display:flex; align-items:center; gap:6px;"><span style="color:var(--text-muted); font-size:12px;">[1차 지급]:</span> ${buildHistoryBadge(pay1)}</div>
@@ -5977,32 +6010,31 @@
         </div>
     `;
 
-            // 6. [연쇄 결합 마운트]: 최종 상자 내부에 순차적으로 유연하게 후입 결합 처리
-            const innerBox = overlay.querySelector('.history-modal-box');
-            if (innerBox) {
-                innerBox.innerHTML += payTimelineHTML;
-                innerBox.innerHTML += `
-            <div style="display: flex; justify-content: flex-end; width: 100%; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                <button type="button" onclick="closeIndividualHistoryModal()" style="background: #475569; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13.5px; transition: opacity 0.2s;">닫기</button>
-            </div>
-        `;
-            }
+            // 6. [5단계 예고 구역 처리]: 원본 스타일 유지 닫기 단추 결합 바인딩
+            actionSlot.innerHTML = `
+        <div style="display: flex; justify-content: flex-end; width: 100%;">
+            <button type="button" onclick="closeIndividualHistoryModal()" style="background: #475569; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13.5px; transition: opacity 0.2s;">허브 닫기</button>
+        </div>
+    `;
 
-            // 최종 오버레이 패널 작동 사출
-            overlay.style.display = 'flex';
+            // 최종 오버레이 패널 시각화 사출 작동
+            mainOverlay.style.display = 'flex';
         }
 
         /**
-         * 🎯 개인 이력 종합 마스터 대장 모달 팝업 오버레이 제거 함수 (중복 제거 통합 단일 선언)
+         * 개인 이력 종합 마스터 대장 모달 팝업 오버레이 제거 함수 (원본 명칭 100% 보존) [INDEX]
          */
         function closeIndividualHistoryModal() {
-            const overlay = document.getElementById('historyModalOverlay') || document.querySelector('.history-modal-overlay');
-            if (overlay) {
-                overlay.style.display = 'none';
+            const mainOverlay = document.getElementById('applicantHistoryModal');
+            if (mainOverlay) {
+                mainOverlay.style.display = 'none';
             }
         }
 
-
+        // 💡 호환성 링크: 혹시 다른 이름으로 호출되더라도 무력화되지 않도록 예비 락인 처리 [INDEX]
+        function openAppHistoryDetailModal(index) {
+            openIndividualHistoryModal(index);
+        }
 
         // ────────────────────────────────────────────────────────────────────────
         // 🌟 [누락 복구 완수]: 시간 설정 버튼 클릭 및 데이터 커밋을 전담하는 마스터 함수 세트

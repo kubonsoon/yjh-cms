@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>관리자 전용 화면0</title>
+    <title>관리자 전용 화면</title>
     <!-- 엑셀 및 외부 파일 파싱을 위한 라이브러리 -->
     <link rel="icon"
         href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
@@ -1173,17 +1173,10 @@
                     <div class="admin-top-btn-group" style="display: inline-flex; align-items: center; gap: 25px;">
 
                         <!-- 1. 민간 인증서 로그인 버튼 -->
-                        <!----<button type="button" id="btnOpenAuth" onclick="openCivilAuthBridge()"
+                        <button type="button" id="btnOpenAuth" onclick="openCivilAuthBridge()"
                             style="background-color: #0284c7; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); transition: all 0.2s ease;"
                             onmouseover="this.style.background='#0ea5e9'" onmouseout="this.style.background='#0284c7'">
                             <i class="fa-solid fa-shield-halved"></i> 민간 인증서 로그인
-                        </button> -->
-
-                        <!-- 3. 모바일 인증서 로그인 버튼 (25px 간격 시스템 정밀 설계) -->
-                        <button type="button" id="btnOpenMobileAuth" onclick="openMobileAuthBridge()"
-                            style="background-color: #0284c7; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); transition: all 0.2s ease;"
-                            onmouseover="this.style.background='#0ea5e9'" onmouseout="this.style.background='#0284c7'">
-                            <i class="fa-solid fa-id-card-clip"></i> 모바일 인증서 로그인
                         </button>
 
                         <!-- 2. 참여비 신청 버튼 (25px 간격 배치 완료) -->
@@ -1191,6 +1184,13 @@
                             style="background: #0e66e9; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 102, 233, 0.3); transition: all 0.2s ease;"
                             onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#0e66e9'">
                             <span>📱</span> 대상자 참여비 신청
+                        </button>
+
+                        <!-- 3. 모바일 인증서 로그인 버튼 (25px 간격 시스템 정밀 설계) -->
+                        <button type="button" id="btnOpenMobileAuth" onclick="openMobileAuthBridge()"
+                            style="background-color: #10b981; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#34d399'" onmouseout="this.style.background='#10b981'">
+                            <i class="fa-solid fa-id-card-clip"></i> 모바일 인증서 로그인
                         </button>
 
                     </div>
@@ -1237,9 +1237,8 @@
                             <p id="selected-file-name"
                                 style="margin: 0 !important; font-weight: 700; color: var(--secondary-color); font-size: 12px; padding-left: 4px;">
                             </p>
-                            <input type="file" id="fileParser"
-                                accept=".xlsx, .xls, .csv, .docx, .doc, .hwp, .hwpx, .txt" style="display:none;"
-                                onchange="handleSmartFileImport(event)">
+                            <input type="file" id="fileParser" accept=".xlsx, .xls, .docx, .doc, .hwp, .hwpx, .txt"
+                                style="display:none;" onchange="handleSmartFileImport(event)">
                         </div>
                     </div>
 
@@ -1250,7 +1249,7 @@
                             <span
                                 style="font-size: 13px; color: var(--text-muted); font-weight: 700;">참여현황(참여/N수)</span>
                             <span id="stat-total-count"
-                                style="font-size: 24px; font-weight: 800; color: #ffffff; display: block;">0/0명</span>
+                                style="font-size: 24px; font-weight: 800; color: #ffffff;">0명</span>
                         </div>
                         <div class="stat-card"
                             style="flex: 1; background: var(--card-color); border: 1px solid #38bdf8; padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px;">
@@ -1279,13 +1278,13 @@
                     <h3 id="form-mode-title">[신규 대상자 등록]</h3>
                     <input type="hidden" id="editIndex" value="">
                     <div class="register-form">
-
-                        <div class="form-group" style="flex: 2.2 !important;">
+                        <div class="form-group">
                             <label>참여 시험명</label>
                             <input type="text" id="form-app-title" placeholder="예: [임상] 경동제약">
                         </div>
-                        <div class="form-group" style="flex: 0.8 !important;">
-                            <label>기수</label>
+                        <div class="form-group">
+                            <label>적용 기수</label>
+                            <!-- 🎯 모집공고와 동일한 셀렉트박스 구성 -->
                             <select id="form-app-th"
                                 style="width:100%; height:38px; background: #1e293b; color:#fff; border:1px solid #334155; padding:0 10px; border-radius:6px;">
                                 <option value="1기">1기</option>
@@ -1294,34 +1293,33 @@
                                 <option value="4기">4기</option>
                             </select>
                         </div>
-                        <div class="form-group" style="flex: 0.7 !important;">
-                            <label>인원수(N수)</label>
-                            <input type="text" id="form-app-count" placeholder="숫자만" style="text-align: center;">
+                        <div class="form-group">
+                            <label>그룹 인원수</label>
+                            <input type="text" id="form-app-count" placeholder="숫자만">
                         </div>
-                        <div class="form-group" style="flex: 0.7 !important;">
+                        <div class="form-group">
                             <label>기간(시간)</label>
-                            <input type="text" id="form-app-period" placeholder="숫자만" style="text-align: center;">
+                            <input type="text" id="form-app-period" placeholder="숫자만">
                         </div>
-                        <div class="form-group" style="flex: 0.8 !important;">
+                        <div class="form-group">
                             <label>성명</label>
-                            <input type="text" id="form-app-name" placeholder="홍길동" style="text-align: center;">
+                            <input type="text" id="form-app-name" placeholder="홍길동">
                         </div>
-                        <div class="form-group" style="flex: 1.3 !important;">
-                            <label>생년월일 및 성별</label>
-                            <input type="text" id="form-app-ssn" placeholder="예: 950505-1 또는 950505M">
+                        <div class="form-group">
+                            <label>생년월일(YYMMDD)</label>
+                            <input type="text" id="form-app-ssn" maxlength="6" placeholder="숫자만">
                         </div>
-                        <div class="form-group" style="flex: 1.2 !important;">
+                        <div class="form-group">
                             <label>연락처</label>
                             <input type="text" id="form-app-phone" placeholder="숫자만">
                         </div>
 
-                        <!-- 액션 버튼 구역 (너비 자동 유지) -->
                         <button class="action-btn" id="btn-save" onclick="insertApplicantRecord()">대상자 등록</button>
                         <button class="action-btn" id="btn-cancel" onclick="resetForm()"
                             style="background: #475569; display: none; margin-left: 4px;">취소</button>
                         <button class="action-btn" onclick="exportFinancialSettlementData()"
                             style="background: var(--secondary-color); margin-left: 4px;"><i
-                                class="fa-solid fa-file-excel"></i> 명단 다운로드</button>
+                                class="fa-solid fa-file-excel"></i> 정산 명단 추출</button>
                     </div>
                 </div>
 
@@ -1337,7 +1335,6 @@
                                 <th style="text-align: center; width: 65px; min-width: 65px;">기간</th>
                                 <th style="text-align: center; width: 80px; min-width: 80px;">이름</th>
                                 <th style="text-align: center; width: 85px; min-width: 85px;">생년월일</th>
-                                <th style="text-align: center; width: 65px; min-width: 65px;">성별</th>
                                 <th style="text-align: center; width: 125px; min-width: 125px;">전화번호</th>
                                 <th style="text-align: center; width: 85px; min-width: 85px;">참여비</th>
                                 <th style="text-align: center; width: 75px; min-width: 75px;">당직동의</th>
@@ -1352,11 +1349,6 @@
                         </tbody>
                     </table>
                 </div>
-
-                <div id="applicant-pagination"
-                    style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 20px; width: 100%;">
-                </div>
-
             </div>
 
             <!-- ==========================================================
@@ -1439,34 +1431,6 @@
             "시스템 관리자": { level: 10, textType: "system" }
         };
 
-        //기존 소스의 무결성을 지키며 성별 엔진 결합
-        function parseGenderFromSsn(ssnVal, nameVal) {
-            if (nameVal === "홍길동") return "남";
-            if (nameVal === "강남구") return "남";
-            if (nameVal === "진재영" || nameVal === "진재영") return "여";
-
-            if (!ssnVal) return "미정";
-            const cleanSsn = ssnVal.toString().trim().toUpperCase();
-
-            // 생년월일 자리수와 상관없이 문자열에 M, F, 숫자가 포함되어 있는지 끝자리 기준으로 정밀 추적
-            if (cleanSsn.includes("-M") || cleanSsn.endsWith("M") || cleanSsn.endsWith("1") || cleanSsn.endsWith("3")) {
-                return "남";
-            }
-            if (cleanSsn.includes("-F") || cleanSsn.endsWith("F") || cleanSsn.endsWith("2") || cleanSsn.endsWith("4")) {
-                return "여";
-            }
-
-            // 하이픈 제거 후 일반 주민번호 패턴 포맷 체크 (폴백)
-            const pureData = cleanSsn.replace(/[^0-9AFM]/g, '');
-            if (pureData.length >= 7) {
-                const targetChar = pureData.charAt(pureData.length - 1); // 맨 끝 성별 식별 기호 추출
-                if (targetChar === "1" || targetChar === "3" || targetChar === "M") return "남";
-                if (targetChar === "2" || targetChar === "4" || targetChar === "F") return "여";
-            }
-
-            return "미정";
-        }
-
         // 2. 통합 로컬스토리지 파일 시스템 스트림 동기화 로드 [index: 0.1.1]
         let dataStoreRecruitment = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
         let dataStoreApplicant = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -1498,7 +1462,7 @@
         function initializeCMSDatabase() {
             let isUpdated = false;
 
-            // 1. 🎯 데이터가 아예 비어있는 완전 최초 접속 시 프리셋 적재 (원본의 순수 push 매커니즘 1:1 완벽 복원)
+            // 1. 🎯 데이터가 아예 비어있는 완전 최초 접속 시 프리셋 적재
             if (dataStoreApplicant.length === 0) {
                 dataStoreApplicant.push(
                     {
@@ -1517,8 +1481,8 @@
                         payStatus1: "접수",   // 🌟 1차: 접수
                         payStatus2: "대기",   // 🌟 2차: 대기
                         payStatus3: "대기",   // 🌟 3차: 대기
-                        isDutyAgreed: "대기",
-                        isCallAgreed: "대기",
+                        isDutyAgreed: "동의",
+                        isCallAgreed: "동의",
                         idCard: true,
                         bankbook: true
                     },
@@ -1538,8 +1502,8 @@
                         payStatus1: "처리중", // 🌟 1차: 처리중
                         payStatus2: "대기",   // 🌟 2차: 대기
                         payStatus3: "대기",   // 🌟 3차: 대기
-                        isDutyAgreed: "대기",
-                        isCallAgreed: "대기",
+                        isDutyAgreed: "동의",
+                        isCallAgreed: "동의",
                         idCard: true,
                         bankbook: true
                     },
@@ -1559,8 +1523,8 @@
                         payStatus1: "지급완료", // 🌟 1차: 지급완료
                         payStatus2: "대기",     // 🌟 2차: 대기
                         payStatus3: "대기",     // 🌟 3차: 대기
-                        isDutyAgreed: "대기",
-                        isCallAgreed: "대기",
+                        isDutyAgreed: "동의",
+                        isCallAgreed: "동의",
                         idCard: true,
                         bankbook: true
                     }
@@ -1569,7 +1533,7 @@
                 console.log("대상자 가상 DB 최초 생성 및 정산 초기 상태 락인 완료");
             } else {
                 // 🌟 [캐시 킬러 가드]: 브라우저 기억장치에 과거 흔적이 이미 저장되어 있어도 
-                // 접속하는 즉시 강제로 대표님이 명하신 차수별 정산 상태로 완벽히 덮어써서 교정합니다. (원본 100% 보존)
+                // 접속하는 즉시 강제로 대표님이 명하신 차수별 정산 상태로 완벽히 덮어써서 교정합니다.
                 dataStoreApplicant.forEach(row => {
                     if (row.name === "홍길동" && row.title.includes("애드파마")) {
                         if (row.result !== "접수" || row.payStatus1 !== "접수" || row.payStatus2 !== "대기") {
@@ -1586,14 +1550,6 @@
                             row.result = "지급완료"; row.payStatus = "지급완료"; row.payStatus1 = "지급완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-
-                    // 🎯 [초기값 대기 강제 락인]: 과거 흔적에 동의 여부가 없거나 "동의"로 고정되어 있다면 강제로 기본 출발선인 "대기"로 전형 제어합니다.
-                    if (row.isDutyAgreed === undefined || row.isDutyAgreed === null || row.isDutyAgreed === "" || row.isDutyAgreed === "동의") {
-                        row.isDutyAgreed = "대기"; isUpdated = true;
-                    }
-                    if (row.isCallAgreed === undefined || row.isCallAgreed === null || row.isCallAgreed === "" || row.isCallAgreed === "동의") {
-                        row.isCallAgreed = "대기"; isUpdated = true;
-                    }
                 });
             }
 
@@ -1602,7 +1558,6 @@
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             }
         }
-
 
         /**
                * 🎯 [전면 교정] 마스터 초기 프리셋 데이터 적재 제어 스케줄러
@@ -1863,78 +1818,42 @@
             const tbody = document.getElementById('dom-recruitment-table');
             if (!tbody) return; tbody.innerHTML = '';
 
-            // 🎯 최신 로컬스토리지 대장 확보 및 전역 싱크 제어 (원본 유지)
+            // 🎯 최신 로컬스토리지 대장 확보 및 전역 싱크 제어
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             if (typeof dataStoreRecruitment !== "undefined" && dataStoreRecruitment.length > 0) {
                 recruitmentDB = dataStoreRecruitment;
             }
-            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 문자열 공백 및 기호 제거 포맷터 (원본 알고리즘 유지)
-            const cleanString = (str) => {
-                if (!str) return "";
-                return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-            };
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
             recruitmentDB.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
 
+                // 기수 숫자 정밀 필터링 및 배지 레벨 자동 배정
                 const activeTargetTh = row ? row.th : "";
                 const thNumMatch = (activeTargetTh || "").toString().match(/\d+/);
-                const thNum = thNumMatch ? parseInt(thNumMatch, 10) : 1;
+                const thNum = thNumMatch ? parseInt(thNumMatch[0], 10) : 1;
 
                 let thBadgeClass = "lvl-1";
                 if (thNum === 2 || thNum === 3) thBadgeClass = "lvl-2";
                 else if (thNum === 4 || thNum === 5) thBadgeClass = "lvl-4";
                 else if (thNum >= 6) thBadgeClass = "lvl-6";
 
-                // 🎯 [지점 1 교체]: 참여 인원수 연산과 동시에 '동의/미동의/대기' 상태를 한 번에 전수 집계합니다.
+                // [안전 가드]: 기수 숫자를 기준으로 타겟 피험자 그룹 실시간 매칭 카운트
                 let groupMatchCount = 0;
-                let dutyAgreedCnt = 0, dutyDisagreedCnt = 0, dutyWaitCnt = 0;
-                let callAgreedCnt = 0, callDisagreedCnt = 0, callWaitCnt = 0;
-
                 try {
-                    const currentRecTitleClean = cleanString(row.title);
-                    const rowThNum = (row.th || "").replace(/[^0-9]/g, "");
-
-                    // 1. 해당 공고의 기수 및 시험명 조건과 일치하는 실제 신청 피험자 배열 추출
-                    const matchedApplicants = adminApplicantDB.filter(item => {
-                        const itemTitleClean = cleanString(item.title);
+                    groupMatchCount = adminApplicantDB.filter(item => {
+                        const rowThNum = (row.th || "").replace(/[^0-9]/g, "");
                         const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
-                        const isTitleMatched = (itemTitleClean === currentRecTitleClean || itemTitleClean.includes(currentRecTitleClean) || currentRecTitleClean.includes(itemTitleClean));
-                        const isThMatched = (rowThNum === itemThNum && rowThNum !== "");
-                        return isTitleMatched && isThMatched;
-                    });
-
-                    groupMatchCount = matchedApplicants.length; // 실제 매칭 참여인원 (기존 분자값 복원)
-
-                    // 2. 🎯 [라이브 동의 통계 엔진]: 선별된 피험자 명단을 루프 돌며 상태별 글자를 카운팅 누적
-                    matchedApplicants.forEach(item => {
-                        const dStatus = (item.isDutyAgreed || "대기").toString().trim();
-                        const cStatus = (item.isCallAgreed || "대기").toString().trim();
-
-                        // 당직동의 3단계 정산 분류
-                        if (dStatus === "동의") dutyAgreedCnt++;
-                        else if (dStatus === "미동의") dutyDisagreedCnt++;
-                        else dutyWaitCnt++;
-
-                        // 소집동의 3단계 정산 분류
-                        if (cStatus === "동의") callAgreedCnt++;
-                        else if (cStatus === "미동의") callDisagreedCnt++;
-                        else callWaitCnt++;
-                    });
+                        return rowThNum === itemThNum && rowThNum !== "";
+                    }).length;
                 } catch (e) { groupMatchCount = 0; }
 
-                // 3. 하단 버튼 백틱 문장에 사출 결합해 줄 실시간 변수 문자열 최종 포맷팅
-                const dutyStatsText = `동의${dutyAgreedCnt}명/미동의${dutyDisagreedCnt}명/대기${dutyWaitCnt}명`;
-                const callStatsText = `동의${callAgreedCnt}명/미동의${callDisagreedCnt}명/대기${callWaitCnt}명`;
-
-                const rawQuota = row.count || "60";
-                const pureQuotaNum = parseInt(rawQuota.toString().replace(/[^0-9]/g, ''), 10) || 60;
+                const totalQuota = row.count || "60";
                 const isRecEditing = (window.currentEditingRecruitmentIndex === index) || (typeof currentEditingRecruitmentIndex !== 'undefined' && currentEditingRecruitmentIndex === index);
                 // ----------------======================================================
-                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (원본 유지)
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출
                 // ----------------======================================================
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
@@ -1963,7 +1882,7 @@
                     </select>
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-count-${index}" class="inline-input" value="${row.count || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
                     <input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
@@ -2002,7 +1921,7 @@
             `;
                 }
                 // ----------------======================================================
-                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (순정 "보기" 버튼 양식 100% 복원)
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (야광 스위칭 완전 융합)
                 // ----------------======================================================
                 else {
                     const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
@@ -2015,6 +1934,7 @@
                     const dutyBtnStyle = hasCustomDuty ? "background: rgba(168, 85, 247, 0.15); border: 1px solid #c084fc; color: #c084fc;" : "background: #475569; border: none; color: #ffffff;";
                     const callBtnStyle = hasCustomCall ? "background: rgba(96, 165, 250, 0.15); border: 1px solid #60a5fa; color: #60a5fa;" : "background: #475569; border: none; color: #ffffff;";
 
+                    // 지급일정 가변 3단 누적 정렬 파서
                     let multiLinePayHTML = "";
                     if (row.payDate1) multiLinePayHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px;">1차: ${row.payDate1}</div>`;
                     if (row.payDate2) multiLinePayHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px; margin-top:2px;">2차: ${row.payDate2}</div>`;
@@ -2024,30 +1944,29 @@
                     tr.style.display = "table-row";
                     tr.innerHTML = `
                 <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
-                <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
-                </td>
-                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${pureQuotaNum}명</td>
+                <td style="width: 80px; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span></td>
+                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${totalQuota}명</td>
                 <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
                 <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
                 <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
                 
-                <!-- 주의사항, 시험일정, 당직공지, 소집공지 모두 "보기" 배지 단추 형태로 컴백 -->
-      <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 주의사항 보기 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice'); const btn=document.getElementById('btn-integrated-action-scheduler'); if(btn) btn.style.display='none';" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
-                </td>
+                <!-- 1. 주의사항 보기 버튼 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 시험일정 보기 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule'); const btn=document.getElementById('btn-integrated-action-scheduler'); if(btn) btn.style.display='none';" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
+                <!-- 2. 시험일정 보기 버튼 -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 🎯 당직공지 보기: 인자 값 충돌을 방지하기 위해 단독 외부 바인딩 함수 구조로 우회 연동 수리 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '당직공지', 'dutyNoticeText');" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
+                
+                <!-- 3. 당직공지 버튼 구역 (🌟 요구사항 반영: 보기 단추 하단에 난잡하게 밀려있던 통계 div 레이어를 완벽하게 철거 박멸했습니다) -->
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 🎯 소집공지 보기: 인자 값 충돌을 방지하기 위해 단독 외부 바인딩 함수 구조로 우회 연동 수리 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '소집공지', 'callNoticeText');" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                </td>
+                
+                <!-- 4. 소집공지 버튼 구역 (🌟 요구사항 반영: 보기 단추 하단에 난잡하게 밀려있던 통계 div 레이어를 완벽하게 철거 박멸했습니다) -->
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 
                 <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
@@ -2067,6 +1986,7 @@
                 tbody.appendChild(tr);
             });
         }
+
 
         /**
          * 2. [교정] 수정 단추 선택 시 상단 타겟 인덱스를 락인하고 라인을 새로고침하는 진입점
@@ -2323,283 +2243,213 @@
         // ========================================================
         // 🎯 [완전 종결] 대상자 마스터 테이블 기수 문자열 싱크 및 배지 드로잉 엔진 (당직/소집 분리형)
         // ========================================================
-        window.currentApplicantPage = 1;
-        const APPLICANT_PAGE_SIZE = 15; // 페이지당 최대 15개 로깅 제한
-
-        /**
-         * 🎯 [대장 화면 렌더러 엔진 - 5파트 완전 분할 무결성 조립본]
-         */
         function refreshApplicantView() {
             const tbody = document.getElementById('dom-applicant-table');
-            if (!tbody) return;
-            tbody.innerHTML = '';
+            if (!tbody) return; tbody.innerHTML = '';
+            let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            // [순정 데이터 정화 스캔 기믹]: 기존 let db = ... 라인 바로 아래에 그대로 붙여넣어 주세요!
+            let isDataCleaned = false;
+            db.forEach(user => {
+                // 🌟 [핵심 수리 존]: "동의" 상태를 강제로 검문하던 필터를 완벽히 소멸시켜 관리자의 '동의' 세이브 벨류를 100% 프리패스로 통과시킵니다.
+                if (user.isDutyAgreed === undefined || user.isDutyAgreed === null || user.isDutyAgreed === "") {
+                    user.isDutyAgreed = "대기";
+                    isDataCleaned = true;
+                }
+                if (user.isCallAgreed === undefined || user.isCallAgreed === null || user.isCallAgreed === "") {
+                    user.isCallAgreed = "대기";
+                    isDataCleaned = true;
+                }
+            });
+            if (isDataCleaned) {
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
+                if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = db;
+                console.log("📢 [CMS 전산망 정화 완수] 누락된 공란 슬롯을 '대기' 상태로 영구 매칭 완료했습니다.");
+            }
 
-            // [중요] 현재 수정 중인 행인 경우 (window.currentEditingUid === row.uid 인 분기점)
-            applicantDB.forEach((row, index) => {
+            db.forEach((row, index) => {
                 const tr = document.createElement('tr');
+                const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
+                const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
+                let fmtPhone = '-';
+                if (rawPhone.length === 11) fmtPhone = rawPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+                else if (rawPhone.length === 10) fmtPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+                else if (rawPhone.length > 0) fmtPhone = row.phone;
 
-                // 사용자가 수정을 누른 타겟 행일 때 (인라인 에디터 마운트)
-                if (window.currentEditingUid === row.uid) {
-                    tr.className = "editing-row";
+                const hasId = row.idCard === true || row.idCard === "true" || (row.idCardImg && row.idCardImg.length > 20);
+                const hasBank = row.bankbook === true || row.bankbook === "true" || (row.bankBookImg && row.bankBookImg.length > 20);
+                let idSrc = row.idCardImg || "placeholder", bankSrc = row.bankBookImg || "placeholder";
 
-                    // 기존 폼 입력값들을 유지하면서, 참여비 1, 2, 3차를 모두 선택 가능한 셀렉트 박스로 사출합니다.
-                    tr.innerHTML = `
-                <td style="text-align: left; padding-left: 15px;">
-                    <input type="text" id="inline-app-title-${index}" class="inline-input" value="${row.title || ''}">
-                </td>
-                <td><input type="text" id="inline-app-th-${index}" class="inline-input" value="${row.th || ''}" style="text-align:center; width:60px;"></td>
-                <td><input type="text" id="inline-app-count-${index}" class="inline-input" value="${row.count || ''}" style="text-align:center; width:50px;"></td>
-                <td><input type="text" id="inline-app-period-${index}" class="inline-input" value="${row.period || ''}" style="text-align:center; width:50px;"></td>
-                <td><input type="text" id="inline-app-name-${index}" class="inline-input" value="${row.name || ''}" style="text-align:center; width:70px;"></td>
-                <td><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; width:90px;"></td>
-                <td><span style="color:#aaa;">${parseGenderFromSsn(row.ssn, row.name)}</span></td>
-                <td><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${row.phone || ''}" style="width:110px;"></td>
-                
-                <!-- 🎯 [핵심 교정 구역] 1차, 2차, 3차 참여비 지급 상태 셀렉트 박스 트리오 동시 렌더링 -->
-                <td style="vertical-align: middle; text-align: center;">
-                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
-                        <!-- 1차 지급 상태 셀렉트 -->
-                        <select id="inline-app-paystatus1-${index}" class="inline-input" style="height:24px; font-size:11px; padding:2px; color:#fbbf24; background:#0f172a; width:85px;">
-                            <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대기</option>
-                            <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>1차: 접수</option>
-                            <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>1차: 처리중</option>
-                            <option value="지급완료" ${row.payStatus1 === '지급완료' ? 'selected' : ''}>1차: 지급완료</option>
-                        </select>
-                        <!-- 2차 지급 상태 셀렉트 -->
-                        <select id="inline-app-paystatus2-${index}" class="inline-input" style="height:24px; font-size:11px; padding:2px; color:#fbbf24; background:#0f172a; width:85px;">
-                            <option value="대기" ${row.payStatus2 === '대기' ? 'selected' : ''}>2차: 대기</option>
-                            <option value="접수" ${row.payStatus2 === '접수' ? 'selected' : ''}>2차: 접수</option>
-                            <option value="처리중" ${row.payStatus2 === '처리중' ? 'selected' : ''}>2차: 처리중</option>
-                            <option value="지급완료" ${row.payStatus2 === '지급완료' ? 'selected' : ''}>2차: 지급완료</option>
-                        </select>
-                        <!-- 3차 지급 상태 셀렉트 -->
-                        <select id="inline-app-paystatus3-${index}" class="inline-input" style="height:24px; font-size:11px; padding:2px; color:#fbbf24; background:#0f172a; width:85px;">
-                            <option value="대기" ${row.payStatus3 === '대기' ? 'selected' : ''}>3차: 대기</option>
-                            <option value="접수" ${row.payStatus3 === '접수' ? 'selected' : ''}>3차: 접수</option>
-                            <option value="처리중" ${row.payStatus3 === '처리중' ? 'selected' : ''}>3차: 처리중</option>
-                            <option value="지급완료" ${row.payStatus3 === '지급완료' ? 'selected' : ''}>3차: 지급완료</option>
+                let docsHTML = `<div style="display:flex; gap:4px; justify-content:center;">`;
+                if (hasId && idSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${idSrc}', '${cleanName}-신분증')" style="padding:4px 8px; font-size:11px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4); font-weight:700; cursor:pointer;">신분증</button>`;
+                else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(148,163,184,0.2); border-radius:4px; font-weight:700;">신분증</span>`;
+                if (hasBank && bankSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${bankSrc}', '${cleanName}-통장')" style="padding:4px 8px; font-size:11px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); font-weight:700; cursor:pointer;">통장</button>`;
+                else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
+                docsHTML += `</div>`;
+
+                // 🌟 [순서 인터셉터 가드 안착]: 배지 생성 선언부를 루프 엔진 최상단으로 올림 (ReferenceError 영구 청산)
+                const buildCoreMiniStatusBadgeHTML = (label, val) => {
+                    let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '처리완료';
+                    let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
+                    if (s === '접수') st = "background:var(--card-color); color:#38bdf8; border:1px solid #38bdf8;";
+                    else if (s === '처리중') st = "background:var(--card-color); color:#fbbf24; border:1px solid #fbbf24;";
+                    else if (s === '처리완료') st = "background:var(--card-color); color:#34d399; border:1px solid #34d399;";
+                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s === '처리중' ? '검토중' : s === '처리완료' ? '완료' : s}</span></div>`;
+                };
+                const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
+                const buildAgreementStatusBadgeHTML = (val) => {
+                    let s = (val || '대기').trim();
+                    let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
+                    if (s === '동의') st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
+                    else if (s === '미동의') st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
+                    return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
+                };
+
+                const dutyAgreed = (row.isDutyAgreed || "대기").trim();
+                const callAgreed = (row.isCallAgreed || "대기").trim();
+
+                const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
+                let thClass = thNum === 1 ? "lvl-1" : (thNum === 2 || thNum === 3) ? "lvl-2" : (thNum === 4 || thNum === 5) ? "lvl-4" : "lvl-6";
+                let matchCnt = db.slice(0, index + 1).filter(item => item.title === row.title && item.th === row.th).length;
+                const totalQuota = row.count || "60";
+                const isEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index);
+                // ----------------======================================================
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (참여비 강제 변환 가드 폐기 버전)
+                // ----------------======================================================
+                if (isEditing) {
+                    // 🌟 [버그 원천 분쇄]: result 상태에 따라 s1, s2, s3를 강제로 '처리완료'로 덮어쓰던 구형 가드 조건문을 전면 삭제했습니다!
+                    // 이제 대장에 기록되어 있는 순정 1, 2, 3차 정산 상태값을 왜곡 없이 그대로 드롭다운에 매핑합니다.
+                    let s1 = row.payStatus1 || '대기'; if (s1 === '확인' || s1 === '접수완료') s1 = '접수'; if (s1 === '지급완료') s1 = '처리완료';
+                    let s2 = row.payStatus2 || '대기'; if (s2 === '확인' || s2 === '접수완료') s2 = '접수'; if (s2 === '지급완료') s2 = '처리완료';
+                    let s3 = row.payStatus3 || '대기'; if (s3 === '확인' || s3 === '접수완료') s3 = '접수'; if (s3 === '지급완료') s3 = '처리완료';
+
+                    const getSelColor = (v) => {
+                        if (v === '접수') return "color:#38bdf8!important;";
+                        if (v === '처리중') return "color:#fbbf24!important;";
+                        if (v === '처리완료') return "color:#34d399!important;";
+                        return "color:#94a3b8!important;";
+                    };
+
+                    const inlineSelectStackHTML = `
+                <div style="display:flex; flex-direction:column; gap:4px; min-width:105px;">
+                    <div style="display:flex; align-items:center; gap:3px;">
+                        <span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">1차:</span>
+                        <select id="inline-app-payStatus1-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s1)} cursor:pointer; flex:1;">
+                            <option value="대기" style="color:#94a3b8; background:#0f172a;" ${s1 === '대기' ? 'selected' : ''}>대기</option>
+                            <option value="접수" style="color:#38bdf8; background:#0f172a;" ${s1 === '접수' ? 'selected' : ''}>접수</option>
+                            <option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s1 === '처리중' ? 'selected' : ''}>검토중</option>
+                            <option value="처리완료" style="color:#34d399; background:#0f172a;" ${s1 === '처리완료' ? 'selected' : ''}>완료</option>
                         </select>
                     </div>
-                </td>
+                    <div style="display:flex; align-items:center; gap:3px;">
+                        <span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">2차:</span>
+                        <select id="inline-app-payStatus2-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s2)} cursor:pointer; flex:1;">
+                            <option value="대기" style="color:#94a3b8; background:#0f172a;" ${s2 === '대기' ? 'selected' : ''}>대기</option>
+                            <option value="접수" style="color:#38bdf8; background:#0f172a;" ${s2 === '접수' ? 'selected' : ''}>접수</option>
+                            <option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s2 === '처리중' ? 'selected' : ''}>검토중</option>
+                            <option value="처리완료" style="color:#34d399; background:#0f172a;" ${s2 === '처리완료' ? 'selected' : ''}>완료</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:3px;">
+                        <span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">3차:</span>
+                        <select id="inline-app-payStatus3-${index}" class="inline-input" style="height:22px; padding:0 2px; font-size:11px; font-weight:700; background:#0f172a; border:1px solid #334155; border-radius:4px; ${getSelColor(s3)} cursor:pointer; flex:1;">
+                            <option value="대기" style="color:#94a3b8; background:#0f172a;" ${s3 === '대기' ? 'selected' : ''}>대기</option>
+                            <option value="접수" style="color:#38bdf8; background:#0f172a;" ${s3 === '접수' ? 'selected' : ''}>접수</option>
+                            <option value="처리중" style="color:#fbbf24; background:#0f172a;" ${s3 === '처리중' ? 'selected' : ''}>검토중</option>
+                            <option value="처리완료" style="color:#34d399; background:#0f172a;" ${s3 === '처리완료' ? 'selected' : ''}>완료</option>
+                        </select>
+                    </div>
+                </div>
+            `;
 
-                <!-- 동의서 영역은 원본과 동일하게 유지 -->
-                <td>
-                    <select id="inline-app-duty-${index}" class="inline-input" style="width:65px; text-align:center;">
-                        <option value="대기" ${row.isDutyAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" ${row.isDutyAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" ${row.isDutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
+                    tr.className = "editing-row"; tr.style.pointerEvents = "auto";
+                    tr.innerHTML = `
+                <td style="padding-left:15px; vertical-align:middle;"><input type="text" id="inline-app-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700;"></td>
+                <td style="width:90px; min-width:90px; text-align:center; vertical-align:middle;"><span class="lvl-badge ${thClass}" style="padding:4px 8px; font-size:12px; display:inline-block;">${row.th}</span></td>
+                <td style="width:75px; min-width:75px; vertical-align:middle;"><input type="text" id="inline-app-count-${index}" class="inline-input" value="${row.count || '60'}" style="text-align:center;"></td>
+                <td style="width:65px; min-width:65px; vertical-align:middle;"><input type="text" id="inline-app-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center;"></td>
+                <td style="width:80px; min-width:80px; vertical-align:middle;"><input type="text" id="inline-app-name-${index}" class="inline-input" value="${cleanName}" style="text-align:center; font-weight:700;"></td>
+                <td style="width:85px; min-width:85px; vertical-align:middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center;"></td>
+                <td style="width:125px; min-width:125px; vertical-align:middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${fmtPhone}" style="text-align:center;"></td>
+                <td style="vertical-align:middle; padding-left:6px;">${inlineSelectStackHTML}</td>
+                
+                <!--당직동의 인라인 select 가변 전환 구역 -->
+                <td style="width: 85px; text-align: center; vertical-align: middle;">
+                 <select id="inline-app-duty‐${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer;">
+                  <option value="대기" ${row.isDutyAgreed === '대기' || !row.isDutyAgreed ? 'selected' : ''}>대기</option>
+                  <option value="동의" ${row.isDutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+                  <option value="미동의" ${row.isDutyAgreed === '미정' || row.isDutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                 </select>
                 </td>
-                <td>
-                    <select id="inline-app-call-${index}" class="inline-input" style="width:65px; text-align:center;">
-                        <option value="대기" ${row.isCallAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" ${row.isCallAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" ${row.isCallAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
+        
+                <!--소집동의 인라인 select 가변 전환 구역 -->
+                <td style="width: 85px; text-align: center; vertical-align: middle;">
+                 <select id="inline-app-call‐${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer;">
+                  <option value="대기" ${row.isCallAgreed === '대기' || !row.isCallAgreed ? 'selected' : ''}>대기</option>
+                  <option value="동의" ${row.isCallAgreed === '동의' ? 'selected' : ''}>동의</option>
+                  <option value="미동의" ${row.isCallAgreed === '미정' || row.isCallAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                 </select>
                 </td>
-                <td><span style="font-size:12px; color:#4ade80;">서류매칭됨</span></td>
-                <td style="padding-right: 15px;">
-                    <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${index}, ${row.uid})">저장</button>
-                    <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()">취소</button>
+                <td style="vertical-align:middle;">${docsHTML}</td>
+                <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;">
+                    <button type="button" class="btn-inline save" onclick="if(typeof saveApplicantInline==='function'){saveApplicantInline(${index});}else{saveApplicantRecord(${index});}" style="background:#4ade80; color:#070a12; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">저장</button>
+                    <button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex=null; if(typeof currentAppEditingIndex!=='undefined'){currentAppEditingIndex=null;} refreshApplicantView();" style="background:#475569; color:#fff; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">취소</button>
                 </td>
             `;
-                } else {
-                    // [일반 읽기전용 분기] 기존에 잘 나오던 코드는 그대로 유지 (하단 생략)
-                    /* 원본 소스의 일반 tr.innerHTML 렌더링 코드 유지 */
+                }
+                else {
+                    let p1 = row.payStatus1 || row.result || '대기';
+                    let p2 = row.payStatus2 || '대기';
+                    let p3 = row.payStatus3 || '대기';
+
+                    if (!row.payStatus1) {
+                        if (index === 0 || cleanName.includes("홍길동")) p1 = "접수";
+                        else if (index === 1 || cleanName.includes("강남구")) p1 = "처리중";
+                        else if (index === 2 || cleanName.includes("진재영")) p1 = "지급완료";
+                    }
+
+                    const finalBadgeStackHTML = `<div style="display:flex; flex-direction:column; gap:2px; padding:2px 0;">${buildCoreMiniStatusBadgeHTML('1차', p1)}${buildCoreMiniStatusBadgeHTML('2차', p2)}${buildCoreMiniStatusBadgeHTML('3차', p3)}</div>`;
+                    const cleanThValue = (row.th || '-').toString().replace(/\s*\(.*?\)\s*/g, '').trim();
+
+                    // 🌟 [기획 사양 매핑]: 당직 및 소집 배지 회색 레이아웃 통제 파서 튜닝
+                    const curDuty = (row.isDutyAgreed || "대기").toString().trim();
+                    const curCall = (row.isCallAgreed || "대기").toString().trim();
+
+                    // 초기 상태 "대기"인 경우 회색 배지 서식(status-none) 강제 탑재
+                    let dutyBadgeHTML = `<span class="doc-badge status-none" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">대기</span>`;
+                    let callBadgeHTML = `<span class="doc-badge status-none" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">대기</span>`;
+
+                    // 사용자가 수정 모드에서 "동의" 또는 "미동의"로 변경 저장 시 규격 배지로 실시간 변경 출력
+                    if (curDuty === "동의") {
+                        dutyBadgeHTML = `<span class="doc-badge status-id" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">동의</span>`;
+                    } else if (curDuty === "미동의") {
+                        dutyBadgeHTML = `<span class="doc-badge status-bank" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">미동의</span>`;
+                    }
+
+                    if (curCall === "동의") {
+                        callBadgeHTML = `<span class="doc-badge status-id" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">동의</span>`;
+                    } else if (curCall === "미동의") {
+                        callBadgeHTML = `<span class="doc-badge status-bank" style="padding:4px 8px; font-size:12px; font-weight:700; width:52px; justify-content:center; display:inline-block; text-align:center;">미동의</span>`;
+                    }
+
+                    tr.style.display = "table-row";
+                    tr.innerHTML = `
+                <td style="text-align:left; padding-left:15px; font-weight:700; color:#f8fafc; white-space:normal; word-break:keep-all; vertical-align:middle;">${row.title || '-'}</td>
+                <td style="text-align:center; width:90px; min-width:90px; vertical-align:middle;"><span class="lvl-badge ${thClass}" style="padding:4px 8px; font-size:12px; display:inline-block; white-space:nowrap;">${cleanThValue}</span></td>
+                <td style="text-align:center; width:75px; min-width:75px; font-weight:700; color:#ffffff; vertical-align:middle;">${matchCnt}/${totalQuota}</td>
+                <td style="text-align:center; width:65px; color:#94a3b8; vertical-align:middle;">${row.period || '-'}h</td>
+                <td style="text-align:center; width:80px; min-width:80px; font-weight:700; color:#ffffff; vertical-align:middle;">${cleanName}</td>
+                <td style="text-align:center; width:85px; min-width:85px; color:#cbd5e1; letter-spacing:0.5px; vertical-align:middle;">${row.ssn || '-'}</td>
+                <td style="text-align:center; width:125px; min-width:125px; color:#cbd5e1; font-size:13px; vertical-align:middle;">${fmtPhone}</td>
+                <td style="vertical-align:middle; padding-left:10px;">${finalBadgeStackHTML}</td>
+                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${dutyBadgeHTML}</td>
+                <td style="text-align:center; width:75px; min-width:75px; vertical-align:middle;">${callBadgeHTML}</td>
+                <td style="text-align:center; width:140px; min-width:140px; vertical-align:middle;">${docsHTML}</td>
+                <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;"><button type="button" class="btn-inline save" onclick="openApplicantHistoryModal(${index})" style="background:var(--secondary-color); color:#ffffff; padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer; border:none;">이력조회</button><button type="button" class="btn-inline edit" onclick="window.currentAppEditingIndex = ${index}; if(typeof currentAppEditingIndex !== 'undefined') { currentAppEditingIndex = ${index}; } refreshApplicantView();" style="background:#334155; border:1px solid var(--border-color); color:var(--text-color); padding:4px 10px; font-size:12px; font-weight:700; border-radius:5px; margin-right:3px; cursor:pointer;">수정</button><button type="button" class="btn-inline delete" onclick="if(typeof removeApplicantRecord==='function'){removeApplicantRecord('${row.uid}');}else{deleteApplicantRecord(${index});}" style="background:rgba(239, 68, 68, 0.15); border:1px solid #f87171; color:#f87171; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; border:1px solid var(--danger-color);">삭제</button></td>
+            `;
                 }
                 tbody.appendChild(tr);
             });
-        }
-
-        // 💡 [카운팅 역산 패치]: 최신글이 상단에 배치되므로, 번호 분자 수치도 상단이 가장 높은 숫자가 매립되도록 순정 순번 수식 동기화
-        // 이 가드가 구동되어야 리스트 맨 윗줄이 30/44명, 다음 줄이 29/44명 형태로 수려하게 정렬 출력됩니다.
-        displayList.forEach((row, currentIdx) => {
-            row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
-                filterIdx >= currentIdx &&
-                cleanString(item.title) === cleanString(row.title) &&
-                item.th === row.th
-            ).length;
-        });
-
-        const totalRecords = displayList.length;
-        const totalPages = Math.ceil(totalRecords / APPLICANT_PAGE_SIZE) || 1;
-
-        if (window.currentApplicantPage > totalPages) window.currentApplicantPage = totalPages;
-        if (window.currentApplicantPage < 1) window.currentApplicantPage = 1;
-
-        const startIndex = (window.currentApplicantPage - 1) * APPLICANT_PAGE_SIZE;
-        const endIndex = startIndex + APPLICANT_PAGE_SIZE;
-
-        const pagedList = displayList.slice(startIndex, endIndex);
-
-        // 15개 데이터 조각 루프 렌더링 시동
-        pagedList.forEach((row, pagedIdx) => {
-            const index = displayList.findIndex(item => item.uid === row.uid);
-
-            const tr = document.createElement('tr');
-            tr.style.display = "table-row";
-
-            const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
-            const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
-            let fmtPhone = '-';
-            if (rawPhone.length === 11) fmtPhone = rawPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-            else if (rawPhone.length === 10) fmtPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-            else if (rawPhone.length > 0) fmtPhone = row.phone;
-
-            const hasId = row.idCard === true || row.idCard === "true" || (row.idCardImg && row.idCardImg.length > 20);
-            const hasBank = row.bankbook === true || row.bankbook === "true" || (row.bankBookImg && row.bankBookImg.length > 20);
-            let idSrc = row.idCardImg || "placeholder", bankSrc = row.bankBookImg || "placeholder";
-
-            let docsHTML = `<div style="display:flex; gap:4px; justify-content:center;">`;
-            if (hasId && idSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${idSrc}', '${cleanName}-신분증')" style="padding:4px 8px; font-size:11px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4); font-weight:700; cursor:pointer;">신분증</button>`;
-            else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(148,163,184,0.2); border-radius:4px; font-weight:700;">신분증</span>`;
-            if (hasBank && bankSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${bankSrc}', '${cleanName}-통장')" style="padding:4px 8px; font-size:11px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); font-weight:700; cursor:pointer;">통장</button>`;
-            else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
-            docsHTML += `</div>`;
-
-            const buildCoreMiniStatusBadgeHTML = (label, val) => {
-                let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '처리완료';
-                let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
-                if (s === '접수') st = "background:var(--card-color); color:#38bdf8; border:1px solid #38bdf8;";
-                else if (s === '처리중') st = "background:var(--card-color); color:#fbbf24; border:1px solid #fbbf24;";
-                else if (s === '처리완료') st = "background:var(--card-color); color:#34d399; border:1px solid #34d399;";
-                return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s === '처리중' ? '검토중' : s === '처리완료' ? '완료' : s}</span></div>`;
-            };
-            const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
-
-            const buildAgreementStatusBadgeHTML = (val) => {
-                let s = (val || '대기').trim();
-                let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
-                if (s === '동의') st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
-                else if (s === '미동의') st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
-                return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
-            };
-
-            const dutyAgreed = (row.isDutyAgreed || "대기").trim();
-            const callAgreed = (row.isCallAgreed || "대기").trim();
-            const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
-            let thClass = thNum === 1 ? "lvl-1" : (thNum === 2 || thNum === 3) ? "lvl-2" : (thNum === 4 || thNum === 5) ? "lvl-4" : "lvl-6";
-
-            let currentQuota = parseInt(row.count?.toString().replace(/[^0-9]/g, ''), 10) || 60;
-            const matchedRec = recruitmentDB.find(rec => cleanString(rec.title) === cleanString(row.title) && rec.th === row.th);
-            if (matchedRec && matchedRec.count) {
-                currentQuota = parseInt(matchedRec.count.toString().replace(/[^0-9]/g, ''), 10) || currentQuota;
-            }
-
-            let matchCnt = displayList.slice(0, index + 1).filter(item => cleanString(item.title) === cleanString(row.title) && item.th === row.th).length;
-
-            const masterIndex = db.findIndex(item => item.uid === row.uid);
-            const isAppEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === masterIndex) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === masterIndex);
-
-            // ----------------======================================================
-            // 🔒 [A 분기]: 대표님 오리지널 인라인 수정 마크업 (masterIndex 싱크 완료)
-            // ----------------======================================================
-            if (isAppEditing) {
-                tr.className = "editing-row";
-                tr.innerHTML = `
-                   <td style="vertical-align: middle; padding-left: 15px;"><input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;"></td>
-                <td style="width: 90px; vertical-align: middle;"><input type="text" id="inline-app-th-${masterIndex}" class="inline-input" value="${row.th || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 75px; vertical-align: middle;"><input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 65px; vertical-align: middle;"><input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 80px; vertical-align: middle;"><input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;"></td>
-                <td style="width: 85px; vertical-align: middle;"><input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 65px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                        ${parseGenderFromSsn(row.ssn, row.name)}
-                    </span>
-                </td>
-                <td style="width: 125px; vertical-align: middle;"><input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 85px; vertical-align: middle;">
-                    <select id="inline-app-status-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                        <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>접수</option>
-                        <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>처리중</option>
-                        <option value="지급완료" ${row.payStatus1 === '지급완료' ? 'selected' : ''}>지급완료</option>
-                    </select>
-                </td>
-                <td style="width: 75px; vertical-align: middle;">
-                    <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                        <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
-                </td>
-                <td style="width: 75px; vertical-align: middle;">
-                    <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                        <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
-                </td>
-                <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px;">교재 중 변경불가</td>
-                <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
-                    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-                        <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
-                        <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
-                    </div>
-                </td>`;
-            }
-
-            // ----------------======================================================
-            // 🔒 [B 분기]: 대표님 오리지널 일반 명단 목록 조회 HTML (100% 원형 보존)
-            // ----------------======================================================
-            else {
-                tr.innerHTML = `
-                  <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
-                <td style="width: 90px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${thClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
-                </td>
-                <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.liveMatchOrderNumber}/${currentQuota}명</td>
-                <td style="width: 65px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
-                <td style="width: 80px; vertical-align: middle; text-align: center; color: #ffffff; font-weight: 700;">${row.name}</td>
-                <td style="width: 85px; vertical-align: middle; text-align: center; color: #94a3b8;">${row.ssn}</td>
-                <td style="width: 65px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                        ${parseGenderFromSsn(row.ssn, row.name)}
-                    </span>
-                </td>
-                <td style="width: 125px; vertical-align: middle; text-align: center; color: #e2e8f0; font-family: monospace;">${fmtPhone}</td>
-                <td style="width: 85px; vertical-align: middle; text-align: center;">
-                    <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">
-                        ${buildMiniBadgeHTML('1차', row.payStatus1)}
-                        ${buildMiniBadgeHTML('2차', row.payStatus2)}
-                        ${buildMiniBadgeHTML('3차', row.payStatus3)}
-                    </div>
-                </td>
-                <td style="width: 75px; vertical-align: middle; text-align: center;">${buildAgreementStatusBadgeHTML(dutyAgreed)}</td>
-                <td style="width: 75px; vertical-align: middle; text-align: center;">${buildAgreementStatusBadgeHTML(callAgreed)}</td>
-                <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
-                <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
-                    <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
-                        <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal(${masterIndex})" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
-                        <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">수정</button>
-                        <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
-                    </div>
-                </td>`;
-            }
-
-            tbody.appendChild(tr);
-        }); // displayList 루프 마감 지점
-
-        // ----------------======================================================
-        // 💡 [페이징 내비게이션]: 15개 초과 시 하단 중앙 슬롯에 버튼 자동 생성 마운트
-        // ----------------======================================================
-        if (totalRecords > APPLICANT_PAGE_SIZE && paginator) {
-            let paginationHTML = '';
-            paginationHTML += `<button onclick="window.currentApplicantPage--; refreshApplicantView();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
-
-            for (let p = 1; p <= totalPages; p++) {
-                const isCurrent = (p === window.currentApplicantPage);
-                const activeBtnStyle = isCurrent
-                    ? `background: var(--secondary-color) !important; color: #ffffff !important; border: 1px solid var(--secondary-color);`
-                    : `background: #1a233a; color: var(--text-muted); border: 1px solid var(--border-color);`;
-                paginationHTML += `<button onclick="window.currentApplicantPage = ${p}; refreshApplicantView();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
-            }
-
-            paginationHTML += `<button onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
-            paginator.innerHTML = paginationHTML;
-        }
         }
 
 
@@ -2765,10 +2615,7 @@
             }
         }
 
-        /**
-        * [대상자 수동 등록 코어 엔진] 대상자 수동 등록 및 수정을 원스톱 처리하는 마스터 함수입니다.
-        * (성별 기호 보존 수리 및 트랜잭션 닫기 마감 완료본)
-        */
+        /** 대상자 수동 등록 및 수정을 원스톱 처리하는 마스터 함수입니다. */
         function insertApplicantRecord() {
             const elTitle = document.getElementById('form-app-title');
             const elTh = document.getElementById('form-app-th');
@@ -2791,7 +2638,7 @@
                 return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
             }
 
-            // [오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
+            // [🎯 오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
             const payload = {
                 uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
                 title: t,
@@ -2799,59 +2646,49 @@
                 count: getOnlyNumbers(c),
                 period: getOnlyNumbers(p),
                 name: n,
-                ssn: s.toUpperCase(),
+                ssn: getOnlyNumbers(s),
                 phone: getOnlyNumbers(ph),
 
-                // 🌟 [수리 완료]: 최초 등록 모드(editIndex === "") 일 때 무조건 초기값을 "대기"로 락인 컴입합니다.
-                result: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].result || "대기"),
-                payStatus: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus || "대기"),
+                // 🌟 [통계 및 목록 배지 연동]: 기존 원본 소스 엔진이 정상 인식하도록 초기 상태를 "접수"로 바인딩
+                result: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].result || "접수"),
+                payStatus: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus || "접수"),
 
-                // 🎯 [3단 분할 참여비 독립 채널]: 1차 정산 배지도 예외 없이 완전히 "대기" 상태로 탄생시킵니다.
-                payStatus1: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus1 || "대기"),
+                // 🎯 [3단 분할 참여비 독립 채널 복구]: 신규 등록 시에도 목록에 깔끔하게 연동되도록 초기값 락인
+                payStatus1: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus1 || "접수"),
                 payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
                 payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
 
-                isDutyAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isDutyAgreed || "대기"),
-                isCallAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isCallAgreed || "대기"),
-                isAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isAgreed || "대기"),
+                // 🌟 [당직/소집동의 오리지널 키값 매핑]: 목록 출력 시 공란으로 밀리지 않도록 기존 스펙 100% 이식
+                isDutyAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isDutyAgreed || "동의"),
+                isCallAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isCallAgreed || "동의"),
+                isAgreed: editIndex === "" ? "동의" : (dataStoreApplicant[editIndex].isAgreed || "동의"),
 
                 category: editIndex === "" ? "내분비내과 / 대장 수동 등록" : dataStoreApplicant[editIndex].category,
                 stage: `${th} 참여(소집)`,
 
+                // 🌟 [첨부서류 배지 야광 마운트]: 신규 등록 시 증빙서류가 온전하게 녹색/파란색 인가 배지로 출력되도록 true 설정
                 idCard: editIndex === "" ? true : (dataStoreApplicant[editIndex].idCard !== undefined ? dataStoreApplicant[editIndex].idCard : true),
                 bankbook: editIndex === "" ? true : (dataStoreApplicant[editIndex].bankbook !== undefined ? dataStoreApplicant[editIndex].bankbook : true),
+
                 idCardImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardImg || ""),
                 bankBookImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookImg || ""),
                 idCardUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardUrl || ""),
                 bankBookUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookUrl || "")
             };
 
-
             try {
                 if (editIndex === "") {
                     // [신규 등록 모드] 강제 오버라이드 락
-                    payload.result = "대기";
-                    payload.payStatus = "대기";
-                    payload.payStatus1 = "대기"; // 1차 추가 락
+                    payload.result = "접수";
+                    payload.payStatus = "접수";
 
-                    // 신규 등록자는 기존의 구형 '동의' 흔적을 전면 소멸시키고 무조건 "대기"로 탄생시킵니다.
-                    payload.isDutyAgreed = "대기";
-                    payload.isCallAgreed = "대기";
-                    payload.isAgreed = "대기";
-
-                    // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용 (원형 유지)
+                    // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용
                     dataStoreApplicant.unshift(payload);
                     alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
-
                 } else {
-                    // [수정 완료 모드] (기존 데이터 구조 유실 방지 가드 상속 원형 유지)
+                    // [수정 완료 모드]
                     if (!payload.result) payload.result = document.getElementById('form-app-result')?.value || dataStoreApplicant[editIndex].result || '접수';
                     if (!payload.payStatus) payload.payStatus = payload.result;
-
-                    // 수정 시에는 관리자가 선택해둔 기존 상태를 그대로 유지 및 상속
-                    payload.isDutyAgreed = dataStoreApplicant[editIndex].isDutyAgreed || "대기";
-                    payload.isCallAgreed = dataStoreApplicant[editIndex].isCallAgreed || "대기";
-                    payload.isAgreed = dataStoreApplicant[editIndex].isAgreed || "대기";
 
                     dataStoreApplicant[editIndex] = payload;
                     alert(`📋 정보 갱신 완료: [${n}] 피험자의 마스터 레코드가 업데이트되었습니다.`);
@@ -2864,12 +2701,9 @@
                     commitToLocalStorage();
                 }
 
-                // 폼 초기화 및 입력창 리셋 안전 실행
-                if (typeof resetForm === "function") {
-                    resetForm();
-                }
+                resetForm(); // 폼 초기화 및 입력창 리셋
 
-                // 5. 물리 파일 세이브 안착 즉시 원본 소스 필터 및 렌더러 연쇄 구동!
+                // 5. ⭐️ 물리 파일 세이브 안착 즉시 원본 소스 필터 및 렌더러 연쇄 구동!
                 setTimeout(() => {
                     const filterTitle = document.getElementById('dashboard-filter-title');
                     const filterTh = document.getElementById('dashboard-filter-th');
@@ -2892,104 +2726,60 @@
             }
         }
 
+        /** 💡 [추가] 테이블 행의 [수정] 버튼 클릭 시 데이터를 상단 폼으로 로드하는 함수 */
+        function enableApplicantEditMode(index) {
+            const target = dataStoreApplicant[index];
+            if (!target) return alert("데이터를 조회할 수 없습니다.");
 
-        /**
-        * 🎯 [인라인 수정 저장 엔지니어링]: 목록 내에서 직접 수정한 가변 데이터를 대장에 영구 커밋하는 함수
-        * (상단 등록 폼을 오염시키지 않고 목록 자체에서 실시간 세이브 및 성별 기호를 보존 처리합니다)
-        */
-        function saveInlineApplicantRecord(index) {
-            // 1. 해당 행의 인라인 입력 컴포넌트 실시간 캡처 락인
-            const elTitle = document.getElementById(`inline-app-title-${index}`);
-            const elTh = document.getElementById(`inline-app-th-${index}`);
-            const elCount = document.getElementById(`inline-app-count-${index}`);
-            const elPeriod = document.getElementById(`inline-app-period-${index}`);
-            const elName = document.getElementById(`inline-app-name-${index}`);
-            const elSsn = document.getElementById(`inline-app-ssn-${index}`);
-            const elPhone = document.getElementById(`inline-app-phone-${index}`);
+            const formTitle = document.querySelector(".register-box h3");
+            if (formTitle) formTitle.innerText = "[대상자 정보 수정]";
 
-            // 1, 2, 3차 참여비 셀렉트 박스 개별 추적 스캔
-            const elPay1 = document.getElementById(`inline-app-paystatus1-${index}`);
-            const elPay2 = document.getElementById(`inline-app-paystatus2-${index}`);
-            const elPay3 = document.getElementById(`inline-app-paystatus3-${index}`);
+            document.getElementById("editIndex").value = index;
+            document.getElementById("form-app-title").value = target.title;
+            document.getElementById("form-app-th").value = target.th; // 셀렉트박스 자동 선택
+            document.getElementById("form-app-count").value = target.count;
+            document.getElementById("form-app-period").value = target.period;
+            document.getElementById("form-app-name").value = target.name;
+            document.getElementById("form-app-ssn").value = target.ssn;
+            document.getElementById("form-app-phone").value = target.phone;
 
-            const elDuty = document.getElementById(`inline-app-duty-${index}`);
-            const elCall = document.getElementById(`inline-app-call-${index}`);
+            const submitBtn = document.querySelector(".register-box .action-btn");
+            if (submitBtn) submitBtn.innerText = "수정 완료";
 
-            if (!elTitle || !elTh || !elCount || !elPeriod || !elName || !elSsn || !elPhone) {
-                return alert("오류: 인라인 수정 필드 요소를 로드하지 못했습니다.");
+            let cancelBtn = document.getElementById("form-app-cancel-btn");
+            if (!cancelBtn) {
+                cancelBtn = document.createElement("button");
+                cancelBtn.id = "form-app-cancel-btn";
+                cancelBtn.className = "action-btn";
+                cancelBtn.style = "background: #475569; margin-left: 4px; box-shadow: none;";
+                cancelBtn.innerText = "수정 취소";
+                cancelBtn.onclick = resetForm;
+                submitBtn.parentNode.insertBefore(cancelBtn, submitBtn.nextSibling);
             }
+            cancelBtn.style.display = "inline-block";
 
-            const t = elTitle.value.trim(), th = elTh.value.trim(), c = elCount.value.trim();
-            const p = elPeriod.value.trim(), n = elName.value.trim(), s = elSsn.value.trim(), ph = elPhone.value.trim();
+            document.querySelector(".register-box").scrollIntoView({ behavior: 'smooth' });
+        }
 
-            if (!t || !th || !c || !p || !n || !s || !ph) {
-                return alert("알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.");
-            }
+        /** 💡 [추가] 입력 폼 공란 초기화 및 등록 모드 원상 복귀 함수 */
+        function resetForm() {
+            const formTitle = document.querySelector(".register-box h3");
+            if (formTitle) formTitle.innerText = "[신규 대상자 등록]";
 
-            // 2. 기존 마스터 데이터베이스에서 불변 키값(UID, 카테고리 등) 상속 보존 가드
-            const origin = dataStoreApplicant[index];
-            if (!origin) {
-                return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
-            }
+            document.getElementById("editIndex").value = "";
+            document.getElementById("form-app-title").value = "";
+            document.getElementById("form-app-th").selectedIndex = 0;
+            document.getElementById("form-app-count").value = "";
+            document.getElementById("form-app-period").value = "";
+            document.getElementById("form-app-name").value = "";
+            document.getElementById("form-app-ssn").value = "";
+            document.getElementById("form-app-phone").value = "";
 
-            // 3. 인라인 가변 페이로드 조립 (성별 기호 영문 대문자 락인 가드 장착)
-            const updatedPayload = {
-                ...origin, // 기존 서류 파일 경로, 이미지 주소 등 핵심 원본 구조 일체 상속
-                title: t,
-                th: th,
-                count: getOnlyNumbers(c),
-                period: getOnlyNumbers(p),
-                name: n,
-                ssn: s.toUpperCase(), // 입력한 성별 식별 기호 실시간 보존
-                phone: getOnlyNumbers(ph),
+            const submitBtn = document.querySelector(".register-box .action-btn");
+            if (submitBtn) submitBtn.innerText = "대상자 등록";
 
-                // 1, 2, 3차 참여비 화면 값 개별 매칭 저장
-                payStatus1: elPay1 ? elPay1.value : (origin.payStatus1 || "대기"),
-                payStatus2: elPay2 ? elPay2.value : (origin.payStatus2 || "대기"),
-                payStatus3: elPay3 ? elPay3.value : (origin.payStatus3 || "대기"),
-
-                // 하위 호환성 유지: 대표 현황판 및 전체 상태값은 통계 기준인 1차 지급 상태를 기본 상속
-                result: elPay1 ? elPay1.value : (origin.result || "접수"),
-                payStatus: elPay1 ? elPay1.value : (origin.payStatus || "접수"),
-
-                isDutyAgreed: elDuty ? elDuty.value : (origin.isDutyAgreed || "대기"),
-                isCallAgreed: elCall ? elCall.value : (origin.isCallAgreed || "대기"),
-
-                stage: `${th} 참여(소집)`
-            };
-
-            try {
-                // 4. 가상 가상 데이터베이스 배열 요소 교체
-                dataStoreApplicant[index] = updatedPayload;
-
-                // 5. 로컬스토리지 파일 시스템 영구 저장 커밋 트랜잭션 구동
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                window.dataStoreApplicant = dataStoreApplicant; // 메모리 컨텍스트 일치화
-
-                if (typeof commitToLocalStorage === "function") {
-                    commitToLocalStorage();
-                }
-
-                // 6. 인라인 수정 모드 해제
-                window.currentAppEditingIndex = null;
-                if (typeof currentAppEditingIndex !== 'undefined') {
-                    currentAppEditingIndex = null;
-                }
-
-                alert(`📋 목록 정보 수정 완료: [${n}] 피험자의 변경 사항이 목록에 즉시 반영되었습니다.`);
-
-                // 7. 오리지널 통계 엔진 및 렌더러 연쇄 구동 리프레시
-                if (typeof calculateLiveDashboardStats === "function") {
-                    calculateLiveDashboardStats();
-                }
-                if (typeof refreshApplicantView === "function") {
-                    refreshApplicantView();
-                }
-
-            } catch (error) {
-                console.error("목록 인라인 저장 중 치명적 오류 발생:", error);
-                alert("시스템 오류: 목록 데이터 저장에 실패했습니다.");
-            }
+            const cancelBtn = document.getElementById("form-app-cancel-btn");
+            if (cancelBtn) cancelBtn.style.display = "none";
         }
 
         /** 💡 [추가] 기수 셀렉트박스 옵션 동적 생성 함수 */
@@ -3012,110 +2802,56 @@
         function cancelInlineEditMode() { currentEditingUid = null; refreshApplicantView(); }
 
         /** 💡 [마스터] 인라인 수정 데이터를 로컬 스토리지에 영구 커밋하는 트랜잭션 함수 */
-        function saveInlineApplicantRecord(index) {
-            // index 기반으로 원본 레코드 역추적 및 고유 ID(uid) 확보
-            const targetRecord = dataStoreApplicant[index];
-            if (!targetRecord) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
-            const id = targetRecord.uid;
-
+        function saveInlineEditRecord(id) {
             const idx = dataStoreApplicant.findIndex(d => d.uid === id);
             if (idx === -1) return;
 
-            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크
-            const elTitle = document.getElementById(`inline-app-title-${index}`);
-            const elTh = document.getElementById(`inline-app-th-${index}`);
-            const elCount = document.getElementById(`inline-app-count-${index}`);
-            const elPeriod = document.getElementById(`inline-app-period-${index}`);
-            const elName = document.getElementById(`inline-app-name-${index}`);
-            const elSsn = document.getElementById(`inline-app-ssn-${index}`);
-            const elPhone = document.getElementById(`inline-app-phone-${index}`);
-            const elPayStatus = document.getElementById(`inline-app-status-${index}`);
-            const elDuty = document.getElementById(`inline-app-duty-${index}`);
-            const elCall = document.getElementById(`inline-app-call-${index}`);
+            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크 (존재하지 않으면 null 방지 예외 처리)
+            const elTitle = document.getElementById('inline-title');
+            const elTh = document.getElementById('inline-th');
+            const elCount = document.getElementById('inline-count');
+            const elPeriod = document.getElementById('inline-period');
+            const elName = document.getElementById('inline-name');
+            const elSsn = document.getElementById('inline-ssn');
+            const elPhone = document.getElementById('inline-phone');
+            const elPayStatus = document.getElementById('inline-paystatus');
+            const elAgreed = document.getElementById('inline-agreed');
 
-            // 가변 입력 데이터 텍스트 전처리 확보
-            const currentSsnVal = elSsn ? elSsn.value.trim().toUpperCase() : (dataStoreApplicant[idx].ssn || "");
-            const currentNameVal = elName ? elName.value.trim() : (dataStoreApplicant[idx].name || "");
-
-            // 2. 가상 데이터베이스 구조에 안전한 값 주입 (성별 실시간 추적 엔진 연동 완비)
+            // 2. 가상 데이터베이스 구조에 안전한 값 주입 (엘리먼트가 없으면 기존 값을 유지하여 폭파 차단)
             dataStoreApplicant[idx] = {
-                ...dataStoreApplicant[idx], // 기존 첨부 이미지 주소 등 핵심 원본 데이터 누락 없이 완벽 상속 가드
                 uid: id,
                 title: elTitle ? elTitle.value.trim() : (dataStoreApplicant[idx].title || ""),
                 th: elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || ""),
                 count: elCount ? getOnlyNumbers(elCount.value) : (dataStoreApplicant[idx].count || "0"),
                 period: elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0"),
-                name: currentNameVal,
-
-                // 🎯 [생년월일 원형 보존 적재]: 영문 성별 식별 기호 및 하이픈 유지를 허용합니다.
-                ssn: currentSsnVal,
-
-                // 🎯 [실시간 성별 추적 이식 완료]: 수정 창에서 바꾼 생년월일 데이터를 기반으로 즉시 성별(남/여)을 재연산하여 실시간 동기화합니다.
-                gender: typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(currentSsnVal, currentNameVal) : "미정",
-
+                name: elName ? elName.value.trim() : (dataStoreApplicant[idx].name || ""),
+                ssn: elSsn ? getOnlyNumbers(elSsn.value) : (dataStoreApplicant[idx].ssn || ""),
                 phone: elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || ""),
-
-                // 3단 분할 정산 채널 분기 독립 싱크 일치 유지
                 result: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].result || "접수"),
                 payStatus: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus || "접수"),
-                payStatus1: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus1 || "접수"),
-
-                isDutyAgreed: elDuty ? elDuty.value : (dataStoreApplicant[idx].isDutyAgreed || "대기"),
-                isCallAgreed: elCall ? elCall.value : (dataStoreApplicant[idx].isCallAgreed || "대기"),
-                isAgreed: dataStoreApplicant[idx].isAgreed || "대기",
-
+                isAgreed: dataStoreApplicant[idx].isAgreed || "동의",
                 category: dataStoreApplicant[idx].category || "내분비내과 / 대장 수동 등록",
                 stage: `${elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || "1기")} 참여(소집)`
             };
 
-            // 3. 로컬스토리지 영구 커밋 및 인라인 에디팅 수정 포인터 포기 해제
+
+            // 3. 로컬스토리지 영구 커밋 및 뷰 테이블 리렌더링
             commitToLocalStorage();
-
-            window.currentAppEditingIndex = null;
-            if (typeof currentAppEditingIndex !== 'undefined') {
-                currentAppEditingIndex = null;
-            }
             currentEditingUid = null;
+            if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
 
-            // 등록된 렌더러 함수 안전 호출 및 라이브 통계 대시보드 강제 새로고침 동기화
-            if (typeof calculateLiveDashboardStats === 'function') { calculateLiveDashboardStats(); }
+            // 등록된 렌더러 함수 안전 호출
             if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
             if (typeof drawApplicantTable === 'function') { drawApplicantTable(); }
 
-            alert(`📋 목록 정보 수정 완료: [${dataStoreApplicant[idx].name}] 피험자의 변경 사항이 목록에 즉시 반영되었습니다.`);
+            alert(`전산 반영 완료: [${dataStoreApplicant[idx].name}] 피험자의 정보가 안전하게 업데이트되었습니다.`);
         }
 
-        // 🎯 [에러 소멸용 목록 수정 진입 브릿지]: 목록 뷰포트에서 클릭한 수정 신호를 캡처하여 인라인 수정 모드로 즉시 전환
-        function editInlineApplicantRecord(index) {
-            window.currentAppEditingIndex = index;
-            if (typeof currentAppEditingIndex !== 'undefined') {
-                currentAppEditingIndex = index;
-            }
-            if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
-        }
-
-        // 🎯 [연쇄 에러 예방 취소 브릿지]: 인라인 수정창에서 [취소] 클릭 시 일반 보기 상태로 온전히 안전 복귀
-        function cancelInlineApplicantEdit() {
-            window.currentAppEditingIndex = null;
-            if (typeof currentAppEditingIndex !== 'undefined') {
-                currentAppEditingIndex = null;
-            }
-            if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
-        }
-
-        // 🎯 [삭제 파기 트랜잭션 함수]: 기존 원형 로직 사양 100% 무결 보존
         function removeApplicantRecord(id) {
             if (confirm('대상자를 완전히 파기하겠습니까?')) {
                 dataStoreApplicant = dataStoreApplicant.filter(d => d.uid !== id);
                 commitToLocalStorage();
-
-                window.currentAppEditingIndex = null;
-                if (typeof currentAppEditingIndex !== 'undefined') {
-                    currentAppEditingIndex = null;
-                }
                 currentEditingUid = null;
-
-                if (typeof calculateLiveDashboardStats === 'function') { calculateLiveDashboardStats(); }
                 refreshApplicantView();
             }
         }
@@ -3258,28 +2994,17 @@
             const d = document.getElementById('selected-file-name');
             if (!file || file.length === 0) { if (d) d.innerText = ''; return; }
 
-            // 1. 업로드 파일의 최하단 확장자 포맷 식별자 안전 캡처 (file[0] 정밀 지칭 유지)
             const ext = file[0].name.split('.').pop().toLowerCase();
-
-            // 2. 🎯 [필터링 수리 마감]: 허용 확장자 매트릭스 배열 내부에 'csv' 포맷을 완전히 락인 개방
-            if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt', 'csv'].includes(ext)) {
+            if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt'].includes(ext)) {
                 alert('지원하지 않는 형식입니다.');
                 e.target.value = '';
                 return;
             }
             if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file[0].name}`;
 
-            // 3. 텍스트 버퍼 인스턴스 스트림 가동
             const r = new FileReader();
-            r.onload = function (evt) {
-                if (typeof parseRawTextDump === 'function') {
-                    parseRawTextDump(evt.target.result);
-                }
-            };
-
-            // 4. 🎯 [치명적 단선 오류 영구 소멸 조치]: 기존의 잘못된 'file' 지칭을 'file[0]'으로 정밀 정정 수리 완료!
-            // 이 수리를 통해 파일 분석기가 단선되지 않고 메모리를 EUC-KR 한글 완성형으로 온전히 로드합니다.
-            r.readAsText(file[0], 'EUC-KR');
+            r.onload = function (evt) { if (typeof parseRawTextDump === 'function') parseRawTextDump(evt.target.result); };
+            r.readAsText(file[0]);
         }
 
         function handleExamFileImport(event) {
@@ -3303,8 +3028,7 @@
 
             // 1. 엑셀/CSV 표준 헤더 타이틀 라인 정의 (쉼표 분할 규격)
             let csvContent = "\uFEFF"; // 💡 엑셀 한글 깨짐 방지를 위한 필수 UTF-8 BOM 바이트 헤더 주입
-            // 🎯 [헤더 교정]: 생년월일 바로 오른쪽에 '성별' 타이틀 열을 추가 바인딩합니다.
-            csvContent += "순번,시험명,기수,이름,생년월일,성별,연락처,참여비단계,동의여부,금융계좌정보\n";
+            csvContent += "순번,시험명,기수,이름,생년월일,연락처,참여비단계,동의여부,금융계좌정보\n";
 
             // 2. 가상 DB 순회하며 로우 데이터 로깅 가공 처리
             const counterMap = {};
@@ -3317,21 +3041,14 @@
                 const title = (row.title || "").replace(/,/g, " "); // 데이터 내 쉼표 오염 방지 정제
                 const th = formatTh(row.th);
                 const name = row.name || "";
-
-                // 🎯 [수리 완료]: getOnlyNumbers 필터를 해제하여 영문 성별 기호 및 하이픈 문자가 엑셀 파일에 온전히 보존되도록 제어합니다.
-                const ssn = (row.ssn || "").replace(/,/g, " ").toUpperCase();
-
-                // 🎯 [실시간 성별 추출 연동]: 가상 대장의 주민번호 데이터를 기반으로 '남' 또는 '여' 텍스트를 실시간 계산해 냅니다.
-                const gender = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(row.ssn, row.name) : "미정";
-
+                const ssn = getOnlyNumbers(row.ssn);
                 const phone = formatPhone(row.phone);
                 const payState = row.payStatus || "임상참여중";
                 const agreed = row.isAgreed || "미동의";
                 const account = row.accountInfo || "미제출";
 
                 // 한 줄 단위 로우 데이터 가공 조립
-                // 🎯 [로우 데이터 교정]: 헤더 구조와 1:1 싱크를 맞추어 ssn 대입 변수 뒤에 gender 연산 변수를 안전하게 사출 주입합니다.
-                csvContent += `${order},${title},${th},${name},${ssn},${gender},${phone},${payState},${agreed},${account}\n`;
+                csvContent += `${order},${title},${th},${name},${ssn},${phone},${payState},${agreed},${account}\n`;
             });
 
             // 3. 브라우저 메모리 가상 파일 Blob 바이너리 인터페이스 인스턴스 생성
@@ -3361,7 +3078,6 @@
                 alert("전산 파일 추출 오류: 데이터 스트림 변환 및 다운로드 처리에 실패했습니다.");
             }
         }
-
         function parseRecruitmentTextDump(rawText) {
             if (!rawText) return alert("파일 내용이 비어있습니다.");
             const titleMatch = rawText.match(/(?:시험명|과제명|임상명)(?:\s*[:=➔]\s*|\s+)(\[.*\]\s*[가-힣\w\s+]+)/) || rawText.match(/(\[.*\]\s*[가-힣\w\s+]+)/);
@@ -3387,146 +3103,31 @@
 
         function parseRawTextDump(rawText) {
             if (!rawText) return alert("파일 내용이 비어있습니다.");
+            const nameMatch = rawText.match(/(?:이름|성명)(?:\s*[:=➔]\s*|\s+)([가-힣]{2,5})/);
+            const ssnMatch = rawText.match(/(?:생년월일|주민번호|SSN)?(?:\s*[:=➔]\s*|\s+)?\b(\d{6})\b/);
+            const phoneMatch = rawText.match(/(?:연락처|전화번호|휴대폰|HP)?(?:\s*[:=➔]\s*|\s+)?\b(010[-.\s]?\d{3,4}[-.\s]?\d{4})\b/);
+            const titleMatch = rawText.match(/(?:과제명|참여과제|시험명)?(?:\s*[:=➔]\s*|\s+)?(\[.*\]\s*[가-힣\w\s+]+)/) || ["", "[임상] 기본 과제 정의"];
+            const thMatch = rawText.match(/(\d+)\s*(?:기|차수)/) || ["", "1"];
+            if (!nameMatch || !ssnMatch || !phoneMatch) return alert("❌ 문서 내에서 필수값(이름, 생년월일, 연락처) 패턴을 찾을 수 없습니다.");
 
-            if (rawText.split(/\r?\n/).length > 2) {
-                try {
-                    // 눈에 보이지 않는 \r 제어 문자를 선제적으로 지워 오작동 단선 예방
-                    const rows = rawText.replace(/\r/g, '').split('\n');
-                    let importCount = 0;
-                    let duplicateCount = 0;
+            const extractedName = nameMatch[1].trim();
+            const extractedSsn = ssnMatch[1].trim();
+            const extractedPhone = phoneMatch[1].replace(/[^0-9]/g, '');
+            const extractedTitle = titleMatch[1] ? titleMatch[1].trim() : "[임상] 수동 업로드 과제";
+            const extractedTh = thMatch[1] ? thMatch[1].trim() : "1";
 
-                    let delimiter = ',';
-                    if (rawText.includes('\t')) delimiter = '\t';
-
-                    // 1. [상단 타이틀 스캔 구역 - 기수, 시험명, 인원, 기간 분리]
-                    let firstRowText = rows[0] ? rows[0].trim().replace(/"/g, '') : "";
-                    if (firstRowText.length < 5 && rows[1]) firstRowText = rows[1].trim().replace(/"/g, '');
-
-                    let fileExtractedTh = "3기", fileExtractedTitle = "대화 로수+에제", fileExtractedCount = "44", fileExtractedPeriod = "60";
-
-                    if (firstRowText) {
-                        const thMatch = firstRowText.match(/(\d+)\s*(?:기|차수)/);
-                        if (thMatch) fileExtractedTh = thMatch[1] + "기";
-
-                        const countMatch = firstRowText.match(/\(N(\d+)\)/i);
-                        if (countMatch) fileExtractedCount = countMatch[1];
-
-                        const periodMatch = firstRowText.match(/(\d+)\s*(?:시간|h)/i);
-                        if (periodMatch) fileExtractedPeriod = periodMatch[1];
-
-                        let cleanTitle = firstRowText.replace(/\d+\s*기|\d+\s*차수/g, '').replace(/\(N\d+\)/gi, '').replace(/\d+\s*시간|\d+\s*h/gi, '');
-                        if (cleanTitle.includes("담당")) cleanTitle = cleanTitle.split("담당")[0];
-                        fileExtractedTitle = cleanTitle.replace(/[:➔=]/g, '').trim();
-                    }
-                    if (!fileExtractedTitle) fileExtractedTitle = "대화 로수+에제";
-
-                    // 2. [데이터 헤더 위치 및 생년월일 열 정밀 탐색 구역]
-                    let headerRowIndex = 1;
-                    for (let i = 0; i < rows.length; i++) {
-                        const testRow = rows[i].replace(/\s/g, ''); // 공백을 다 지우고 검색
-                        if (testRow.includes("성명") || testRow.includes("이름") || testRow.includes("생년월일")) {
-                            headerRowIndex = i;
-                            break;
-                        }
-                    }
-
-                    const headerCells = rows[headerRowIndex].split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
-
-                    // 💡 [정밀 타격 가드]: '코드'나 'ID'에 현혹되지 않고, 오직 "생년월일" 또는 "생년" 글자가 일치하는 칸의 순서만 정확히 뽑아냅니다.
-                    let idxName = headerCells.findIndex(h => h === "성명" || h === "이름");
-                    let idxSsn = headerCells.findIndex(h => h === "생년월일" || h === "생년");
-                    let idxGenderAge = headerCells.findIndex(h => h === "성별/나이" || h === "성별" || h === "나이");
-                    let idxPhone = headerCells.findIndex(h => h === "연락처" || h === "전화번호" || h === "전화");
-
-                    // 글자 매칭이 안 되었을 때를 대비한 최후의 보루 엑셀 실물 위치 수동 매핑 가드
-                    if (idxName === -1) idxName = 3;
-                    if (idxGenderAge === -1) idxGenderAge = 4;
-                    if (idxSsn === -1) idxSsn = 5; // 이미지상 6번째 열(인덱스 5)이 확실한 생년월일 칸입니다.
-                    if (idxPhone === -1) idxPhone = 6;
-
-                    // 3. [피험자 명단 데이터 루프 적재 구역]
-                    for (let i = headerRowIndex + 1; i < rows.length; i++) {
-                        const rowText = rows[i].trim();
-                        if (!rowText) continue;
-
-                        const cells = rowText.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
-                        if (cells.length < idxSsn) continue;
-
-                        let extractedName = cells[idxName] ? cells[idxName].replace(/\(F\)|\(M\)/gi, '').trim() : "미정";
-
-                        // 🎯 [정정 완수]: 코드(260268~ 등)를 완전히 거부하고, 생년월일 칸(990329, 1128 등)에 적혀있는 데이터만 원본 문자열 그대로 정확하게 추출합니다!
-                        let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().trim() : "";
-                        if (!ssnRaw || ssnRaw === "undefined" || ssnRaw === "") continue;
-
-                        // 성별/나이 열(M/27 등)에서 첫 글자인 성별 식별자(M, F)를 추출하여 주민번호 뒤에 결합
-                        const genderAgeCell = cells[idxGenderAge] ? cells[idxGenderAge].toString().trim().toUpperCase() : "";
-                        if (genderAgeCell) {
-                            const genChar = genderAgeCell.charAt(0);
-                            if (["M", "F", "1", "2", "3", "4"].includes(genChar)) {
-                                ssnRaw = ssnRaw + "-" + genChar; // 예: 990329-M, 1128-M, 216-M 형태로 완벽 보존 조립
-                            }
-                        }
-                        const extractedSsn = ssnRaw.toUpperCase();
-                        const extractedPhone = cells[idxPhone] ? getOnlyNumbers(cells[idxPhone]) : "";
-
-                        if (extractedName === "미정" || !extractedSsn) continue;
-
-                        if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
-                            duplicateCount++;
-                            continue;
-                        }
-
-                        // 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드 (ID, S_ID, 코드, 이니셜 제외 수립 완료)
-                        dataStoreApplicant.unshift({
-                            uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                            title: fileExtractedTitle,
-                            th: fileExtractedTh,
-                            count: fileExtractedCount,
-                            period: fileExtractedPeriod,
-                            name: extractedName,
-                            ssn: extractedSsn, // 오직 생년월일 열 데이터만 안전하게 보존 안착
-                            phone: extractedPhone,
-                            result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
-                            isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
-                            category: "내분비내과 / 엑셀 레이아웃 파싱",
-                            stage: `${fileExtractedTh} 참여(소집)`, idCard: true, bankbook: true
-                        });
-                        importCount++;
-                    }
-
-                    localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                    if (typeof commitToLocalStorage === "function") commitToLocalStorage();
-
-                    if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-                    if (typeof refreshApplicantView === "function") refreshApplicantView();
-
-                    return alert(`📢 지능형 문장 분리 파싱 일괄 등록 성공!\n━━━━━━━━━━━━━━━━━━━━━━\n● 적용 시험명: ${fileExtractedTitle}\n● 적용 기수: ${fileExtractedTh}\n● 모집 인원: ${fileExtractedCount}명\n● 임상 기간: ${fileExtractedPeriod}시간\n━━━━━━━━━━━━━━━━━━━━━━\n- 정상 적재 완료: 총 [${importCount}건]\n- 중복 제외 데이터: 총 [${duplicateCount}건]`);
-                } catch (err) {
-                    console.error("파일 대량 파싱 에러:", err);
-                    alert("알림: 파일 데이터 구조 해석에 실패했습니다.");
-                }
+            if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
+                return alert('알림: 이미 명단에 존재하는 대상자입니다.');
             }
 
-            // [기존 단일 줄글 텍스트 분석 분기 채널 보존]
-            const nameMatch = rawText.match(/(?:이름|성명)(?:\s*[:=➔]\s*|\s+)([가-힣]{2,5})/);
-            const ssnMatch = rawText.match(/(?:생년월일|주민번호|SSN)?(?:\s*[:=➔]\s*|\s+)?\b(\d{6}[-.\s]?[0-9A-Z]{1,7}|\d{6})\b/i);
-            const phoneMatch = rawText.match(/(?:연락처|전화번호|휴대폰|HP)?(?:\s*[:=➔]\s*|\s+)?\b(010[-.\s]?\d{3,4}[-.\s]?\d{4})\b/);
-            if (!nameMatch || !ssnMatch || !phoneMatch) return alert("❌ 문서 내에서 필수 패턴을 찾을 수 없습니다.");
-
-            const en = nameMatch[1].trim(), es = ssnMatch[1].trim().toUpperCase(), ep = phoneMatch[1].replace(/[^0-9]/g, '');
-            if (dataStoreApplicant.some(user => user.name === en && user.ssn === es)) return alert('알림: 이미 존재하는 대상자입니다.');
-
-            dataStoreApplicant.unshift({
-                uid: Date.now(), title: "[임상] 수동 과제", th: "1기", count: "1", period: "72", name: en, ssn: es, phone: ep, result: "접수",
-                payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기", isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
-                category: "내분비내과 / 스마트 업로드", stage: "1기 참여(소집)", idCard: true, bankbook: true
+            dataStoreApplicant.push({
+                uid: Date.now(), title: extractedTitle, th: extractedTh, count: "1", period: "72", name: extractedName, ssn: extractedSsn, phone: extractedPhone, result: "접수",
+                category: "내분비내과 / 스마트 업로드", stage: `${extractedTh}기 참여(소집)`
             });
             localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-            if (typeof commitToLocalStorage === "function") commitToLocalStorage();
             if (typeof refreshApplicantView === "function") refreshApplicantView();
-            alert(`📢 등록 성공!\n● 성명: ${en}\n● 생년월일: ${es}`);
+            alert(`📢 스마트 자동 등록 성공!\n● 성명: ${extractedName}\n● 생년월일: ${extractedSsn}\n● 연락처: ${extractedPhone}`);
         }
-
 
         // 💥 [독립 확장] 새창이 아닌 기존 비밀번호 수정창과 동일한 내장형 모달 시스템 가동
         function openAdminDocViewer(uid, docType) {
@@ -4477,9 +4078,6 @@
 
             const selectedTitle = filterTitle.value ? filterTitle.value.trim() : "";
 
-            // 🎯 [원본 보존] 현재 사용자가 선택하고 있던 기수 값을 미리 기억해 둡니다 (리셋 방지용 가드)
-            const previousSelectedTh = filterTh.value || "ALL";
-
             // 1. 🎯 '전체 시험 보기' 상태일 때는 기수 선택지를 완전히 가림 (안내문구 고정)
             if (selectedTitle === "ALL" || !selectedTitle) {
                 filterTh.innerHTML = `<option value="ALL">— 시험을 먼저 선택하세요 —</option>`;
@@ -4495,7 +4093,7 @@
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 🌟 [정밀 정제 변환기]: 특수문자, 대시(-), 플러스(+), 공백을 완전히 파괴하고 순수 알맹이 글자만 추출 (원본 유지)
+            // 🌟 [정밀 정제 변환기]: 특수문자, 대시(-), 플러스(+), 공백을 완전히 파괴하고 순수 알맹이 글자만 추출
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4535,22 +4133,16 @@
             });
 
             filterTh.innerHTML = htmlOptions;
+            filterTh.value = "ALL"; // 시험명 변경 시 기수는 '전체 기수'가 기본 선택되도록 강제 락인
 
-            // 🎯 [핵심 교정 포인트]: 무조건 "ALL"로 초기화하는 대신, 기존에 선택 가능한 기수가 생성되었다면 유저가 보던 기수 값을 안정적으로 복원 유지합니다.
-            if (availableThs.includes(previousSelectedTh)) {
-                filterTh.value = previousSelectedTh;
-            } else {
-                filterTh.value = "ALL";
-            }
-
-            // 🌟 [핵심 바인딩]: innerHTML로 태그를 새로 쓸 때 유실될 수 있는 클릭 이벤트를 자바스크립트 레벨에서 강제 복구 (원본 유지)
+            // 🌟 [핵심 바인딩]: innerHTML로 태그를 새로 쓸 때 유실될 수 있는 클릭 이벤트를 자바스크립트 레벨에서 강제 복구
             filterTh.onchange = function () {
                 if (typeof calculateLiveDashboardStats === "function") {
                     calculateLiveDashboardStats();
                 }
             };
 
-            // 5. 기수 목록 빌드가 끝나면 최종 통계 스코어보드 라이브 리계산 호출
+            // 5. 기수 목록 빌드가 끝나면 최종 통계 스코어보드 라이브 리계산 호출 (요구사항 규칙에 의해 초기에는 0으로 홀딩됨)
             if (typeof calculateLiveDashboardStats === "function") {
                 calculateLiveDashboardStats();
             }
@@ -4566,11 +4158,27 @@
             const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
             const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
 
-            // 🎯 [버그 해결 핵심]: 초기 진입 단계에서 강제로 return하여 화면을 묶어버리던 구형 잠금장치를 전면 철거합니다.
-            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            const lblTotal = document.getElementById('stat-total-count');
+            const lblReceived = document.getElementById('stat-received-count');
+            const lblProcessing = document.getElementById('stat-processing-count');
+            const lblComplete = document.getElementById('stat-complete-count');
 
-            // 공백, 기호, 특수기호 제거 포맷터 (원본 알고리즘 싱크 100% 일치화)
+            // 🎯 [요구사항 원칙 고수]: 기수가 아직 'ALL'(— 전체 기수 — 또는 안내창) 상태라면 무조건 0으로 락인 고정
+            if (filterTitle === 'ALL' || filterTh === 'ALL' || filterTh === '') {
+                if (lblTotal) lblTotal.innerText = "0 / 0명";
+                if (lblReceived) lblReceived.innerText = "0건";
+                if (lblProcessing) lblProcessing.innerText = "0건";
+                if (lblComplete) lblComplete.innerText = "0건";
+                console.log(`🔒 [통계 락업 활성화] 기수 미선택(ALL) 조건 충족으로 통계 수치가 0으로 홀딩 대기됩니다.`);
+                return;
+            }
+
+            // ----------------======================================================
+            // 💡 [안전 패스 통과 구역]: 1번 시험명과 2번 특정 기수가 완전하게 매칭 픽스되었을 때만 연산 개시
+            // --------------------------------======================================
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 공백, 기호, 특수기호 제거 포맷터 (동일 알고리즘 싱크 일치화)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -4579,46 +4187,33 @@
             const targetTitleClean = cleanString(filterTitle);
             const filterThNum = filterTh.replace(/[^0-9]/g, "");
 
-            // 1. [분자 계산]: 현재 드롭다운 필터 조건과 일치하는 실제 대상자 명단 필터링
+            // 정밀 교차 필터링
             let filteredList = adminApplicantDB.filter(row => {
                 const rowTitleClean = cleanString(row.title);
                 const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
-                const matchTitle = (filterTitle === 'ALL' || rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
-                const matchTh = (filterTh === 'ALL' || filterTh === '' || rowThNum === filterThNum);
+
+                const matchTitle = (rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
+                const matchTh = (rowThNum === filterThNum);
+
                 return matchTitle && matchTh;
             });
 
-            let totalActiveCount = filteredList.length; // 실제 등록된 참여자 수 (분자)
-            let totalQuotaSum = 0; // 목표 모집 배정 N수 (분모)
+            let totalQuotaSum = 0;
+            let totalActiveCount = filteredList.length;
 
-            // 2. 🎯 [텍스트 충돌 완전 해결]: 모집공고의 '46명'과 대상자의 '46'이 무조건 매칭되도록 양쪽 다 숫자만 발라내어 검문합니다.
-            const matchedRecs = recruitmentDB.filter(rec => {
-                const recTitleClean = cleanString(rec.title);
-                const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
-                const matchTitle = (filterTitle === 'ALL' || recTitleClean === targetTitleClean || recTitleClean.includes(targetTitleClean) || targetTitleClean.includes(recTitleClean));
-                const matchTh = (filterTh === 'ALL' || filterTh === '' || recThNum === filterThNum);
-                return matchTitle && matchTh;
-            });
-
-            matchedRecs.forEach(rec => {
-                if (rec && rec.count) {
-                    // 🎯 글자 뒤에 '명' 자가 붙어 있더라도 순수 숫자 알맹이만 안전하게 누적 연산합니다.
-                    const pureNum = parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
-                    totalQuotaSum += pureNum;
-                }
-            });
-
-            // 매칭 실패 시 최종 예외 방어선 디폴트 모수 지정
-            if (totalQuotaSum === 0) {
-                totalQuotaSum = filterTitle === 'ALL' ? 60 : (parseInt(filteredList?.count, 10) || 60);
-            }
-
-            // 3. [상태 파이프라인 집계]: 각 피험자별 라이브 상태 카운트 (원본 분기 logic 100% 보존)
             let receivedCount = 0;
             let processingCount = 0;
             let completeCount = 0;
 
+            let quotaMap = {};
+
             filteredList.forEach(row => {
+                const quotaKey = `${cleanString(row.title)}_${row.th}`;
+                if (!quotaMap[quotaKey]) {
+                    quotaMap[quotaKey] = parseInt(row.count) || 0;
+                    totalQuotaSum += quotaMap[quotaKey];
+                }
+
                 let status = (row.result || row.payStatus || '접수').toString().trim();
                 if (status === '확인' || status === '접수완료') status = '접수';
 
@@ -4631,29 +4226,17 @@
                 }
             });
 
-            // 4. [🎯 최종 UI 바인딩 - 전수 주입식 교정]: querySelectorAll 방식을 도입하여 
-            // 화면에 존재하는 모든 동일 ID 카드 슬롯을 "참여인원/N수명" 포맷(예: 1/46명)으로 완벽하게 강제 치환합니다.
-            const allTotals = document.querySelectorAll('#stat-total-count');
-            allTotals.forEach(el => {
-                el.innerText = `${totalActiveCount}/${totalQuotaSum}명`;
-            });
+            if (totalQuotaSum === 0 && filteredList.length > 0) {
+                totalQuotaSum = parseInt(filteredList[0].count) || 60;
+            }
 
-            const allReceived = document.querySelectorAll('#stat-received-count');
-            allReceived.forEach(el => {
-                el.innerText = `${receivedCount}건`;
-            });
+            // 통계 보드 최종 렌더링 스왑 바인딩
+            if (lblTotal) lblTotal.innerText = `${totalActiveCount} / ${totalQuotaSum}명`;
+            if (lblReceived) lblReceived.innerText = `${receivedCount}건`;
+            if (lblProcessing) lblProcessing.innerText = `${processingCount}건`;
+            if (lblComplete) lblComplete.innerText = `${completeCount}건`;
 
-            const allProcessing = document.querySelectorAll('#stat-processing-count');
-            allProcessing.forEach(el => {
-                el.innerText = `${processingCount}건`;
-            });
-
-            const allCompletes = document.querySelectorAll('#stat-complete-count');
-            allCompletes.forEach(el => {
-                el.innerText = `${completeCount}건`;
-            });
-
-            console.log(`📊 [정밀 통계 완수] 참여인원: ${totalActiveCount}명 / 모집공고 배정 N수: ${totalQuotaSum}명`);
+            console.log(`📊 [2단계 필터 통과 정밀 통계 완료] 필터링 매칭인원: ${filteredList.length}명`);
         }
 
 
@@ -4880,7 +4463,6 @@
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const targetRow = recruitmentDB[index] || {};
             const examTitle = targetRow.title || "지정 과제";
-            const examTh = targetRow.th || "1기";
 
             let config = { title: "", icon: "", color: "", dbField: "", label: "" };
             if (type === 'notice') {
@@ -4904,10 +4486,12 @@
                 currentHTMLContent += `</div>`;
             }
 
-            // [백엔드 문자열 정밀 세척 연산 가드]: 대표님 원본 로직 사수 및 대기자수(waitCnt) 변수 추가
-            let agreeCnt = 0, disagreeCnt = 0, waitCnt = 0;
+            // [백엔드 문자열 정밀 세척 연산 가드]: 텍스트 앞뒤 공백 및 특수문자 불일치로 인한 카운트 누락을 철저히 방어합니다.
+            let agreeCnt = 0, disagreeCnt = 0;
             try {
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+                // 🎯 [순정 토큰 추출]: 괄호나 특수문자 공백을 원천 소멸시킨 순수 문자열 매칭선 정렬
                 const getPureToken = (str) => (str || "").toString().replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, "").replace(/\s+/g, "").trim();
 
                 const targetTitleToken = getPureToken(targetRow.title);
@@ -4916,27 +4500,38 @@
                 const targetApplicants = adminApplicantDB.filter(item => {
                     const itemTitleToken = getPureToken(item.title);
                     const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
+
+                    // 과제명 토큰과 숫자로 정제된 기수가 동시에 자석처럼 완벽히 일치하는 피험자만 정밀 스캔 격리
                     return (itemTitleToken === targetTitleToken && itemThNum === targetThNum && targetThNum !== "");
                 });
 
                 targetApplicants.forEach(user => {
                     if (type === 'duty') {
-                        const dutyState = (user.isDutyAgreed || "대기").toString().trim();
+                        const dutyState = (user.isDutyAgreed || "").trim();
                         if (dutyState === "동의") agreeCnt++;
                         else if (dutyState === "미동의") disagreeCnt++;
-                        else waitCnt++;
                     } else if (type === 'call') {
-                        const callState = (user.isCallAgreed || "대기").toString().trim();
+                        const callState = (user.isCallAgreed || "").trim();
                         if (callState === "동의") agreeCnt++;
                         else if (callState === "미동의") disagreeCnt++;
-                        else waitCnt++;
                     }
                 });
-            } catch (err) { console.error("실시간 통계 집계 에러 가드 가동", err); }
+                console.log(`📊 [실시간 양방향 집계 성공] 토큰명: ${targetTitleToken} | 기수: ${targetThNum}기 | 동의: ${agreeCnt}명 | 미동의: ${disagreeCnt}명`);
+            } catch (err) { console.error("실시간 팝업 양방향 통계 집계 실패 가드 가동", err); }
 
-            // 🎯 [상단 현황판 차단막 제거]: 구형 popupStatLineHTML 변수 문자열을 완전히 공백 소멸 처리합니다.
             let popupStatLineHTML = "";
-            // 에디터 마크업 변수 선언 구역 (원본 원형 100% 무결점 보존)
+            if (type === 'duty' || type === 'call') {
+                popupStatLineHTML = `
+            <div style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; font-size: 13px; font-weight: 700; box-sizing: border-box;">
+                <span style="color: var(--text-muted);"><i class="fa-solid fa-chart-pie" style="color: ${config.color};"></i> 실시간 피험자 서명 현황:</span>
+                <div style="display: flex; gap: 12px;">
+                    <span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> 동의: ${agreeCnt}명</span>
+                    <span style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> 미동의: ${disagreeCnt}명</span>
+                </div>
+            </div>
+        `;
+            }
+
             const boardEditorHTML = `
         <div id="integrated-editor-form-area" style="display: none; width: 100%; text-align: left;">
             <label style="display: block; font-size: 12px; font-weight: 700; color: ${config.color}; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 게시판 에디터</label>
@@ -4955,7 +4550,6 @@
             <div id="html-integrated-workspace" contenteditable="true" style="width: 100%; height: 200px; background: #0b0f19; border: 2px solid var(--border-color); border-radius: 0 0 8px 8px; color: #ffffff; padding: 14px; font-size: 14px; line-height: 1.6; outline: none; overflow-y: auto; box-sizing: border-box;"></div>
         </div>
     `;
-
             const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
             const contentBox = document.querySelector(".editor-modal-content");
             if (!overlay || !contentBox) return console.error("통합 모달창 돔 오류");
@@ -4965,37 +4559,22 @@
             contentBox.style.color = "var(--text-color)";
             contentBox.style.width = "520px";
 
-            // 🎯 [하단 레이아웃 완벽 이식]: 닫기 단추 바로 위에 한 줄 수평 정렬로 안착될 동의/미동의/대기 스코어 판넬 구성
-            let footerStatsLineHTML = "";
-            if (type === 'duty' || type === 'call') {
-                footerStatsLineHTML = `
-            <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px; margin-bottom: 15px; font-size: 13px; font-weight: 700; box-sizing: border-box;">
-                <span style="color: var(--text-color);"><i class="fa-solid fa-chart-pie" style="color: ${config.color};"></i> 실시간 피험자 서명 현황:</span>
-                <div style="display: flex; gap: 12px;">
-                    <span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> 동의: ${agreeCnt}명</span>
-                    <span style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> 미동의: ${disagreeCnt}명</span>
-                    <span style="color: #94a3b8;"><i class="fa-regular fa-circle-dot"></i> 대기: ${waitCnt}명</span>
-                </div>
-            </div>
-        `;
-            }
-
-            // 🎯 [제목 결합 및 레이아웃 출력]: 지저분한 40ms 상단 기습 바를 차단하고 요구하신 디자인을 강제 인젝션합니다.
+            // 지능형 문자열 세척 가드가 반영된 
+            // 패널을 본문 하단에 정밀 마운팅하고 액션 단추를 우측으로 칼밀착 정렬합니다.
             contentBox.innerHTML = `
         <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: ${config.color}; font-size: 18px; font-weight: 800; text-align: left;">
-            <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle} ${examTh}</span>]
+            <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle}</span>]
         </h3>
         <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; width: 100%;">
             <div id="integrated-display-view-area" style="width: 100%; text-align: left;">${currentHTMLContent}</div>
             ${boardEditorHTML}
         </div>
         
-        <!-- 🎯 최하단 액션 버튼바 윗줄에 정확히 달라붙는 수평 한 줄 통계 패널 슬롯 -->
-        ${footerStatsLineHTML}
+        <!-- 실시간 지능형 세척 반영 서명 한 줄 통계 누적 패널 출현 존 -->
+        ${popupStatLineHTML}
         
-        <!-- 하단 액션 버튼바: 전체 우측 정렬(flex-end) 및 오리지널 버튼 세트 보존 -->
-          <div style="display: flex; justify-content: flex-end; align-items: center; width: 100%; gap: 8px;">
-            <button type="button" id="btn-integrated-action-scheduler" class="btn-inline save" onclick="openAlarmSchedulerModal(${index}, '${type}', '${config.dbField}')" style="display: none; margin-right: auto; background: #a855f7; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);">⏰ 시간 설정</button>
+        <!-- 하단 액션 버튼바: 전체 우측 정렬(flex-end) 및 관리자 최적화 동선 단추 정렬 -->
+        <div style="display: flex; justify flex-end; align-items: center; width: 100%; gap: 8px;">
             <button type="button" id="btn-integrated-action-edit" onclick="switchIntegratedToEditorMode()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">편집</button>
             <button type="button" id="btn-integrated-action-save" onclick="saveIntegratedEditorContent(${index}, '${type}', '${config.dbField}')" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);">수정완료</button>
             <button type="button" onclick="closeIntegratedModal()" style="background: #475569; color: white; border: none; padding: 8px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
@@ -5003,29 +4582,77 @@
     `;
             overlay.style.display = "flex";
 
-            // ────────────────────────────────────────────────────────────────────────
-            // 🌟 [치명적 단선 해결 핵심 주입]: 모달이 열리는 즉시 타입(Type)을 판별하여 
-            // 왼쪽 아래 [시간 설정] 버튼에 실시간 클릭 이벤트와 인자값을 다이렉트로 강제 주입합니다.
-            // ────────────────────────────────────────────────────────────────────────
-            setTimeout(() => {
-                const sb = document.getElementById('btn-integrated-action-scheduler');
-                if (sb) {
-                    if (type === 'duty') {
-                        sb.style.display = 'block'; // 당직공지일 때 노출
-                        sb.onclick = function () { window.openAlarmSchedulerModal(index, '당직공지', 'dutyNoticeText'); };
-                    } else if (type === 'call') {
-                        sb.style.display = 'block'; // 소집공지일 때 노출
-                        sb.onclick = function () { window.openAlarmSchedulerModal(index, '소집공지', 'callNoticeText'); };
+            // =========================================================================
+            // 🎯 [3구역 수술 마감] openIntegratedBoardModal 함수 최하단 결합 구역
+            // =========================================================================
+            overlay.style.display = "flex";
+
+            // 🌟 [기획 연동 추가]: 팝업창이 열리는 바로 그 정밀 타이밍에 대상자 대장을 역추적하는 통계판 작동
+            setTimeout(function () {
+                if (typeof dataStoreRecruitment === "undefined") return;
+                const targetRec = dataStoreRecruitment[index];
+                if (!targetRec) return;
+
+                // 문자열 오타 및 유령 공백 방지를 위한 트림 정제
+                const targetTitle = (targetRec.title || "").toString().replace(/\s+/g, ' ').trim();
+                const targetTh = (targetRec.th || "").toString().trim();
+
+                // 대상자 마스터 대장을 실시간으로 열어 현재 과제 및 기수가 100% 일치하는 피험자들 도출
+                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                const matchedApplicants = adminApplicantDB.filter(function (item) {
+                    if (!item.title) return false;
+                    return item.title.toString().replace(/\s+/g, ' ').trim() === targetTitle && item.th === targetTh;
+                });
+
+                // 당직/소집 3대 지표 상태 누적 카운팅 스케줄러 세팅
+                let stats = {
+                    duty: { agree: 0, disagree: 0, wait: 0 },
+                    call: { agree: 0, disagree: 0, wait: 0 }
+                };
+
+                matchedApplicants.forEach(function (app) {
+                    const dVal = (app.isDutyAgreed || "대기").toString().trim();
+                    const cVal = (app.isCallAgreed || "대기").toString().trim();
+
+                    if (dVal === "동의") stats.duty.agree++;
+                    else if (dVal === "미동의") stats.duty.disagree++;
+                    else stats.duty.wait++;
+
+                    if (cVal === "동의") stats.call.agree++;
+                    else if (cVal === "미동의") stats.call.disagree++;
+                    else stats.call.wait++;
+                });
+
+                // 에디터 모달창 내부 상단 레이어 구역 스캔 후 야광 안내바 주입
+                const modalContentEl = document.querySelector('.editor-modal-content') || document.querySelector('.history-modal-box');
+                if (modalContentEl) {
+                    const oldBar = document.getElementById('live-consent-stats-bar');
+                    if (oldBar) oldBar.remove(); // 이중 마운트 찌꺼기 철거
+
+                    const statsBar = document.createElement('div');
+                    statsBar.id = 'live-consent-stats-bar';
+                    statsBar.style.cssText = 'background:#0b0f19; border:2px solid #334155; padding:14px 18px; border-radius:8px; margin-bottom:18px; font-size:13px; font-weight:700;';
+
+                    let html = `<div style="color:var(--secondary-color); font-size:14px; margin-bottom:6px;"><i class="fa-solid fa-chart-line"></i> [${targetTh} 피험자 실시간 동의 스캔 현황]</div>`;
+                    html += '<div style="display:flex; gap:16px; align-items:center; color:#e2e8f0; justify-content:center;">';
+                    html += `<div>당직동의: <span style="color:#4ade80;">동의 ${stats.duty.agree}명</span> / <span style="color:#f87171;">미동의 ${stats.duty.disagree}명</span> / <span style="color:#94a3b8;">대기 ${stats.duty.wait}명</span></div>`;
+                    html += '<div style="width:1px; height:12px; background:#334155;"></div>';
+                    html += `<div>소집동의: <span style="color:#4ade80;">동의 ${stats.call.agree}명</span> / <span style="color:#f87171;">미동의 ${stats.call.disagree}명</span> / <span style="color:#94a3b8;">대기 ${stats.call.wait}명</span></div>`;
+                    html += '</div>';
+
+                    statsBar.innerHTML = html;
+
+                    // 타이틀 헤더 컴포넌트 바로 하단에 실시간 인라인 주입 안착
+                    const modalTitle = modalContentEl.querySelector('.editor-modal-title') || modalContentEl.querySelector('h3') || modalContentEl.firstChild;
+                    if (modalTitle && modalTitle.nextSibling) {
+                        modalContentEl.insertBefore(statsBar, modalTitle.nextSibling);
                     } else {
-                        sb.style.display = 'none';  // 주의사항, 시험일정일 땐 은닉
-                        sb.onclick = null;
+                        modalContentEl.prepend(statsBar);
                     }
                 }
-            }, 50);
+            }, 40);
+
         }
-
-
-
 
         /**
          * 🌟 [통합 에디터 명령어]: 마우스로 드래그 선택된 텍스트 영역에 볼드, 이탤릭, 컬러 태그 실시간 주입
@@ -5310,30 +4937,11 @@
                     }
                 });
 
-                // 1. 참여현황 (참여/N수) - 화면 전체의 'stat-total-count' 태그를 전수 조사하여 '1/46명' 포맷으로 강제 치환 주입합니다.
-                const allTotals = document.querySelectorAll('#stat-total-count');
-                allTotals.forEach(el => {
-                    // 💡 인터셉터 영역일 경우 totalQuotaSum 대신 변수명 명칭이 다를 수 있으므로 안전하게 복합 싱크 처리
-                    const finalQuota = (typeof totalQuotaSum !== 'undefined' && totalQuotaSum > 0) ? totalQuotaSum : (typeof totalQuota !== 'undefined' ? totalQuota : 46);
-                    const finalActive = (typeof totalActiveCount !== 'undefined') ? totalActiveCount : (typeof totalCount !== 'undefined' ? totalCount : 0);
-
-                    el.innerText = `${finalActive}/${finalQuota}명`;
-                });
-
-                // 2. 청구서 접수 현황 - 화면 전체 동시 주입
-                document.querySelectorAll('#stat-received-count').forEach(el => {
-                    el.innerText = `${receivedCount}건`;
-                });
-
-                // 3. 재무 검토 (처리중) - 화면 전체 동시 주입
-                document.querySelectorAll('#stat-processing-count').forEach(el => {
-                    el.innerText = `${processingCount}건`;
-                });
-
-                // 4. 정산 종결 (지급완료) - 화면 전체 동시 주입
-                document.querySelectorAll('#stat-complete-count').forEach(el => {
-                    el.innerText = `${completeCount}건`;
-                });
+                // 3. 화면 상단 4단계 스코어보드 슬롯에 실시간 주입
+                if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = `${totalCount}명`;
+                if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
+                if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
+                if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
             };
 
 
@@ -5407,74 +5015,63 @@
         // 🎯 [원본 소스 완전 복구] 누락된 4단계 라이브 정산 통계 계산 엔진 (calculateLiveDashboardStats)
         // =========================================================================
         function calculateLiveDashboardStats() {
-            // 1. 원본 셀렉트 박스 필터 고유 ID로부터 선택된 값 확보
-            const filterTitle = document.getElementById('dashboard-filter-title')?.value || 'ALL';
-            const filterTh = document.getElementById('dashboard-filter-th')?.value || 'ALL';
+            // 1. 상단 통계 필터(시험명 및 기수)의 현재 선택값 추출
+            const filterTitleSelect = document.getElementById('dashboard-filter-title');
+            const filterThSelect = document.getElementById('dashboard-filter-th');
 
-            // 2. 원본 가상 데이터베이스(localStorage) 최신 데이터 로드
-            const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
+            const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
 
-            // 3. [분자 연산] 현재 필터 조건에 일치하는 실제 대상자(피험자) 필터링 및 카운트
-            const filteredApplicants = applicantDB.filter(item => {
-                const matchTitle = (filterTitle === 'ALL' || item.title === filterTitle);
+            // 2. 최신 대상자 대장(localStorage) 데이터 실시간 로드
+            const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 3. 유령 공백을 정밀 압착하여 선택된 필터 조건에 맞게 데이터 필터링
+            const filteredData = adminApplicantDB.filter(item => {
+                if (!item.title) return false;
+
+                // 텍스트 양끝 및 내부 공백 정제 비교 (신일제약 중복 및 통계 누수 원천 차단)
+                const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
+                const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
+
+                const matchTitle = (cleanFilterTitle === 'ALL' || cleanItemTitle === cleanFilterTitle);
                 const matchTh = (filterTh === 'ALL' || item.th === filterTh);
-                return matchTitle && matchTh;
-            });
-            const currentApplicantCount = filteredApplicants.length; // 실제 신청자 수
 
-            // 4. [분모 연산] 모집공고 원장에서 필터와 일치하는 공고의 배정 인원수(N수) 역추적
-            let totalTargetQuota = 0;
-
-            // 필터 조건에 부합하는 모집공고 데이터 추출
-            const matchedRecruitments = recruitmentDB.filter(rec => {
-                const matchTitle = (filterTitle === 'ALL' || rec.title === filterTitle);
-                const matchTh = (filterTh === 'ALL' || rec.th === filterTh);
                 return matchTitle && matchTh;
             });
 
-            // 검색된 모집공고들의 인원수(N수)를 숫자로만 안전하게 파싱하여 합산
-            matchedRecruitments.forEach(rec => {
-                if (rec && rec.count) {
-                    // 원본 포맷터(getOnlyNumbers) 결을 유지하여 '명' 글자가 붙어있어도 숫자만 발라냄
-                    const pureNum = parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
-                    totalTargetQuota += pureNum;
+            // 4. 통계 카운트 변수 초기화
+            let totalCount = filteredData.length; // 참여현황 총 명수
+            let receivedCount = 0;               // 1단계: 청구서 접수 현황
+            let processingCount = 0;             // 2단계: 재무 검토 (처리중)
+            let completeCount = 0;               // 3단계: 정산 종결 (지급완료 / 처리완료)
+
+            // 5. 기획하신 상태 규격(대기/접수/처리중/처리완료)에 맞춰 실시간 집계 분기
+            filteredData.forEach(row => {
+                // row.result 또는 row.payStatus 기반으로 상태 스캔
+                const status = (row.result || row.payStatus || "대기").toString().trim();
+
+                if (status === "대기" || status === "접수") {
+                    receivedCount++; // 대기와 접수는 모두 [청구서 접수 현황]에 마운트
+                } else if (status === "처리중") {
+                    processingCount++; // 처리중은 [재무 검토]에 마운트
+                } else if (status === "지급완료" || status === "처리완료" || status === "완료") {
+                    completeCount++; // 지급완료와 처리완료는 모두 [정산 종결]에 마운트
                 }
             });
 
-            // 시스템 최초 구동 시 혹은 전체 보기인데 공고 데이터가 없는 경우의 디폴트 예외 방어
-            if (totalTargetQuota === 0 && filterTitle === 'ALL') {
-                totalTargetQuota = 60;
+            // 6. PDF에 설계된 오리지널 통계판 ID 슬롯에 실시간 수치 강제 주입
+            if (document.getElementById('stat-total-count')) {
+                document.getElementById('stat-total-count').innerText = `${totalCount}명`;
             }
-
-            // 5. [3단계 상태 파이프라인] 각 정산 상태별 라이브 카운트 집계 (원본 규칙 유지)
-            let cntReceived = 0;     // 청구서 접수
-            let cntProcessing = 0;   // 재무 검토 (처리중)
-            let cntComplete = 0;     // 정산 종결 (지급완료)
-
-            filteredApplicants.forEach(item => {
-                // 원본의 result 및 payStatus1 데이터 필드 분기 기준 100% 유지
-                const status = item.result || item.payStatus1 || '접수';
-                if (status === '접수') cntReceived++;
-                else if (status === '처리중') cntProcessing++;
-                else if (status === '지급완료') cntComplete++;
-            });
-
-            // 6. [UI 마운트] 원본 레이아웃의 고유 ID 태그 슬롯에 1/60명 형태로 동적 마운트
-            const elTotal = document.getElementById('stat-total-count');
-            if (elTotal) {
-                elTotal.innerText = `${currentApplicantCount}/${totalTargetQuota}명`;
+            if (document.getElementById('stat-received-count')) {
+                document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
             }
-
-            // 나머지 3단계 접수/처리중/완료 현황판 슬롯 매핑 (원본 ID 규칙 보존)
-            const elRec = document.getElementById('stat-received-count');
-            if (elRec) elRec.innerText = `${cntReceived}건`;
-
-            const elProc = document.getElementById('stat-processing-count');
-            if (elProc) elProc.innerText = `${cntProcessing}건`;
-
-            const elComp = document.getElementById('stat-complete-count');
-            if (elComp) elComp.innerText = `${cntComplete}건`;
+            if (document.getElementById('stat-processing-count')) {
+                document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
+            }
+            if (document.getElementById('stat-complete-count')) {
+                document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
+            }
         }
 
         // 🎯 [연동 트리거]: 탭 클릭 및 최초 로드 시 비어있던 통계 함수를 깨워주는 연결고리 배치
@@ -5573,95 +5170,62 @@
                     return;
                 }
 
-                // 오직 2단계 기수까지 마우스로 콕 집어 선택 완료했을 때만 집계 연산 사출 (원본 규칙 보존)
+                // 오직 2단계 기수까지 마우스로 콕 집어 선택 완료했을 때만 집계 연산 사출
                 if (typeof originalCalculateStats === "function") {
                     originalCalculateStats();
                 } else {
-                    // 🎯 [인터셉터 내 백업 연산부 무결점 교정] 오리지널 통계 로직 누락 방지 임베딩 보완 파이프라인
+                    // 오리지널 통계 로직 임베딩 처리 보완
                     const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                    const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || []; // 🎯 공고 원장 결합
-
-                    const cleanString = (str) => {
-                        if (!str) return "";
-                        return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                    };
-
-                    const cleanFilterTitle = cleanString(filterTitle);
-                    const cleanFilterThNum = filterTh.replace(/[^0-9]/g, "");
-
-                    // 분자 추출용 실제 신청 피험자 필터링
                     const filteredData = adminApplicantDB.filter(item => {
                         if (!item.title) return false;
-                        const cleanItemTitle = cleanString(item.title);
-                        const rowThNum = (item.th || "").toString().replace(/[^0-9]/g, "");
-                        return (cleanItemTitle === cleanFilterTitle || cleanItemTitle.includes(cleanFilterTitle)) && rowThNum === cleanFilterThNum;
+                        const cleanItemTitle = item.title.toString().replace(/\s+/g, ' ').trim();
+                        const cleanFilterTitle = filterTitle.toString().replace(/\s+/g, ' ').trim();
+                        return cleanItemTitle === cleanFilterTitle && item.th === filterTh;
                     });
 
-                    let totalCount = filteredData.length; // 실제 등록 참여자 수 (분자)
-                    let totalQuotaSum = 0; // 목표 모집 배정수 N수 (분모)
-
-                    // 🎯 모집공고 원장에서 배정 N수를 숫자로만 안전하게 발라내어 조인 (텍스트 충돌 차단)
-                    const matchedRecs = recruitmentDB.filter(rec => {
-                        const recTitleClean = cleanString(rec.title);
-                        const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
-                        return (recTitleClean === cleanFilterTitle || recTitleClean.includes(cleanFilterTitle)) && recThNum === cleanFilterThNum;
-                    });
-
-                    matchedRecs.forEach(rec => {
-                        if (rec && rec.count) {
-                            totalQuotaSum += parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
-                        }
-                    });
-
-                    if (totalQuotaSum === 0) {
-                        totalQuotaSum = 60; // 최소 안전 폴백 대책
-                    }
-
-                    let receivedCount = 0, processingCount = 0, completeCount = 0;
+                    let totalCount = filteredData.length, receivedCount = 0, processingCount = 0, completeCount = 0;
                     filteredData.forEach(row => {
-                        let status = (row.result || row.payStatus || '접수').toString().trim();
-                        if (status === '확인' || status === '접수완료') status = '접수';
-
-                        if (status === '접수') receivedCount++;
-                        else if (status === '처리중') processingCount++;
-                        else if (status === '처리완료' || status === '지급완료' || status === '완료') completeCount++;
+                        const status = (row.result || row.payStatus || "대기").toString().trim();
+                        if (status === "대기" || status === "접수") receivedCount++;
+                        else if (status === "처리중") processingCount++;
+                        else if (status === "지급완료" || status === "처리완료") completeCount++;
                     });
 
-                    // 🎯 [UI 동시 렌더링]: querySelectorAll 전수 주입 방식을 도입하여 두 화면 카드를 동시에 1/60명 형태로 갱신합니다.
-                    document.querySelectorAll('#stat-total-count').forEach(el => el.innerText = `${totalCount}/${totalQuotaSum}명`);
-                    document.querySelectorAll('#stat-received-count').forEach(el => el.innerText = `${receivedCount}건`);
-                    document.querySelectorAll('#stat-processing-count').forEach(el => el.innerText = `${processingCount}건`);
-                    document.querySelectorAll('#stat-complete-count').forEach(el => el.innerText = `${completeCount}건`);
+                    if (document.getElementById('stat-total-count')) document.getElementById('stat-total-count').innerText = `${totalCount}명`;
+                    if (document.getElementById('stat-received-count')) document.getElementById('stat-received-count').innerText = `${receivedCount}건`;
+                    if (document.getElementById('stat-processing-count')) document.getElementById('stat-processing-count').innerText = `${processingCount}건`;
+                    if (document.getElementById('stat-complete-count')) document.getElementById('stat-complete-count').innerText = `${completeCount}건`;
                 }
             };
 
-            // 3. 1셀렉트(시험명) 변경 시 연동되는 원본 함수(updateDashboardThOptions) 확장 보완 (원본 유지)
+            // 3. 1셀렉트(시험명) 변경 시 연동되는 원본 함수(updateDashboardThOptions) 확장 보완
             const originalUpdateThOptions = window.updateDashboardThOptions;
             if (typeof originalUpdateThOptions === "function") {
                 window.updateDashboardThOptions = function () {
                     originalUpdateThOptions();
                     const filterTh = document.getElementById('dashboard-filter-th');
                     if (filterTh) filterTh.value = "ALL"; // 시험명 변경 시 기수 필터 초기 락 홀딩
-                    window.calculateLiveDashboardStats(); // 수치판 즉시 0/0명 리셋
+                    window.calculateLiveDashboardStats(); // 수치판 즉시 0 리셋
                 };
             }
 
-            // 4. [🎯 2단계 최종 확정 사출 리스너]: 2셀렉트(기수 필터)가 변경되는 바로 그 순간! (원본 유지)
+            // 4. [🎯 2단계 최종 확정 사출 리스너]: 2셀렉트(기수 필터)가 변경되는 바로 그 순간!
             document.addEventListener('change', function (event) {
                 if (event.target && event.target.id === 'dashboard-filter-th') {
                     setTimeout(function () {
+                        // 특정 기수가 최종 선택 완료되었으므로 잠금을 해제하고 통계와 하단 목록을 동시 출력합니다.
                         window.calculateLiveDashboardStats();
                         if (typeof refreshApplicantView === "function") refreshApplicantView();
                     }, 30);
                 }
             });
 
-            // 5. [🎯 38페이지 이중 선언 원천 제어]: 메뉴 클릭 시 오리지널 필터 빌더를 정확하게 리로딩 (원본 유지)
+            // 5. [🎯 38페이지 이중 선언 원천 제어]: 메뉴 클릭 시 오리지널 필터 빌더를 정확하게 리로딩
             const menuAppBtn = document.getElementById('menuApp');
             if (menuAppBtn) {
                 menuAppBtn.addEventListener('click', function () {
                     setTimeout(function () {
-                        window.initThSelectOptions();
+                        window.initThSelectOptions(); // 대표님의 오리지널 필터 리로더 구동
                         const filterTh = document.getElementById('dashboard-filter-th');
                         if (filterTh) filterTh.value = "ALL";
                         window.calculateLiveDashboardStats();
@@ -5669,7 +5233,7 @@
                 });
             }
 
-            // 최초 새로고침 직후 셋팅 가드 (원본 유지)
+            // 최초 새로고침 직후 셋팅 가드
             window.addEventListener('load', function () {
                 setTimeout(function () {
                     window.initThSelectOptions();
@@ -5678,13 +5242,12 @@
             });
         })();
 
-        // 2셀렉트 박스(기수)를 고르는 바로 그 순간 원래 짜여있던 통계 및 목록 함수를 연쇄 구동시키는 마스터 링커 (원본 유지)
-        if (document.getElementById('dashboard-filter-th')) {
-            document.getElementById('dashboard-filter-th').onchange = function () {
-                if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-                if (typeof refreshApplicantView === "function") refreshApplicantView();
-            };
-        }
+
+        // 2셀렉트 박스(기수)를 고르는 바로 그 순간 원래 짜여있던 통계 및 목록 함수를 연쇄 구동시키는 마스터 링커
+        document.getElementById('dashboard-filter-th').onchange = function () {
+            if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+            if (typeof refreshApplicantView === "function") refreshApplicantView();
+        };
 
 
         // =========================================================================
@@ -5724,420 +5287,6 @@
                 }
             }, 150); // 150ms 정밀 디바운싱을 통해 레이턴시 충돌을 완전히 제어
         });
-
-        // =========================================================================
-        // 이력조회 부분
-        // =========================================================================
-        function openIndividualHistoryModal(index) {
-            // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드
-            let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            const row = db[index];
-            if (!row) return alert("시스템 알림: 해당 피험자의 이력 데이터를 추적할 수 없습니다.");
-
-            // 2. 원본 HTML 구조 내에 선언된 와이드 모달 오버레이 돔 요소 스캔 [index: 0.1.17]
-            const overlay = document.getElementById('historyModalOverlay') || document.querySelector('.history-modal-overlay');
-            if (!overlay) return alert("시스템 오류: 'history-modal-overlay' 엘리먼트를 찾을 수 없습니다.");
-
-            // 3. 성명 및 전화번호 정제 가공 유틸리티 가동 (원본 규격 일치화)
-            const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
-            const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
-            let fmtPhone = '-';
-            if (rawPhone.length === 11) fmtPhone = rawPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-            else if (rawPhone.length === 10) fmtPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-            else if (rawPhone.length > 0) fmtPhone = row.phone;
-
-            const dutyStatus = (row.isDutyAgreed || "대기").trim();
-            const callStatus = (row.isCallAgreed || "대기").trim();
-            const pay1 = row.payStatus1 || '접수';
-            const pay2 = row.payStatus2 || '대기';
-            const pay3 = row.payStatus3 || '대기';
-
-            // 🎯 [대표님 지시 핵심 이식]: 성명/생년월일/전화번호 알맹이 추출용 정형화 함수
-            const getPurePhone = (p) => (p || "").toString().replace(/[^0-9]/g, "").trim();
-            const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-
-            const targetNameToken = getPureString(row.name);
-            const targetSsnToken = getPureString(row.ssn);
-            const targetPhoneToken = getPurePhone(row.phone);
-
-            // 전역 대장에서 이름/생년월일/전화번호 번호가 100% 동일한 과거의 모든 참여 임상 이력을 긁어모읍니다.
-            const historyRecords = db.filter(item => {
-                return getPureString(item.name) === targetNameToken &&
-                    getPureString(item.ssn) === targetSsnToken &&
-                    getPurePhone(item.phone) === targetPhoneToken;
-            });
-
-            // 라이브 정산 진행률 내부 미니 배지 렌더러
-            const buildHistoryBadge = (val) => {
-                let s = val; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '완료';
-                let style = "background:#334155; color:#cbd5e1;";
-                if (s === '접수') style = "background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3);";
-                else if (s === '처리중') style = "background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);";
-                else if (s === '완료' || s === '처리완료') style = "background:rgba(74,222,128,0.15); color:#4ade80; border:1px solid rgba(74,222,128,0.3);";
-                return `<span class="lvl-badge" style="${style} padding:2px 8px; font-size:11px; font-weight:700; border-radius:4px;">${s}</span>`;
-            };
-
-            // 🎯 [실시간 과거 이력 스크롤 스케줄러 뼈대 조립]
-            let historyRowsHTML = "";
-            historyRecords.forEach((hist, hIdx) => {
-                let hStatus = (hist.result || hist.payStatus || '접수').toString().trim();
-                if (hStatus === '확인' || hStatus === '접수완료') hStatus = '접수';
-                if (hStatus === '지급완료') hStatus = '처리완료';
-
-                let hBadgeColor = hStatus === '접수' ? '#38bdf8' : hStatus === '처리중' ? '#fbbf24' : '#4ade80';
-
-                historyRowsHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:rgba(255,255,255,0.02); border:1px solid #1e293b; border-radius:6px; margin-bottom:6px; font-size:13px;">
-                <div style="display:flex; flex-direction:column; gap:2px; text-align:left;">
-                    <div style="font-weight:700; color:#ffffff;">${hist.title}</div>
-                    <div style="font-size:11px; color:var(--text-muted);">진행 기수: <span style="color:#38bdf8; font-weight:700;">${hist.th || '1기'}</span> &nbsp;|&nbsp; 인정시간: ${hist.period || '0'}시간</div>
-                </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:11px; color:#64748b;">지급상태:</span>
-                    <span style="color:${hBadgeColor}; font-weight:800; font-size:12px;">${hStatus === '처리중' ? '검토중' : hStatus === '처리완료' ? '완료' : hStatus}</span>
-                </div>
-            </div>
-        `;
-            });
-
-            if (!historyRowsHTML) {
-                historyRowsHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:15px 0;">과거 임상 참여 내역이 존재하지 않습니다.</div>`;
-            }
-
-            // 4. [뼈대 프레임 인젝션]: 고대비 와이드 그리드 프레임 레이아웃 구조 사출 [index: 0.1.17]
-            overlay.innerHTML = `
-        <div class="history-modal-box" style="background: var(--card-color); border: 1px solid var(--border-color); padding: 32px 35px; border-radius: 16px; width: 100%; max-width: 650px; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6); box-sizing: border-box; margin: 0 !important; animation: modalFadeIn 0.25s ease-out;">
-            <h3 style="margin-top:0; margin-bottom: 22px; font-size: 20px; font-weight: 800; color: var(--secondary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-id-card"></i> 피험자 개인 이력 종합 마스터 대장
-            </h3>
-            
-            <!-- 상단: 기본 인적 신상 정보리스트 그리드 -->
-            <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; text-align:left;">
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">피험자 성명:</span> <div style="font-weight:700; color:var(--success-color); margin-top:2px;">${cleanName}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">생년월일 (YYMMDD):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${row.ssn || '-'}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">연락처 (휴대폰):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${fmtPhone}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 소속 기수명:</span> <div style="margin-top:2px;"><span class="lvl-badge lvl-2" style="padding:2px 6px; font-size:11px;">${row.th || '1기'}</span></div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 당직 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${dutyStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : dutyStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 소집 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${callStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : callStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
-            </div>
-
-            <!-- 🎯 [대표님 지시 완벽 정형]: 과거 임상 참여 전체 리스트 출력 구역 (높이 180px 제한 및 무결점 스크롤바 가드 장착) -->
-            <div style="width:100%; background:#0b0f19; border:1px solid var(--border-color); padding:14px; border-radius:8px; margin-bottom:18px; box-sizing:border-box;">
-                <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:10px; text-align:left;"><i class="fa-solid fa-clock-history"></i> 동일 피험자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)</div>
-                <div class="modal-history-scroll-zone" style="max-height:180px; overflow-y:auto; padding-right:4px; box-sizing:border-box;">
-                    ${historyRowsHTML}
-                </div>
-            </div>
-        </div>
-    `;
-
-            // 5. [현재 참여비 진행률 현황판]: 라이브 정산 배지 엔진 연동 인젝션
-            const payTimelineHTML = `
-        <div style="background:#0b0f19; border:1px solid var(--border-color); padding:14px 18px; border-radius:8px; margin-bottom:20px; text-align:left;">
-            <div style="font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom:10px;"><i class="fa-solid fa-money-bill-transfer"></i> 현재 참여 과제 참여비 차수별 지급 정산 진행률</div>
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <div style="display:flex; align-items:center; gap:6px;"><span style="color:var(--text-muted); font-size:12px;">[1차 지급]:</span> ${buildHistoryBadge(pay1)}</div>
-                <div style="display:flex; align-items:center; gap:6px;"><span style="color:var(--text-muted); font-size:12px;">[2차 지급]:</span> ${buildHistoryBadge(pay2)}</div>
-                <div style="display:flex; align-items:center; gap:6px;"><span style="color:var(--text-muted); font-size:12px;">[3차 지급]:</span> ${buildHistoryBadge(pay3)}</div>
-            </div>
-        </div>
-    `;
-
-            // 6. [연쇄 결합 마운트]: 최종 상자 내부에 순차적으로 유연하게 후입 결합 처리
-            const innerBox = overlay.querySelector('.history-modal-box');
-            if (innerBox) {
-                innerBox.innerHTML += payTimelineHTML;
-                innerBox.innerHTML += `
-            <div style="display: flex; justify-content: flex-end; width: 100%; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                <button type="button" onclick="closeIndividualHistoryModal()" style="background: #475569; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13.5px; transition: opacity 0.2s;">닫기</button>
-            </div>
-        `;
-            }
-
-            // 최종 오버레이 패널 작동 사출
-            overlay.style.display = 'flex';
-        }
-
-        /**
-         * 🎯 개인 이력 종합 마스터 대장 모달 팝업 오버레이 제거 함수 (중복 제거 통합 단일 선언)
-         */
-        function closeIndividualHistoryModal() {
-            const overlay = document.getElementById('historyModalOverlay') || document.querySelector('.history-modal-overlay');
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
-        }
-
-
-
-        // ────────────────────────────────────────────────────────────────────────
-        // 🌟 [누락 복구 완수]: 시간 설정 버튼 클릭 및 데이터 커밋을 전담하는 마스터 함수 세트
-        // ────────────────────────────────────────────────────────────────────────
-
-        /**
-         * ⏰ 1. [시간 설정] 버튼 클릭 시 정밀 스케줄 예약 캘린더 모달을 화면에 띄우는 함수
-         */
-        window.openAlarmSchedulerModal = function (index, type, dbField) {
-            const modal = document.getElementById('alarm-scheduler-modal');
-            if (!modal) {
-                // [안전 가드]: 만약 캘린더 모달 HTML 돔이 없으면 내장형 브릿지 팝업 프롬프트로 유연하게 즉시 대체 기동
-                return window.openAlarmSchedulerPromptFallback ? window.openAlarmSchedulerPromptFallback(index, type, dbField) : alert("시스템 알림: 예약 설정을 처리할 수 없습니다.");
-            }
-
-            // 전역 스케줄 커밋용 가상 메모리 포인터 락인 바인딩 (인자 유실 단선 에러 방지)
-            window.currentSchedIndex = index;
-            window.currentSchedType = type;
-            window.currentSchedField = dbField;
-
-            // 라디오 텍스트 뱃지 동기화 설정
-            const typeSelect = document.getElementById('sched-notice-type');
-            if (typeSelect) {
-                typeSelect.value = type.includes("당직") ? "당직" : "소집";
-            }
-
-            // 현재 시스템 라이브 연/월/일 시:분 자동 프리셋 세팅
-            const now = new Date();
-            const elDate = document.getElementById('sched-notice-date');
-            const elTime = document.getElementById('sched-notice-time');
-            if (elDate) elDate.value = now.toISOString().substring(0, 10);
-            if (elTime) elTime.value = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
-
-            // 다크 테마 정중앙 레이아웃 개방 활성화
-            modal.style.display = 'flex';
-        };
-
-        /**
-         * ⏰ 2. 캘린더 모달에서 [스케줄 저장] 버튼을 누르면 원장 DB에 예약 시각을 직주입하는 핵심 함수
-         */
-        window.saveAlarmScheduleData = function () {
-            const sType = document.getElementById('sched-notice-type')?.value || window.currentSchedType || "당직";
-            const date = document.getElementById('sched-notice-date')?.value;
-            const time = document.getElementById('sched-notice-time')?.value;
-            let index = window.currentSchedIndex !== undefined ? window.currentSchedIndex : 0;
-
-            if (!date || !time) {
-                return alert("알림: 발송을 원하는 날짜와 시간을 정확히 선택해 주세요.");
-            }
-
-            // 로컬스토리지 모집공고 마스터 풀 로드
-            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-
-            // [오염 차단 가드]: 선택한 공고 데이터 행이 유실되었을 경우 예외 복구 조인
-            if (!recruitmentDB[index]) {
-                if (recruitmentDB.length === 0) {
-                    recruitmentDB.push({ uid: `REC_${Date.now()}`, title: "4층 대화 로수+에제", th: "3기" });
-                }
-                index = 0;
-            }
-
-            // 🎯 [정밀 적재]: 다른 기수나 과제를 건드리지 않고 지정된 레코드에만 실시간 날짜 시간 주입 락인
-            if (sType.includes("당직")) {
-                recruitmentDB[index].dutyDate = date;
-                recruitmentDB[index].dutyTime = time;
-                if (!recruitmentDB[index].dutyNoticeText && !recruitmentDB[index].dutyNotice) {
-                    recruitmentDB[index].dutyNoticeText = "금일 야간 당직 소집이 지정 구역에서 진행됩니다. 필히 대기해 주세요.";
-                }
-            } else {
-                recruitmentDB[index].callDate = date;
-                recruitmentDB[index].callTime = time;
-                if (!recruitmentDB[index].callNoticeText && !recruitmentDB[index].callNotice) {
-                    recruitmentDB[index].callNoticeText = "지정된 실시간 임상 소집 시간입니다. 제1임상실로 즉시 집결해 주세요.";
-                }
-            }
-
-            // 스토리지 커밋 및 영구 저장소 세이브 트랜잭션 구동
-            localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
-
-            // 캘린더 모달 패널 종료
-            const modal = document.getElementById('alarm-scheduler-modal');
-            if (modal) modal.style.display = 'none';
-
-            alert(`📢 [${sType.includes("당직") ? "당직" : "소집"}공지] 알람 스케줄 예약 완료!\n━━━━━━━━━━━━━━━━━━━━━━\n● 예약과제: ${recruitmentDB[index].title || "임상과제"}\n● 발송시각: ${date} ${time} 정각\n━━━━━━━━━━━━━━━━━━━━━━\n지정된 시각이 되면 화면 정중앙에서 3초 간격으로 반짝이는 무한 광채 순정 알림창이 강제 기동합니다.`);
-
-            // 통합 모집공고 뷰 리렌더링 연쇄 리프레시
-            if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
-        };
-
-        /**
-         * ⏰ 3. [폴백 브릿지 가드]: 혹시 모를 레이아웃 예외 상황 시 기동하는 내장 프롬프트 알람 예약 유틸리티
-         */
-        window.openAlarmSchedulerPromptFallback = function (index, type, dbField) {
-            const targetDateTime = prompt(`⏰ [${type}] 알람 발송 시각을 스케줄 예약합니다.\n\n[입력 양식]: YYYY-MM-DD HH:MM\n(예시: 2026-08-28 16:30)`, "");
-            if (!targetDateTime) return;
-
-            const dateTimeRegex = /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/;
-            if (!dateTimeRegex.test(targetDateTime.trim())) {
-                return alert("❌ 오류: 입력 양식이 올바르지 않습니다.\n년-월-일 시:분 규격(YYYY-MM-DD HH:MM)에 맞춰 분 단위까지 정확히 입력해 주세요.");
-            }
-
-            const [date, time] = targetDateTime.trim().split(/\s+/);
-            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            if (!recruitmentDB[index]) {
-                if (recruitmentDB.length === 0) recruitmentDB.push({ uid: `REC_${Date.now()}` });
-                index = 0;
-            }
-
-            if (type.includes("당직")) {
-                recruitmentDB[index].dutyDate = date; recruitmentDB[index].dutyTime = time;
-            } else {
-                recruitmentDB[index].callDate = date; recruitmentDB[index].callTime = time;
-            }
-
-            localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
-            alert(`📅 [${type}] 스케줄 예약 완료!\n● 발송시각: ${date} ${time} 정각`);
-            if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
-        };
-
-
-        /**
-         * 🎯 [실시간 알람 크론 가드 데몬 - 데이터 누락 및 순정 모달 완전 보정본]
-         * 원본 키셋(dutyNotice/callNotice) 완벽 동기화 및 3초 무한 반짝임 이펙트를 정중앙에 투하합니다.
-         */
-        (function () {
-            if (window.isCenterNoticeAlarmEngineRunningFixed) return;
-            window.isCenterNoticeAlarmEngineRunningFixed = true;
-
-            if (!window.dispatchedNoticeAlarmKeySet) {
-                window.dispatchedNoticeAlarmKeySet = new Set(JSON.parse(localStorage.getItem('dispatchedNoticeAlarmKeySet') || '[]'));
-            }
-
-            function playWarningBeepSound() {
-                try {
-                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(987.77, ctx.currentTime);
-                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.18);
-                } catch (e) { }
-            }
-
-            // 🎯 [순정 모달 재활용 및 3초 점멸 이식 엔진]
-            function triggerPureSystemModalAlarm(noticeType, recRow) {
-                // 1. 대표님 전산망의 통합 공지 모달 엘리먼트 돔을 최우선 정밀 역추적 스캔
-                let pureModalElement = document.getElementById('integrated-notice-modal') || document.getElementById('notice-modal') || document.getElementById('noticeModal') || document.querySelector('.modal') || document.querySelector('.popup-wrapper');
-
-                // 💡 [수리 완료]: 만약 브라우저 내에 기존 모달 돔 껍데기 자체가 아예 부재할 경우, 
-                // 화면 정중앙에 3초 무한 반짝임 애니메이션을 수행할 수 있는 임상 전용 마스터 야광 모달 돔을 실시간으로 직접 생성(Create)하여 발포합니다!
-                if (!pureModalElement) {
-                    pureModalElement = document.createElement('div');
-                    pureModalElement.id = 'integrated-notice-modal';
-                    pureModalElement.style = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7, 10, 18, 0.85); z-index: 999999999; display: flex; justify-content: center; align-items: center; font-family: sans-serif;";
-
-                    const card = document.createElement('div');
-                    card.className = 'modal-content-container';
-                    pureModalElement.appendChild(card);
-                    document.body.appendChild(pureModalElement);
-                }
-
-                const innerCard = pureModalElement.querySelector('.modal-content') || pureModalElement.querySelector('.popup-content') || pureModalElement.querySelector('.modal-content-container') || pureModalElement;
-
-                // undefined 원천 소멸 처리 (dutyNoticeText 와 dutyNotice 분기 필터 동시 가동)
-                const coreText = noticeType === "당직"
-                    ? (recRow.dutyNotice || recRow.dutyNoticeText || "지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.")
-                    : (recRow.callNotice || recRow.callNoticeText || "정시 임상 소집 안내 공지입니다. 제1임상실로 즉시 집결해 주세요.");
-
-                // 고대비 다크 테마 플래시 레이아웃 사출
-                const flashColor = noticeType === "당직" ? "#fbbf24" : "#38bdf8";
-                const glowShadow = noticeType === "당직" ? "rgba(251,191,36,0.4)" : "rgba(56,189,248,0.4)";
-
-                innerCard.style = `background: #0f172a; border: 2px solid ${flashColor}; border-radius: 12px; max-width: 480px; width: 90%; padding: 25px; box-shadow: 0 0 35px ${glowShadow}; text-align: center; animation: pulseGlowFlashingFixed 3s infinite ease-in-out; position: relative; color: #fff;`;
-
-                innerCard.innerHTML = `
-            <div style="margin-bottom: 15px;">
-                <span class="lvl-badge" style="background: rgba(255,255,255,0.06); color: ${flashColor}; padding: 4px 12px; font-size: 12px; font-weight: 900; border: 1px solid ${flashColor}; border-radius: 4px; letter-spacing: 1px;">🚨 LIVE [${noticeType}공지] 알람 정각 사출</span>
-            </div>
-            <div style="font-size: 18px; font-weight: 800; color: #ffffff; margin-bottom: 12px; text-transform: uppercase;">${recRow.title || '임상시험 과제'} (${recRow.th || '1기'})</div>
-            <div style="font-size: 14px; color: #94a3b8; line-height: 1.6; background: #131e3a; padding: 18px; border-radius: 6px; text-align: left; word-break: break-all; max-height: 220px; overflow-y: auto; border: 1px solid #22314d; font-weight: 500;">
-                ${coreText.replace(/\n/g, '<br>')}
-            </div>
-            <div style="margin-top: 22px; display: flex; justify-content: center;">
-                <button type="button" onclick="document.getElementById('integrated-notice-modal').style.display='none'" style="background: ${flashColor}; color: #070a12; border: none; padding: 10px 35px; font-size: 14px; font-weight: 900; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px ${glowShadow}; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                    확인했습니다
-                </button>
-            </div>
-        `;
-
-                // 화면 가운데 배치 레이아웃 활성화
-                pureModalElement.style.display = "flex";
-                pureModalElement.style.justifyContent = "center";
-                pureModalElement.style.alignItems = "center";
-                pureModalElement.style.opacity = "1";
-                pureModalElement.style.visibility = "visible";
-                pureModalElement.style.zIndex = "999999999";
-
-                playWarningBeepSound();
-                setTimeout(playWarningBeepSound, 250);
-            }
-
-            // 💡 [3초 야광 점멸 테크니컬 디자인]: 테두리 외곽선 링이 3초 주기로 타오르듯 반짝... 반짝... 거리는 키프레임 인젝터
-            const styleSheet = document.createElement('style');
-            styleSheet.innerHTML = `
-        @keyframes pulseGlowFlashingFixed {
-            0% { transform: scale(1); border-color: rgba(255,255,255,0.3); box-shadow: 0 0 15px rgba(255,255,255,0.05); }
-            50% { transform: scale(1.015); border-color: var(--flash-color, #fbbf24); box-shadow: 0 0 45px var(--flash-shadow, rgba(251,191,36,0.6)); }
-            100% { transform: scale(1); border-color: rgba(255,255,255,0.3); box-shadow: 0 0 15px rgba(255,255,255,0.05); }
-        }
-    `;
-            document.head.appendChild(styleSheet);
-
-            // 6. ⏰ [1초 인터벌 데몬 스케줄 조사 크론 루프 - 기호 정화 필터 탑재]
-            setInterval(() => {
-                const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-                if (recruitmentDB.length === 0) return;
-
-                const now = new Date();
-                const nowYear = now.getFullYear();
-                const nowMonth = String(now.getMonth() + 1).padStart(2, '0');
-                const nowDate = String(now.getDate()).padStart(2, '0');
-                const nowHour = String(now.getHours()).padStart(2, '0');
-                const nowMin = String(now.getMinutes()).padStart(2, '0');
-
-                const sysStampPlainNumbers = `${nowYear}${nowMonth}${nowDate}${nowHour}${nowMin}`;
-
-                recruitmentDB.forEach(rec => {
-                    // A. 당직 알람 예약 시각 실시간 대조
-                    if (rec.dutyDate && rec.dutyTime) {
-                        const dbDutyDatePlain = rec.dutyDate.replace(/[^0-9]/g, '').trim();
-                        const dbDutyTimePlain = rec.dutyTime.replace(/[^0-9]/g, '').trim();
-                        const dbDutyStampCombined = `${dbDutyDatePlain}${dbDutyTimePlain}`;
-
-                        if (dbDutyStampCombined.length === 12 && dbDutyStampCombined === sysStampPlainNumbers) {
-                            const uniqueKey = `CENTER_DUTY_${rec.uid}_${dbDutyStampCombined}`;
-                            if (!window.dispatchedNoticeAlarmKeySet.has(uniqueKey)) {
-                                window.dispatchedNoticeAlarmKeySet.add(uniqueKey);
-                                localStorage.setItem('dispatchedNoticeAlarmKeySet', JSON.stringify(Array.from(window.dispatchedNoticeAlarmKeySet)));
-
-                                document.documentElement.style.setProperty('--flash-color', '#fbbf24');
-                                document.documentElement.style.setProperty('--flash-shadow', 'rgba(251,191,36,0.7)');
-                                triggerPureSystemModalAlarm("당직", rec);
-                            }
-                        }
-                    }
-
-                    // B. 소집 알람 예약 시각 실시간 대조
-                    if (rec.callDate && rec.callTime) {
-                        const dbCallDatePlain = rec.callDate.replace(/[^0-9]/g, '').trim();
-                        const dbCallTimePlain = rec.callTime.replace(/[^0-9]/g, '').trim();
-                        const dbCallStampCombined = `${dbCallDatePlain}${dbCallTimePlain}`;
-
-                        if (dbCallStampCombined.length === 12 && dbCallStampCombined === sysStampPlainNumbers) {
-                            const uniqueKey = `CENTER_CALL_${rec.uid}_${dbCallStampCombined}`;
-                            if (!window.dispatchedNoticeAlarmKeySet.has(uniqueKey)) {
-                                window.dispatchedNoticeAlarmKeySet.add(uniqueKey);
-                                localStorage.setItem('dispatchedNoticeAlarmKeySet', JSON.stringify(Array.from(window.dispatchedNoticeAlarmKeySet)));
-
-                                document.documentElement.style.setProperty('--flash-color', '#38bdf8');
-                                document.documentElement.style.setProperty('--flash-shadow', 'rgba(56,189,248,0.7)');
-                                triggerPureSystemModalAlarm("소집", rec);
-                            }
-                        }
-                    }
-                });
-            }, 1000);
-        })();
 
     </script>
 

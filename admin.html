@@ -1857,16 +1857,22 @@
  * @param {number} index - 현재 선택한 데이터스토어 인덱스 번호
  */
         function openAppHistoryDetailModal(index) {
-            const selectedUser = dataStoreApplicant[index];
+            // 1. 메모리 컨텍스트 최신 데이터 동기화 락인 [index: 0.1.30]
+            let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
+                applicantDB = dataStoreApplicant;
+            }
+
+            const selectedUser = applicantDB[index];
             if (!selectedUser) return alert("오류: 피험자 정보를 역추적할 수 없습니다.");
 
-            // 1. 기본 인적 사양 락인 바인딩 [index: 0.1.30]
-            document.getElementById("modal-app-name").innerText = selectedUser.name;
-            document.getElementById("modal-app-phone").innerText = formatPhone(selectedUser.phone || "-");
-            document.getElementById("modal-app-th").innerText = formatTh(selectedUser.th);
+            // 2. 기본 인적 사양 락인 바인딩 [index: 0.1.30]
+            document.getElementById("modal-app-name").innerText = selectedUser.name || "-";
+            document.getElementById("modal-app-phone").innerText = typeof formatPhone === "function" ? formatPhone(selectedUser.phone || "-") : (selectedUser.phone || "-");
+            document.getElementById("modal-app-th").innerText = typeof formatTh === "function" ? formatTh(selectedUser.th || "-") : (selectedUser.th || "-");
 
-            // 주민번호 가공 및 성별 추출 통합 락인 (예: 950505 (남))
-            const genderSign = parseGenderFromSsn(selectedUser.ssn, selectedUser.name);
+            // 주민번호 가공 및 성별 추출 통합 락인 (예: 950505 (남)) [index: 0.1.29]
+            const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
             document.getElementById("modal-app-ssn-gender").innerHTML = `${selectedUser.ssn || "-"} <span style="color: ${genderSign === '남' ? '#38bdf8' : '#fb7185'}; font-weight:800;">(${genderSign})</span>`;
 
             // 동의 현황 텍스트 가독성 배지 스타일 매칭
@@ -1878,25 +1884,39 @@
                 ? `<span style="color:#4ade80;"><i class="fa-solid fa-circle-check"></i> 동의완료</span>`
                 : `<span style="color:#94a3b8;"><i class="fa-solid fa-circle"></i> 대기중</span>`;
 
-            // 2. 참여비 3단 정산률 바인딩
+            // 참여비 3단 정산률 백업 데이터 바인딩 [index: 0.1.30]
             document.getElementById("modal-pay-status1").innerText = selectedUser.payStatus1 || "대기";
             document.getElementById("modal-pay-status2").innerText = selectedUser.payStatus2 || "대기";
             document.getElementById("modal-pay-status3").innerText = selectedUser.payStatus3 || "대기";
 
-            // 3. 🎯 동일 피험자 임상시험 참여 이력 전수 추적 매커니즘 가동 [index: 0.1.30]
+            // 3. 🎯 동일 피험자 임상시험 참여 이력 전수 추적 매커니즘 가동 (공백 무관 정밀 매칭) [index: 0.1.30]
             const scrollZone = document.getElementById("modal-history-scroll-zone");
+            if (!scrollZone) return console.error("스크롤 영역 엘리먼트(modal-history-scroll-zone)가 돔에 존재하지 않습니다.");
             scrollZone.innerHTML = ""; // 기존 스크롤 노드 리셋 청소
 
-            // 전산망 데이터베이스에서 동명이인 레코드 전체 필터링 추출 [index: 0.1.30]
-            const historyRecords = dataStoreApplicant.filter(item => item.name === selectedUser.name);
-            document.getElementById("modal-history-count-title").innerText = `동일 피험자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)`;
+            const currentTargetName = (selectedUser.name || "").toString().trim();
 
-            // 4. 추출된 기록을 기반으로 현재시험 / 과거시험 분기하여 스크롤 리스트업 사출
+            // 전산망 데이터베이스에서 동명이인 레코드 전체 필터링 추출 (공백 원천 제거 비교 기법) [index: 0.1.30]
+            const historyRecords = applicantDB.filter(item => {
+                const dbName = (item.name || "").toString().trim();
+                return dbName === currentTargetName && dbName !== "";
+            });
+
+            // 상단 제목 건수 표기 실시간 동기화 업데이트
+            const titleEl = document.getElementById("modal-history-count-title");
+            if (titleEl) {
+                titleEl.innerText = `동일 피험자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)`;
+            }
+
+            // 4. 추출된 기록을 기반으로 현재시험 / 과거시험 분기하여 스크롤 리스트업 사출 [index: 0.1.30]
             historyRecords.forEach(row => {
-                const isCurrentJob = (row.uid === selectedUser.uid); // 현재 내가 클릭해서 보고 있는 행인지 검증
+                // 객체 불변 ID값(uid) 또는 인덱스 및 기수 결합 대조 방식으로 현재 실행 중인 과제 여부 정밀 판정 [index: 0.1.30]
+                const isCurrentJob = (row.uid && selectedUser.uid && row.uid === selectedUser.uid) ||
+                    (row.title === selectedUser.title && row.th === selectedUser.th && row.ssn === selectedUser.ssn);
+
                 const cardTr = document.createElement("div");
 
-                // 카드 상자 디자인 서식 바인딩 (현재 보고 있는 시험은 강조 테두리 부여)
+                // 카드 상자 디자인 서식 바인딩 (현재 보고 있는 시험은 고대비 하늘색 테두리 부여)
                 cardTr.style.background = isCurrentJob ? "rgba(14, 165, 233, 0.05)" : "#1a233a";
                 cardTr.style.border = isCurrentJob ? "1px solid var(--secondary-color)" : "1px solid var(--border-color)";
                 cardTr.style.padding = "14px";
@@ -1905,6 +1925,8 @@
                 cardTr.style.display = "flex";
                 cardTr.style.justifyContent = "space-between";
                 cardTr.style.alignItems = "center";
+                cardTr.style.boxSizing = "border-box";
+                cardTr.style.width = "100%";
 
                 // 왼쪽 시험 텍스트 및 속성 정보 생성
                 const infoDiv = document.createElement("div");
@@ -1915,18 +1937,20 @@
                     : `<span style="color: var(--text-muted); font-weight:700; margin-right:6px;">[과거시험]</span>`;
 
                 infoDiv.innerHTML = `
-            <div style="font-weight:700; color:#ffffff; font-size:14px; margin-bottom:4px;">${prefixTag}${row.title}</div>
-            <div style="font-size:12px; color:var(--text-muted);">진행 기수: <span style="color:#fff;">${row.th}</span> | 인정시간: <span style="color:#fff;">${row.period}시간</span></div>
+            <div style="font-weight:700; color:#ffffff; font-size:14px; margin-bottom:4px; text-align:left;">${prefixTag}${row.title || '미지정 과제'}</div>
+            <div style="font-size:12px; color:var(--text-muted); text-align:left;">진행 기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span></div>
         `;
 
-                // 오른쪽 지급 상태 배지 생성
+                // 오른쪽 지급 상태 배지 생성 (payStatus1, payStatus 중 존재하는 속성 폴백 추적)
                 const statusDiv = document.createElement("div");
                 statusDiv.style.fontSize = "13px";
                 statusDiv.style.color = "var(--text-muted)";
+                statusDiv.style.whiteSpace = "nowrap";
 
+                const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
                 // 지급 완료 시 초록색 고대비 강조, 그 외 대기 색상 매칭 [index: 0.1.1]
-                const statusColor = row.payStatus1 === "지급완료" ? "var(--success-color)" : "#fbbf24";
-                statusDiv.innerHTML = `지급상태: <span style="color:${statusColor}; font-weight:700;">${row.payStatus1 || "대기"}</span>`;
+                const statusColor = currentPayStatus === "지급완료" ? "var(--success-color)" : "#fbbf24";
+                statusDiv.innerHTML = `지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>`;
 
                 cardTr.appendChild(infoDiv);
                 cardTr.appendChild(statusDiv);
@@ -1934,8 +1958,14 @@
             });
 
             // 5. 와이드 오버레이 프레임 활성화 출력 제어
-            const modalEl = document.getElementById("historyModalOverlay"); // 시스템 모달 ID에 맞게 연결하세요
-            if (modalEl) modalEl.style.display = "flex";
+            const modalEl = document.getElementById("historyModalOverlay");
+            if (modalEl) {
+                modalEl.style.display = "flex";
+            } else {
+                // 기존의 다른 ID 모달 프레임을 사용 중일 경우 폴백 제어용 처리
+                const alternativeModal = document.querySelector('.history-modal-overlay');
+                if (alternativeModal) alternativeModal.style.style.display = "flex";
+            }
         }
 
         // ========================================================

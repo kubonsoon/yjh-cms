@@ -1443,26 +1443,22 @@
             if (!ssnVal) return "미정";
             const cleanSsn = ssnVal.toString().trim().toUpperCase();
 
-            // 💡 [수리 완료]: "미정-M", "미정-F" 형태로 들어왔을 때 뒷자리 기호를 즉시 스캔
-            if (cleanSsn.startsWith("미정")) {
-                if (cleanSsn.includes("M") || cleanSsn.includes("1") || cleanSsn.includes("3")) return "남";
-                if (cleanSsn.includes("F") || cleanSsn.includes("2") || cleanSsn.includes("4")) return "여";
-                return "미정";
+            // 생년월일 자리수와 상관없이 문자열에 M, F, 숫자가 포함되어 있는지 끝자리 기준으로 정밀 추적
+            if (cleanSsn.includes("-M") || cleanSsn.endsWith("M") || cleanSsn.endsWith("1") || cleanSsn.endsWith("3")) {
+                return "남";
+            }
+            if (cleanSsn.includes("-F") || cleanSsn.endsWith("F") || cleanSsn.endsWith("2") || cleanSsn.endsWith("4")) {
+                return "여";
             }
 
+            // 하이픈 제거 후 일반 주민번호 패턴 포맷 체크 (폴백)
             const pureData = cleanSsn.replace(/[^0-9AFM]/g, '');
-            if (pureData.length === 6) {
-                return "미정";
+            if (pureData.length >= 7) {
+                const targetChar = pureData.charAt(pureData.length - 1); // 맨 끝 성별 식별 기호 추출
+                if (targetChar === "1" || targetChar === "3" || targetChar === "M") return "남";
+                if (targetChar === "2" || targetChar === "4" || targetChar === "F") return "여";
             }
 
-            if (pureData.length >= 7) {
-                const targetChar = pureData.charAt(6);
-                if (targetChar === "1" || targetChar === "3" || targetChar === "M") {
-                    return "남";
-                } else if (targetChar === "2" || targetChar === "4" || targetChar === "F") {
-                    return "여";
-                }
-            }
             return "미정";
         }
 
@@ -3377,20 +3373,15 @@
                         rawName = rawName.replace(/\(F\)|\(M\)/gi, '').trim();
                         const extractedName = rawName;
 
-                        // 🎯 [유실 데이터 미정 처리 가드]: 6자리가 완성되지 않은 깨진 생년월일은 무조건 "미정" 처리합니다.
-                        let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().trim() : "";
+                        // 🎯 [원본 글자수 무조건 추출 수리]: 6자리가 아니더라도 엑셀에 있는 생년월일 숫자를 그대로 온전히 가져옵니다.
+                        let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().trim() : "미정";
 
-                        if (!ssnRaw || ssnRaw.length !== 6) {
-                            // 💡 대표님 지시 구현: 6자리가 아니면 강제 예측 복구하지 않고 "미정"으로 교정 락인
-                            ssnRaw = "미정";
-                        }
-
-                        // 성별/나이 열(예: M/27)에서 성별 기호(M, F)만 동적으로 추출하여 결합
+                        // 성별/나이 열(예: M/27, F/39)에서 첫 글자인 성별 기호(M, F)를 명확하게 분리 추출하여 결합
                         const genderAgeCell = idxGenderAge !== -1 ? cells[idxGenderAge].toString().trim().toUpperCase() : "";
                         if (genderAgeCell) {
                             const genChar = genderAgeCell.charAt(0); // 'M' 또는 'F' 캡처
                             if (genChar === "M" || genChar === "F" || genChar === "1" || genChar === "2" || genChar === "3" || genChar === "4") {
-                                ssnRaw = ssnRaw + "-" + genChar; // "990329-M" 또는 "미정-M" 형태로 깔끔하게 안착
+                                ssnRaw = ssnRaw + "-" + genChar; // 엑셀 내용대로 1128-M, 216-M, 31101-M 형태로 무조건 원형 보존 결합
                             }
                         }
                         const extractedSsn = ssnRaw.toUpperCase();
@@ -3413,7 +3404,7 @@
                             count: fileExtractedCount,
                             period: fileExtractedPeriod,
                             name: extractedName,
-                            ssn: extractedSsn, // 6자리가 안 맞던 데이터는 "미정-M" 또는 "미정-F" 형태로 안전하게 저장 완료
+                            ssn: extractedSsn, // 파일에 적힌 원본 숫자 형태 그대로 완벽 적재 안착
                             phone: extractedPhone,
                             result: "접수",
                             payStatus: "접수",

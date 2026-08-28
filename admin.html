@@ -2319,14 +2319,16 @@
         // ========================================================
         // 🎯 [완전 종결] 대상자 마스터 테이블 기수 문자열 싱크 및 배지 드로잉 엔진 (당직/소집 분리형)
         // ========================================================
-        // 🎯 [원형 복구]: 페이징 상태 포인터 및 15개 슬라이싱 기준 정의
+        // 🎯 [전역 상태 포인터 및 15개 제한 상수 정의] - 스크립트 상단 또는 함수 바로 위에 배치
         window.currentApplicantPage = 1;
-        const APPLICANT_PAGE_SIZE = 15;
-
+        const APPLICANT_PAGE_SIZE = 15; // 대표님 지시 사양: 페이지당 최대 15개 로깅 제한
 
         function refreshApplicantView() {
             const tbody = document.getElementById('dom-applicant-table');
+            const paginator = document.getElementById('applicant-pagination'); // 💡 페이징 버튼이 그려질 하단 슬롯 돔
             if (!tbody) return; tbody.innerHTML = '';
+            if (paginator) paginator.innerHTML = ''; // 버튼 초기화
+
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
@@ -2370,7 +2372,27 @@
 
             if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL') displayList = db;
 
-            displayList.forEach((row, index) => {
+            // ────────────────────────────────────────────────────────────────────────
+            // 🌟 [수정 포인트 1]: 순정 마크업 내부로 들어가기 전 15개 가상 버퍼 슬라이싱 절단 가드
+            // ────────────────────────────────────────────────────────────────────────
+            const totalRecords = displayList.length;
+            const totalPages = Math.ceil(totalRecords / APPLICANT_PAGE_SIZE) || 1;
+
+            // 페이지 범위를 벗어나는 예외 상태 자동 복구 가드
+            if (window.currentApplicantPage > totalPages) window.currentApplicantPage = totalPages;
+            if (window.currentApplicantPage < 1) window.currentApplicantPage = 1;
+
+            const startIndex = (window.currentApplicantPage - 1) * APPLICANT_PAGE_SIZE;
+            const endIndex = startIndex + APPLICANT_PAGE_SIZE;
+
+            // 원래 displayList 전체를 그리던 대상을 이 pagedList(15개) 조각으로 교체 연결합니다.
+            const pagedList = displayList.slice(startIndex, endIndex);
+
+            // 15개 데이터 조각 루프 렌더링 시동
+            pagedList.forEach((row, pagedIdx) => {
+                // pagedList 조각 내의 순서가 아닌, 정형 필터링 리스트 전체에서의 순정 고유 순번(index) 역추적 매핑
+                const index = displayList.findIndex(item => item.uid === row.uid);
+
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
 
@@ -2391,6 +2413,7 @@
                 if (hasBank && bankSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${bankSrc}', '${cleanName}-통장')" style="padding:4px 8px; font-size:11px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); font-weight:700; cursor:pointer;">통장</button>`;
                 else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
                 docsHTML += `</div>`;
+
                 const buildCoreMiniStatusBadgeHTML = (label, val) => {
                     let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '처리완료';
                     let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
@@ -2425,6 +2448,7 @@
 
                 // 🎯 [변수명 동기화 수리 완료]: ReferenceError 원천 소멸 처리 지칭
                 const isAppEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index);
+
                 // ----------------======================================================
                 // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (변수명 싱크 100% 일치 수립 완료)
                 // ----------------======================================================
@@ -2525,64 +2549,29 @@
             });
 
 
-            /**
-             * 🎯 [기존 소스 무해형] 대상자 목록 15개 절단 및 내비게이션 생성 엔진
-             * 기존 refreshApplicantView 실행 직후 연쇄 구동되어 화면을 페이징 제어합니다.
-             */
-            function buildApplicantPagination() {
-                const tbody = document.getElementById('dom-applicant-table');
-                const paginator = document.getElementById('applicant-pagination');
-                if (!tbody || !paginator) return;
-
-                paginator.innerHTML = ''; // 페이징 버튼 초기화
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-                const totalRecords = rows.length;
-
-                // 15개 이하일 때는 페이징 처리를 하지 않고 무조건 전체 노출 (화면 밸런스 유지)
-                if (totalRecords <= APPLICANT_PAGE_SIZE) {
-                    rows.forEach(row => row.style.display = 'table-row');
-                    return;
-                }
-
-                const totalPages = Math.ceil(totalRecords / APPLICANT_PAGE_SIZE);
-                if (window.currentApplicantPage > totalPages) window.currentApplicantPage = totalPages;
-                if (window.currentApplicantPage < 1) window.currentApplicantPage = 1;
-
-                // 1. 15개 단위 행 표시 제어 (현재 페이지에 속하지 않는 행은 숨김 처리)
-                const start = (window.currentApplicantPage - 1) * APPLICANT_PAGE_SIZE;
-                const end = start + APPLICANT_PAGE_SIZE;
-
-                rows.forEach((row, idx) => {
-                    if (idx >= start && idx < end) {
-                        row.style.display = 'table-row';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                // 2. 고대비 다크 테마 디자인 시스템 페이지 네비게이션 버튼 동적 결합 사출
+            // ----------------======================================================
+            // 💡 [페이징 내비게이션]: 15개 초과 시 하단에 고대비 내비게이션 탑재
+            // ----------------======================================================
+            if (totalRecords > APPLICANT_PAGE_SIZE && paginator) {
                 let paginationHTML = '';
 
-                // [이전] 버튼
-                paginationHTML += `<button onclick="window.currentApplicantPage--; buildApplicantPagination();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
+                paginationHTML += `<button onclick="window.currentApplicantPage--; refreshApplicantView();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
 
-                // 동적 페이지 번호 링크 넘버링
                 for (let p = 1; p <= totalPages; p++) {
                     const isCurrent = (p === window.currentApplicantPage);
                     const activeBtnStyle = isCurrent
                         ? `background: var(--secondary-color) !important; color: #ffffff !important; border: 1px solid var(--secondary-color);`
                         : `background: #1a233a; color: var(--text-muted); border: 1px solid var(--border-color);`;
 
-                    paginationHTML += `<button onclick="window.currentApplicantPage = ${p}; buildApplicantPagination();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
+                    paginationHTML += `<button onclick="window.currentApplicantPage = ${p}; refreshApplicantView();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
                 }
 
-                // [다음] 버튼
-                paginationHTML += `<button onclick="window.currentApplicantPage++; buildApplicantPagination();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
+                paginationHTML += `<button onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
 
                 paginator.innerHTML = paginationHTML;
             }
-
         }
+
 
 
         /**

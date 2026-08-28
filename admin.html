@@ -2480,46 +2480,81 @@
                 if (isAppEditing) {
                     tr.className = "editing-row";
                     tr.innerHTML = `
-                   <td style="vertical-align: middle; padding-left: 15px;"><input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;"></td>
-                <td style="width: 90px; vertical-align: middle;"><input type="text" id="inline-app-th-${masterIndex}" class="inline-input" value="${row.th || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 75px; vertical-align: middle;"><input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 65px; vertical-align: middle;"><input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 80px; vertical-align: middle;"><input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;"></td>
-                <td style="width: 85px; vertical-align: middle;"><input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 65px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                        ${parseGenderFromSsn(row.ssn, row.name)}
-                    </span>
-                </td>
-                <td style="width: 125px; vertical-align: middle;"><input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                <td style="width: 85px; vertical-align: middle;">
-                    <select id="inline-app-status-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                        <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>접수</option>
-                        <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>처리중</option>
-                        <option value="지급완료" ${row.payStatus1 === '지급완료' ? 'selected' : ''}>지급완료</option>
-                    </select>
-                </td>
-                <td style="width: 75px; vertical-align: middle;">
-                    <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                        <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
-                </td>
-                <td style="width: 75px; vertical-align: middle;">
-                    <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                        <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-                    </select>
-                </td>
-                <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px;">교재 중 변경불가</td>
-                <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
-                    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-                        <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
-                        <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
-                    </div>
-                </td>`;
+        <td style="vertical-align: middle; padding-left: 15px;">
+            <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
+        </td>
+        <td style="width: 90px; vertical-align: middle;">
+            <input type="text" id="inline-app-th-${masterIndex}" class="inline-input" value="${row.th || ''}" style="text-align:center; background: var(--card-color) !important;">
+        </td>
+        <td style="width: 75px; vertical-align: middle;">
+            <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">
+        </td>
+        <td style="width: 65px; vertical-align: middle;">
+            <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">
+        </td>
+        <td style="width: 80px; vertical-align: middle;">
+            <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
+        </td>
+        <td style="width: 85px; vertical-align: middle;">
+            <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; background: var(--card-color) !important;">
+        </td>
+        <td style="width: 65px; vertical-align: middle; text-align: center;">
+            <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
+                ${parseGenderFromSsn(row.ssn, row.name)}
+            </span>
+        </td>
+        <td style="width: 125px; vertical-align: middle;">
+            <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
+        </td>
+        
+        <!-- 💡 [교정 핵심 구역]: 참여비 1차, 2차, 3차 수정을 위한 3단 멀티 셀렉트 박스 인프라 구축 -->
+        <td style="width: 85px; vertical-align: middle; text-align: center;">
+            <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
+                <!-- 1차 참여비 상태 제어 -->
+                <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:75px; cursor: pointer;">
+                    <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대기</option>
+                    <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>1차: 접수</option>
+                    <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>1차: 처리중</option>
+                    <option value="지급완료" ${row.payStatus1 === '지급완료' ? 'selected' : ''}>1차: 지급</option>
+                </select>
+                <!-- 2차 참여비 상태 제어 -->
+                <select id="inline-app-pay2-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:75px; cursor: pointer;">
+                    <option value="대기" ${row.payStatus2 === '대기' ? 'selected' : ''}>2차: 대기</option>
+                    <option value="접수" ${row.payStatus2 === '접수' ? 'selected' : ''}>2차: 접수</option>
+                    <option value="처리중" ${row.payStatus2 === '처리중' ? 'selected' : ''}>2차: 처리중</option>
+                    <option value="지급완료" ${row.payStatus2 === '지급완료' ? 'selected' : ''}>2차: 지급</option>
+                </select>
+                <!-- 3차 참여비 상태 제어 -->
+                <select id="inline-app-pay3-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:75px; cursor: pointer;">
+                    <option value="대기" ${row.payStatus3 === '대기' ? 'selected' : ''}>3차: 대기</option>
+                    <option value="접수" ${row.payStatus3 === '접수' ? 'selected' : ''}>3차: 접수</option>
+                    <option value="처리중" ${row.payStatus3 === '처리중' ? 'selected' : ''}>3차: 처리중</option>
+                    <option value="지급완료" ${row.payStatus3 === '지급완료' ? 'selected' : ''}>3차: 지급</option>
+                </select>
+            </div>
+        </td>
+        
+        <td style="width: 75px; vertical-align: middle;">
+            <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
+                <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
+                <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+                <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+            </select>
+        </td>
+        <td style="width: 75px; vertical-align: middle;">
+            <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
+                <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
+                <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
+                <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+            </select>
+        </td>
+        <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px;">교재 중 변경불가</td>
+        <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
+            <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+                <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
+                <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
+            </div>
+        </td>`;
                 }
 
                 // ----------------======================================================
@@ -2887,7 +2922,12 @@
             const elName = document.getElementById(`inline-app-name-${index}`);
             const elSsn = document.getElementById(`inline-app-ssn-${index}`);
             const elPhone = document.getElementById(`inline-app-phone-${index}`);
-            const elStatus = document.getElementById(`inline-app-status-${index}`);
+
+            // 💡 [교정 분기]: 기존 단일 elStatus 추적기에서 차수별 3단 셀렉트 박스로 감지 대상 전환
+            const elPay1 = document.getElementById(`inline-app-pay1-${index}`);
+            const elPay2 = document.getElementById(`inline-app-pay2-${index}`);
+            const elPay3 = document.getElementById(`inline-app-pay3-${index}`);
+
             const elDuty = document.getElementById(`inline-app-duty-${index}`);
             const elCall = document.getElementById(`inline-app-call-${index}`);
 
@@ -2902,13 +2942,13 @@
                 return alert("알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.");
             }
 
-            // 2. 기존 마스터 데이터베이스에서 불변 키값(UID, 카테고리 등) 상속 보존 가드
+            // 2. 기존 마스터 데이터베이스에서 불변 키값(UID, 카테고리 등) 상속 보존 가드 [index: 0.1.30]
             const origin = dataStoreApplicant[index];
             if (!origin) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
 
-            // 3. 인라인 가변 페이로드 조립 (성별 기호 영문 대문자 락인 가드 장착)
+            // 3. 인라인 가변 페이로드 조립 (성별 기호 영문 대문자 락인 가드 장착) [index: 0.1.30]
             const updatedPayload = {
-                ...origin, // 기존 서류 파일 경로, 이미지 주소 등 핵심 원본 구조 일체 상속
+                ...origin, // 기존 서류 파일 경로, 이미지 주소 등 핵심 원본 구조 일체 상속 [index: 0.1.30]
                 title: t,
                 th: th,
                 count: getOnlyNumbers(c),
@@ -2917,10 +2957,14 @@
                 ssn: s.toUpperCase(), // 입력한 성별 식별 기호 실시간 보존
                 phone: getOnlyNumbers(ph),
 
-                // 인라인 셀렉트 박스에서 선택한 실제 값 실시간 동기화
-                result: elStatus ? elStatus.value : (origin.result || "접수"),
-                payStatus: elStatus ? elStatus.value : (origin.payStatus || "접수"),
-                payStatus1: elStatus ? elStatus.value : (origin.payStatus1 || "접수"),
+                // 💡 [참여비 엔진 전면 수리]: 3단 분화된 셀렉트 박스에서 실시간 선택값 개별 스캔 바인딩
+                payStatus1: elPay1 ? elPay1.value : (origin.payStatus1 || "접수"),
+                payStatus2: elPay2 ? elPay2.value : (origin.payStatus2 || "대기"),
+                payStatus3: elPay3 ? elPay3.value : (origin.payStatus3 || "대기"),
+
+                // 💡 [무결성 연동 가드]: 대표님 정산 기준 스코어보드 통계 계산용 메인 상태는 '1차 참여비 지급 상태'와 완벽 동기화 [index: 0.1.30]
+                result: elPay1 ? elPay1.value : (origin.result || "접수"),
+                payStatus: elPay1 ? elPay1.value : (origin.payStatus || "접수"),
 
                 isDutyAgreed: elDuty ? elDuty.value : (origin.isDutyAgreed || "대기"),
                 isCallAgreed: elCall ? elCall.value : (origin.isCallAgreed || "대기"),
@@ -2929,10 +2973,10 @@
             };
 
             try {
-                // 4. 가상 가상 데이터베이스 배열 요소 교체
+                // 4. 가상 가상 데이터베이스 배열 요소 교체 [index: 0.1.30]
                 dataStoreApplicant[index] = updatedPayload;
 
-                // 5. 로컬스토리지 파일 시스템 영구 저장 커밋 트랜잭션 구동
+                // 5. 로컬스토리지 파일 시스템 영구 저장 커밋 트랜잭션 구동 [index: 0.1.30]
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                 window.dataStoreApplicant = dataStoreApplicant; // 메모리 컨텍스트 일치화
 
@@ -2948,7 +2992,7 @@
 
                 alert(`📋 목록 정보 수정 완료: [${n}] 피험자의 변경 사항이 목록에 즉시 반영되었습니다.`);
 
-                // 7. 오리지널 통계 엔진 및 렌더러 연쇄 구동 리프레시
+                // 7. 오리지널 통계 엔진 및 렌더러 연쇄 구동 리프레시 [index: 0.1.24]
                 if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
                 if (typeof refreshApplicantView === "function") refreshApplicantView();
 

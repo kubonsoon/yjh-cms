@@ -2319,6 +2319,11 @@
         // ========================================================
         // 🎯 [완전 종결] 대상자 마스터 테이블 기수 문자열 싱크 및 배지 드로잉 엔진 (당직/소집 분리형)
         // ========================================================
+        // 🎯 [원형 복구]: 페이징 상태 포인터 및 15개 슬라이싱 기준 정의
+        window.currentApplicantPage = 1;
+        const APPLICANT_PAGE_SIZE = 15;
+
+
         function refreshApplicantView() {
             const tbody = document.getElementById('dom-applicant-table');
             if (!tbody) return; tbody.innerHTML = '';
@@ -2519,10 +2524,6 @@
                 tbody.appendChild(tr);
             });
 
-
-            // 🎯 [단독 탑재] 페이징 추적 상태 변수 및 최대 노출수 제어 상수
-            window.currentApplicantPage = 1;
-            const APPLICANT_PAGE_SIZE = 15; // 15개 기준 슬라이싱 절단 제한
 
             /**
              * 🎯 [기존 소스 무해형] 대상자 목록 15개 절단 및 내비게이션 생성 엔진

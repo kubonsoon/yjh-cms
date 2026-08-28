@@ -2769,22 +2769,18 @@
                 count: getOnlyNumbers(c),
                 period: getOnlyNumbers(p),
                 name: n,
-
-                // [수리 완료]: 기존의 getOnlyNumbers 필터를 제거하고 영문 대소문자 및 하이픈 데이터를 온전히 보존 적재합니다.
                 ssn: s.toUpperCase(),
-
                 phone: getOnlyNumbers(ph),
 
-                // [통계 및 목록 배지 연동]: 기존 원본 소스 엔진이 정상 인식하도록 초기 상태를 "접수"로 바인딩
-                result: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].result || "접수"),
-                payStatus: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus || "접수"),
+                // 🌟 [수리 완료]: 최초 등록 모드(editIndex === "") 일 때 무조건 초기값을 "대기"로 락인 컴입합니다.
+                result: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].result || "대기"),
+                payStatus: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus || "대기"),
 
-                // [3단 분할 참여비 독립 채널 복구]: 신규 등록 시에도 목록에 깔끔하게 연동되도록 초기값 락인
-                payStatus1: editIndex === "" ? "접수" : (dataStoreApplicant[editIndex].payStatus1 || "접수"),
+                // 🎯 [3단 분할 참여비 독립 채널]: 1차 정산 배지도 예외 없이 완전히 "대기" 상태로 탄생시킵니다.
+                payStatus1: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus1 || "대기"),
                 payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
                 payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
 
-                // 신규 등록(editIndex === "") 시 기존 구형 '동의' 흔적을 전면 소멸시키고 무조건 순정 "대기"로 탄생시킵니다.
                 isDutyAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isDutyAgreed || "대기"),
                 isCallAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isCallAgreed || "대기"),
                 isAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isAgreed || "대기"),
@@ -2792,21 +2788,21 @@
                 category: editIndex === "" ? "내분비내과 / 대장 수동 등록" : dataStoreApplicant[editIndex].category,
                 stage: `${th} 참여(소집)`,
 
-                // 신규 등록 시 증빙서류가 온전하게 녹색/파란색 인가 배지로 출력되도록 true 설정 (원형 유지)
                 idCard: editIndex === "" ? true : (dataStoreApplicant[editIndex].idCard !== undefined ? dataStoreApplicant[editIndex].idCard : true),
                 bankbook: editIndex === "" ? true : (dataStoreApplicant[editIndex].bankbook !== undefined ? dataStoreApplicant[editIndex].bankbook : true),
-
                 idCardImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardImg || ""),
                 bankBookImg: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookImg || ""),
                 idCardUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardUrl || ""),
                 bankBookUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookUrl || "")
             };
 
+
             try {
                 if (editIndex === "") {
                     // [신규 등록 모드] 강제 오버라이드 락
-                    payload.result = "접수";
-                    payload.payStatus = "접수";
+                    payload.result = "대기";
+                    payload.payStatus = "대기";
+                    payload.payStatus1 = "대기"; // 1차 추가 락
 
                     // 신규 등록자는 기존의 구형 '동의' 흔적을 전면 소멸시키고 무조건 "대기"로 탄생시킵니다.
                     payload.isDutyAgreed = "대기";
@@ -2816,6 +2812,7 @@
                     // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용 (원형 유지)
                     dataStoreApplicant.unshift(payload);
                     alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
+
                 } else {
                     // [수정 완료 모드] (기존 데이터 구조 유실 방지 가드 상속 원형 유지)
                     if (!payload.result) payload.result = document.getElementById('form-app-result')?.value || dataStoreApplicant[editIndex].result || '접수';
@@ -3444,7 +3441,7 @@
                             name: extractedName,
                             ssn: extractedSsn, // 오직 생년월일 열 데이터만 안전하게 보존 안착
                             phone: extractedPhone,
-                            result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
+                            result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                             isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
                             category: "내분비내과 / 엑셀 레이아웃 파싱",
                             stage: `${fileExtractedTh} 참여(소집)`, idCard: true, bankbook: true

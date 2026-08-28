@@ -2907,7 +2907,7 @@
             const elSsn = document.getElementById(`inline-app-ssn-${index}`);
             const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
-            // 🎯 [핵심 교정]: 기존 단일 elStatus 대신 1, 2, 3차 셀렉트 박스를 각각 개별적으로 스캔합니다.
+            // 1, 2, 3차 참여비 셀렉트 박스 개별 추적 스캔
             const elPay1 = document.getElementById(`inline-app-paystatus1-${index}`);
             const elPay2 = document.getElementById(`inline-app-paystatus2-${index}`);
             const elPay3 = document.getElementById(`inline-app-paystatus3-${index}`);
@@ -2928,7 +2928,9 @@
 
             // 2. 기존 마스터 데이터베이스에서 불변 키값(UID, 카테고리 등) 상속 보존 가드
             const origin = dataStoreApplicant[index];
-            if (!origin) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
+            if (!origin) {
+                return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
+            }
 
             // 3. 인라인 가변 페이로드 조립 (성별 기호 영문 대문자 락인 가드 장착)
             const updatedPayload = {
@@ -2941,7 +2943,7 @@
                 ssn: s.toUpperCase(), // 입력한 성별 식별 기호 실시간 보존
                 phone: getOnlyNumbers(ph),
 
-                // 🎯 [핵심 교정]: 1, 2, 3차 참여비 화면 값이 개별 저장소 필드에 정확히 매칭되도록 맵핑 처리
+                // 1, 2, 3차 참여비 화면 값 개별 매칭 저장
                 payStatus1: elPay1 ? elPay1.value : (origin.payStatus1 || "대기"),
                 payStatus2: elPay2 ? elPay2.value : (origin.payStatus2 || "대기"),
                 payStatus3: elPay3 ? elPay3.value : (origin.payStatus3 || "대기"),
@@ -2968,7 +2970,7 @@
                     commitToLocalStorage();
                 }
 
-                // 6. 인라인 수정 모드 해제 (상태 포인터를 null로 돌려 일반 리스트 모드인 B분기로 강제 복귀 제어)
+                // 6. 인라인 수정 모드 해제
                 window.currentAppEditingIndex = null;
                 if (typeof currentAppEditingIndex !== 'undefined') {
                     currentAppEditingIndex = null;
@@ -2977,8 +2979,12 @@
                 alert(`📋 목록 정보 수정 완료: [${n}] 피험자의 변경 사항이 목록에 즉시 반영되었습니다.`);
 
                 // 7. 오리지널 통계 엔진 및 렌더러 연쇄 구동 리프레시
-                if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-                if (typeof refreshApplicantView === "function") refreshApplicantView();
+                if (typeof calculateLiveDashboardStats === "function") {
+                    calculateLiveDashboardStats();
+                }
+                if (typeof refreshApplicantView === "function") {
+                    refreshApplicantView();
+                }
 
             } catch (error) {
                 console.error("목록 인라인 저장 중 치명적 오류 발생:", error);

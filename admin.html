@@ -2909,7 +2909,7 @@
             const idx = dataStoreApplicant.findIndex(d => d.uid === id);
             if (idx === -1) return;
 
-            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크 (아까 3단계 마크업의 id 규격과 100% 일치 수립)
+            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크
             const elTitle = document.getElementById(`inline-app-title-${index}`);
             const elTh = document.getElementById(`inline-app-th-${index}`);
             const elCount = document.getElementById(`inline-app-count-${index}`);
@@ -2921,7 +2921,11 @@
             const elDuty = document.getElementById(`inline-app-duty-${index}`);
             const elCall = document.getElementById(`inline-app-call-${index}`);
 
-            // 2. 가상 데이터베이스 구조에 안전한 값 주입 (엘리먼트가 없으면 기존 값을 유지하여 폭파 차단)
+            // 가변 입력 데이터 텍스트 전처리 확보
+            const currentSsnVal = elSsn ? elSsn.value.trim().toUpperCase() : (dataStoreApplicant[idx].ssn || "");
+            const currentNameVal = elName ? elName.value.trim() : (dataStoreApplicant[idx].name || "");
+
+            // 2. 가상 데이터베이스 구조에 안전한 값 주입 (성별 실시간 추적 엔진 연동 완비)
             dataStoreApplicant[idx] = {
                 ...dataStoreApplicant[idx], // 기존 첨부 이미지 주소 등 핵심 원본 데이터 누락 없이 완벽 상속 가드
                 uid: id,
@@ -2929,10 +2933,13 @@
                 th: elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || ""),
                 count: elCount ? getOnlyNumbers(elCount.value) : (dataStoreApplicant[idx].count || "0"),
                 period: elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0"),
-                name: elName ? elName.value.trim() : (dataStoreApplicant[idx].name || ""),
+                name: currentNameVal,
 
-                // 🎯 [교정 완료]: 기존의 getOnlyNumbers 필터를 걷어내어 성별 기호(M, F, 숫자, 하이픈)를 대문자로 원형 보존 적재
-                ssn: elSsn ? elSsn.value.trim().toUpperCase() : (dataStoreApplicant[idx].ssn || ""),
+                // 🎯 [생년월일 원형 보존 적재]: 영문 성별 식별 기호 및 하이픈 유지를 허용합니다.
+                ssn: currentSsnVal,
+
+                // 🎯 [실시간 성별 추적 이식 완료]: 수정 창에서 바꾼 생년월일 데이터를 기반으로 즉시 성별(남/여)을 재연산하여 실시간 동기화합니다.
+                gender: typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(currentSsnVal, currentNameVal) : "미정",
 
                 phone: elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || ""),
 

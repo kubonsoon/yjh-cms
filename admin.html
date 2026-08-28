@@ -2381,23 +2381,27 @@
                 <td style="width:85px; min-width:85px; vertical-align:middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center;"></td>
                 <td style="width:125px; min-width:125px; vertical-align:middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${fmtPhone}" style="text-align:center;"></td>
                 
-                <!-- 💡 [치명적 버그 전면 구제 수리 존]: 1차만 나오던 칸에 조립된 멀티 셀렉트 스택 변수를 강제 결합 마운트 -->
+                <!-- 참여비 독립 드롭다운 스택 컴포넌트 마운트 구역 -->
                 <td style="vertical-align:middle; padding-left:6px;">${inlineSelectStackHTML}</td>
                 
+                <!-- 💡 [당직동의 교정]: 데이터가 '대기' 이거나 공란일 때 정확히 대기 옵션에 selected 바인딩 -->
                 <td style="width: 85px; text-align: center; vertical-align: middle;">
-                    <select id="inline-app-duty-${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer;">
-                        <option value="대기" ${row.isDutyAgreed === '대기' || !row.isDutyAgreed ? 'selected' : ''}>대기</option>
+                    <select id="inline-app-duty-${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer; background:#0f172a !important; color:#ffffff !important;">
+                        <option value="대기" ${row.isDutyAgreed === '대기' || !row.isDutyAgreed || row.isDutyAgreed === '' ? 'selected' : ''}>대기</option>
                         <option value="동의" ${row.isDutyAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" ${row.isDutyAgreed === '미정' || row.isDutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                        <option value="미동의" ${row.isDutyAgreed === '미동의' || row.isDutyAgreed === '미정' ? 'selected' : ''}>미동의</option>
                     </select>
                 </td>
+                
+                <!-- 💡 [소집동의 교정]: 데이터가 '대기' 이거나 공란일 때 정확히 대기 옵션에 selected 바인딩 -->
                 <td style="width: 85px; text-align: center; vertical-align: middle;">
-                    <select id="inline-app-call-${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer;">
-                        <option value="대기" ${row.isCallAgreed === '대기' || !row.isCallAgreed ? 'selected' : ''}>대기</option>
+                    <select id="inline-app-call-${index}" class="inline-input" style="height:30px; padding:2px; font-size:12px; cursor:pointer; background:#0f172a !important; color:#ffffff !important;">
+                        <option value="대기" ${row.isCallAgreed === '대기' || !row.isCallAgreed || row.isCallAgreed === '' ? 'selected' : ''}>대기</option>
                         <option value="동의" ${row.isCallAgreed === '동의' ? 'selected' : ''}>동의</option>
-                        <option value="미동의" ${row.isCallAgreed === '미정' || row.isCallAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                        <option value="미동의" ${row.isCallAgreed === '미동의' || row.isCallAgreed === '미정' ? 'selected' : ''}>미동의</option>
                     </select>
                 </td>
+                
                 <td style="vertical-align:middle;">${docsHTML}</td>
                 <td style="text-align:center; width:180px; min-width:180px; white-space:nowrap; padding-right:15px; vertical-align:middle;">
                     <button type="button" class="btn-inline save" onclick="if(typeof saveApplicantInline==='function'){saveApplicantInline(${index});}else{saveApplicantRecord(${index});}" style="background:#4ade80; color:#070a12; padding:5px 10px; border-radius:4px; font-weight:700; cursor:pointer; font-size:13px; border:none;">저장</button>

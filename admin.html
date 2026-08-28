@@ -1492,7 +1492,7 @@
         // =========================================================================
 
         /**
-         * CMS 피험자 마스터 대장(매칭 풀) 가상 DB 가동 상태 체크 [index: 0.1.26, 0.1.27]
+         * CMS 대상자 마스터 대장(매칭 풀) 가상 DB 가동 상태 체크 [index: 0.1.26, 0.1.27]
          * 중복 가동되던 생성 루틴을 통합 단일화하였습니다.
          */
         function initializeCMSDatabase() {
@@ -1851,6 +1851,93 @@
             return v;
         }
 
+
+        /**
+ * 피험자 개인 이력 마스터 대장 오픈 및 데이터 실시간 바인딩 함수
+ * @param {number} index - 현재 선택한 데이터스토어 인덱스 번호
+ */
+        function openAppHistoryDetailModal(index) {
+            const selectedUser = dataStoreApplicant[index];
+            if (!selectedUser) return alert("오류: 피험자 정보를 역추적할 수 없습니다.");
+
+            // 1. 기본 인적 사양 락인 바인딩 [index: 0.1.30]
+            document.getElementById("modal-app-name").innerText = selectedUser.name;
+            document.getElementById("modal-app-phone").innerText = formatPhone(selectedUser.phone || "-");
+            document.getElementById("modal-app-th").innerText = formatTh(selectedUser.th);
+
+            // 주민번호 가공 및 성별 추출 통합 락인 (예: 950505 (남))
+            const genderSign = parseGenderFromSsn(selectedUser.ssn, selectedUser.name);
+            document.getElementById("modal-app-ssn-gender").innerHTML = `${selectedUser.ssn || "-"} <span style="color: ${genderSign === '남' ? '#38bdf8' : '#fb7185'}; font-weight:800;">(${genderSign})</span>`;
+
+            // 동의 현황 텍스트 가독성 배지 스타일 매칭
+            document.getElementById("modal-app-duty").innerHTML = selectedUser.isDutyAgreed === "동의"
+                ? `<span style="color:#4ade80;"><i class="fa-solid fa-circle-check"></i> 동의완료</span>`
+                : `<span style="color:#94a3b8;"><i class="fa-solid fa-circle"></i> 대기중</span>`;
+
+            document.getElementById("modal-app-call").innerHTML = selectedUser.isCallAgreed === "동의"
+                ? `<span style="color:#4ade80;"><i class="fa-solid fa-circle-check"></i> 동의완료</span>`
+                : `<span style="color:#94a3b8;"><i class="fa-solid fa-circle"></i> 대기중</span>`;
+
+            // 2. 참여비 3단 정산률 바인딩
+            document.getElementById("modal-pay-status1").innerText = selectedUser.payStatus1 || "대기";
+            document.getElementById("modal-pay-status2").innerText = selectedUser.payStatus2 || "대기";
+            document.getElementById("modal-pay-status3").innerText = selectedUser.payStatus3 || "대기";
+
+            // 3. 🎯 동일 피험자 임상시험 참여 이력 전수 추적 매커니즘 가동 [index: 0.1.30]
+            const scrollZone = document.getElementById("modal-history-scroll-zone");
+            scrollZone.innerHTML = ""; // 기존 스크롤 노드 리셋 청소
+
+            // 전산망 데이터베이스에서 동명이인 레코드 전체 필터링 추출 [index: 0.1.30]
+            const historyRecords = dataStoreApplicant.filter(item => item.name === selectedUser.name);
+            document.getElementById("modal-history-count-title").innerText = `동일 피험자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)`;
+
+            // 4. 추출된 기록을 기반으로 현재시험 / 과거시험 분기하여 스크롤 리스트업 사출
+            historyRecords.forEach(row => {
+                const isCurrentJob = (row.uid === selectedUser.uid); // 현재 내가 클릭해서 보고 있는 행인지 검증
+                const cardTr = document.createElement("div");
+
+                // 카드 상자 디자인 서식 바인딩 (현재 보고 있는 시험은 강조 테두리 부여)
+                cardTr.style.background = isCurrentJob ? "rgba(14, 165, 233, 0.05)" : "#1a233a";
+                cardTr.style.border = isCurrentJob ? "1px solid var(--secondary-color)" : "1px solid var(--border-color)";
+                cardTr.style.padding = "14px";
+                cardTr.style.borderRadius = "8px";
+                cardTr.style.position = "relative";
+                cardTr.style.display = "flex";
+                cardTr.style.justifyContent = "space-between";
+                cardTr.style.alignItems = "center";
+
+                // 왼쪽 시험 텍스트 및 속성 정보 생성
+                const infoDiv = document.createElement("div");
+
+                // [현재시험] 또는 [과거시험] 접두사 폰트 컬러 매칭 트릭
+                const prefixTag = isCurrentJob
+                    ? `<span style="color: var(--secondary-color); font-weight:800; margin-right:6px;">[현재시험]</span>`
+                    : `<span style="color: var(--text-muted); font-weight:700; margin-right:6px;">[과거시험]</span>`;
+
+                infoDiv.innerHTML = `
+            <div style="font-weight:700; color:#ffffff; font-size:14px; margin-bottom:4px;">${prefixTag}${row.title}</div>
+            <div style="font-size:12px; color:var(--text-muted);">진행 기수: <span style="color:#fff;">${row.th}</span> | 인정시간: <span style="color:#fff;">${row.period}시간</span></div>
+        `;
+
+                // 오른쪽 지급 상태 배지 생성
+                const statusDiv = document.createElement("div");
+                statusDiv.style.fontSize = "13px";
+                statusDiv.style.color = "var(--text-muted)";
+
+                // 지급 완료 시 초록색 고대비 강조, 그 외 대기 색상 매칭 [index: 0.1.1]
+                const statusColor = row.payStatus1 === "지급완료" ? "var(--success-color)" : "#fbbf24";
+                statusDiv.innerHTML = `지급상태: <span style="color:${statusColor}; font-weight:700;">${row.payStatus1 || "대기"}</span>`;
+
+                cardTr.appendChild(infoDiv);
+                cardTr.appendChild(statusDiv);
+                scrollZone.appendChild(cardTr);
+            });
+
+            // 5. 와이드 오버레이 프레임 활성화 출력 제어
+            const modalEl = document.getElementById("historyModalOverlay"); // 시스템 모달 ID에 맞게 연결하세요
+            if (modalEl) modalEl.style.display = "flex";
+        }
+
         // ========================================================
         // 🎯 [인라인 편집 통합 코어] 모집공고 실시간 해당 라인 수정 엔진
         // ========================================================
@@ -1898,7 +1985,7 @@
                     const currentRecTitleClean = cleanString(row.title);
                     const rowThNum = (row.th || "").replace(/[^0-9]/g, "");
 
-                    // 1. 해당 공고의 기수 및 시험명 조건과 일치하는 실제 신청 피험자 배열 추출
+                    // 1. 해당 공고의 기수 및 시험명 조건과 일치하는 실제 신청 대상자 배열 추출
                     const matchedApplicants = adminApplicantDB.filter(item => {
                         const itemTitleClean = cleanString(item.title);
                         const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
@@ -1909,7 +1996,7 @@
 
                     groupMatchCount = matchedApplicants.length; // 실제 매칭 참여인원 (기존 분자값 복원)
 
-                    // 2. 🎯 [라이브 동의 통계 엔진]: 선별된 피험자 명단을 루프 돌며 상태별 글자를 카운팅 누적
+                    // 2. 🎯 [라이브 동의 통계 엔진]: 선별된 대상자 명단을 루프 돌며 상태별 글자를 카운팅 누적
                     matchedApplicants.forEach(item => {
                         const dStatus = (item.isDutyAgreed || "대기").toString().trim();
                         const cStatus = (item.isCallAgreed || "대기").toString().trim();
@@ -2870,7 +2957,7 @@
                     payload.isAgreed = dataStoreApplicant[editIndex].isAgreed || "대기";
 
                     dataStoreApplicant[editIndex] = payload;
-                    alert(`📋 정보 갱신 완료: [${n}] 피험자의 마스터 레코드가 업데이트되었습니다.`);
+                    alert(`📋 정보 갱신 완료: [${n}] 대상자의 마스터 레코드가 업데이트되었습니다.`);
                 }
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
@@ -2990,7 +3077,7 @@
                     currentAppEditingIndex = null;
                 }
 
-                alert(`📋 목록 정보 수정 완료: [${n}] 피험자의 변경 사항이 목록에 즉시 반영되었습니다.`);
+                alert(`📋 목록 정보 수정 완료: [${n}] 대상자의 변경 사항이 목록에 즉시 반영되었습니다.`);
 
                 // 7. 오리지널 통계 엔진 및 렌더러 연쇄 구동 리프레시 [index: 0.1.24]
                 if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
@@ -3092,7 +3179,7 @@
             if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
             if (typeof drawApplicantTable === 'function') { drawApplicantTable(); }
 
-            alert(`📋 목록 정보 수정 완료: [${dataStoreApplicant[idx].name}] 피험자의 변경 사항이 목록에 즉시 반영되었습니다.`);
+            alert(`📋 목록 정보 수정 완료: [${dataStoreApplicant[idx].name}] 대상자의 변경 사항이 목록에 즉시 반영되었습니다.`);
         }
 
         // 🎯 [에러 소멸용 목록 수정 진입 브릿지]: 목록 뷰포트에서 클릭한 수정 신호를 캡처하여 인라인 수정 모드로 즉시 전환
@@ -3191,7 +3278,7 @@
             // 1. 로컬스토리지 마스터 대장 안전 로드
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 2. 고유 UID 기반으로 해당 피험자 레코드 추적
+            // 2. 고유 UID 기반으로 해당 대상자 레코드 추적
             const idx = adminApplicantDB.findIndex(user => String(user.uid) === String(uid));
 
             if (idx !== -1) {
@@ -3206,9 +3293,9 @@
                     refreshApplicantView();
                 }
 
-                alert("전산 처리 완료: 해당 피험자의 참여비 신청 권한(join_login 4단계)이 정상적으로 활성화되었습니다.");
+                alert("전산 처리 완료: 해당 대상자의 참여비 신청 권한(join_login 4단계)이 정상적으로 활성화되었습니다.");
             } else {
-                alert("전산 오류: 일치하는 피험자 식별 정보(UID)를 찾을 수 없습니다.");
+                alert("전산 오류: 일치하는 대상자 식별 정보(UID)를 찾을 수 없습니다.");
             }
         }
 
@@ -3454,7 +3541,7 @@
                     if (idxSsn === -1) idxSsn = 5; // 이미지상 6번째 열(인덱스 5)이 확실한 생년월일 칸입니다.
                     if (idxPhone === -1) idxPhone = 6;
 
-                    // 3. [피험자 명단 데이터 루프 적재 구역]
+                    // 3. [대상자 명단 데이터 루프 적재 구역]
                     for (let i = headerRowIndex + 1; i < rows.length; i++) {
                         const rowText = rows[i].trim();
                         if (!rowText) continue;
@@ -3546,7 +3633,7 @@
             if (!targetUser) return alert("해당 대상자 데이터를 전산망에서 식별할 수 없습니다.");
 
             const targetImgSrc = (docType === 'idCard') ? targetUser.idCardUrl : targetUser.bankBookUrl;
-            const docTitle = (docType === 'idCard') ? "피험자 신분증 원본" : "피험자 통장사본 원본";
+            const docTitle = (docType === 'idCard') ? "대상자 신분증 원본" : "대상자 통장사본 원본";
 
             if (!targetImgSrc) return alert("첨부된 파일 서류 증빙 데이터셋이 존재하지 않습니다.");
 
@@ -3884,7 +3971,7 @@
             });
         }
 
-        // 💡 [모달 오픈 기능] 배지 클릭 시 해당 피험자의 디코딩 미디어를 주입하여 팝업을 개방하는 마스터 핸들러
+        // 💡 [모달 오픈 기능] 배지 클릭 시 해당 대상자의 디코딩 미디어를 주입하여 팝업을 개방하는 마스터 핸들러
         function openAdminDocModal(patientName, docType) {
             const userDocs = window.adminDocumentMemoryStore[patientName];
             if (!userDocs || !userDocs[docType] || userDocs[docType] === "placeholder") {
@@ -3898,7 +3985,7 @@
             const downloadBtn = document.getElementById('adminDocDownloadBtn');
 
             const docLabel = docType === 'idCard' ? '신분증' : '통장사본';
-            modalTitle.innerHTML = `💥 [국책정산 증빙] ${patientName} 피험자 님의 정밀 검수 - [${docLabel}]`;
+            modalTitle.innerHTML = `💥 [국책정산 증빙] ${patientName} 대상자 님의 정밀 검수 - [${docLabel}]`;
 
             // Base64 데이터 스레드를 이미지 소스 인젝션 처리
             modalImg.src = userDocs[docType];
@@ -4396,7 +4483,7 @@
                     dataStoreApplicant = adminApplicantDB;
                 }
 
-                alert(`🗑️ [${deletedName}] 피험자의 마스터 레코드가 대장에서 안전하게 영구 삭제되었습니다.`);
+                alert(`🗑️ [${deletedName}] 대상자의 마스터 레코드가 대장에서 안전하게 영구 삭제되었습니다.`);
 
                 // 하단 테이블 다시 그리기
                 if (typeof refreshApplicantView === "function") {
@@ -4623,7 +4710,7 @@
                 totalQuotaSum = filterTitle === 'ALL' ? 60 : (parseInt(filteredList?.count, 10) || 60);
             }
 
-            // 3. [상태 파이프라인 집계]: 각 피험자별 라이브 상태 카운트 (원본 분기 logic 100% 보존)
+            // 3. [상태 파이프라인 집계]: 각 대상자별 라이브 상태 카운트 (원본 분기 logic 100% 보존)
             let receivedCount = 0;
             let processingCount = 0;
             let completeCount = 0;
@@ -4668,16 +4755,16 @@
 
 
         /**
-         * 이력조회 버튼 클릭 시 에러를 해결하고 피험자 데이터와 공고 마스터 일정을 교차 맵핑하여 모달창에 렌더링하는 함수
+         * 이력조회 버튼 클릭 시 에러를 해결하고 대상자 데이터와 공고 마스터 일정을 교차 맵핑하여 모달창에 렌더링하는 함수
          */
         function openApplicantHistoryModal(index) {
             // A. 안전장치: 로컬스토리지 최신 데이터 스토어 로드 및 인덱스 범위 확인
             const adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             if (index < 0 || index >= adminApplicantDB.length) {
-                return alert("알림: 피험자 데이터를 찾을 수 없습니다.");
+                return alert("알림: 대상자 데이터를 찾을 수 없습니다.");
             }
 
-            // 타겟 피험자 기본 마스터 레코드 획득
+            // 타겟 대상자 기본 마스터 레코드 획득
             const row = adminApplicantDB[index];
 
             // 성명 특수문자 제거 정제
@@ -4715,7 +4802,7 @@
             let historyCardsHTML = "";
 
             matchedHistoryList.forEach((historyRow) => {
-                // 🌟 [버그 킬러]: 현재 피험자 이력의 과제명과 기수 텍스트를 알맹이 단위로 정제
+                // 🌟 [버그 킬러]: 현재 대상자 이력의 과제명과 기수 텍스트를 알맹이 단위로 정제
                 const targetTitleClean = cleanString(historyRow.title);
                 const filterThNum = (historyRow.th || "").toString().replace(/[^0-9]/g, "");
 
@@ -4771,7 +4858,7 @@
             contentSlot.innerHTML = `
         <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 16px;">
             <h4 style="font-size: 15px; color: #ffffff; margin-bottom: 15px; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-user-gear" style="color: var(--secondary-color);"></i> 기본 피험자 인적 사항
+                <i class="fa-solid fa-user-gear" style="color: var(--secondary-color);"></i> 기본 대상자 인적 사항
             </h4>
             <div class="history-grid-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
                 <div style="color: var(--text-muted); font-size:13px; font-weight:700;">성명: <span style="color:#ffffff; margin-left:6px;">${cleanName}</span></div>
@@ -4821,7 +4908,7 @@
         }
 
         /**
- * [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 피험자의 마스터 상태값을 직접 변경하고
+ * [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 대상자의 마스터 상태값을 직접 변경하고
  * 하단 목록 테이블 및 상단 대시보드 4대 지표 카드를 새로고침 없이 즉각 100% 동기화 리프레시합니다.
  */
         function updateApplicantStatusViaModal(index, newStatus) {
@@ -4851,7 +4938,7 @@
                 }
 
                 // 4. 알림창 알림 (시연 설명력 및 피드백 강화)
-                alert(`📢 상태 변환 완료: [${targetName}] 피험자의 1차 참여비 상태가 [${newStatus}] 상태로 실시간 업데이트되었습니다.`);
+                alert(`📢 상태 변환 완료: [${targetName}] 대상자의 1차 참여비 상태가 [${newStatus}] 상태로 실시간 업데이트되었습니다.`);
 
                 // 5. 🌟 [모달 라이브 리프레시]: 상태 변경 단추를 누르는 즉시 이력 모달 내부의 소집일와 상태 텍스트를 최신으로 새로고침
                 if (typeof openApplicantHistoryModal === "function") {
@@ -4869,7 +4956,7 @@
                 }
 
             } else {
-                alert("알림: 상태를 변경하려는 피험자의 인덱스가 올바르지 않습니다.");
+                alert("알림: 상태를 변경하려는 대상자의 인덱스가 올바르지 않습니다.");
             }
         }
 
@@ -4980,7 +5067,7 @@
             if (type === 'duty' || type === 'call') {
                 footerStatsLineHTML = `
             <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px; margin-bottom: 15px; font-size: 13px; font-weight: 700; box-sizing: border-box;">
-                <span style="color: var(--text-color);"><i class="fa-solid fa-chart-pie" style="color: ${config.color};"></i> 실시간 피험자 서명 현황:</span>
+                <span style="color: var(--text-color);"><i class="fa-solid fa-chart-pie" style="color: ${config.color};"></i> 실시간 대상자 서명 현황:</span>
                 <div style="display: flex; gap: 12px;">
                     <span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> 동의: ${agreeCnt}명</span>
                     <span style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> 미동의: ${disagreeCnt}명</span>
@@ -5425,7 +5512,7 @@
             const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
-            // 3. [분자 연산] 현재 필터 조건에 일치하는 실제 대상자(피험자) 필터링 및 카운트
+            // 3. [분자 연산] 현재 필터 조건에 일치하는 실제 대상자(대상자) 필터링 및 카운트
             const filteredApplicants = applicantDB.filter(item => {
                 const matchTitle = (filterTitle === 'ALL' || item.title === filterTitle);
                 const matchTh = (filterTh === 'ALL' || item.th === filterTh);
@@ -5599,7 +5686,7 @@
                     const cleanFilterTitle = cleanString(filterTitle);
                     const cleanFilterThNum = filterTh.replace(/[^0-9]/g, "");
 
-                    // 분자 추출용 실제 신청 피험자 필터링
+                    // 분자 추출용 실제 신청 대상자 필터링
                     const filteredData = adminApplicantDB.filter(item => {
                         if (!item.title) return false;
                         const cleanItemTitle = cleanString(item.title);
@@ -5742,7 +5829,7 @@
             // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             const row = db[index];
-            if (!row) return alert("시스템 알림: 해당 피험자의 이력 데이터를 추적할 수 없습니다.");
+            if (!row) return alert("시스템 알림: 해당 대상자의 이력 데이터를 추적할 수 없습니다.");
 
             // 2. 원본 HTML 구조 내에 선언된 와이드 모달 오버레이 돔 요소 스캔 [index: 0.1.17]
             const overlay = document.getElementById('historyModalOverlay') || document.querySelector('.history-modal-overlay');
@@ -5818,26 +5905,33 @@
             overlay.innerHTML = `
         <div class="history-modal-box" style="background: var(--card-color); border: 1px solid var(--border-color); padding: 32px 35px; border-radius: 16px; width: 100%; max-width: 650px; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6); box-sizing: border-box; margin: 0 !important; animation: modalFadeIn 0.25s ease-out;">
             <h3 style="margin-top:0; margin-bottom: 22px; font-size: 20px; font-weight: 800; color: var(--secondary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-id-card"></i> 피험자 개인 이력 종합 마스터 대장
+                <i class="fa-solid fa-id-card"></i> 대상자 개인별 참여 이력 대장
             </h3>
             
             <!-- 상단: 기본 인적 신상 정보리스트 그리드 -->
             <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; text-align:left;">
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">피험자 성명:</span> <div style="font-weight:700; color:var(--success-color); margin-top:2px;">${cleanName}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">생년월일 (YYMMDD):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${row.ssn || '-'}</div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">대상자 성명:</span> <div style="font-weight:700; color:var(--success-color); margin-top:2px;">${cleanName}</div></div>
+              <div>
+            <span class="label">생년월일(성별):</span>
+            <span id="modal-app-ssn-gender" style="font-weight: 700; color: #ffffff;">-</span>
+        </div>
                 <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">연락처 (휴대폰):</span> <div style="font-weight:700; color:#fff; font-family:monospace; margin-top:2px;">${fmtPhone}</div></div>
-                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 소속 기수명:</span> <div style="margin-top:2px;"><span class="lvl-badge lvl-2" style="padding:2px 6px; font-size:11px;">${row.th || '1기'}</span></div></div>
+                <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 참여 시험명 및 기수:</span> <div style="margin-top:2px;"><span class="lvl-badge lvl-2" style="padding:2px 6px; font-size:11px;">${row.th || '1기'}</span></div></div>
                 <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 당직 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${dutyStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : dutyStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
                 <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;"><span style="color:var(--text-muted); font-size:12px; font-weight:700;">현재 소집 동의 현황:</span> <div style="font-weight:700; margin-top:2px;">${callStatus === '동의' ? '<span style="color:#4ade80;">● 동의완료</span>' : callStatus === '미동의' ? '<span style="color:#f87171;">X 미동의</span>' : '<span style="color:#94a3b8;">○ 대기중</span>'}</div></div>
             </div>
 
-            <!-- 🎯 [대표님 지시 완벽 정형]: 과거 임상 참여 전체 리스트 출력 구역 (높이 180px 제한 및 무결점 스크롤바 가드 장착) -->
-            <div style="width:100%; background:#0b0f19; border:1px solid var(--border-color); padding:14px; border-radius:8px; margin-bottom:18px; box-sizing:border-box;">
-                <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:10px; text-align:left;"><i class="fa-solid fa-clock-history"></i> 동일 피험자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)</div>
-                <div class="modal-history-scroll-zone" style="max-height:180px; overflow-y:auto; padding-right:4px; box-sizing:border-box;">
-                    ${historyRowsHTML}
-                </div>
-            </div>
+              <!-- 💡 요구사항 2: 동일 피험자 과거 임상시험 참여 누적 내역 래퍼 (길어지면 스크롤바 활성화) -->
+    <div style="margin-bottom: 20px;">
+        <span class="label" style="display: block; margin-bottom: 8px;" id="modal-history-count-title">
+            동일 대상자 과거 임상시험 참여 누적 내역 (0건)
+        </span>
+        
+        <!-- 🎯 스크롤 컴포넌트 박스: 최대 높이 240px 제한, 넘어가면 스크롤바 사출 -->
+        <div id="modal-history-scroll-zone" style="max-height: 240px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px;">
+            <!-- 자바스크립트 엔진에 의해 [현재시험] 및 [과거시험] 템플릿 카드가 실시간 빌드됩니다 -->
+        </div>
+    </div>
         </div>
     `;
 
@@ -6200,7 +6294,7 @@
         </div>
     </div>
 
-    <!-- [신규 추가] 관리자 전용 피험자 업로드 서류 개별 스캔 스냅샷 검수 모달 프레임 -->
+    <!-- [신규 추가] 관리자 전용 대상자 업로드 서류 개별 스캔 스냅샷 검수 모달 프레임 -->
     <div id="adminDocViewerOverlay" class="pw-modal-overlay" style="display: none;">
         <div class="pw-modal-box" style="max-width: 500px; background: #0f172a; text-align: center;">
             <h3 id="adminDocModalTitle" style="color: var(--secondary-color); font-size: 16px;">💥 국책 증빙 서류 오피셜 마스터 검수반
@@ -6274,7 +6368,7 @@
         <div class="history-modal-box">
             <h3>
                 <i class="fa-solid fa-id-card-clip"></i>
-                피험자 마스터 이력 통제 허브
+                대상자 마스터 이력 통제 허브
             </h3>
 
             <!-- 💡 [4단계 예고]: 자바스크립트에 의해 개인 신상 정보 및 매칭 데이터가 실시간 투사될 슬롯 구역 -->

@@ -3284,7 +3284,7 @@
 
             if (rawText.split(/\r?\n/).length > 2) {
                 try {
-                    // 눈에 보이지 않는 \r 제어 문자를 선제적으로 제거하여 단선 차단
+                    // 눈에 보이지 않는 \r 제어 문자를 선제적으로 지워 오작동 단선 예방
                     const rows = rawText.replace(/\r/g, '').split('\n');
                     let importCount = 0;
                     let duplicateCount = 0;
@@ -3292,7 +3292,7 @@
                     let delimiter = ',';
                     if (rawText.includes('\t')) delimiter = '\t';
 
-                    // 1. [상단 타이틀 스캔 구역]
+                    // 1. [상단 타이틀 스캔 구역 - 기수, 시험명, 인원, 기간 분리]
                     let firstRowText = rows[0] ? rows[0].trim().replace(/"/g, '') : "";
                     if (firstRowText.length < 5 && rows[1]) firstRowText = rows[1].trim().replace(/"/g, '');
 
@@ -3314,50 +3314,50 @@
                     }
                     if (!fileExtractedTitle) fileExtractedTitle = "대화 로수+에제";
 
-                    // 2. [데이터 헤더 위치 역추적 구역]
+                    // 2. [데이터 헤더 위치 및 생년월일 열 정밀 탐색 구역]
                     let headerRowIndex = 1;
                     for (let i = 0; i < rows.length; i++) {
-                        const testRow = rows[i].replace(/\s/g, ''); // 공백 제거 후 검색
-                        if (testRow.includes("성명") || testRow.includes("이름") || testRow.includes("생년월일") || testRow.includes("코드")) {
+                        const testRow = rows[i].replace(/\s/g, ''); // 공백을 다 지우고 검색
+                        if (testRow.includes("성명") || testRow.includes("이름") || testRow.includes("생년월일")) {
                             headerRowIndex = i;
                             break;
                         }
                     }
 
-                    // 💡 [초정밀 동적 스캔 파트]: 엑셀 왼쪽에 숨은 칸이 있어도 글자 이름으로 열 번호를 완벽히 찾아냅니다.
                     const headerCells = rows[headerRowIndex].split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
 
-                    let idxName = headerCells.findIndex(h => h.includes("이름") || h.includes("성명"));
-                    let idxSsn = headerCells.findIndex(h => h.includes("생년월일") || h.includes("생년"));
-                    let idxGenderAge = headerCells.findIndex(h => h.includes("성별") || h.includes("나이"));
-                    let idxPhone = headerCells.findIndex(h => h.includes("연락처") || h.includes("전화") || h.includes("휴대폰"));
+                    // 💡 [정밀 타격 가드]: '코드'나 'ID'에 현혹되지 않고, 오직 "생년월일" 또는 "생년" 글자가 일치하는 칸의 순서만 정확히 뽑아냅니다.
+                    let idxName = headerCells.findIndex(h => h === "성명" || h === "이름");
+                    let idxSsn = headerCells.findIndex(h => h === "생년월일" || h === "생년");
+                    let idxGenderAge = headerCells.findIndex(h => h === "성별/나이" || h === "성별" || h === "나이");
+                    let idxPhone = headerCells.findIndex(h => h === "연락처" || h === "전화번호" || h === "전화");
 
-                    // 💡 [하드코딩 5번 차단 폴백 가드]: 만약 글자 매칭에 실패했을 때만 최후의 수단으로 엑셀 실물 열 순서를 역추적 매핑
-                    if (idxName === -1) idxName = headerCells.findIndex(h => h === "") + 4; // 추가열 대비 유연한 인덱스 포인팅
-                    if (idxGenderAge === -1) idxGenderAge = idxName + 1;
-                    if (idxSsn === -1) idxSsn = idxName + 2; // 성명에서 두 칸 오른쪽이 무조건 생년월일 열입니다.
-                    if (idxPhone === -1) idxPhone = idxName + 3;
+                    // 글자 매칭이 안 되었을 때를 대비한 최후의 보루 엑셀 실물 위치 수동 매핑 가드
+                    if (idxName === -1) idxName = 3;
+                    if (idxGenderAge === -1) idxGenderAge = 4;
+                    if (idxSsn === -1) idxSsn = 5; // 이미지상 6번째 열(인덱스 5)이 확실한 생년월일 칸입니다.
+                    if (idxPhone === -1) idxPhone = 6;
 
-                    // 3. [피험자 데이터 루프 적재 구역]
+                    // 3. [피험자 명단 데이터 루프 적재 구역]
                     for (let i = headerRowIndex + 1; i < rows.length; i++) {
                         const rowText = rows[i].trim();
                         if (!rowText) continue;
 
                         const cells = rowText.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
-                        if (cells.length < idxName) continue;
+                        if (cells.length < idxSsn) continue;
 
                         let extractedName = cells[idxName] ? cells[idxName].replace(/\(F\)|\(M\)/gi, '').trim() : "미정";
 
-                        // 🎯 [정밀 수리]: 동적 위치 추적으로 찾아낸 정확한 생년월일 열 데이터를 자릿수 유실 없이 그대로 가져옵니다.
+                        // 🎯 [정정 완수]: 코드(260268~ 등)를 완전히 거부하고, 생년월일 칸(990329, 1128 등)에 적혀있는 데이터만 원본 문자열 그대로 정확하게 추출합니다!
                         let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().trim() : "";
                         if (!ssnRaw || ssnRaw === "undefined" || ssnRaw === "") continue;
 
-                        // 성별/나이 열에서 성별 식별자(M, F)를 추출하여 주민번호 뒤에 안전 결합
+                        // 성별/나이 열(M/27 등)에서 첫 글자인 성별 식별자(M, F)를 추출하여 주민번호 뒤에 결합
                         const genderAgeCell = cells[idxGenderAge] ? cells[idxGenderAge].toString().trim().toUpperCase() : "";
                         if (genderAgeCell) {
                             const genChar = genderAgeCell.charAt(0);
                             if (["M", "F", "1", "2", "3", "4"].includes(genChar)) {
-                                ssnRaw = ssnRaw + "-" + genChar; // 엑셀 내용대로 1128-M, 216-M, 990329-M 완벽 보존 조립
+                                ssnRaw = ssnRaw + "-" + genChar; // 예: 990329-M, 1128-M, 216-M 형태로 완벽 보존 조립
                             }
                         }
                         const extractedSsn = ssnRaw.toUpperCase();
@@ -3370,7 +3370,7 @@
                             continue;
                         }
 
-                        // 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드
+                        // 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드 (ID, S_ID, 코드, 이니셜 제외 수립 완료)
                         dataStoreApplicant.unshift({
                             uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                             title: fileExtractedTitle,
@@ -3378,7 +3378,7 @@
                             count: fileExtractedCount,
                             period: fileExtractedPeriod,
                             name: extractedName,
-                            ssn: extractedSsn, // 파일 그대로의 가변 숫자가 바인딩된 원천 데이터 안착
+                            ssn: extractedSsn, // 오직 생년월일 열 데이터만 안전하게 보존 안착
                             phone: extractedPhone,
                             result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
                             isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",

@@ -3293,7 +3293,7 @@
             if (!rawText) return alert("파일 내용이 비어있습니다.");
 
             // ----------------======================================================
-            // 🎯 [초강력 복구 파싱 체인]: 구분자 및 헤더 불일치 요소를 우회하여 강제 적재 구동
+            // 🎯 [초강력 동적 파싱 체인]: 엑셀/CSV 내부 데이터를 실시간 감지하여 파일 내용 그대로 적재
             // ----------------======================================================
             if (rawText.split(/\r?\n/).length > 2) {
                 try {
@@ -3311,13 +3311,19 @@
                     // 2. 헤더 명칭 기반 열 인덱스 실시간 위치 추적
                     const headerCells = firstRow.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
 
+                    let idxTitle = headerCells.findIndex(h => h.includes("시험명") || h.includes("과제명") || h.includes("Title"));
+                    let idxTh = headerCells.findIndex(h => h.includes("기수") || h.includes("차수") || h.includes("Th"));
+                    let idxCount = headerCells.findIndex(h => h.includes("인원") || h.includes("수량") || h.includes("Count"));
+                    let idxPeriod = headerCells.findIndex(h => h.includes("기간") || h.includes("시간") || h.includes("Period"));
                     let idxName = headerCells.findIndex(h => h.includes("이름") || h.includes("성명") || h.includes("Name"));
                     let idxSsn = headerCells.findIndex(h => h.includes("생년월일") || h.includes("주민") || h.includes("SSN") || h.includes("코드"));
                     let idxGenderAge = headerCells.findIndex(h => h.includes("성별") || h.includes("나이"));
                     let idxPhone = headerCells.findIndex(h => h.includes("연락처") || h.includes("전화") || h.includes("휴대폰"));
 
-                    // 💡 [치명적 0건 예외 차단 가드]: 만약 헤더 글자가 깨졌거나 불일치하여 인덱스를 못 찾은 경우(인덱스 -1)
-                    // 방금 아까 이미지에서 추출한 표준 배치 열 순서(3번 성명, 4번 성별/나이, 5번 생년월일, 6번 연락처)로 강제 고정 맵핑 처리!
+                    // 💡 [폴백 안전장치]: 만약 파일에 특정 열 머리글이 누락되었거나 못 찾은 경우(인덱스 -1)
+                    // 이전에 내보낸 표준 엑셀 양식의 열 번호를 기반으로 위치 자동 매핑
+                    if (idxTitle === -1) idxTitle = 1;
+                    if (idxTh === -1) idxTh = 2;
                     if (idxName === -1) idxName = 3;
                     if (idxGenderAge === -1) idxGenderAge = 4;
                     if (idxSsn === -1) idxSsn = 5;
@@ -3332,18 +3338,18 @@
                         const cells = rowText.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
                         if (cells.length < 4) continue; // 데이터가 깨진 불완전한 로우 패스
 
-                        // 인덱스 기반 데이터 원천 추출 가동
-                        const extractedTitle = "[일괄 업로드] 4층 대화 로수+에제";
-                        const extractedTh = "1기";
-                        const extractedCount = "1";
-                        const extractedPeriod = "72";
+                        // 🎯 [수리 완료]: 하드코딩 고정값을 전면 철폐하고, 파일 내용에서 실시간 변수 추출 가동
+                        const extractedTitle = idxTitle !== -1 && cells[idxTitle] ? cells[idxTitle].trim() : "[일괄적재] 과제명 미지정";
+                        const extractedTh = idxTh !== -1 && cells[idxTh] ? formatTh(cells[idxTh].trim()) : "1기";
+                        const extractedCount = idxCount !== -1 && cells[idxCount] ? getOnlyNumbers(cells[idxCount]) : "1";
+                        const extractedPeriod = idxPeriod !== -1 && cells[idxPeriod] ? getOnlyNumbers(cells[idxPeriod]) : "72";
 
                         // 이름 데이터 정제 및 괄호(F, M) 소멸 처리
                         let rawName = cells[idxName] || "미정";
                         rawName = rawName.replace(/\(F\)|\(M\)/gi, '').trim();
                         const extractedName = rawName;
 
-                        // 🎯 [성별 기호 역추적 결합 완비]: 생년월일에 성별 구분자가 없더라도 성별열(M/27)에서 첫 글자를 따와 결합
+                        // 🎯 [성별 기호 역추적 결합]: 생년월일에 성별 구분자가 없더라도 성별열(M/27)에서 첫 글자를 따와 결합
                         let ssnRaw = cells[idxSsn] || "";
                         const genderAgeCell = idxGenderAge !== -1 ? cells[idxGenderAge] : "";
                         if (genderAgeCell && ssnRaw.length === 6) {
@@ -3363,7 +3369,7 @@
                             continue;
                         }
 
-                        // 4. 대상자 대장 표준 데이터베이스 규격 조립 주입
+                        // 4. 대상자 대장 표준 데이터베이스 규격 조립 주입 (전부 파일 내용 기반으로 대입)
                         dataStoreApplicant.unshift({
                             uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                             title: extractedTitle,

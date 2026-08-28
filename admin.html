@@ -3291,29 +3291,149 @@
 
         function parseRawTextDump(rawText) {
             if (!rawText) return alert("파일 내용이 비어있습니다.");
+
+            // ----------------======================================================
+            // 🎯 [분기 처리 가드]: 콤마(,)와 줄바꿈이 혼재된 대량 표 양식(CSV)인지 실시간 판별
+            // ----------------======================================================
+            if (rawText.includes(',') && rawText.split(/\r?\n/).length > 2) {
+                try {
+                    const rows = rawText.split(/\r?\n/);
+                    let importCount = 0;
+                    let duplicateCount = 0;
+
+                    // 헤더 타이틀 행을 분리하여 각 열의 위치(인덱스)를 동적으로 추적합니다.
+                    const headerCells = rows[0].split(',').map(cell => cell.trim().replace(/"/g, ''));
+
+                    const idxTitle = headerCells.findIndex(h => h.includes("시험명") || h.includes("과제명"));
+                    const idxTh = headerCells.findIndex(h => h.includes("기수") || h.includes("차수"));
+                    const idxCount = headerCells.findIndex(h => h.includes("인원"));
+                    const idxPeriod = headerCells.findIndex(h => h.includes("기간"));
+                    const idxName = headerCells.findIndex(h => h.includes("이름") || h.includes("성명"));
+                    const idxSsn = headerCells.findIndex(h => h.includes("생년월일") || h.includes("주민") || h.includes("코드"));
+                    const idxPhone = headerCells.findIndex(h => h.includes("연락처") || h.includes("전화"));
+
+                    // 데이터 열 순회 가동
+                    for (let i = 1; i < rows.length; i++) {
+                        const rowText = rows[i].trim();
+                        if (!rowText) continue;
+
+                        const cells = rowText.split(',').map(cell => cell.trim().replace(/"/g, ''));
+                        if (cells.length < 3) continue;
+
+                        // 헤더 매핑 기반 데이터 추출
+                        const extractedTitle = idxTitle !== -1 ? cells[idxTitle] : "4층 대화 로수+에제";
+                        const extractedTh = idxTh !== -1 ? formatTh(cells[idxTh]) : "1기";
+                        const extractedCount = idxCount !== -1 ? getOnlyNumbers(cells[idxCount]) : "1";
+                        const extractedPeriod = idxPeriod !== -1 ? getOnlyNumbers(cells[idxPeriod]) : "72";
+                        const extractedName = idxName !== -1 ? cells[idxName].replace(/\(F\)|\(M\)/gi, '') : "미정";
+
+                        // 🎯 [성별 기호 보존 수리]: getOnlyNumbers 필터를 걷어내고 영문 및 하이픈 데이터를 대문자로 원형 보존 적재합니다.
+                        let ssnRaw = idxSsn !== -1 ? cells[idxSsn] : "";
+                        // 만약 생년월일 열에 성별 기호가 없다면, 성별/나이 열(M/27, F/39) 등에서 기호를 가져와서 동적으로 보완 결합합니다.
+                        const idxGenderAge = headerCells.findIndex(h => h.includes("성별"));
+                        if (idxGenderAge !== -1 && cells[idxGenderAge] && ssnRaw.length === 6) {
+                            const genChar = cells[idxGenderAge].charAt(0).toUpperCase();
+                            ssnRaw = ssnRaw + "-" + genChar; // 예: 990329-M 형태로 강제 수립 보존
+                        }
+                        const extractedSsn = ssnRaw.toUpperCase();
+
+                        const extractedPhone = idxPhone !== -1 ? getOnlyNumbers(cells[idxPhone]) : "";
+
+                        if (!extractedName || extractedName === "미정" || !extractedSsn) continue;
+
+                        // 중복 검사
+                        if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
+                            duplicateCount++;
+                            continue;
+                        }
+
+                        // 대장 안착 인스턴스 빌드
+                        dataStoreApplicant.unshift({
+                            uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                            title: extractedTitle,
+                            th: extractedTh,
+                            count: extractedCount || "1",
+                            period: extractedPeriod || "72",
+                            name: extractedName,
+                            ssn: extractedSsn, // 기호가 온전히 포함된 주민번호 안착
+                            phone: extractedPhone,
+                            result: "접수",
+                            payStatus: "접수",
+                            payStatus1: "접수",
+                            payStatus2: "대기",
+                            payStatus3: "대기",
+                            isDutyAgreed: "대기",
+                            isCallAgreed: "대기",
+                            isAgreed: "대기",
+                            category: "내분비내과 / 스마트 대량 적재",
+                            stage: `${extractedTh} 참여(소집)`,
+                            idCard: true,
+                            bankbook: true
+                        });
+                        importCount++;
+                    }
+
+                    localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
+                    if (typeof commitToLocalStorage === "function") commitToLocalStorage();
+                    if (typeof refreshApplicantView === "function") refreshApplicantView();
+
+                    return alert(`📢 대량 명단 일괄 등록 성공!\n● 정상 적재: 총 [${importCount}건]\n● 중복 제외: 총 [${duplicateCount}건]`);
+                } catch (err) {
+                    console.error("CSV 대량 파싱 에러:", err);
+                }
+            }
+
+            // ----------------======================================================
+            // 💡 [기존 줄글 분석 분기 채널]: 단일 피험자 줄글 패턴 스캔 로직 완벽 원형 유지
+            // ----------------======================================================
             const nameMatch = rawText.match(/(?:이름|성명)(?:\s*[:=➔]\s*|\s+)([가-힣]{2,5})/);
-            const ssnMatch = rawText.match(/(?:생년월일|주민번호|SSN)?(?:\s*[:=➔]\s*|\s+)?\b(\d{6})\b/);
-            const phoneMatch = rawText.match(/(?:연락처|전화번호|휴대폰|HP)?(?:\s*[:=➔]\s*|\s+)?\b(010[-.\s]?\d{3,4}[-.\s]?\d{4})\b/);
+
+            // 🎯 [6자리 락인 해제 수리]: 뒤에 성별 구분용 문자가 연속해서 붙어 나와도 유실 없이 전체 캡처하도록 패치
+            const ssnMatch = rawText.match(/(?:생년월일|주민번호|SSN)?(?:\s*[:=➔]\s*|\s+)?\b(\d{6}[-.\s]?[0-9A-Z]{1,7}|\d{6})\b/i);
+
+            const phoneMatch = rawText.match(/(?:연락처|전화번호|휴대폰|HP)?(?:\s*[:=➔]\s*|\s+)?\b(010[-.\s]?\d{3,4 Bios}[-.\s]?\d{4})\b/);
             const titleMatch = rawText.match(/(?:과제명|참여과제|시험명)?(?:\s*[:=➔]\s*|\s+)?(\[.*\]\s*[가-힣\w\s+]+)/) || ["", "[임상] 기본 과제 정의"];
             const thMatch = rawText.match(/(\d+)\s*(?:기|차수)/) || ["", "1"];
+
             if (!nameMatch || !ssnMatch || !phoneMatch) return alert("❌ 문서 내에서 필수값(이름, 생년월일, 연락처) 패턴을 찾을 수 없습니다.");
 
             const extractedName = nameMatch[1].trim();
-            const extractedSsn = ssnMatch[1].trim();
+            const extractedSsn = ssnMatch[1].trim().toUpperCase(); // 기호 대문자 유지
             const extractedPhone = phoneMatch[1].replace(/[^0-9]/g, '');
             const extractedTitle = titleMatch[1] ? titleMatch[1].trim() : "[임상] 수동 업로드 과제";
-            const extractedTh = thMatch[1] ? thMatch[1].trim() : "1";
+            const extractedTh = thMatch[1] ? formatTh(thMatch[1].trim()) : "1기";
 
             if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
                 return alert('알림: 이미 명단에 존재하는 대상자입니다.');
             }
 
-            dataStoreApplicant.push({
-                uid: Date.now(), title: extractedTitle, th: extractedTh, count: "1", period: "72", name: extractedName, ssn: extractedSsn, phone: extractedPhone, result: "접수",
-                category: "내분비내과 / 스마트 업로드", stage: `${extractedTh}기 참여(소집)`
+            dataStoreApplicant.unshift({
+                uid: Date.now(),
+                title: extractedTitle,
+                th: extractedTh,
+                count: "1",
+                period: "72",
+                name: extractedName,
+                ssn: extractedSsn, // 성별 기호 보존
+                phone: extractedPhone,
+                result: "접수",
+                payStatus: "접수",
+                payStatus1: "접수",
+                payStatus2: "대기",
+                payStatus3: "대기",
+                isDutyAgreed: "대기",
+                isCallAgreed: "대기",
+                isAgreed: "대기",
+                category: "내분비내과 / 스마트 업로드",
+                stage: `${extractedTh} 참여(소집)`,
+                idCard: true,
+                bankbook: true
             });
+
             localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
+            if (typeof commitToLocalStorage === "function") commitToLocalStorage();
             if (typeof refreshApplicantView === "function") refreshApplicantView();
+
             alert(`📢 스마트 자동 등록 성공!\n● 성명: ${extractedName}\n● 생년월일: ${extractedSsn}\n● 연락처: ${extractedPhone}`);
         }
 

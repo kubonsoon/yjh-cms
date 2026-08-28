@@ -5815,6 +5815,27 @@
         }
 
 
+        /**
+ * 🎯 [인라인 문법 오류 방지용 안전 브릿지 함수]
+ * 마크업 문자열 충돌 없이 [시간 설정] 버튼에 인자값을 안전하게 주입하고 노출시킵니다.
+ */
+        window.setupSchedulerButtonLink = function (index, titleText, fieldText) {
+            // 0.05초 미세 타이머를 가동하여 모달창의 버튼 돔이 완전히 마운트된 후 타격
+            setTimeout(() => {
+                const sb = document.getElementById('btn-integrated-action-scheduler');
+                if (sb) {
+                    sb.style.display = 'block'; // 버튼 강제 노출
+
+                    // 안전하게 가공된 문자열 구조를 리바인딩 주입하여 따옴표 충돌 원천 방어
+                    sb.onclick = function () {
+                        if (typeof window.openAlarmSchedulerModal === 'function') {
+                            window.openAlarmSchedulerModal(index, titleText, fieldText);
+                        }
+                    };
+                }
+            }, 50);
+        };
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

@@ -2900,56 +2900,103 @@
         function cancelInlineEditMode() { currentEditingUid = null; refreshApplicantView(); }
 
         /** 💡 [마스터] 인라인 수정 데이터를 로컬 스토리지에 영구 커밋하는 트랜잭션 함수 */
-        function saveInlineEditRecord(id) {
+        function saveInlineApplicantRecord(index) {
+            // index 기반으로 원본 레코드 역추적 및 고유 ID(uid) 확보
+            const targetRecord = dataStoreApplicant[index];
+            if (!targetRecord) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
+            const id = targetRecord.uid;
+
             const idx = dataStoreApplicant.findIndex(d => d.uid === id);
             if (idx === -1) return;
 
-            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크 (존재하지 않으면 null 방지 예외 처리)
-            const elTitle = document.getElementById('inline-title');
-            const elTh = document.getElementById('inline-th');
-            const elCount = document.getElementById('inline-count');
-            const elPeriod = document.getElementById('inline-period');
-            const elName = document.getElementById('inline-name');
-            const elSsn = document.getElementById('inline-ssn');
-            const elPhone = document.getElementById('inline-phone');
-            const elPayStatus = document.getElementById('inline-paystatus');
-            const elAgreed = document.getElementById('inline-agreed');
+            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크 (아까 3단계 마크업의 id 규격과 100% 일치 수립)
+            const elTitle = document.getElementById(`inline-app-title-${index}`);
+            const elTh = document.getElementById(`inline-app-th-${index}`);
+            const elCount = document.getElementById(`inline-app-count-${index}`);
+            const elPeriod = document.getElementById(`inline-app-period-${index}`);
+            const elName = document.getElementById(`inline-app-name-${index}`);
+            const elSsn = document.getElementById(`inline-app-ssn-${index}`);
+            const elPhone = document.getElementById(`inline-app-phone-${index}`);
+            const elPayStatus = document.getElementById(`inline-app-status-${index}`);
+            const elDuty = document.getElementById(`inline-app-duty-${index}`);
+            const elCall = document.getElementById(`inline-app-call-${index}`);
 
             // 2. 가상 데이터베이스 구조에 안전한 값 주입 (엘리먼트가 없으면 기존 값을 유지하여 폭파 차단)
             dataStoreApplicant[idx] = {
+                ...dataStoreApplicant[idx], // 기존 첨부 이미지 주소 등 핵심 원본 데이터 누락 없이 완벽 상속 가드
                 uid: id,
                 title: elTitle ? elTitle.value.trim() : (dataStoreApplicant[idx].title || ""),
                 th: elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || ""),
                 count: elCount ? getOnlyNumbers(elCount.value) : (dataStoreApplicant[idx].count || "0"),
                 period: elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0"),
                 name: elName ? elName.value.trim() : (dataStoreApplicant[idx].name || ""),
-                ssn: elSsn ? getOnlyNumbers(elSsn.value) : (dataStoreApplicant[idx].ssn || ""),
+
+                // 🎯 [교정 완료]: 기존의 getOnlyNumbers 필터를 걷어내어 성별 기호(M, F, 숫자, 하이픈)를 대문자로 원형 보존 적재
+                ssn: elSsn ? elSsn.value.trim().toUpperCase() : (dataStoreApplicant[idx].ssn || ""),
+
                 phone: elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || ""),
+
+                // 3단 분할 정산 채널 분기 독립 싱크 일치 유지
                 result: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].result || "접수"),
                 payStatus: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus || "접수"),
-                isAgreed: dataStoreApplicant[idx].isAgreed || "동의",
+                payStatus1: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus1 || "접수"),
+
+                isDutyAgreed: elDuty ? elDuty.value : (dataStoreApplicant[idx].isDutyAgreed || "대기"),
+                isCallAgreed: elCall ? elCall.value : (dataStoreApplicant[idx].isCallAgreed || "대기"),
+                isAgreed: dataStoreApplicant[idx].isAgreed || "대기",
+
                 category: dataStoreApplicant[idx].category || "내분비내과 / 대장 수동 등록",
                 stage: `${elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || "1기")} 참여(소집)`
             };
 
-
-            // 3. 로컬스토리지 영구 커밋 및 뷰 테이블 리렌더링
+            // 3. 로컬스토리지 영구 커밋 및 인라인 에디팅 수정 포인터 포기 해제
             commitToLocalStorage();
-            currentEditingUid = null;
-            if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
 
-            // 등록된 렌더러 함수 안전 호출
+            window.currentAppEditingIndex = null;
+            if (typeof currentAppEditingIndex !== 'undefined') {
+                currentAppEditingIndex = null;
+            }
+            currentEditingUid = null;
+
+            // 등록된 렌더러 함수 안전 호출 및 라이브 통계 대시보드 강제 새로고침 동기화
+            if (typeof calculateLiveDashboardStats === 'function') { calculateLiveDashboardStats(); }
             if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
             if (typeof drawApplicantTable === 'function') { drawApplicantTable(); }
 
-            alert(`전산 반영 완료: [${dataStoreApplicant[idx].name}] 피험자의 정보가 안전하게 업데이트되었습니다.`);
+            alert(`📋 목록 정보 수정 완료: [${dataStoreApplicant[idx].name}] 피험자의 변경 사항이 목록에 즉시 반영되었습니다.`);
         }
 
+        // 🎯 [에러 소멸용 목록 수정 진입 브릿지]: 목록 뷰포트에서 클릭한 수정 신호를 캡처하여 인라인 수정 모드로 즉시 전환
+        function editInlineApplicantRecord(index) {
+            window.currentAppEditingIndex = index;
+            if (typeof currentAppEditingIndex !== 'undefined') {
+                currentAppEditingIndex = index;
+            }
+            if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
+        }
+
+        // 🎯 [연쇄 에러 예방 취소 브릿지]: 인라인 수정창에서 [취소] 클릭 시 일반 보기 상태로 온전히 안전 복귀
+        function cancelInlineApplicantEdit() {
+            window.currentAppEditingIndex = null;
+            if (typeof currentAppEditingIndex !== 'undefined') {
+                currentAppEditingIndex = null;
+            }
+            if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
+        }
+
+        // 🎯 [삭제 파기 트랜잭션 함수]: 기존 원형 로직 사양 100% 무결 보존
         function removeApplicantRecord(id) {
             if (confirm('대상자를 완전히 파기하겠습니까?')) {
                 dataStoreApplicant = dataStoreApplicant.filter(d => d.uid !== id);
                 commitToLocalStorage();
+
+                window.currentAppEditingIndex = null;
+                if (typeof currentAppEditingIndex !== 'undefined') {
+                    currentAppEditingIndex = null;
+                }
                 currentEditingUid = null;
+
+                if (typeof calculateLiveDashboardStats === 'function') { calculateLiveDashboardStats(); }
                 refreshApplicantView();
             }
         }

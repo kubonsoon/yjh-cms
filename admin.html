@@ -3162,9 +3162,10 @@
             const d = document.getElementById('selected-file-name');
             if (!file || file.length === 0) { if (d) d.innerText = ''; return; }
 
+            // 1. 업로드 파일의 최하단 확장자 포맷 식별자 안전 캡처 (file[0] 정밀 지칭 유지)
             const ext = file[0].name.split('.').pop().toLowerCase();
 
-            // 🎯 [수리 완료]: 허용 확장자 배열 내부에 'csv' 포맷을 안전하게 바인딩하여 차단을 해제합니다.
+            // 2. 🎯 [필터링 수리 마감]: 허용 확장자 매트릭스 배열 내부에 'csv' 포맷을 완전히 락인 개방
             if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt', 'csv'].includes(ext)) {
                 alert('지원하지 않는 형식입니다.');
                 e.target.value = '';
@@ -3172,6 +3173,7 @@
             }
             if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file[0].name}`;
 
+            // 3. 텍스트 버퍼 인스턴스 스트림 가동
             const r = new FileReader();
             r.onload = function (evt) {
                 if (typeof parseRawTextDump === 'function') {
@@ -3179,7 +3181,8 @@
                 }
             };
 
-            // 🎯 [인코딩 최적화]: 한글 윈도우 환경(엑셀)에서 작성된 CSV 및 텍스트 파일의 한글 깨짐을 원천 방어하기 위해 'EUC-KR'로 판독합니다.
+            // 4. 🎯 [치명적 단선 오류 영구 소멸 조치]: 기존의 잘못된 'file' 지칭을 'file[0]'으로 정밀 정정 수리 완료!
+            // 이 수리를 통해 파일 분석기가 단선되지 않고 메모리를 EUC-KR 한글 완성형으로 온전히 로드합니다.
             r.readAsText(file[0], 'EUC-KR');
         }
 

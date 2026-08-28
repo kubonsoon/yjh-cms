@@ -6000,7 +6000,7 @@
 
                 const innerCard = pureModalElement.querySelector('.modal-content') || pureModalElement.querySelector('.popup-content') || pureModalElement.querySelector('.modal-content-container') || pureModalElement;
 
-                // 🎯 [순정 데이터 바인딩 완수]: undefined 원천 소멸 처리 (dutyNoticeText 와 dutyNotice 분기 필터 동시 가동)
+                // undefined 원천 소멸 처리 (dutyNoticeText 와 dutyNotice 분기 필터 동시 가동)
                 const coreText = noticeType === "당직"
                     ? (recRow.dutyNotice || recRow.dutyNoticeText || "지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.")
                     : (recRow.callNotice || recRow.callNoticeText || "정시 임상 소집 안내 공지입니다. 제1임상실로 즉시 집결해 주세요.");

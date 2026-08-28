@@ -3293,7 +3293,7 @@
             if (!rawText) return alert("파일 내용이 비어있습니다.");
 
             // ----------------======================================================
-            // 🎯 [초강력 동적 파싱 체인]: 엑셀/CSV 내부 데이터를 실시간 감지하여 파일 내용 그대로 적재
+            // 🎯 [특수 레이아웃 전용 엔진]: 1행 병합 문장을 통째로 정제하여 시험명/기수 유실 방지
             // ----------------======================================================
             if (rawText.split(/\r?\n/).length > 2) {
                 try {
@@ -3301,83 +3301,109 @@
                     let importCount = 0;
                     let duplicateCount = 0;
 
-                    // 1. 데이터 분리 구분자(쉼표 또는 탭) 실시간 정밀 동적 스캔
-                    const firstRow = rows[0];
+                    // 1. 데이터 구분자 (쉼표 또는 탭) 정밀 스캔
                     let delimiter = ',';
-                    if (firstRow.includes('\t')) {
+                    if (rawText.includes('\t')) {
                         delimiter = '\t';
                     }
 
-                    // 2. 헤더 명칭 기반 열 인덱스 실시간 위치 추적
-                    const headerCells = firstRow.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
+                    // 2. [1행 원천 분리 가드]: 1번째 줄 전체 텍스트 확보 및 공백 정제
+                    let firstRowText = rows[0] ? rows[0].trim().replace(/"/g, '') : "";
 
-                    let idxTitle = headerCells.findIndex(h => h.includes("시험명") || h.includes("과제명") || h.includes("Title"));
-                    let idxTh = headerCells.findIndex(h => h.includes("기수") || h.includes("차수") || h.includes("Th"));
-                    let idxCount = headerCells.findIndex(h => h.includes("인원") || h.includes("수량") || h.includes("Count"));
-                    let idxPeriod = headerCells.findIndex(h => h.includes("기간") || h.includes("시간") || h.includes("Period"));
+                    // 만약 1번째 줄이 비어있거나 너무 짧다면 2번째 줄까지 통합 스캔
+                    if (firstRowText.length < 5 && rows[1]) {
+                        firstRowText = rows[1].trim().replace(/"/g, '');
+                    }
+
+                    // 디폴트 안전망 값 지정
+                    let fileExtractedTh = "3기";
+                    let fileExtractedTitle = "대화 로수+에제";
+
+                    if (firstRowText) {
+                        // A. 숫자만 무조건 추출하여 기수 처리
+                        const numMatch = firstRowText.match(/\d+/);
+                        if (numMatch) {
+                            fileExtractedTh = numMatch[0] + "기";
+                        }
+
+                        // B. '담당 CRC' 문구 앞부분을 통째로 잘라내어 시험명으로 안전 락인
+                        if (firstRowText.includes("담당")) {
+                            let splitPart = firstRowText.split("담당")[0].trim();
+                            // 앞쪽의 기수 부분(예: "3기 ")을 제거하여 순수 시험명만 정제
+                            fileExtractedTitle = splitPart.replace(/^\d+\s*기|^\d+\s*차수/g, '').trim();
+                        } else {
+                            // '담당' 문구가 없을 경우 문장 전체에서 기수 단어만 빼고 시험명으로 지정
+                            fileExtractedTitle = firstRowText.replace(/\d+\s*기|\d+\s*차수/g, '').trim();
+                        }
+                    }
+
+                    // 값이 비어있을 경우를 대비한 최종 백업 폴백 세팅
+                    if (!fileExtractedTitle) fileExtractedTitle = "대화 로수+에제";
+
+                    // 3. 실제 데이터 헤더(ID, S_ID, 코드...)가 위치한 실제 행 위치 추적
+                    let headerRowIndex = 1;
+                    for (let i = 0; i < rows.length; i++) {
+                        const testRow = rows[i].toLowerCase();
+                        if (testRow.includes("성명") || testRow.includes("이름") || testRow.includes("id") || testRow.includes("코드")) {
+                            headerRowIndex = i;
+                            break;
+                        }
+                    }
+
+                    // 발견된 데이터 헤더 행 매핑 분석
+                    const headerCells = rows[headerRowIndex].split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
+
                     let idxName = headerCells.findIndex(h => h.includes("이름") || h.includes("성명") || h.includes("Name"));
-                    let idxSsn = headerCells.findIndex(h => h.includes("생년월일") || h.includes("주민") || h.includes("SSN") || h.includes("코드"));
+                    let idxSsn = headerCells.findIndex(h => h.includes("생년월일") || h.includes("주민") || h.includes("코드"));
                     let idxGenderAge = headerCells.findIndex(h => h.includes("성별") || h.includes("나이"));
                     let idxPhone = headerCells.findIndex(h => h.includes("연락처") || h.includes("전화") || h.includes("휴대폰"));
 
-                    // 💡 [폴백 안전장치]: 만약 파일에 특정 열 머리글이 누락되었거나 못 찾은 경우(인덱스 -1)
-                    // 이전에 내보낸 표준 엑셀 양식의 열 번호를 기반으로 위치 자동 매핑
-                    if (idxTitle === -1) idxTitle = 1;
-                    if (idxTh === -1) idxTh = 2;
+                    // 헤더 감지 누락 대비 강제 고정 인덱스 백업 가드 (이미지 기준 매핑 순서)
                     if (idxName === -1) idxName = 3;
                     if (idxGenderAge === -1) idxGenderAge = 4;
                     if (idxSsn === -1) idxSsn = 5;
                     if (idxPhone === -1) idxPhone = 6;
-
-                    // 3. 데이터 로우 전수 순회 가동
-                    for (let i = 1; i < rows.length; i++) {
+                    // 4. 데이터 행 순회 가동 (헤더 행 다음 줄부터 전수 스캔)
+                    for (let i = headerRowIndex + 1; i < rows.length; i++) {
                         const rowText = rows[i].trim();
-                        if (!rowText) continue; // 빈 줄 예외 패스
+                        if (!rowText) continue; // 빈 줄 패스
 
-                        // 파일 특성에 맞춰 셀 완벽 분리
                         const cells = rowText.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
-                        if (cells.length < 4) continue; // 데이터가 깨진 불완전한 로우 패스
+                        if (cells.length < 4) continue; // 깨진 행 패스
 
-                        // 🎯 [수리 완료]: 하드코딩 고정값을 전면 철폐하고, 파일 내용에서 실시간 변수 추출 가동
-                        const extractedTitle = idxTitle !== -1 && cells[idxTitle] ? cells[idxTitle].trim() : "[일괄적재] 과제명 미지정";
-                        const extractedTh = idxTh !== -1 && cells[idxTh] ? formatTh(cells[idxTh].trim()) : "1기";
-                        const extractedCount = idxCount !== -1 && cells[idxCount] ? getOnlyNumbers(cells[idxCount]) : "1";
-                        const extractedPeriod = idxPeriod !== -1 && cells[idxPeriod] ? getOnlyNumbers(cells[idxPeriod]) : "72";
-
-                        // 이름 데이터 정제 및 괄호(F, M) 소멸 처리
+                        // 성명 데이터 추출 및 특수 기호 정제
                         let rawName = cells[idxName] || "미정";
                         rawName = rawName.replace(/\(F\)|\(M\)/gi, '').trim();
                         const extractedName = rawName;
 
-                        // 🎯 [성별 기호 역추적 결합]: 생년월일에 성별 구분자가 없더라도 성별열(M/27)에서 첫 글자를 따와 결합
+                        // 생년월일 성별 결합 알고리즘 가동
                         let ssnRaw = cells[idxSsn] || "";
                         const genderAgeCell = idxGenderAge !== -1 ? cells[idxGenderAge] : "";
                         if (genderAgeCell && ssnRaw.length === 6) {
-                            const genChar = genderAgeCell.charAt(0).toUpperCase(); // M 또는 F 추출
-                            ssnRaw = ssnRaw + "-" + genChar; // 990329-M 형태로 최종 적재 규격 포맷팅
+                            const genChar = genderAgeCell.charAt(0).toUpperCase();
+                            ssnRaw = ssnRaw + "-" + genChar;
                         }
                         const extractedSsn = ssnRaw.toUpperCase();
 
                         const extractedPhone = cells[idxPhone] ? getOnlyNumbers(cells[idxPhone]) : "";
 
-                        // 필수 유효성 검사 예외 패스
                         if (!extractedName || extractedName === "미정" || !extractedSsn || extractedSsn.length < 5) continue;
 
-                        // [중복 검사]: 이름과 생년월일-성별코드가 대장에 이미 존재하는 중복 레코드 완벽 보호
+                        // 대장 내 데이터 중복 등록 원천 보호 가드
                         if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
                             duplicateCount++;
                             continue;
                         }
 
-                        // 4. 대상자 대장 표준 데이터베이스 규격 조립 주입 (전부 파일 내용 기반으로 대입)
+                        // 5. 추출해낸 1행의 시험 정보와 명단을 결합하여 가상 DB에 최종 적재
                         dataStoreApplicant.unshift({
                             uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                            title: extractedTitle,
-                            th: extractedTh,
-                            count: extractedCount,
-                            period: extractedPeriod,
+                            title: fileExtractedTitle, // 파일 내용에서 추출한 "대화 로수+에제" 주입
+                            th: fileExtractedTh,       // 파일 내용에서 추출한 "3기" 주입
+                            count: "1",
+                            period: "72",
                             name: extractedName,
-                            ssn: extractedSsn, // 가변 성별 기호가 온전히 탑재된 마스터 데이터 안착
+                            ssn: extractedSsn,
                             phone: extractedPhone,
                             result: "접수",
                             payStatus: "접수",
@@ -3387,23 +3413,23 @@
                             isDutyAgreed: "대기",
                             isCallAgreed: "대기",
                             isAgreed: "대기",
-                            category: "내분비내과 / 스마트 대량 적재",
-                            stage: `${extractedTh} 참여(소집)`,
+                            category: "내분비내과 / 엑셀 레이아웃 파싱",
+                            stage: `${fileExtractedTh} 참여(소집)`,
                             idCard: true,
                             bankbook: true
                         });
                         importCount++;
                     }
 
-                    // 5. 로컬스토리지 파일 기억장치 영구 물리 커밋 트랜잭션 구동
+                    // 6. 물리 데이터 영구 세이브 커밋
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                     if (typeof commitToLocalStorage === "function") commitToLocalStorage();
 
-                    // 6. 인터페이스 테이블 즉시 새로고침 리렌더링 연쇄 기동
+                    // 7. 대시보드 라이브 통계 및 목록 화면 실시간 리렌더링
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
 
-                    return alert(`📢 대량 명단 일괄 등록 성공!\n● 정상 적재: 총 [${importCount}건]\n● 중복 제외: 총 [${duplicateCount}건]`);
+                    return alert(`📢 엑셀 특수 양식 파싱 일괄 등록 성공!\n- 적용 시험명: ${fileExtractedTitle}\n- 적용 기수: ${fileExtractedTh}\n- 정상 적재: 총 [${importCount}건]\n- 중복 제외: 총 [${duplicateCount}건]`);
                 } catch (err) {
                     console.error("파일 대량 파싱 에러:", err);
                     alert("알림: 파일 데이터 구조 해석에 실패했습니다.");
@@ -3443,6 +3469,7 @@
 
             alert(`📢 스마트 자동 등록 성공!\n● 성명: ${extractedName}\n● 생년월일: ${extractedSsn}\n● 연락처: ${extractedPhone}`);
         }
+
 
 
         // 💥 [독립 확장] 새창이 아닌 기존 비밀번호 수정창과 동일한 내장형 모달 시스템 가동

@@ -3284,7 +3284,7 @@
 
             if (rawText.split(/\r?\n/).length > 2) {
                 try {
-                    // 눈에 보이지 않는 \r 문자를 선제적으로 영구 정제하여 단선 예외 방어
+                    // 눈에 보이지 않는 \r 제어 문자를 선제적으로 제거하여 단선 차단
                     const rows = rawText.replace(/\r/g, '').split('\n');
                     let importCount = 0;
                     let duplicateCount = 0;
@@ -3317,26 +3317,26 @@
                     // 2. [데이터 헤더 위치 역추적 구역]
                     let headerRowIndex = 1;
                     for (let i = 0; i < rows.length; i++) {
-                        const testRow = rows[i].replace(/\s/g, ''); // 공백까지 일체 압축 정제
+                        const testRow = rows[i].replace(/\s/g, ''); // 공백 제거 후 검색
                         if (testRow.includes("성명") || testRow.includes("이름") || testRow.includes("생년월일") || testRow.includes("코드")) {
                             headerRowIndex = i;
                             break;
                         }
                     }
 
-                    // 💡 [버그 소멸 코어]: trim() 처리를 완벽하게 하여 텍스트 오염을 원천 정화
+                    // 💡 [초정밀 동적 스캔 파트]: 엑셀 왼쪽에 숨은 칸이 있어도 글자 이름으로 열 번호를 완벽히 찾아냅니다.
                     const headerCells = rows[headerRowIndex].split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
 
                     let idxName = headerCells.findIndex(h => h.includes("이름") || h.includes("성명"));
-                    let idxSsn = headerCells.findIndex(h => h.includes("생년월일") || h.includes("주민") || h.includes("생년"));
-                    let idxGenderAge = headerCells.findIndex(h => h.includes("성별"));
-                    let idxPhone = headerCells.findIndex(h => h.includes("연락처") || h.includes("전화"));
+                    let idxSsn = headerCells.findIndex(h => h.includes("생년월일") || h.includes("생년"));
+                    let idxGenderAge = headerCells.findIndex(h => h.includes("성별") || h.includes("나이"));
+                    let idxPhone = headerCells.findIndex(h => h.includes("연락처") || h.includes("전화") || h.includes("휴대폰"));
 
-                    // 파일 양식 매칭 실패 시 이미지 기준 강제 고정 인덱스 백업 가드 가동
-                    if (idxName === -1) idxName = 3;
-                    if (idxGenderAge === -1) idxGenderAge = 4;
-                    if (idxSsn === -1) idxSsn = 5;
-                    if (idxPhone === -1) idxPhone = 6;
+                    // 💡 [하드코딩 5번 차단 폴백 가드]: 만약 글자 매칭에 실패했을 때만 최후의 수단으로 엑셀 실물 열 순서를 역추적 매핑
+                    if (idxName === -1) idxName = headerCells.findIndex(h => h === "") + 4; // 추가열 대비 유연한 인덱스 포인팅
+                    if (idxGenderAge === -1) idxGenderAge = idxName + 1;
+                    if (idxSsn === -1) idxSsn = idxName + 2; // 성명에서 두 칸 오른쪽이 무조건 생년월일 열입니다.
+                    if (idxPhone === -1) idxPhone = idxName + 3;
 
                     // 3. [피험자 데이터 루프 적재 구역]
                     for (let i = headerRowIndex + 1; i < rows.length; i++) {
@@ -3344,20 +3344,20 @@
                         if (!rowText) continue;
 
                         const cells = rowText.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
-                        if (cells.length < 4) continue;
+                        if (cells.length < idxName) continue;
 
                         let extractedName = cells[idxName] ? cells[idxName].replace(/\(F\)|\(M\)/gi, '').trim() : "미정";
 
-                        // 🎯 [대표님 지시 완결 수리]: 자릿수(4자리, 6자리)에 상관없이 파일에 적힌 원본 숫자 그대로 강제 수집!
+                        // 🎯 [정밀 수리]: 동적 위치 추적으로 찾아낸 정확한 생년월일 열 데이터를 자릿수 유실 없이 그대로 가져옵니다.
                         let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().trim() : "";
-                        if (!ssnRaw || ssnRaw === "undefined") continue; // 유효하지 않은 데이터 예외 가드
+                        if (!ssnRaw || ssnRaw === "undefined" || ssnRaw === "") continue;
 
                         // 성별/나이 열에서 성별 식별자(M, F)를 추출하여 주민번호 뒤에 안전 결합
-                        const genderAgeCell = idxGenderAge !== -1 && cells[idxGenderAge] ? cells[idxGenderAge].toString().trim().toUpperCase() : "";
+                        const genderAgeCell = cells[idxGenderAge] ? cells[idxGenderAge].toString().trim().toUpperCase() : "";
                         if (genderAgeCell) {
                             const genChar = genderAgeCell.charAt(0);
                             if (["M", "F", "1", "2", "3", "4"].includes(genChar)) {
-                                ssnRaw = ssnRaw + "-" + genChar; // 예: 1128-M, 216-M, 990329-M 완벽 보존 조립
+                                ssnRaw = ssnRaw + "-" + genChar; // 엑셀 내용대로 1128-M, 216-M, 990329-M 완벽 보존 조립
                             }
                         }
                         const extractedSsn = ssnRaw.toUpperCase();
@@ -3408,7 +3408,7 @@
             if (!nameMatch || !ssnMatch || !phoneMatch) return alert("❌ 문서 내에서 필수 패턴을 찾을 수 없습니다.");
 
             const en = nameMatch[1].trim(), es = ssnMatch[1].trim().toUpperCase(), ep = phoneMatch[1].replace(/[^0-9]/g, '');
-            if (dataStoreApplicant.some(u => user.name === en && user.ssn === es)) return alert('알림: 이미 존재하는 대상자입니다.');
+            if (dataStoreApplicant.some(user => user.name === en && user.ssn === es)) return alert('알림: 이미 존재하는 대상자입니다.');
 
             dataStoreApplicant.unshift({
                 uid: Date.now(), title: "[임상] 수동 과제", th: "1기", count: "1", period: "72", name: en, ssn: es, phone: ep, result: "접수",

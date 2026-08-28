@@ -5940,23 +5940,26 @@
             const pay2 = row.payStatus2 || '대기';
             const pay3 = row.payStatus3 || '대기';
 
-            // 💡 [에러 원천 차단]: row.ssn 변수를 확실하게 안전 락인하여 ReferenceError 소멸 처리
+            // 💡 [오타 원천 세척 가드]: 변수명을 validSsn으로 확실하게 선언 락인
             const validSsn = row.ssn || "-";
             const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(validSsn, row.name) : "미정";
-            const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185'; // 남 스카이블루, 여 로즈레드 고대비 서식
+            const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185'; // 고대비 서식
 
             // 💡 [원본 지시 핵심 이식]: 성명/생년월일/전화번호 알맹이 추출용 정형화 함수 및 검색 조건 일치화
             const getPurePhone = (p) => (p || "").toString().replace(/[^0-9]/g, "").trim();
             const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9 가-힣]/g, "").trim();
 
+            // 생년월일 앞 6자리만 추출하여 비교하는 토큰 가이드 장착
+            const getSsnSixDigit = (s) => getPureString(s).substring(0, 6);
+
             const targetNameToken = getPureString(row.name);
-            const targetSsnToken = getPureString(row.ssn);
+            const targetSsnToken = getSsnSixDigit(row.ssn);
             const targetPhoneToken = getPurePhone(row.phone);
 
-            // 전역 대장에서 이름/생년월일/전화번호 번호가 100% 동일한 과거의 모든 참여 임상 이력을 긁어모읍니다.
+            // 전역 대장에서 이름/전화번호/생년월일 앞 6자리가 100% 일치하는 모든 내역 병합
             const historyRecords = db.filter(item => {
                 return getPureString(item.name) === targetNameToken &&
-                    getPureString(item.ssn) === targetSsnToken &&
+                    getSsnSixDigit(item.ssn) === targetSsnToken &&
                     getPurePhone(item.phone) === targetPhoneToken;
             });
             // 라이브 정산 진행률 내부 미니 배지 렌더러 (원본 소스 1:1 이식 보존)
@@ -6006,7 +6009,7 @@
                 historyRowsHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:15px 0;">과거 임상 참여 내역이 존재하지 않습니다.</div>`;
             }
 
-            // 4. [4단계 예고 구역 처리]: 원본 인젝션 구조 보존하며 가변 슬롯 데이터 투사
+            // 4. [4단계 예고 구역 처리]: 6021라인 부근의 오타를 validSsn으로 완벽하게 수정하여 슬롯에 투사
             contentSlot.innerHTML = `
         <!-- 상단: 기본 인적 신상 정보리스트 그리드 -->
         <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top:15px; margin-bottom: 20px; text-align:left;">
@@ -6015,7 +6018,7 @@
                 <div style="font-weight:700; color:var(--success-color); margin-top:2px;">${cleanName}</div>
             </div>
             <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
-                <!-- 💡 요구사항 1 결합: 주민번호 데이터와 동적 성별 판단 문자열 통합 가공 사출 -->
+                <!-- 💡 오타 전면 수정 구역: rawSsn 대신 상단에 안전하게 정의된 validSsn을 호출하도록 완벽 수리 -->
                 <span style="color:var(--text-muted); font-size:12px; font-weight:700;">생년월일(성별):</span>
                 <div style="font-weight: 700; color: #ffffff; margin-top:2px;">${validSsn} <span style="color: ${genderColor}; font-weight:800;">(${genderSign})</span></div>
             </div>
@@ -6085,8 +6088,6 @@
         function openAppHistoryDetailModal(index) {
             openIndividualHistoryModal(index);
         }
-
-
         // ────────────────────────────────────────────────────────────────────────
         // 🌟 [누락 복구 완수]: 시간 설정 버튼 클릭 및 데이터 커밋을 전담하는 마스터 함수 세트
         // ────────────────────────────────────────────────────────────────────────

@@ -1237,8 +1237,9 @@
                             <p id="selected-file-name"
                                 style="margin: 0 !important; font-weight: 700; color: var(--secondary-color); font-size: 12px; padding-left: 4px;">
                             </p>
-                            <input type="file" id="fileParser" accept=".xlsx, .xls, .docx, .doc, .hwp, .hwpx, .txt"
-                                style="display:none;" onchange="handleSmartFileImport(event)">
+                            <input type="file" id="fileParser"
+                                accept=".xlsx, .xls, .csv, .docx, .doc, .hwp, .hwpx, .txt" style="display:none;"
+                                onchange="handleSmartFileImport(event)">
                         </div>
                     </div>
 
@@ -3162,7 +3163,9 @@
             if (!file || file.length === 0) { if (d) d.innerText = ''; return; }
 
             const ext = file[0].name.split('.').pop().toLowerCase();
-            if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt'].includes(ext)) {
+
+            // 🎯 [수리 완료]: 허용 확장자 배열 내부에 'csv' 포맷을 안전하게 바인딩하여 차단을 해제합니다.
+            if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt', 'csv'].includes(ext)) {
                 alert('지원하지 않는 형식입니다.');
                 e.target.value = '';
                 return;
@@ -3170,8 +3173,14 @@
             if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file[0].name}`;
 
             const r = new FileReader();
-            r.onload = function (evt) { if (typeof parseRawTextDump === 'function') parseRawTextDump(evt.target.result); };
-            r.readAsText(file[0]);
+            r.onload = function (evt) {
+                if (typeof parseRawTextDump === 'function') {
+                    parseRawTextDump(evt.target.result);
+                }
+            };
+
+            // 🎯 [인코딩 최적화]: 한글 윈도우 환경(엑셀)에서 작성된 CSV 및 텍스트 파일의 한글 깨짐을 원천 방어하기 위해 'EUC-KR'로 판독합니다.
+            r.readAsText(file[0], 'EUC-KR');
         }
 
         function handleExamFileImport(event) {
@@ -3195,7 +3204,8 @@
 
             // 1. 엑셀/CSV 표준 헤더 타이틀 라인 정의 (쉼표 분할 규격)
             let csvContent = "\uFEFF"; // 💡 엑셀 한글 깨짐 방지를 위한 필수 UTF-8 BOM 바이트 헤더 주입
-            csvContent += "순번,시험명,기수,이름,생년월일,연락처,참여비단계,동의여부,금융계좌정보\n";
+            // 🎯 [헤더 교정]: 생년월일 바로 오른쪽에 '성별' 타이틀 열을 추가 바인딩합니다.
+            csvContent += "순번,시험명,기수,이름,생년월일,성별,연락처,참여비단계,동의여부,금융계좌정보\n";
 
             // 2. 가상 DB 순회하며 로우 데이터 로깅 가공 처리
             const counterMap = {};
@@ -3208,14 +3218,21 @@
                 const title = (row.title || "").replace(/,/g, " "); // 데이터 내 쉼표 오염 방지 정제
                 const th = formatTh(row.th);
                 const name = row.name || "";
-                const ssn = getOnlyNumbers(row.ssn);
+
+                // 🎯 [수리 완료]: getOnlyNumbers 필터를 해제하여 영문 성별 기호 및 하이픈 문자가 엑셀 파일에 온전히 보존되도록 제어합니다.
+                const ssn = (row.ssn || "").replace(/,/g, " ").toUpperCase();
+
+                // 🎯 [실시간 성별 추출 연동]: 가상 대장의 주민번호 데이터를 기반으로 '남' 또는 '여' 텍스트를 실시간 계산해 냅니다.
+                const gender = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(row.ssn, row.name) : "미정";
+
                 const phone = formatPhone(row.phone);
                 const payState = row.payStatus || "임상참여중";
                 const agreed = row.isAgreed || "미동의";
                 const account = row.accountInfo || "미제출";
 
                 // 한 줄 단위 로우 데이터 가공 조립
-                csvContent += `${order},${title},${th},${name},${ssn},${phone},${payState},${agreed},${account}\n`;
+                // 🎯 [로우 데이터 교정]: 헤더 구조와 1:1 싱크를 맞추어 ssn 대입 변수 뒤에 gender 연산 변수를 안전하게 사출 주입합니다.
+                csvContent += `${order},${title},${th},${name},${ssn},${gender},${phone},${payState},${agreed},${account}\n`;
             });
 
             // 3. 브라우저 메모리 가상 파일 Blob 바이너리 인터페이스 인스턴스 생성
@@ -3245,6 +3262,7 @@
                 alert("전산 파일 추출 오류: 데이터 스트림 변환 및 다운로드 처리에 실패했습니다.");
             }
         }
+
         function parseRecruitmentTextDump(rawText) {
             if (!rawText) return alert("파일 내용이 비어있습니다.");
             const titleMatch = rawText.match(/(?:시험명|과제명|임상명)(?:\s*[:=➔]\s*|\s+)(\[.*\]\s*[가-힣\w\s+]+)/) || rawText.match(/(\[.*\]\s*[가-힣\w\s+]+)/);

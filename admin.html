@@ -2316,91 +2316,112 @@
         // ========================================================
         var currentAppEditingIndex = null;
 
-        // 🎯 [원형 복구]: 페이징 상태 포인터 및 15개 슬라이싱 기준 정의
-        window.currentApplicantPage = 1;
-        const APPLICANT_PAGE_SIZE = 15;
-
-        /**
-         * 🎯 [대장 화면 렌더러 엔진 - 참여비/첨부서류 완벽 원형 복구본]
-         */
+        // ========================================================
+        // 🎯 [완전 종결] 대상자 마스터 테이블 기수 문자열 싱크 및 배지 드로잉 엔진 (당직/소집 분리형)
+        // ========================================================
         function refreshApplicantView() {
             const tbody = document.getElementById('dom-applicant-table');
-            const paginator = document.getElementById('applicant-pagination');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            if (paginator) paginator.innerHTML = '';
+            if (!tbody) return; tbody.innerHTML = '';
+            let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
-            // 최신 로컬스토리지 대장 확보 및 필터 조건 수렴
-            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
-                adminApplicantDB = dataStoreApplicant;
+            // [순정 데이터 정화 스캔 기믹] (원본 규칙 100% 보존)
+            let isDataCleaned = false;
+            db.forEach(user => {
+                if (user.isDutyAgreed === undefined || user.isDutyAgreed === null || user.isDutyAgreed === "") {
+                    user.isDutyAgreed = "대기"; isDataCleaned = true;
+                }
+                if (user.isCallAgreed === undefined || user.isCallAgreed === null || user.isCallAgreed === "") {
+                    user.isCallAgreed = "대기"; isDataCleaned = true;
+                }
+            });
+            if (isDataCleaned) {
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
+                if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = db;
             }
 
-            // 상단 검색 필터 선택 상태에 따른 실시간 데이터 여과 (원안 보존)
-            const filterTitle = document.getElementById('dashboard-filter-title')?.value || "ALL";
-            const filterTh = document.getElementById('dashboard-filter-th')?.value || "ALL";
+            // 상단 필터 값 실시간 정밀 트래킹 연동 구역
+            const filterTitleSelect = document.getElementById('dashboard-filter-title');
+            const filterThSelect = document.getElementById('dashboard-filter-th');
+            const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
+            const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
 
-            let filteredList = adminApplicantDB.filter(item => {
-                const matchTitle = (filterTitle === "ALL" || item.title === filterTitle);
-                const matchTh = (filterTh === "ALL" || item.th === filterTh);
+            const cleanString = (str) => {
+                if (!str) return "";
+                return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+            };
+
+            const targetTitleClean = cleanString(filterTitle);
+            const filterThNum = filterTh.replace(/[^0-9]/g, "");
+
+            // 상단 드롭다운 조건에 매칭되는 대상자만 정밀 필터링
+            let displayList = db.filter(row => {
+                const rowTitleClean = cleanString(row.title);
+                const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
+                const matchTitle = (filterTitle === 'ALL' || rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
+                const matchTh = (filterTh === 'ALL' || filterTh === '' || rowThNum === filterThNum);
                 return matchTitle && matchTh;
             });
 
-            const totalRecords = filteredList.length;
+            if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL') displayList = db;
 
-            // 15개 초과 시 가상 버퍼 슬라이싱 절단 및 인덱스 제어
-            const totalPages = Math.ceil(totalRecords / APPLICANT_PAGE_SIZE) || 1;
-
-            if (window.currentApplicantPage > totalPages) window.currentApplicantPage = totalPages;
-            if (window.currentApplicantPage < 1) window.currentApplicantPage = 1;
-
-            const startIndex = (window.currentApplicantPage - 1) * APPLICANT_PAGE_SIZE;
-            const endIndex = startIndex + APPLICANT_PAGE_SIZE;
-
-            // 현재 페이지에 해당하는 15개의 데이터셋 조각만 정밀 사출
-            const pagedList = filteredList.slice(startIndex, endIndex);
-
-            // 15개 데이터 조각 루프 렌더링 시동
-            pagedList.forEach((row, pagedIdx) => {
-                // 전체 원본 배열에서의 실제 고유 인덱스(위치 번호) 역추적 매핑
-                const index = adminApplicantDB.findIndex(item => item.uid === row.uid);
+            displayList.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
 
-                // 오리지널 통계 가공 변수 락인 복구
-                const currentQuota = row.count || "60";
-                const fmtPhone = typeof formatPhone === "function" ? formatPhone(row.phone) : row.phone;
-                const thClass = (row.th || "").replace(/[^0-9]/g, "") === "2" || (row.th || "").replace(/[^0-9]/g, "") === "3" ? "lvl-2" : "lvl-4";
+                const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
+                const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
+                let fmtPhone = '-';
+                if (rawPhone.length === 11) fmtPhone = rawPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+                else if (rawPhone.length === 10) fmtPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+                else if (rawPhone.length > 0) fmtPhone = row.phone;
 
-                // 기존 동의 상태 변수 바인딩
-                const dutyAgreed = row.isDutyAgreed || "대기";
-                const callAgreed = row.isCallAgreed || "대기";
+                const hasId = row.idCard === true || row.idCard === "true" || (row.idCardImg && row.idCardImg.length > 20);
+                const hasBank = row.bankbook === true || row.bankbook === "true" || (row.bankBookImg && row.bankBookImg.length > 20);
+                let idSrc = row.idCardImg || "placeholder", bankSrc = row.bankBookImg || "placeholder";
 
-                // 🎯 [순정 복원 1]: 1차/2차/3차 정산 채널 배지 라인 100% 원형 마운트
-                let payStatusBadgeLinesHTML = "";
-                if (row.payStatus1) payStatusBadgeLinesHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px;">1차: ${row.payStatus1}</div>`;
-                if (row.payStatus2) payStatusBadgeLinesHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px; margin-top:2px;">2차: ${row.payStatus2}</div>`;
-                if (row.payStatus3) payStatusBadgeLinesHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px; margin-top:2px;">3차: ${row.payStatus3}</div>`;
-                if (!payStatusBadgeLinesHTML) payStatusBadgeLinesHTML = `<span style="color:#94a3b8; font-size:12px;">추후공지</span>`;
+                let docsHTML = `<div style="display:flex; gap:4px; justify-content:center;">`;
+                if (hasId && idSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${idSrc}', '${cleanName}-신분증')" style="padding:4px 8px; font-size:11px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4); font-weight:700; cursor:pointer;">신분증</button>`;
+                else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(148,163,184,0.2); border-radius:4px; font-weight:700;">신분증</span>`;
+                if (hasBank && bankSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${bankSrc}', '${cleanName}-통장')" style="padding:4px 8px; font-size:11px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); font-weight:700; cursor:pointer;">통장</button>`;
+                else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
+                docsHTML += `</div>`;
+                const buildCoreMiniStatusBadgeHTML = (label, val) => {
+                    let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '처리완료';
+                    let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
+                    if (s === '접수') st = "background:var(--card-color); color:#38bdf8; border:1px solid #38bdf8;";
+                    else if (s === '처리중') st = "background:var(--card-color); color:#fbbf24; border:1px solid #fbbf24;";
+                    else if (s === '처리완료') st = "background:var(--card-color); color:#34d399; border:1px solid #34d399;";
+                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s === '처리중' ? '검토중' : s === '처리완료' ? '완료' : s}</span></div>`;
+                };
+                const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
 
-                // 🎯 [순정 복원 2]: 초기 미제출 비활성 회색 배지(.status-none) 및 인가 서식 원안 복구
-                let docsHTML = "";
-                if (row.idCard === true || row.idCard === "true") {
-                    docsHTML += `<span class="doc-badge status-id">신분증</span>`;
-                } else {
-                    docsHTML += `<span class="doc-badge status-none">신분증</span>`;
+                const buildAgreementStatusBadgeHTML = (val) => {
+                    let s = (val || '대기').trim();
+                    let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
+                    if (s === '동의') st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
+                    else if (s === '미동의') st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
+                    return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
+                };
+
+                const dutyAgreed = (row.isDutyAgreed || "대기").trim();
+                const callAgreed = (row.isCallAgreed || "대기").trim();
+                const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
+                let thClass = thNum === 1 ? "lvl-1" : (thNum === 2 || thNum === 3) ? "lvl-2" : (thNum === 4 || thNum === 5) ? "lvl-4" : "lvl-6";
+
+                // 🎯 [분모 실시간 조인]: 모집공고 원장에서 실제 기재된 정식 배정 인원수를 라이브 바인딩
+                let currentQuota = parseInt(row.count?.toString().replace(/[^0-9]/g, ''), 10) || 60;
+                const matchedRec = recruitmentDB.find(rec => cleanString(rec.title) === cleanString(row.title) && rec.th === row.th);
+                if (matchedRec && matchedRec.count) {
+                    currentQuota = parseInt(matchedRec.count.toString().replace(/[^0-9]/g, ''), 10) || currentQuota;
                 }
-                if (row.bankbook === true || row.bankbook === "true") {
-                    docsHTML += `<span class="doc-badge status-bank" style="margin-left:4px;">통장</span>`;
-                } else {
-                    docsHTML += `<span class="doc-badge status-none" style="margin-left:4px;">통장</span>`;
-                }
 
-                // 변수명 싱크 100% 일치 수립
-                const isAppEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index);
+                let matchCnt = displayList.slice(0, index + 1).filter(item => cleanString(item.title) === cleanString(row.title) && item.th === row.th).length;
 
+                // 🎯 [변수명 동기화 수리 완료]: ReferenceError 원천 소멸 처리 지칭
+                const isAppEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === index) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === index);
                 // ----------------======================================================
-                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (변수명 싱크 100% 일치 수립 완료)
                 // ----------------======================================================
                 if (isAppEditing) {
                     tr.className = "editing-row";
@@ -2411,13 +2432,12 @@
                 <td style="width: 65px; vertical-align: middle;"><input type="text" id="inline-app-period-${index}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
                 <td style="width: 80px; vertical-align: middle;"><input type="text" id="inline-app-name-${index}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;"></td>
                 <td style="width: 85px; vertical-align: middle;"><input type="text" id="inline-app-ssn-${index}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
-                
                 <td style="width: 65px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
                         ${parseGenderFromSsn(row.ssn, row.name)}
                     </span>
                 </td>
-
+                
                 <td style="width: 125px; vertical-align: middle;"><input type="text" id="inline-app-phone-${index}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;"></td>
                 <td style="width: 85px; vertical-align: middle;">
                     <select id="inline-app-status-${index}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
@@ -2427,6 +2447,7 @@
                     </select>
                 </td>
                 
+                <!-- 🎯 [당직동의 수정 칸]: 수정 클릭 시 선택 가능한 select 드롭다운 컴포넌트 탑재 -->
                 <td style="width: 75px; vertical-align: middle;">
                     <select id="inline-app-duty-${index}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
                         <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
@@ -2435,6 +2456,7 @@
                     </select>
                 </td>
                 
+                <!-- 🎯 [소집동의 수정 칸]: 수정 클릭 시 선택 가능한 select 드롭다운 컴포넌트 탑재 -->
                 <td style="width: 75px; vertical-align: middle;">
                     <select id="inline-app-call-${index}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
                         <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
@@ -2449,41 +2471,40 @@
                         <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${index})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
                         <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
                     </div>
-                </td>`;
+                </td>
+            `;
                 }
                 // ----------------======================================================
-                // 💡 [B 분기]: 일반 읽기 전용 목록 상태 마크업 사출
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (원본 양식 백틱 완벽 복원)
                 // ----------------======================================================
                 else {
+                    let payStatusBadgeLinesHTML = "";
+                    payStatusBadgeLinesHTML += buildMiniBadgeHTML("1차", row.payStatus1 || '접수');
+                    payStatusBadgeLinesHTML += buildMiniBadgeHTML("2차", row.payStatus2 || '대기');
+                    payStatusBadgeLinesHTML += buildMiniBadgeHTML("3차", row.payStatus3 || '대기');
+
                     tr.innerHTML = `
                   <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
                 <td style="width: 90px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
                 </td>
-                <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">${index + 1}/${currentQuota}명</td>
+                <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">${matchCnt}/${currentQuota}명</td>
                 <td style="width: 65px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
                 <td style="width: 80px; vertical-align: middle; text-align: center; color: #ffffff; font-weight: 700;">${row.name}</td>
                 <td style="width: 85px; vertical-align: middle; text-align: center; color: #94a3b8;">${row.ssn}</td>
-                
                 <td style="width: 65px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
                         ${parseGenderFromSsn(row.ssn, row.name)}
                     </span>
                 </td>
-
                 <td style="width: 125px; vertical-align: middle; text-align: center; color: #e2e8f0; font-family: monospace;">${fmtPhone}</td>
-                
-                <!-- 🎯 [원형 복구]: 1/2/3차 세로 정렬 구조 컨테이너 출력 사출 -->
                 <td style="width: 85px; vertical-align: middle; text-align: center;">
                     <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">${payStatusBadgeLinesHTML}</div>
                 </td>
                 
-                <td style="width: 75px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${dutyAgreed === '동의' ? 'lvl-2' : (dutyAgreed === '미동의' ? 'lvl-10' : 'lvl-1')}" style="padding: 4px 8px;">${dutyAgreed}</span>
-                </td>
-                <td style="width: 75px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${callAgreed === '동의' ? 'lvl-2' : (callAgreed === '미동의' ? 'lvl-10' : 'lvl-1')}" style="padding: 4px 8px;">${callAgreed}</span>
-                </td>
+                <!-- 🎯 [출력 구멍 수리 완료]: 하드코딩 '동의' 글자를 완전히 걷어내고, 정화 필터를 거친 실제 3단 배지 함수를 주입 사출합니다 -->
+                <td style="width: 75px; vertical-align: middle; text-align: center;">${buildAgreementStatusBadgeHTML(dutyAgreed)}</td>
+                <td style="width: 75px; vertical-align: middle; text-align: center;">${buildAgreementStatusBadgeHTML(callAgreed)}</td>
                 
                 <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
@@ -2492,35 +2513,12 @@
                         <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">수정</button>
                         <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
                     </div>
-                </td>`;
+                </td>
+            `;
                 }
-
                 tbody.appendChild(tr);
             });
-
-            // ----------------======================================================
-            // 💡 [페이징 내비게이션]: 15개 초과 시 하단에 고대비 내비게이션 탑재
-            // ----------------======================================================
-            if (totalRecords > APPLICANT_PAGE_SIZE && paginator) {
-                let paginationHTML = '';
-
-                paginationHTML += `<button onclick="window.currentApplicantPage--; refreshApplicantView();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
-
-                for (let p = 1; p <= totalPages; p++) {
-                    const isCurrent = (p === window.currentApplicantPage);
-                    const activeBtnStyle = isCurrent
-                        ? `background: var(--secondary-color) !important; color: #ffffff !important; border: 1px solid var(--secondary-color);`
-                        : `background: #1a233a; color: var(--text-muted); border: 1px solid var(--border-color);`;
-
-                    paginationHTML += `<button onclick="window.currentApplicantPage = ${p}; refreshApplicantView();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
-                }
-
-                paginationHTML += `<button onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
-
-                paginator.innerHTML = paginationHTML;
-            }
         }
-
 
 
         /**

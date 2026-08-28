@@ -3293,7 +3293,7 @@
             if (!rawText) return alert("파일 내용이 비어있습니다.");
 
             // ----------------======================================================
-            // 🎯 [특수 레이아웃 전용 엔진]: 1행 병합 문장을 통째로 정제하여 시험명/기수 유실 방지
+            // 🎯 [지능형 분리 엔진]: 항목명이 없어도 문장 패턴을 분석하여 기수, 시험명, 인원, 기간 자동 추출
             // ----------------======================================================
             if (rawText.split(/\r?\n/).length > 2) {
                 try {
@@ -3307,37 +3307,43 @@
                         delimiter = '\t';
                     }
 
-                    // 2. [1행 원천 분리 가드]: 1번째 줄 전체 텍스트 확보 및 공백 정제
+                    // 2. [상단 1~2행 병합 문장 확보]
                     let firstRowText = rows[0] ? rows[0].trim().replace(/"/g, '') : "";
-
-                    // 만약 1번째 줄이 비어있거나 너무 짧다면 2번째 줄까지 통합 스캔
                     if (firstRowText.length < 5 && rows[1]) {
                         firstRowText = rows[1].trim().replace(/"/g, '');
                     }
 
-                    // 디폴트 안전망 값 지정
+                    // 디폴트 예비 안전망 값 설정
                     let fileExtractedTh = "3기";
                     let fileExtractedTitle = "대화 로수+에제";
+                    let fileExtractedCount = "44";
+                    let fileExtractedPeriod = "60";
 
                     if (firstRowText) {
-                        // A. 숫자만 무조건 추출하여 기수 처리
-                        const numMatch = firstRowText.match(/\d+/);
-                        if (numMatch) {
-                            fileExtractedTh = numMatch[0] + "기";
-                        }
+                        // A. 🎯 "숫자+기" 패턴 추적하여 기수 분리 (예: 3기)
+                        const thMatch = firstRowText.match(/(\d+)\s*(?:기|차수)/);
+                        if (thMatch) fileExtractedTh = thMatch[1] + "기";
 
-                        // B. '담당 CRC' 문구 앞부분을 통째로 잘라내어 시험명으로 안전 락인
-                        if (firstRowText.includes("담당")) {
-                            let splitPart = firstRowText.split("담당")[0].trim();
-                            // 앞쪽의 기수 부분(예: "3기 ")을 제거하여 순수 시험명만 정제
-                            fileExtractedTitle = splitPart.replace(/^\d+\s*기|^\d+\s*차수/g, '').trim();
-                        } else {
-                            // '담당' 문구가 없을 경우 문장 전체에서 기수 단어만 빼고 시험명으로 지정
-                            fileExtractedTitle = firstRowText.replace(/\d+\s*기|\d+\s*차수/g, '').trim();
+                        // B. 🎯 "(N+숫자)" 패턴 추적하여 모집 인원수 분리 (예: N44 -> 44)
+                        const countMatch = firstRowText.match(/\(N(\d+)\)/i);
+                        if (countMatch) fileExtractedCount = countMatch[1];
+
+                        // C. 🎯 "숫자+시간" 패턴 추적하여 임상 기간 분리 (예: 60시간 -> 60)
+                        const periodMatch = firstRowText.match(/(\d+)\s*(?:시간|h)/i);
+                        if (periodMatch) fileExtractedPeriod = periodMatch[1];
+
+                        // D. 🎯 상단에 나열된 키워드들을 제외한 나머지 핵심 문장을 시험명으로 정밀 정제
+                        let cleanTitle = firstRowText;
+                        cleanTitle = cleanTitle.replace(/\d+\s*기|\d+\s*차수/g, ''); // 기수 글자 제거
+                        cleanTitle = cleanTitle.replace(/\(N\d+\)/gi, '');          // (N44) 제거
+                        cleanTitle = cleanTitle.replace(/\d+\s*시간|\d+\s*h/gi, ''); // 60시간 제거
+                        if (cleanTitle.includes("담당")) {
+                            cleanTitle = cleanTitle.split("담당")[0];               // 담당 CRC 구역 뒤로 전면 커팅
                         }
+                        fileExtractedTitle = cleanTitle.replace(/[:➔=]/g, '').trim(); // 남은 특수문자 및 앞뒤 공백 제거
                     }
 
-                    // 값이 비어있을 경우를 대비한 최종 백업 폴백 세팅
+                    // 최종 공백 방지 보호막
                     if (!fileExtractedTitle) fileExtractedTitle = "대화 로수+에제";
 
                     // 3. 실제 데이터 헤더(ID, S_ID, 코드...)가 위치한 실제 행 위치 추적
@@ -3376,8 +3382,11 @@
                         rawName = rawName.replace(/\(F\)|\(M\)/gi, '').trim();
                         const extractedName = rawName;
 
-                        // 생년월일 성별 결합 알고리즘 가동
+                        // 생년월일 성별 결합 알고리즘 가동 (1128, 216 같은 앞자리 0 누락 깨짐 현상 자동 교정 방어막)
                         let ssnRaw = cells[idxSsn] || "";
+                        if (ssnRaw && ssnRaw.length < 6) {
+                            ssnRaw = ssnRaw.padStart(6, '0'); // 앞자리 0이 유실되어 3자리, 4자리로 들어온 생년월일을 6자리 정상 규격으로 복구
+                        }
                         const genderAgeCell = idxGenderAge !== -1 ? cells[idxGenderAge] : "";
                         if (genderAgeCell && ssnRaw.length === 6) {
                             const genChar = genderAgeCell.charAt(0).toUpperCase();
@@ -3395,13 +3404,13 @@
                             continue;
                         }
 
-                        // 5. 추출해낸 1행의 시험 정보와 명단을 결합하여 가상 DB에 최종 적재
+                        // 5. 🎯 [이식 수리 완료]: 상단 1~2행 분석기(파트1)가 쪼개어낸 실제 엑셀 텍스트 내부 데이터를 칼같이 대입 보존
                         dataStoreApplicant.unshift({
                             uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                            title: fileExtractedTitle, // 파일 내용에서 추출한 "대화 로수+에제" 주입
-                            th: fileExtractedTh,       // 파일 내용에서 추출한 "3기" 주입
-                            count: "1",
-                            period: "72",
+                            title: fileExtractedTitle,   // 엑셀 문장에서 추출한 실제 시험명 주입
+                            th: fileExtractedTh,         // 엑셀 문장에서 추출한 실제 기수 주입
+                            count: fileExtractedCount,   // 엑셀 문장 (N44)에서 추출한 실제 배정 인원수 주입
+                            period: fileExtractedPeriod, // 엑셀 문장에서 추출한 실제 임상 기간(시간) 주입
                             name: extractedName,
                             ssn: extractedSsn,
                             phone: extractedPhone,
@@ -3425,11 +3434,12 @@
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                     if (typeof commitToLocalStorage === "function") commitToLocalStorage();
 
-                    // 7. 대시보드 라이브 통계 및 목록 화면 실시간 리렌더링
+                    // 7. 대시보드 라이브 통계 및 목록 화면 실시간 리렌더링 연쇄 기동
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
 
-                    return alert(`📢 엑셀 특수 양식 파싱 일괄 등록 성공!\n- 적용 시험명: ${fileExtractedTitle}\n- 적용 기수: ${fileExtractedTh}\n- 정상 적재: 총 [${importCount}건]\n- 중복 제외: 총 [${duplicateCount}건]`);
+                    // 대표님 지시 사양에 맞춘 최종 정밀 스캔 결과 브리핑 리포트 출력
+                    return alert(`📢 지능형 문장 분리 파싱 일괄 등록 성공!\n━━━━━━━━━━━━━━━━━━━━━━\n● 적용 시험명: ${fileExtractedTitle}\n● 적용 기수: ${fileExtractedTh}\n● 모집 인원: ${fileExtractedCount}명\n● 임상 기간: ${fileExtractedPeriod}시간\n━━━━━━━━━━━━━━━━━━━━━━\n- 정상 적재 완료: 총 [${importCount}건]\n- 중복 제외 데이터: 총 [${duplicateCount}건]`);
                 } catch (err) {
                     console.error("파일 대량 파싱 에러:", err);
                     alert("알림: 파일 데이터 구조 해석에 실패했습니다.");
@@ -3447,11 +3457,11 @@
 
             if (!nameMatch || !ssnMatch || !phoneMatch) return alert("❌ 문서 내에서 필수값(이름, 생년월일, 연락처) 패턴을 찾을 수 없습니다.");
 
-            const extractedName = nameMatch[1].trim();
-            const extractedSsn = ssnMatch[1].trim().toUpperCase();
-            const extractedPhone = phoneMatch[1].replace(/[^0-9]/g, '');
-            const extractedTitle = titleMatch[1] ? titleMatch[1].trim() : "[임상] 수동 업로드 과제";
-            const extractedTh = thMatch[1] ? thMatch[1].trim() + "기" : "1기";
+            const extractedName = nameMatch.trim();
+            const extractedSsn = ssnMatch.trim().toUpperCase();
+            const extractedPhone = phoneMatch.replace(/[^0-9]/g, '');
+            const extractedTitle = titleMatch ? titleMatch.trim() : "[임상] 수동 업로드 과제";
+            const extractedTh = thMatch ? thMatch.trim() + "기" : "1기";
 
             if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
                 return alert('알림: 이미 명단에 존재하는 대상자입니다.');
@@ -3469,6 +3479,7 @@
 
             alert(`📢 스마트 자동 등록 성공!\n● 성명: ${extractedName}\n● 생년월일: ${extractedSsn}\n● 연락처: ${extractedPhone}`);
         }
+
 
 
 

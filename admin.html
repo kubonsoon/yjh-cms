@@ -2898,6 +2898,24 @@
             }
         }
 
+
+        /**
+         * 주민번호 뒷자리 식별 기호(-1,2,3,4,M,F)를 성별 판독 후 제거하여 깨끗한 날짜 규격만 반환
+         * @param {string} ssnVal - 사용자가 입력한 주민번호 원본 문자열
+         * @returns {string} 뒷자리가 제거된 깨끗한 생년월일 문자열
+         */
+        function cleanSsnToBirthDate(ssnVal) {
+            if (!ssnVal) return '';
+            let clean = ssnVal.toString().trim();
+
+            // 하이픈 조합 및 끝자리에 단독으로 붙은 성별 문자/숫자 기호 원천 제거 가드
+            clean = clean.replace(/-[1234MFmf]/g, '');
+            clean = clean.replace(/[MFmf1234]$/g, '');
+
+            // 특수문자를 완전히 제외하고 순수 숫자만 압축 사출
+            return clean.replace(/[^0-9]/g, '');
+        }
+
         /**
         * [대상자 수동 등록 코어 엔진] 대상자 수동 등록 및 수정을 원스톱 처리하는 마스터 함수입니다.
         * (성별 기호 보존 수리 및 트랜잭션 닫기 마감 완료본)
@@ -2924,6 +2942,10 @@
                 return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
             }
 
+            // 💡 [형님 지시 사양 핵심 락인]: 성별 배지 분석(parseGenderFromSsn)용으로는 기호가 살아있는 원본 문자열(s)을 매칭시키고,
+            // 데이터베이스 대장(ssn)에 안착시킬 때는 성별 기호와 서식이 완벽하게 증발한 순수 생년월일 날짜만 강제 격리 락인 처리합니다.
+            const finalizedSsn = cleanSsnToBirthDate(s);
+
             // [오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
             const payload = {
                 uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
@@ -2932,7 +2954,7 @@
                 count: getOnlyNumbers(c),
                 period: getOnlyNumbers(p),
                 name: n,
-                ssn: s.toUpperCase(),
+                ssn: finalizedSsn, // 🎯 목록 및 모달 허브 슬롯으로 출력될 순정 생년월일 날짜만 보존 적재
                 phone: getOnlyNumbers(ph),
 
                 // 🌟 [수리 완료]: 최초 등록 모드(editIndex === "") 일 때 무조건 초기값을 "대기"로 락인 컴입합니다.
@@ -2986,7 +3008,7 @@
                     payload.isCallAgreed = dataStoreApplicant[editIndex].isCallAgreed || "대기";
                     payload.isAgreed = dataStoreApplicant[editIndex].isAgreed || "대기";
 
-                    dataStoreApplicant[editIndex] = payload;
+                    dataStoreApplicant[editIndex] = payload; //
                     alert(`📋 정보 갱신 완료: [${n}] 대상자의 마스터 레코드가 업데이트되었습니다.`);
                 }
 
@@ -3024,7 +3046,6 @@
                 alert("시스템 오류: 가상 DB 커밋에 실패했습니다.");
             }
         }
-
 
         /**
         * 🎯 [인라인 수정 저장 엔지니어링]: 목록 내에서 직접 수정한 가변 데이터를 대장에 영구 커밋하는 함수
@@ -5884,12 +5905,11 @@
             const pay2 = row.payStatus2 || '대기';
             const pay3 = row.payStatus3 || '대기';
 
-            // 💡 [순정 엔진 결합]: 주민번호 기반 성별 분석 모듈 호출 및 텍스트 락인 가공 [INDEX]
-            const rawSsn = row.ssn || "-";
-            const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(rawSsn, row.name) : "미정";
-            const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185'; // 남 스카이블루, 여 로즈레드 고대비 서식 [INDEX]
+            // 💡 [성별 추출 최적화]: 이미 정제된 날짜 데이터를 원본 엔진에 우회 대조하여 성별 배지 사출 [index: 0.1.29]
+            const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(row.ssn, row.name) : "미정";
+            const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185';
 
-            // 💡 [원본 지시 핵심 이식]: 성명/생년월일/전화번호 알맹이 추출용 정형화 함수 및 검색 조건 일치화 [INDEX]
+            // 💡 [3중 알맹이 추출 매칭]: 이름, 전화번호, 생년월일 날짜값 자체를 1:1 완전 비교 대조 [index: 0.1.133]
             const getPurePhone = (p) => (p || "").toString().replace(/[^0-9]/g, "").trim();
             const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9 가-힣]/g, "").trim();
 

@@ -2518,6 +2518,69 @@
                 }
                 tbody.appendChild(tr);
             });
+
+
+            // 🎯 [단독 탑재] 페이징 추적 상태 변수 및 최대 노출수 제어 상수
+            window.currentApplicantPage = 1;
+            const APPLICANT_PAGE_SIZE = 15; // 15개 기준 슬라이싱 절단 제한
+
+            /**
+             * 🎯 [기존 소스 무해형] 대상자 목록 15개 절단 및 내비게이션 생성 엔진
+             * 기존 refreshApplicantView 실행 직후 연쇄 구동되어 화면을 페이징 제어합니다.
+             */
+            function buildApplicantPagination() {
+                const tbody = document.getElementById('dom-applicant-table');
+                const paginator = document.getElementById('applicant-pagination');
+                if (!tbody || !paginator) return;
+
+                paginator.innerHTML = ''; // 페이징 버튼 초기화
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const totalRecords = rows.length;
+
+                // 15개 이하일 때는 페이징 처리를 하지 않고 무조건 전체 노출 (화면 밸런스 유지)
+                if (totalRecords <= APPLICANT_PAGE_SIZE) {
+                    rows.forEach(row => row.style.display = 'table-row');
+                    return;
+                }
+
+                const totalPages = Math.ceil(totalRecords / APPLICANT_PAGE_SIZE);
+                if (window.currentApplicantPage > totalPages) window.currentApplicantPage = totalPages;
+                if (window.currentApplicantPage < 1) window.currentApplicantPage = 1;
+
+                // 1. 15개 단위 행 표시 제어 (현재 페이지에 속하지 않는 행은 숨김 처리)
+                const start = (window.currentApplicantPage - 1) * APPLICANT_PAGE_SIZE;
+                const end = start + APPLICANT_PAGE_SIZE;
+
+                rows.forEach((row, idx) => {
+                    if (idx >= start && idx < end) {
+                        row.style.display = 'table-row';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // 2. 고대비 다크 테마 디자인 시스템 페이지 네비게이션 버튼 동적 결합 사출
+                let paginationHTML = '';
+
+                // [이전] 버튼
+                paginationHTML += `<button onclick="window.currentApplicantPage--; buildApplicantPagination();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
+
+                // 동적 페이지 번호 링크 넘버링
+                for (let p = 1; p <= totalPages; p++) {
+                    const isCurrent = (p === window.currentApplicantPage);
+                    const activeBtnStyle = isCurrent
+                        ? `background: var(--secondary-color) !important; color: #ffffff !important; border: 1px solid var(--secondary-color);`
+                        : `background: #1a233a; color: var(--text-muted); border: 1px solid var(--border-color);`;
+
+                    paginationHTML += `<button onclick="window.currentApplicantPage = ${p}; buildApplicantPagination();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
+                }
+
+                // [다음] 버튼
+                paginationHTML += `<button onclick="window.currentApplicantPage++; buildApplicantPagination();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
+
+                paginator.innerHTML = paginationHTML;
+            }
+
         }
 
 

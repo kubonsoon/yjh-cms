@@ -1173,10 +1173,17 @@
                     <div class="admin-top-btn-group" style="display: inline-flex; align-items: center; gap: 25px;">
 
                         <!-- 1. 민간 인증서 로그인 버튼 -->
-                        <button type="button" id="btnOpenAuth" onclick="openCivilAuthBridge()"
+                        <!----<button type="button" id="btnOpenAuth" onclick="openCivilAuthBridge()"
                             style="background-color: #0284c7; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); transition: all 0.2s ease;"
                             onmouseover="this.style.background='#0ea5e9'" onmouseout="this.style.background='#0284c7'">
                             <i class="fa-solid fa-shield-halved"></i> 민간 인증서 로그인
+                        </button> -->
+
+                        <!-- 3. 모바일 인증서 로그인 버튼 (25px 간격 시스템 정밀 설계) -->
+                        <button type="button" id="btnOpenMobileAuth" onclick="openMobileAuthBridge()"
+                            style="background-color: #0284c7; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#0ea5e9'" onmouseout="this.style.background='#0284c7'">
+                            <i class="fa-solid fa-id-card-clip"></i> 모바일 인증서 로그인
                         </button>
 
                         <!-- 2. 참여비 신청 버튼 (25px 간격 배치 완료) -->
@@ -1184,13 +1191,6 @@
                             style="background: #0e66e9; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 102, 233, 0.3); transition: all 0.2s ease;"
                             onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#0e66e9'">
                             <span>📱</span> 대상자 참여비 신청
-                        </button>
-
-                        <!-- 3. 모바일 인증서 로그인 버튼 (25px 간격 시스템 정밀 설계) -->
-                        <button type="button" id="btnOpenMobileAuth" onclick="openMobileAuthBridge()"
-                            style="background-color: #10b981; color: #ffffff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;"
-                            onmouseover="this.style.background='#34d399'" onmouseout="this.style.background='#10b981'">
-                            <i class="fa-solid fa-id-card-clip"></i> 모바일 인증서 로그인
                         </button>
 
                     </div>

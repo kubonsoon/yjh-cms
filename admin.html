@@ -5955,7 +5955,149 @@
         };
 
 
+        /**
+         * 🎯 [실시간 알람 크론 가드 데몬 - 날짜 기호 오차 완벽 수리본]
+         * 기호 분리 장치를 탑재하여 하이픈(-), 점(.), 슬래시(/) 혼재 상태에서도 오직 숫자 배열만으로 정밀 타격 매칭합니다.
+         */
+        (function () {
+            // 1. 중복 구동 및 메모리 충돌 원천 방어 가드
+            if (window.isCenterNoticeAlarmEngineRunningFixed) return;
+            window.isCenterNoticeAlarmEngineRunningFixed = true;
 
+            // 2. 기 발송 알람 중복 사출 차단 락인 세트 확보
+            if (!window.dispatchedNoticeAlarmKeySet) {
+                window.dispatchedNoticeAlarmKeySet = new Set(JSON.parse(localStorage.getItem('dispatchedNoticeAlarmKeySet') || '[]'));
+            }
+
+            // 3. 사용자의 청각 주의를 깨우는 경고 비프음 사출기
+            function playWarningBeepSound() {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(987.77, ctx.currentTime); // 고주파 경고음
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(); osc.stop(ctx.currentTime + 0.18);
+                } catch (e) {
+                    console.warn("오디오 컨텍스트 락 해제 대기 중");
+                }
+            }
+
+            // 4. 🎯 [정중앙 오버라이드] 기존 순정 팝업 모달창 재활용 및 3초 점멸 이식 엔진
+            function triggerPureSystemModalAlarm(noticeType, recRow) {
+                // 기존 시스템 내부의 순정 통합 공지 모달 엘리먼트 슬롯 정밀 스캔 추적
+                let pureModalElement = document.getElementById('integrated-notice-modal') || document.getElementById('notice-modal') || document.querySelector('.modal') || document.querySelector('.popup-wrapper');
+
+                if (!pureModalElement) {
+                    // [폴백 가드]: 만약 순정 모달창 돔을 일시적으로 찾지 못할 경우에만 비상용 긴급 Alert 발포
+                    alert(`[🚨 Live ${noticeType}공지 긴급 알람]\n\n과제명: ${recRow.title || '임상 과제'}\n기수: ${recRow.th || '1기'}\n공지내용: ${noticeType === "당직" ? (recRow.dutyNotice || recRow.dutyNoticeText) : (recRow.callNotice || recRow.callNoticeText)}`);
+                    return;
+                }
+
+                // 오리지널 모달 구조 내부의 타이틀과 텍스트 영역을 추적하여 동적 값 오버라이드
+                const elTitle = pureModalElement.querySelector('h3') || pureModalElement.querySelector('.modal-title') || pureModalElement.querySelector('.title');
+                const elBody = pureModalElement.querySelector('.modal-body') || pureModalElement.querySelector('.content') || pureModalElement.querySelector('p');
+
+                if (elTitle) elTitle.innerHTML = `<span style="color:#ffffff; font-weight:900;">🚨 LIVE [${noticeType}공지] 알람 정각 사출</span>`;
+
+                const coreText = noticeType === "당직" ? (recRow.dutyNotice || recRow.dutyNoticeText || "당직 공지 내용이 없습니다.") : (recRow.callNotice || recRow.callNoticeText || "소집 공지 내용이 없습니다.");
+                if (elBody) elBody.innerHTML = `<div style="font-weight:bold; color:#fff; font-size:16px; margin-bottom:10px;">[${recRow.title || '임상과제'} - ${recRow.th || '1기'}]</div><div style="line-height:1.6; color:#94a3b8; font-size:14px; background:#131e3a; padding:15px; border-radius:6px; border:1px solid #22314d;">${coreText}</div>`;
+
+                // 💡 [3초 점멸 가드 핵심 이식]: 기존 팝업의 본체 박스에 무한 펄스 광채 애니메이션 바인딩 주입
+                const innerCard = pureModalElement.querySelector('.modal-content') || pureModalElement.querySelector('.popup-content') || pureModalElement;
+                if (innerCard) {
+                    const flashColor = noticeType === "당직" ? "#fbbf24" : "#38bdf8";
+                    innerCard.style.outline = `3px solid ${flashColor}`;
+                    innerCard.style.animation = "pulseGlowFlashingFixed 3s infinite ease-in-out";
+                    innerCard.style.position = "relative";
+                }
+
+                // 정중앙 정렬 레이아웃 강제 활성화 명령 구동
+                pureModalElement.style.display = "flex";
+                pureModalElement.style.justifyContent = "center";
+                pureModalElement.style.alignItems = "center";
+                pureModalElement.style.opacity = "1";
+                pureModalElement.style.visibility = "visible";
+                pureModalElement.style.zIndex = "999999999"; // 레이어를 맨 위로 올림
+
+                // 주의 환기를 위한 비프음 2연타 기동
+                playWarningBeepSound();
+                setTimeout(playWarningBeepSound, 250);
+            }
+
+            // 5. 💡 [3초 점멸 애니메이션 CSS 락인]: 변수 누락을 교정한 순정 모달 외곽선 점멸 키프레임 인젝터
+            const styleSheet = document.createElement('style');
+            styleSheet.innerHTML = `
+        @keyframes pulseGlowFlashingFixed {
+            0% { outline-color: rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+            50% { outline-color: var(--flash-color, #fbbf24); box-shadow: 0 0 45px var(--flash-shadow, rgba(251,191,36,0.6)); }
+            100% { outline-color: rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        }
+    `;
+            document.head.appendChild(styleSheet);
+
+            // 6. ⏰ [1초 인터벌 데몬 스케줄 조사 크론 루프 - 기호 정화 필터 탑재]
+            setInterval(() => {
+                const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                if (recruitmentDB.length === 0) return;
+
+                // 시스템 현재 리얼타임 연/월/일 시:분 정밀 스캔
+                const now = new Date();
+                const nowYear = now.getFullYear();
+                const nowMonth = String(now.getMonth() + 1).padStart(2, '0');
+                const nowDate = String(now.getDate()).padStart(2, '0');
+                const nowHour = String(now.getHours()).padStart(2, '0');
+                const nowMin = String(now.getMinutes()).padStart(2, '0');
+
+                // 🎯 [오차 파괴 필터]: 비교 시 특수 기호들을 전면 배제하기 위해 오직 숫자 가닥만 결합 (포맷: YYYYMMDDHHMM)
+                const sysStampPlainNumbers = `${nowYear}${nowMonth}${nowDate}${nowHour}${nowMin}`;
+
+                recruitmentDB.forEach(rec => {
+                    // A. 당직 알람 예약 시각 실시간 대조
+                    if (rec.dutyDate && rec.dutyTime) {
+                        // 입력된 문자열에서 하이픈, 점, 슬래시, 공백, 콜론을 전부 완전히 걷어내고 순수 숫자만 추출!
+                        const dbDutyDatePlain = rec.dutyDate.replace(/[^0-9]/g, '').trim();
+                        const dbDutyTimePlain = rec.dutyTime.replace(/[^0-9]/g, '').trim();
+                        const dbDutyStampCombined = `${dbDutyDatePlain}${dbDutyTimePlain}`;
+
+                        // 자릿수가 정상적인 구조일 때만 정밀 타격 대조 진행
+                        if (dbDutyStampCombined.length === 12 && dbDutyStampCombined === sysStampPlainNumbers) {
+                            const uniqueKey = `CENTER_DUTY_${rec.uid}_${dbDutyStampCombined}`;
+                            if (!window.dispatchedNoticeAlarmKeySet.has(uniqueKey)) {
+                                window.dispatchedNoticeAlarmKeySet.add(uniqueKey);
+                                localStorage.setItem('dispatchedNoticeAlarmKeySet', JSON.stringify(Array.from(window.dispatchedNoticeAlarmKeySet)));
+
+                                // 3초 무한 루프 애니메이션 변수 색상 주입 후 모달 오버라이드 발포
+                                document.documentElement.style.setProperty('--flash-color', '#fbbf24');
+                                document.documentElement.style.setProperty('--flash-shadow', 'rgba(251,191,36,0.7)');
+                                triggerPureSystemModalAlarm("당직", rec);
+                            }
+                        }
+                    }
+
+                    // B. 소집 알람 예약 시각 실시간 대조
+                    if (rec.callDate && rec.callTime) {
+                        const dbCallDatePlain = rec.callDate.replace(/[^0-9]/g, '').trim();
+                        const dbCallTimePlain = rec.callTime.replace(/[^0-9]/g, '').trim();
+                        const dbCallStampCombined = `${dbCallDatePlain}${dbCallTimePlain}`;
+
+                        if (dbCallStampCombined.length === 12 && dbCallStampCombined === sysStampPlainNumbers) {
+                            const uniqueKey = `CENTER_CALL_${rec.uid}_${dbCallStampCombined}`;
+                            if (!window.dispatchedNoticeAlarmKeySet.has(uniqueKey)) {
+                                window.dispatchedNoticeAlarmKeySet.add(uniqueKey);
+                                localStorage.setItem('dispatchedNoticeAlarmKeySet', JSON.stringify(Array.from(window.dispatchedNoticeAlarmKeySet)));
+
+                                document.documentElement.style.setProperty('--flash-color', '#38bdf8');
+                                document.documentElement.style.setProperty('--flash-shadow', 'rgba(56,189,248,0.7)');
+                                triggerPureSystemModalAlarm("소집", rec);
+                            }
+                        }
+                    }
+                });
+            }, 1000); // 1초 주기로 백그라운드 실시간 감시 체계 무정지 가동
+        })();
 
     </script>
 

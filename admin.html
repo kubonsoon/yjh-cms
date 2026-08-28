@@ -4968,6 +4968,26 @@
         </div>
     `;
             overlay.style.display = "flex";
+
+            // ────────────────────────────────────────────────────────────────────────
+            // 🌟 [치명적 단선 해결 핵심 주입]: 모달이 열리는 즉시 타입(Type)을 판별하여 
+            // 왼쪽 아래 [시간 설정] 버튼에 실시간 클릭 이벤트와 인자값을 다이렉트로 강제 주입합니다.
+            // ────────────────────────────────────────────────────────────────────────
+            setTimeout(() => {
+                const sb = document.getElementById('btn-integrated-action-scheduler');
+                if (sb) {
+                    if (type === 'duty') {
+                        sb.style.display = 'block'; // 당직공지일 때 노출
+                        sb.onclick = function () { window.openAlarmSchedulerModal(index, '당직공지', 'dutyNoticeText'); };
+                    } else if (type === 'call') {
+                        sb.style.display = 'block'; // 소집공지일 때 노출
+                        sb.onclick = function () { window.openAlarmSchedulerModal(index, '소집공지', 'callNoticeText'); };
+                    } else {
+                        sb.style.display = 'none';  // 주의사항, 시험일정일 땐 은닉
+                        sb.onclick = null;
+                    }
+                }
+            }, 50);
         }
 
 
@@ -5815,28 +5835,127 @@
         }
 
 
+
+        // ────────────────────────────────────────────────────────────────────────
+        // 🌟 [누락 복구 완수]: 시간 설정 버튼 클릭 및 데이터 커밋을 전담하는 마스터 함수 세트
+        // ────────────────────────────────────────────────────────────────────────
+
         /**
- * 🎯 [인라인 문법 오류 방지용 안전 브릿지 함수]
- * 마크업 문자열 충돌 없이 [시간 설정] 버튼에 인자값을 안전하게 주입하고 노출시킵니다.
- */
-        window.setupSchedulerButtonLink = function (index, titleText, fieldText) {
-            // 💡 0.06초 미세 가드 타이머를 가동하여 모달창의 하단 버튼바 돔이 완전히 안착한 뒤 정밀 타격
-            setTimeout(() => {
-                const sb = document.getElementById('btn-integrated-action-scheduler');
-                if (sb) {
-                    // 1. 초기 디폴트 숨김(none) 상태를 걷어내고 왼쪽 끝자리에 와이드 개방 노출
-                    sb.style.display = 'block';
+         * ⏰ 1. [시간 설정] 버튼 클릭 시 정밀 스케줄 예약 캘린더 모달을 화면에 띄우는 함수
+         */
+        window.openAlarmSchedulerModal = function (index, type, dbField) {
+            const modal = document.getElementById('alarm-scheduler-modal');
+            if (!modal) {
+                // [안전 가드]: 만약 캘린더 모달 HTML 돔이 없으면 내장형 브릿지 팝업 프롬프트로 유연하게 즉시 대체 기동
+                return window.openAlarmSchedulerPromptFallback ? window.openAlarmSchedulerPromptFallback(index, type, dbField) : alert("시스템 알림: 예약 설정을 처리할 수 없습니다.");
+            }
 
-                    // 2. 🎯 [핵심 수리 포인트]: 자바스크립트 바인딩 대신 인라인 문자열 속성을 강제 오버라이드합니다.
-                    // 특수 이스케이프(\') 처리를 통하여 백틱 내부에서 문장 부호 따옴표가 깨지거나 터지는 현상을 100% 원천 방어합니다.
-                    sb.setAttribute("onclick", `if(typeof window.openAlarmSchedulerModal === \'function\') { window.openAlarmSchedulerModal(${index}, \'${titleText}\', \'${fieldText}\'); }`);
+            // 전역 스케줄 커밋용 가상 메모리 포인터 락인 바인딩 (인자 유실 단선 에러 방지)
+            window.currentSchedIndex = index;
+            window.currentSchedType = type;
+            window.currentSchedField = dbField;
 
-                    // 3. 브라우저가 마우스 포인터 커서 모양을 정확히 인지하도록 스타일시트 강제 상속 보정
-                    sb.style.cursor = 'pointer';
-                    sb.style.pointerEvents = 'auto';
-                }
-            }, 60);
+            // 라디오 텍스트 뱃지 동기화 설정
+            const typeSelect = document.getElementById('sched-notice-type');
+            if (typeSelect) {
+                typeSelect.value = type.includes("당직") ? "당직" : "소집";
+            }
+
+            // 현재 시스템 라이브 연/월/일 시:분 자동 프리셋 세팅
+            const now = new Date();
+            const elDate = document.getElementById('sched-notice-date');
+            const elTime = document.getElementById('sched-notice-time');
+            if (elDate) elDate.value = now.toISOString().substring(0, 10);
+            if (elTime) elTime.value = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
+
+            // 다크 테마 정중앙 레이아웃 개방 활성화
+            modal.style.display = 'flex';
         };
+
+        /**
+         * ⏰ 2. 캘린더 모달에서 [스케줄 저장] 버튼을 누르면 원장 DB에 예약 시각을 직주입하는 핵심 함수
+         */
+        window.saveAlarmScheduleData = function () {
+            const sType = document.getElementById('sched-notice-type')?.value || window.currentSchedType || "당직";
+            const date = document.getElementById('sched-notice-date')?.value;
+            const time = document.getElementById('sched-notice-time')?.value;
+            let index = window.currentSchedIndex !== undefined ? window.currentSchedIndex : 0;
+
+            if (!date || !time) {
+                return alert("알림: 발송을 원하는 날짜와 시간을 정확히 선택해 주세요.");
+            }
+
+            // 로컬스토리지 모집공고 마스터 풀 로드
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+
+            // [오염 차단 가드]: 선택한 공고 데이터 행이 유실되었을 경우 예외 복구 조인
+            if (!recruitmentDB[index]) {
+                if (recruitmentDB.length === 0) {
+                    recruitmentDB.push({ uid: `REC_${Date.now()}`, title: "4층 대화 로수+에제", th: "3기" });
+                }
+                index = 0;
+            }
+
+            // 🎯 [정밀 적재]: 다른 기수나 과제를 건드리지 않고 지정된 레코드에만 실시간 날짜 시간 주입 락인
+            if (sType.includes("당직")) {
+                recruitmentDB[index].dutyDate = date;
+                recruitmentDB[index].dutyTime = time;
+                if (!recruitmentDB[index].dutyNoticeText && !recruitmentDB[index].dutyNotice) {
+                    recruitmentDB[index].dutyNoticeText = "금일 야간 당직 소집이 지정 구역에서 진행됩니다. 필히 대기해 주세요.";
+                }
+            } else {
+                recruitmentDB[index].callDate = date;
+                recruitmentDB[index].callTime = time;
+                if (!recruitmentDB[index].callNoticeText && !recruitmentDB[index].callNotice) {
+                    recruitmentDB[index].callNoticeText = "지정된 실시간 임상 소집 시간입니다. 제1임상실로 즉시 집결해 주세요.";
+                }
+            }
+
+            // 스토리지 커밋 및 영구 저장소 세이브 트랜잭션 구동
+            localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
+
+            // 캘린더 모달 패널 종료
+            const modal = document.getElementById('alarm-scheduler-modal');
+            if (modal) modal.style.display = 'none';
+
+            alert(`📢 [${sType.includes("당직") ? "당직" : "소집"}공지] 알람 스케줄 예약 완료!\n━━━━━━━━━━━━━━━━━━━━━━\n● 예약과제: ${recruitmentDB[index].title || "임상과제"}\n● 발송시각: ${date} ${time} 정각\n━━━━━━━━━━━━━━━━━━━━━━\n지정된 시각이 되면 화면 정중앙에서 3초 간격으로 반짝이는 무한 광채 순정 알림창이 강제 기동합니다.`);
+
+            // 통합 모집공고 뷰 리렌더링 연쇄 리프레시
+            if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
+        };
+
+        /**
+         * ⏰ 3. [폴백 브릿지 가드]: 혹시 모를 레이아웃 예외 상황 시 기동하는 내장 프롬프트 알람 예약 유틸리티
+         */
+        window.openAlarmSchedulerPromptFallback = function (index, type, dbField) {
+            const targetDateTime = prompt(`⏰ [${type}] 알람 발송 시각을 스케줄 예약합니다.\n\n[입력 양식]: YYYY-MM-DD HH:MM\n(예시: 2026-08-28 16:30)`, "");
+            if (!targetDateTime) return;
+
+            const dateTimeRegex = /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/;
+            if (!dateTimeRegex.test(targetDateTime.trim())) {
+                return alert("❌ 오류: 입력 양식이 올바르지 않습니다.\n년-월-일 시:분 규격(YYYY-MM-DD HH:MM)에 맞춰 분 단위까지 정확히 입력해 주세요.");
+            }
+
+            const [date, time] = targetDateTime.trim().split(/\s+/);
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            if (!recruitmentDB[index]) {
+                if (recruitmentDB.length === 0) recruitmentDB.push({ uid: `REC_${Date.now()}` });
+                index = 0;
+            }
+
+            if (type.includes("당직")) {
+                recruitmentDB[index].dutyDate = date; recruitmentDB[index].dutyTime = time;
+            } else {
+                recruitmentDB[index].callDate = date; recruitmentDB[index].callTime = time;
+            }
+
+            localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
+            alert(`📅 [${type}] 스케줄 예약 완료!\n● 발송시각: ${date} ${time} 정각`);
+            if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
+        };
+
+
+
 
     </script>
 

@@ -3293,16 +3293,23 @@
             if (!rawText) return alert("파일 내용이 비어있습니다.");
 
             // ----------------======================================================
-            // 🎯 [분기 처리 가드]: 콤마(,)와 줄바꿈이 혼재된 대량 표 양식(CSV)인지 실시간 판별
+            // 🎯 [대량 표 양식 파싱 체인]: 콤마(,) 또는 탭(\t) 기반의 대량 명단 데이터 자동 정제 분기
             // ----------------======================================================
-            if (rawText.includes(',') && rawText.split(/\r?\n/).length > 2) {
+            if (rawText.split(/\r?\n/).length > 2) {
                 try {
                     const rows = rawText.split(/\r?\n/);
                     let importCount = 0;
                     let duplicateCount = 0;
 
-                    // 헤더 타이틀 행을 분리하여 각 열의 위치(인덱스)를 동적으로 추적합니다.
-                    const headerCells = rows[0].split(',').map(cell => cell.trim().replace(/"/g, ''));
+                    // 💡 [핵심 교정]: 첫 번째 줄(헤더)이 쉼표로 쪼개지는지, 탭 문자로 쪼개지는지 동적 판단 기믹 탑재
+                    const firstRow = rows[0];
+                    let delimiter = ',';
+                    if (firstRow.includes('\t')) {
+                        delimiter = '\t';
+                    }
+
+                    // 결정된 분리 기호(delimiter)를 기반으로 칼같이 열 식별자 추적 시작
+                    const headerCells = firstRow.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
 
                     const idxTitle = headerCells.findIndex(h => h.includes("시험명") || h.includes("과제명"));
                     const idxTh = headerCells.findIndex(h => h.includes("기수") || h.includes("차수"));
@@ -3310,30 +3317,33 @@
                     const idxPeriod = headerCells.findIndex(h => h.includes("기간"));
                     const idxName = headerCells.findIndex(h => h.includes("이름") || h.includes("성명"));
                     const idxSsn = headerCells.findIndex(h => h.includes("생년월일") || h.includes("주민") || h.includes("코드"));
+                    const idxGenderAge = headerCells.findIndex(h => h.includes("성별"));
                     const idxPhone = headerCells.findIndex(h => h.includes("연락처") || h.includes("전화"));
 
-                    // 데이터 열 순회 가동
+                    // 데이터 로우 전수 스캔 루프 가동
                     for (let i = 1; i < rows.length; i++) {
                         const rowText = rows[i].trim();
                         if (!rowText) continue;
 
-                        const cells = rowText.split(',').map(cell => cell.trim().replace(/"/g, ''));
+                        // 동적으로 탐지된 기호로 셀 데이터를 완벽히 분리
+                        const cells = rowText.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
                         if (cells.length < 3) continue;
 
-                        // 헤더 매핑 기반 데이터 추출
-                        const extractedTitle = idxTitle !== -1 ? cells[idxTitle] : "4층 대화 로수+에제";
-                        const extractedTh = idxTh !== -1 ? formatTh(cells[idxTh]) : "1기";
-                        const extractedCount = idxCount !== -1 ? getOnlyNumbers(cells[idxCount]) : "1";
-                        const extractedPeriod = idxPeriod !== -1 ? getOnlyNumbers(cells[idxPeriod]) : "72";
-                        const extractedName = idxName !== -1 ? cells[idxName].replace(/\(F\)|\(M\)/gi, '') : "미정";
+                        const extractedTitle = idxTitle !== -1 && cells[idxTitle] ? cells[idxTitle] : "4층 대화 로수+에제";
+                        const extractedTh = idxTh !== -1 && cells[idxTh] ? formatTh(cells[idxTh]) : "1기";
+                        const extractedCount = idxCount !== -1 && cells[idxCount] ? getOnlyNumbers(cells[idxCount]) : "1";
+                        const extractedPeriod = idxPeriod !== -1 && cells[idxPeriod] ? getOnlyNumbers(cells[idxPeriod]) : "72";
 
-                        // 🎯 [성별 기호 보존 수리]: getOnlyNumbers 필터를 걷어내고 영문 및 하이픈 데이터를 대문자로 원형 보존 적재합니다.
+                        // 성명 데이터 추출 및 이름 뒤 괄호 제거 가드
+                        let rawName = idxName !== -1 ? cells[idxName] : "미정";
+                        rawName = rawName.replace(/\(F\)|\(M\)/gi, '').trim();
+                        const extractedName = rawName;
+
+                        // 🎯 [성별 기호 물리적 보존 연산 체인 완비]: ssn 칸 자체에 기호가 없더라도 성별/나이 열을 역추적하여 강제 결합
                         let ssnRaw = idxSsn !== -1 ? cells[idxSsn] : "";
-                        // 만약 생년월일 열에 성별 기호가 없다면, 성별/나이 열(M/27, F/39) 등에서 기호를 가져와서 동적으로 보완 결합합니다.
-                        const idxGenderAge = headerCells.findIndex(h => h.includes("성별"));
                         if (idxGenderAge !== -1 && cells[idxGenderAge] && ssnRaw.length === 6) {
-                            const genChar = cells[idxGenderAge].charAt(0).toUpperCase();
-                            ssnRaw = ssnRaw + "-" + genChar; // 예: 990329-M 형태로 강제 수립 보존
+                            const genChar = cells[idxGenderAge].charAt(0).toUpperCase(); // M 또는 F 추출
+                            ssnRaw = ssnRaw + "-" + genChar;
                         }
                         const extractedSsn = ssnRaw.toUpperCase();
 
@@ -3341,13 +3351,13 @@
 
                         if (!extractedName || extractedName === "미정" || !extractedSsn) continue;
 
-                        // 중복 검사
+                        // 중복 검사 (이름과 생년월일 성별기호가 완벽히 같은 레코드 보호)
                         if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
                             duplicateCount++;
                             continue;
                         }
 
-                        // 대장 안착 인스턴스 빌드
+                        // 대상자 대장 표준 아키텍처 규격 빌드
                         dataStoreApplicant.unshift({
                             uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                             title: extractedTitle,
@@ -3355,7 +3365,7 @@
                             count: extractedCount || "1",
                             period: extractedPeriod || "72",
                             name: extractedName,
-                            ssn: extractedSsn, // 기호가 온전히 포함된 주민번호 안착
+                            ssn: extractedSsn, // 성별 기호가 탑재된 마스터 데이터 안착
                             phone: extractedPhone,
                             result: "접수",
                             payStatus: "접수",
@@ -3373,13 +3383,14 @@
                         importCount++;
                     }
 
+                    // 물리 영구 데이터 커밋 실행
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                     if (typeof commitToLocalStorage === "function") commitToLocalStorage();
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
 
                     return alert(`📢 대량 명단 일괄 등록 성공!\n● 정상 적재: 총 [${importCount}건]\n● 중복 제외: 총 [${duplicateCount}건]`);
                 } catch (err) {
-                    console.error("CSV 대량 파싱 에러:", err);
+                    console.error("파일 대량 파싱 에러:", err);
                 }
             }
 
@@ -3387,47 +3398,27 @@
             // 💡 [기존 줄글 분석 분기 채널]: 단일 피험자 줄글 패턴 스캔 로직 완벽 원형 유지
             // ----------------======================================================
             const nameMatch = rawText.match(/(?:이름|성명)(?:\s*[:=➔]\s*|\s+)([가-힣]{2,5})/);
-
-            // 🎯 [6자리 락인 해제 수리]: 뒤에 성별 구분용 문자가 연속해서 붙어 나와도 유실 없이 전체 캡처하도록 패치
             const ssnMatch = rawText.match(/(?:생년월일|주민번호|SSN)?(?:\s*[:=➔]\s*|\s+)?\b(\d{6}[-.\s]?[0-9A-Z]{1,7}|\d{6})\b/i);
-
-            const phoneMatch = rawText.match(/(?:연락처|전화번호|휴대폰|HP)?(?:\s*[:=➔]\s*|\s+)?\b(010[-.\s]?\d{3,4 Bios}[-.\s]?\d{4})\b/);
+            const phoneMatch = rawText.match(/(?:연락처|전화번호|휴대폰|HP)?(?:\s*[:=➔]\s*|\s+)?\b(010[-.\s]?\d{3,4}[-.\s]?\d{4})\b/);
             const titleMatch = rawText.match(/(?:과제명|참여과제|시험명)?(?:\s*[:=➔]\s*|\s+)?(\[.*\]\s*[가-힣\w\s+]+)/) || ["", "[임상] 기본 과제 정의"];
             const thMatch = rawText.match(/(\d+)\s*(?:기|차수)/) || ["", "1"];
 
             if (!nameMatch || !ssnMatch || !phoneMatch) return alert("❌ 문서 내에서 필수값(이름, 생년월일, 연락처) 패턴을 찾을 수 없습니다.");
 
             const extractedName = nameMatch[1].trim();
-            const extractedSsn = ssnMatch[1].trim().toUpperCase(); // 기호 대문자 유지
+            const extractedSsn = ssnMatch[1].trim().toUpperCase();
             const extractedPhone = phoneMatch[1].replace(/[^0-9]/g, '');
             const extractedTitle = titleMatch[1] ? titleMatch[1].trim() : "[임상] 수동 업로드 과제";
-            const extractedTh = thMatch[1] ? formatTh(thMatch[1].trim()) : "1기";
+            const extractedTh = thMatch[1] ? thMatch[1].trim() + "기" : "1기";
 
             if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
                 return alert('알림: 이미 명단에 존재하는 대상자입니다.');
             }
 
             dataStoreApplicant.unshift({
-                uid: Date.now(),
-                title: extractedTitle,
-                th: extractedTh,
-                count: "1",
-                period: "72",
-                name: extractedName,
-                ssn: extractedSsn, // 성별 기호 보존
-                phone: extractedPhone,
-                result: "접수",
-                payStatus: "접수",
-                payStatus1: "접수",
-                payStatus2: "대기",
-                payStatus3: "대기",
-                isDutyAgreed: "대기",
-                isCallAgreed: "대기",
-                isAgreed: "대기",
-                category: "내분비내과 / 스마트 업로드",
-                stage: `${extractedTh} 참여(소집)`,
-                idCard: true,
-                bankbook: true
+                uid: Date.now(), title: extractedTitle, th: extractedTh, count: "1", period: "72", name: extractedName, ssn: extractedSsn, phone: extractedPhone, result: "접수",
+                payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기", isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
+                category: "내분비내과 / 스마트 업로드", stage: `${extractedTh} 참여(소집)`, idCard: true, bankbook: true
             });
 
             localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
@@ -3436,6 +3427,7 @@
 
             alert(`📢 스마트 자동 등록 성공!\n● 성명: ${extractedName}\n● 생년월일: ${extractedSsn}\n● 연락처: ${extractedPhone}`);
         }
+
 
         // 💥 [독립 확장] 새창이 아닌 기존 비밀번호 수정창과 동일한 내장형 모달 시스템 가동
         function openAdminDocViewer(uid, docType) {

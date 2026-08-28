@@ -5820,20 +5820,22 @@
  * 마크업 문자열 충돌 없이 [시간 설정] 버튼에 인자값을 안전하게 주입하고 노출시킵니다.
  */
         window.setupSchedulerButtonLink = function (index, titleText, fieldText) {
-            // 0.05초 미세 타이머를 가동하여 모달창의 버튼 돔이 완전히 마운트된 후 타격
+            // 💡 0.06초 미세 가드 타이머를 가동하여 모달창의 하단 버튼바 돔이 완전히 안착한 뒤 정밀 타격
             setTimeout(() => {
                 const sb = document.getElementById('btn-integrated-action-scheduler');
                 if (sb) {
-                    sb.style.display = 'block'; // 버튼 강제 노출
+                    // 1. 초기 디폴트 숨김(none) 상태를 걷어내고 왼쪽 끝자리에 와이드 개방 노출
+                    sb.style.display = 'block';
 
-                    // 안전하게 가공된 문자열 구조를 리바인딩 주입하여 따옴표 충돌 원천 방어
-                    sb.onclick = function () {
-                        if (typeof window.openAlarmSchedulerModal === 'function') {
-                            window.openAlarmSchedulerModal(index, titleText, fieldText);
-                        }
-                    };
+                    // 2. 🎯 [핵심 수리 포인트]: 자바스크립트 바인딩 대신 인라인 문자열 속성을 강제 오버라이드합니다.
+                    // 특수 이스케이프(\') 처리를 통하여 백틱 내부에서 문장 부호 따옴표가 깨지거나 터지는 현상을 100% 원천 방어합니다.
+                    sb.setAttribute("onclick", `if(typeof window.openAlarmSchedulerModal === \'function\') { window.openAlarmSchedulerModal(${index}, \'${titleText}\', \'${fieldText}\'); }`);
+
+                    // 3. 브라우저가 마우스 포인터 커서 모양을 정확히 인지하도록 스타일시트 강제 상속 보정
+                    sb.style.cursor = 'pointer';
+                    sb.style.pointerEvents = 'auto';
                 }
-            }, 50);
+            }, 60);
         };
 
     </script>

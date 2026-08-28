@@ -5810,6 +5810,132 @@
         }
 
 
+
+        /**
+         * 🎯 [실시간 알람 크론 가드 데몬]
+         * 모집공고에 지정된 당직공지/소집공지 날짜 및 시각을 1초 단위로 실시간 감지하여 대상자에게 알람을 강제 출격시킵니다.
+         */
+        (function () {
+            // 1. 이미 구동 중인 중복 타이틀 인터셉터 차단 가드
+            if (window.isNoticeAlarmDemonRunning) return;
+            window.isNoticeAlarmDemonRunning = true;
+
+            // 2. 이미 알림을 한 번 뿜은 기 발송 과제 고유 키셋 (새로고침 시 중복 팝업 소멸 차단 가드)
+            if (!window.dispatchedNoticeAlarmKeySet) {
+                window.dispatchedNoticeAlarmKeySet = new Set(JSON.parse(localStorage.getItem('dispatchedNoticeAlarmKeySet') || '[]'));
+            }
+
+            // 3. 브라우저 비프 사운드 이펙트 내장 인스턴스 빌드
+            function playAlertBeepSound() {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, ctx.currentTime); // 고주파 경고음 알림
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.15); // 0.15초간 비프음 사출
+                } catch (e) {
+                    console.warn("오디오 컨텍스트 락 상태: 브라우저 상호작용 후 사운드가 개방됩니다.");
+                }
+            }
+
+            // 4. 고대비 다크 테마 야광 토스트 알림창 컴포넌트 동적 빌더 사출
+            function injectHighContrastToastNotice(type, title, th, text) {
+                let toastContainer = document.getElementById('notice-toast-container');
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.id = 'notice-toast-container';
+                    toastContainer.style = "position: fixed; top: 20px; right: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; max-width: 380px; width: 100%;";
+                    document.body.appendChild(toastContainer);
+                }
+
+                const toast = document.createElement('div');
+                const borderColor = type === "당직" ? "#fbbf24" : "#38bdf8"; // 당직: 노랑 배지, 소집: 하늘 배지
+
+                toast.style = `background: #0f172a; border-left: 5px solid ${borderColor}; color: #ffffff; padding: 15px 20px; border-radius: 6px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255,255,255,0.05); font-family: sans-serif; animation: toastSlideIn 0.3s ease-out forwards;`;
+
+                toast.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span class="lvl-badge" style="background: rgba(255,255,255,0.1); color: ${borderColor}; padding: 2px 6px; font-size: 11px; font-weight: 800; border: 1px solid ${borderColor}; border-radius: 4px;">⚠️ Live [${type}공지] 알람</span>
+                <span onclick="this.parentElement.parentElement.remove()" style="cursor: pointer; color: #64748b; font-size: 14px; font-weight: 700;">&times;</span>
+            </div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-transform: uppercase; text-overflow: ellipsis;">${title} (${th})</div>
+            <div style="font-size: 12.5px; color: #94a3b8; margin-top: 5px; line-height: 1.4; word-break: break-all;">${text || '공지 내용이 존재하지 않습니다.'}</div>
+        `;
+
+                toastContainer.appendChild(toast);
+                playAlertBeepSound();
+
+                // 🎯 7초 후 알림 자동 부드럽게 페이드 아웃 소멸
+                setTimeout(() => {
+                    toast.style.animation = "toastSlideOut 0.4s ease-in forwards";
+                    setTimeout(() => toast.remove(), 400);
+                }, 7000);
+            }
+
+            // CSS 키프레임 애니메이션 레이아웃 인젝터 (야광 팝업 효과 가동)
+            const styleEl = document.createElement('style');
+            styleEl.innerHTML = `
+        @keyframes toastSlideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastSlideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+    `;
+            document.head.appendChild(styleEl);
+
+            // 5. ⏰ [1초 크론 인터벌 데몬 루프]: 매 초마다 모집공고 스케줄 저장소를 전수 조사
+            setInterval(() => {
+                // 로컬스토리지 모집공고 마스터 DB 실시간 스캔
+                const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                if (recruitmentDB.length === 0) return;
+
+                // 현재 시스템의 연, 월, 일, 시, 분 리얼타임 캡처
+                const now = new Date();
+                const nowYear = now.getFullYear();
+                const nowMonth = String(now.getMonth() + 1).padStart(2, '0');
+                const nowDate = String(now.getDate()).padStart(2, '0');
+                const nowHour = String(now.getHours()).padStart(2, '0');
+                const nowMin = String(now.getMinutes()).padStart(2, '0');
+
+                // 데이터 대조용 실시간 스탬프 키 (포맷: YYYY-MM-DD HH:MM)
+                const currentSystemTimeKey = `${nowYear}-${nowMonth}-${nowDate} ${nowHour}:${nowMin}`;
+
+                recruitmentDB.forEach(rec => {
+                    // A. 당직 공지 타격 판단 (당직 일자와 당직 시간이 현재 시각과 일치하는지 스캔)
+                    if (rec.dutyDate && rec.dutyTime) {
+                        const dutyTargetStamp = `${rec.dutyDate.trim()} ${rec.dutyTime.trim()}`;
+                        if (dutyTargetStamp === currentSystemTimeKey) {
+                            const alarmUniqueKey = `DUTY_${rec.uid}_${dutyTargetStamp}`;
+                            if (!window.dispatchedNoticeAlarmKeySet.has(alarmUniqueKey)) {
+                                window.dispatchedNoticeAlarmKeySet.add(alarmUniqueKey);
+                                localStorage.setItem('dispatchedNoticeAlarmKeySet', JSON.stringify(Array.from(window.dispatchedNoticeAlarmKeySet)));
+
+                                // 🔔 당직 알람 발포!
+                                injectHighContrastToastNotice("당직", rec.title, rec.th, rec.dutyNoticeText || rec.dutyNotice);
+                            }
+                        }
+                    }
+
+                    // B. 소집 공지 타격 판단 (소집 일자와 소집 시간이 현재 시각과 일치하는지 스캔)
+                    if (rec.callDate && rec.callTime) {
+                        const callTargetStamp = `${rec.callDate.trim()} ${rec.callTime.trim()}`;
+                        if (callTargetStamp === currentSystemTimeKey) {
+                            const alarmUniqueKey = `CALL_${rec.uid}_${callTargetStamp}`;
+                            if (!window.dispatchedNoticeAlarmKeySet.has(alarmUniqueKey)) {
+                                window.dispatchedNoticeAlarmKeySet.add(alarmUniqueKey);
+                                localStorage.setItem('dispatchedNoticeAlarmKeySet', JSON.stringify(Array.from(window.dispatchedNoticeAlarmKeySet)));
+
+                                // 🔔 소집 알람 발포!
+                                injectHighContrastToastNotice("소집", rec.title, rec.th, rec.callNoticeText || rec.callNotice);
+                            }
+                        }
+                    }
+                });
+            }, 1000); // 1초 주기로 백그라운드 무정지 가동
+        })();
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

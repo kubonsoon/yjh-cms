@@ -1435,24 +1435,39 @@
 
         //기존 소스의 무결성을 지키며 성별 엔진 결합
         function parseGenderFromSsn(ssnVal, nameVal) {
-            if (nameVal === "홍길동") return "남";
-            if (nameVal === "강남구") return "남";
-            if (nameVal === "진재영" || nameVal === "지재영") return "여";
+            if (!ssnVal) {
+                // A. 생년월일 뒷자리 기호가 없는 최초 디폴트 상태일 때만 이름 기반 락인 정책 작동
+                if (nameVal === "홍길동") return "남";
+                if (nameVal === "강남구") return "남";
+                if (nameVal === "진재영" || nameVal === "지재영") return "여";
+                return "미정";
+            }
 
-            if (!ssnVal) return "미정";
+            // 소문자 대응 및 공백 제거 전처리
             const cleanSsn = ssnVal.toString().trim().toUpperCase();
 
-            // 하이픈 등 특수 기호를 완전 제거한 순수 데이터 추출
+            // 하이픈(-) 등 특수 기호를 제거한 순수 데이터 추출
             const pureData = cleanSsn.replace(/[^0-9AFM]/g, '');
-            if (pureData.length < 7) return "미정";
 
-            const targetChar = pureData.charAt(6); // 주민번호 뒷자리 첫 문자
-
-            if (targetChar === "1" || targetChar === "3" || targetChar === "M") {
-                return "남";
-            } else if (targetChar === "2" || targetChar === "4" || targetChar === "F") {
-                return "여";
+            // 💡 [핵심 교정]: 주민번호가 존재하지만 최초 가상 DB 값(950505, 980101, 050607)처럼 뒷자리 기호가 없는 6자리 상태라면 디폴트 유지
+            if (pureData.length === 6) {
+                if (nameVal === "홍길동") return "남";
+                if (nameVal === "강남구") return "남";
+                if (nameVal === "진재영" || nameVal === "지재영") return "여";
+                return "미정";
             }
+
+            // 뒷자리 성별 식별값(7번째 글자)이 입력된 경우 이름 조건문을 완전히 무시하고 입력값 기준 가변 연산 작동
+            if (pureData.length >= 7) {
+                const targetChar = pureData.charAt(6); // 주민번호 7번째 자리 (0부터 시작하므로 인덱스 6)
+
+                if (targetChar === "1" || targetChar === "3" || targetChar === "M") {
+                    return "남";
+                } else if (targetChar === "2" || targetChar === "4" || targetChar === "F") {
+                    return "여";
+                }
+            }
+
             return "미정";
         }
 

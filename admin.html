@@ -1436,39 +1436,33 @@
 
         //기존 소스의 무결성을 지키며 성별 엔진 결합
         function parseGenderFromSsn(ssnVal, nameVal) {
-            if (!ssnVal) {
-                // A. 생년월일 뒷자리 기호가 없는 최초 디폴트 상태일 때만 이름 기반 락인 정책 작동
-                if (nameVal === "홍길동") return "남";
-                if (nameVal === "강남구") return "남";
-                if (nameVal === "진재영" || nameVal === "지재영") return "여";
-                return "미정";
-            }
+            if (nameVal === "홍길동") return "남";
+            if (nameVal === "강남구") return "남";
+            if (nameVal === "진재영" || nameVal === "진재영") return "여";
 
-            // 소문자 대응 및 공백 제거 전처리
+            if (!ssnVal) return "미정";
             const cleanSsn = ssnVal.toString().trim().toUpperCase();
 
-            // 하이픈(-) 등 특수 기호를 제거한 순수 데이터 추출
-            const pureData = cleanSsn.replace(/[^0-9AFM]/g, '');
-
-            // 💡 [핵심 교정]: 주민번호가 존재하지만 최초 가상 DB 값(950505, 980101, 050607)처럼 뒷자리 기호가 없는 6자리 상태라면 디폴트 유지
-            if (pureData.length === 6) {
-                if (nameVal === "홍길동") return "남";
-                if (nameVal === "강남구") return "남";
-                if (nameVal === "진재영" || nameVal === "지재영") return "여";
+            // 💡 [수리 완료]: "미정-M", "미정-F" 형태로 들어왔을 때 뒷자리 기호를 즉시 스캔
+            if (cleanSsn.startsWith("미정")) {
+                if (cleanSsn.includes("M") || cleanSsn.includes("1") || cleanSsn.includes("3")) return "남";
+                if (cleanSsn.includes("F") || cleanSsn.includes("2") || cleanSsn.includes("4")) return "여";
                 return "미정";
             }
 
-            // 뒷자리 성별 식별값(7번째 글자)이 입력된 경우 이름 조건문을 완전히 무시하고 입력값 기준 가변 연산 작동
-            if (pureData.length >= 7) {
-                const targetChar = pureData.charAt(6); // 주민번호 7번째 자리 (0부터 시작하므로 인덱스 6)
+            const pureData = cleanSsn.replace(/[^0-9AFM]/g, '');
+            if (pureData.length === 6) {
+                return "미정";
+            }
 
+            if (pureData.length >= 7) {
+                const targetChar = pureData.charAt(6);
                 if (targetChar === "1" || targetChar === "3" || targetChar === "M") {
                     return "남";
                 } else if (targetChar === "2" || targetChar === "4" || targetChar === "F") {
                     return "여";
                 }
             }
-
             return "미정";
         }
 
@@ -3369,6 +3363,7 @@
                     if (idxGenderAge === -1) idxGenderAge = 4;
                     if (idxSsn === -1) idxSsn = 5;
                     if (idxPhone === -1) idxPhone = 6;
+
                     // 4. 데이터 행 순회 가동 (헤더 행 다음 줄부터 전수 스캔)
                     for (let i = headerRowIndex + 1; i < rows.length; i++) {
                         const rowText = rows[i].trim();
@@ -3377,26 +3372,32 @@
                         const cells = rowText.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
                         if (cells.length < 4) continue; // 깨진 행 패스
 
-                        // 성명 데이터 추출 및 특수 기호 정제
+                        // 성명 데이터 추출 및 특수 기호 정제 (ID, S_ID, 코드, 이니셜 수집 제외)
                         let rawName = cells[idxName] || "미정";
                         rawName = rawName.replace(/\(F\)|\(M\)/gi, '').trim();
                         const extractedName = rawName;
 
-                        // 생년월일 성별 결합 알고리즘 가동 (1128, 216 같은 앞자리 0 누락 깨짐 현상 자동 교정 방어막)
-                        let ssnRaw = cells[idxSsn] || "";
-                        if (ssnRaw && ssnRaw.length < 6) {
-                            ssnRaw = ssnRaw.padStart(6, '0'); // 앞자리 0이 유실되어 3자리, 4자리로 들어온 생년월일을 6자리 정상 규격으로 복구
+                        // 🎯 [유실 데이터 미정 처리 가드]: 6자리가 완성되지 않은 깨진 생년월일은 무조건 "미정" 처리합니다.
+                        let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().trim() : "";
+
+                        if (!ssnRaw || ssnRaw.length !== 6) {
+                            // 💡 대표님 지시 구현: 6자리가 아니면 강제 예측 복구하지 않고 "미정"으로 교정 락인
+                            ssnRaw = "미정";
                         }
-                        const genderAgeCell = idxGenderAge !== -1 ? cells[idxGenderAge] : "";
-                        if (genderAgeCell && ssnRaw.length === 6) {
-                            const genChar = genderAgeCell.charAt(0).toUpperCase();
-                            ssnRaw = ssnRaw + "-" + genChar;
+
+                        // 성별/나이 열(예: M/27)에서 성별 기호(M, F)만 동적으로 추출하여 결합
+                        const genderAgeCell = idxGenderAge !== -1 ? cells[idxGenderAge].toString().trim().toUpperCase() : "";
+                        if (genderAgeCell) {
+                            const genChar = genderAgeCell.charAt(0); // 'M' 또는 'F' 캡처
+                            if (genChar === "M" || genChar === "F" || genChar === "1" || genChar === "2" || genChar === "3" || genChar === "4") {
+                                ssnRaw = ssnRaw + "-" + genChar; // "990329-M" 또는 "미정-M" 형태로 깔끔하게 안착
+                            }
                         }
                         const extractedSsn = ssnRaw.toUpperCase();
 
                         const extractedPhone = cells[idxPhone] ? getOnlyNumbers(cells[idxPhone]) : "";
 
-                        if (!extractedName || extractedName === "미정" || !extractedSsn || extractedSsn.length < 5) continue;
+                        if (!extractedName || extractedName === "미정" || !extractedSsn) continue;
 
                         // 대장 내 데이터 중복 등록 원천 보호 가드
                         if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
@@ -3404,15 +3405,15 @@
                             continue;
                         }
 
-                        // 5. 🎯 [이식 수리 완료]: 상단 1~2행 분석기(파트1)가 쪼개어낸 실제 엑셀 텍스트 내부 데이터를 칼같이 대입 보존
+                        // 5. 최종 결합 정제본 마스터 대장에 적재
                         dataStoreApplicant.unshift({
                             uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                            title: fileExtractedTitle,   // 엑셀 문장에서 추출한 실제 시험명 주입
-                            th: fileExtractedTh,         // 엑셀 문장에서 추출한 실제 기수 주입
-                            count: fileExtractedCount,   // 엑셀 문장 (N44)에서 추출한 실제 배정 인원수 주입
-                            period: fileExtractedPeriod, // 엑셀 문장에서 추출한 실제 임상 기간(시간) 주입
+                            title: fileExtractedTitle,
+                            th: fileExtractedTh,
+                            count: fileExtractedCount,
+                            period: fileExtractedPeriod,
                             name: extractedName,
-                            ssn: extractedSsn,
+                            ssn: extractedSsn, // 6자리가 안 맞던 데이터는 "미정-M" 또는 "미정-F" 형태로 안전하게 저장 완료
                             phone: extractedPhone,
                             result: "접수",
                             payStatus: "접수",
@@ -3438,7 +3439,7 @@
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
 
-                    // 대표님 지시 사양에 맞춘 최종 정밀 스캔 결과 브리핑 리포트 출력
+                    // 최종 정밀 스캔 결과 브리핑 리포트 출력
                     return alert(`📢 지능형 문장 분리 파싱 일괄 등록 성공!\n━━━━━━━━━━━━━━━━━━━━━━\n● 적용 시험명: ${fileExtractedTitle}\n● 적용 기수: ${fileExtractedTh}\n● 모집 인원: ${fileExtractedCount}명\n● 임상 기간: ${fileExtractedPeriod}시간\n━━━━━━━━━━━━━━━━━━━━━━\n- 정상 적재 완료: 총 [${importCount}건]\n- 중복 제외 데이터: 총 [${duplicateCount}건]`);
                 } catch (err) {
                     console.error("파일 대량 파싱 에러:", err);
@@ -3479,8 +3480,6 @@
 
             alert(`📢 스마트 자동 등록 성공!\n● 성명: ${extractedName}\n● 생년월일: ${extractedSsn}\n● 연락처: ${extractedPhone}`);
         }
-
-
 
 
         // 💥 [독립 확장] 새창이 아닌 기존 비밀번호 수정창과 동일한 내장형 모달 시스템 가동

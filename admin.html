@@ -947,6 +947,28 @@
                 transform: scale(1);
             }
         }
+
+
+        /* 긴급 당직/소집 공지 모달창 웹푸시알림(서비스 워커) */
+        .blink-orange-neon {
+            animation: neon-blink-loop 0.4s infinite alternate ease-in-out !important;
+            border: 3px solid #ff5722 !important;
+            /* 초기 주황색 테두리 강제 설정 */
+        }
+
+        @keyframes neon-blink-loop {
+            0% {
+                border-color: #ff5722 !important;
+                /* 주황색 */
+                box-shadow: 0 0 15px #ff5722, inset 0 0 10px rgba(255, 87, 34, 0.3) !important;
+            }
+
+            100% {
+                border-color: #39ff14 !important;
+                /* 강렬한 네온 형광색 (Lime Green) */
+                box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.4) !important;
+            }
+        }
     </style>
 
 <body>
@@ -1019,23 +1041,32 @@
                  SECTION 01. 모집공고 관리 탭 
                  ========================================================== -->
             <div id="recruitmentView" class="content-section active">
-                <h2>모집공고 관리</h2>
 
-                <!-- 모집공고: 시험 관련 문서 업로드 (기존 유지) -->
-                <div class="upload-zone" onclick="document.getElementById('examDocParser').click()">
-                    <strong>
-                        <i class=" fa-solid fa-file-powerpoint" style="color: #f97316;"></i> 시험 관련 파일 업로드
-                    </strong>
-                    <p>Excel, Word, HWP, HWPX, PPT, PPTX 문서를 드롭하거나 클릭하여 첨부하세요</p>
-                    <p id="exam-selected-file-name"
-                        style="margin-top: 10px; font-weight: 700; color: var(--secondary-color); font-size: 14px;"></p>
-                    <input type="file" id="examDocParser" accept=".xlsx, .xls, .docx, .doc, .hwp, .hwpx, .ppt, .pptx"
-                        style="display:none;" onchange="handleExamFileImport(event)">
+                <!-- 💡 원본 타이틀의 구조를 유지하며 우측에 조화롭게 결합된 독립 시연용 알림 설정 레이어 -->
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 14px; margin-bottom: 20px;">
+                    <h2 style="margin: 0; padding: 0; border: none;">모집공고 관리</h2>
+
+                    <!-- 💥 [테스트 전용] 기존 비즈니스 기능과 완전 격리되어 작동하는 타이머 인풋 단추 셋트 -->
+                    <div class="demo-notification-control-gate"
+                        style="display: inline-flex; align-items: center; gap: 10px;">
+                        <select id="demoNotificationTimer"
+                            style="height: 36px; background: #0b0f19; color: #ffffff; border: 1px solid #f97316; border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none; transition: border-color 0.2s;">
+                            <option value="5">5초 뒤 정각 사출 시연</option>
+                            <option value="10">10초 뒤 정각 사출 시연</option>
+                            <option value="20">20초 뒤 정각 사출 시연</option>
+                        </select>
+                        <button onclick="triggerIndependentDemoPipeline()" type="button"
+                            style="background: #f97316; color: #ffffff; padding: 0 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; height: 36px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#ea580c'" onmouseout="this.style.background='#f97316'">
+                            ⚙️ 시연용 알림 예약
+                        </button>
+                    </div>
                 </div>
 
                 <!-- ==========================================================================
-     🎯 [대안 1] 섹션 분리형 복층 구조 모집공고 신규 등록 폼 
-     ========================================================================== -->
+                  섹션 분리형 복층 구조 모집공고 신규 등록 폼 
+                  ========================================================================== -->
                 <div class="register-box"
                     style="margin-top: 20px !important; margin-bottom: 25px; background: #0f172a; padding: 24px; border-radius: 12px; border: 1px solid #1e293b;">
                     <h3

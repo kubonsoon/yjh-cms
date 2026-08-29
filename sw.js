@@ -44,3 +44,9 @@
 
             event.waitUntil(windowFocusChain);
         });
+
+        // 💥 [웹 표준 필수 결합] 브라우저의 서비스 워커 자격 검증(Fetch Handler)을 통과하기 위한 네트워크 인터셉터 우회 코드
+self.addEventListener('fetch', (event) => {
+    // 본품 전산망의 네트워크 요청 처리에 일절 간섭하지 않고 그대로 통과시킵니다.
+    return;
+});

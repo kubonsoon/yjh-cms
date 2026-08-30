@@ -6545,7 +6545,7 @@
                 }
                 // 무음 버퍼를 한 번 흘려보내 브라우저의 자동재생 차단 방어막을 영구 파괴
                 const dummyAudio = new Audio("kakaotalk_sound.mp3");
-                dummyAudio.volume = 0.0; // 소리 안 나게 처리
+                dummyAudio.volume = 1.0; // 소리 안 나게 처리
                 dummyAudio.play().then(() => {
                     console.log("🔓 브라우저 오디오 시스템 보안 해제 완료 (이제 백그라운드 유입 시 소리가 정상 작동합니다)");
                 }).catch(() => { });

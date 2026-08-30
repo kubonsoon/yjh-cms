@@ -6400,15 +6400,26 @@
 
             alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${seconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
 
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                    action: 'RESERVE_DEMO_PUSH',
-                    delay: seconds * 1000,
-                    title: '🚨 LIVE [당직공지] 알람 정각 사출',
-                    body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
-                });
+            // 💥 중요: controller가 바로 준비되지 않았을 수 있으므로 active 워커까지 폭넓게 탐색
+            const worker = navigator.serviceWorker.controller || (navigator.serviceWorker.ready && navigator.serviceWorker.ready.then(reg => reg.active));
+
+            if ('serviceWorker' in navigator && worker) {
+                const sendPostMessage = (activeWorker) => {
+                    activeWorker.postMessage({
+                        action: 'RESERVE_DEMO_PUSH',
+                        delay: seconds * 1000,
+                        title: '🚨 LIVE [당직공지] 알람 정각 사출',
+                        body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
+                    });
+                };
+
+                if (navigator.serviceWorker.controller) {
+                    sendPostMessage(navigator.serviceWorker.controller);
+                } else {
+                    navigator.serviceWorker.ready.then(reg => sendPostMessage(reg.active));
+                }
             } else {
-                console.warn("서비스 워커가 대기 중이 아니므로 로컬 타이머로 우회 작동합니다.");
+                console.warn("서비스 워커가 활성화 상태가 아니므로 로컬 타이머로 우회 작동합니다.");
                 setTimeout(() => {
                     launchDemoFlashingBlinkModal();
                 }, seconds * 1000);
@@ -6435,7 +6446,7 @@
             }
         });
 
-        // 3. 주황/형광색 교차 점멸 루프 애니메이션 및 인라인 모달 사출 구현부
+        // 3. 주황/형광색 교차 점멸 루프 애니메이션 및 인라인 모달 사출 구현부 (변동 없음)
         function launchDemoFlashingBlinkModal() {
             const oldOverlay = document.getElementById('demoBlinkOverlayLayer');
             if (oldOverlay) oldOverlay.remove();
@@ -6478,7 +6489,6 @@
         // 4. 독립 카카오톡 공식 오피셜 알림 비프 사운드 연동 스레드
         function executeKakaoDemoSoundEffect() {
             try {
-                // 💡 깃허브 메인 루트에 오디오 파일(kakaotalk_sound.mp3)을 두고 이름을 맞춰주시면 가장 안전합니다.
                 const audio = new Audio("kakaotalk_sound.mp3");
                 audio.volume = 1.0;
                 audio.play().catch(err => {
@@ -6495,12 +6505,18 @@
             if (overlay) overlay.remove();
         }
 
-        // 6. 💥 모든 파일이 메인에 있으므로 상대 경로 기반 등록 진행
+        // 6. 💥 깃허브 하위 폴더(/yjh-cms/) 스코프 에러 완벽 대처 등록 센서
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // 상대 경로인 'sw.js'로 지정하여 admin.html과 동일 선상에서 세션 감지
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('서비스 워커 백그라운드 등록 성공:', reg))
+                // 상대 경로 등록 및 즉시 활성화(claim) 유도 스코프 지정
+                navigator.serviceWorker.register('sw.js', { scope: './' })
+                    .then(reg => {
+                        console.log('서비스 워커 백그라운드 등록 성공:', reg);
+                        // 첫 로드 시 대기 시간 없이 즉시 컨트롤러 권한 강제 획득 유도
+                        if (reg.active && !navigator.serviceWorker.controller) {
+                            window.location.reload();
+                        }
+                    })
                     .catch(err => console.error('서비스 워커 시스템 등록 실패:', err));
             });
         }

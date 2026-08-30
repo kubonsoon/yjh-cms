@@ -6432,18 +6432,35 @@
                     tag: "clinical-urgent-call" // 중복 알림 방지용 고유 락인 태그
                 });
 
-                // 5. [옵션] OS 하단 팝업창을 마우스로 클릭했을 때 관리자 시스템 웹페이지로 즉시 화면을 복구시키는 엔진
+                // 5. OS 하단 팝업창을 마우스로 클릭했을 때 처리
                 osNotification.onclick = function (event) {
                     event.preventDefault();
-                    window.focus(); // 최소화되어 있던 브라우저 창을 컴퓨터 최상단 화면으로 강제 포커싱 인상
 
-                    // 대상자 관리나 알림 모달창이 바로 켜지도록 후속 연동 파이프라인 가동 가능
+                    // 최소화되거나 뒤에 숨은 브라우저 창을 최상단으로 유도
+                    window.focus();
+
+                    // [Step 1] 모집공고 페이지로 화면 전환
                     if (typeof changeMainViewport === "function") {
                         changeMainViewport('recruitmentView');
                     }
-                    osNotification.close(); // 클릭 시 알림창 닫기
-                };
 
+                    // [Step 2] 💥 모집공고 페이지 내의 특정 모달창을 강제로 띄우는 로직 추가
+                    // 예시 A: 모달을 열어주는 별도 자바스크립트 함수가 있는 경우
+                    if (typeof openRecruitmentModal === "function") {
+                        openRecruitmentModal();
+                    }
+                    // 예시 B: 부트스트랩(Bootstrap) 등 UI 라이브러리 모달을 쓰는 경우
+                    else {
+                        const modalElement = document.getElementById("yourModalId"); // 실제 모달 ID로 변경
+                        if (modalElement) {
+                            // 부트스트랩 예시: new bootstrap.Modal(modalElement).show();
+                            // 일반 CSS 예시: modalElement.style.display = "block";
+                            modalElement.classList.add("show"); // 프로젝트 스타일에 맞게 수정
+                        }
+                    }
+
+                    osNotification.close(); // 클릭된 알림창 닫기
+                };
             }, seconds * 1000);
         }
 

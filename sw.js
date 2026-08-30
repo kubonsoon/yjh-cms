@@ -28,6 +28,7 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const targetLaunchPath = event.notification.data.launchUrl;
+  979;
   const executionUrl = new URL(targetLaunchPath, self.location.origin).href;
 
   const windowFocusChain = clients

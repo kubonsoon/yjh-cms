@@ -6394,149 +6394,57 @@
         // [완전 독립 스레드] 웹푸시알림(서비스 워커) 시스템
         // =========================================================================
 
-        // 1. 에러가 발생한 버튼 클릭 시 작동하는 타이머 예약 핵심 함수 선언
         function triggerIndependentDemoPipeline() {
-            const timerSelect = document.getElementById('demoNotificationTimer');
-            if (!timerSelect) {
-                return alert("오류: 알림 시간 선택 상자(demoNotificationTimer)를 찾을 수 없습니다.");
+            // 1. 브라우저 및 OS 알림 권한 체크 및 요청
+            if (!("Notification" in window)) {
+                alert("이 브라우저는 컴퓨터 OS 하단 알림 기능을 지원하지 않습니다.");
+                return;
             }
 
-            const delaySeconds = timerSelect.value;
-            const delayMillis = parseInt(delaySeconds, 10) * 1000;
-
-            alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${delaySeconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
-
-            // 💥 [치명적 결함 해결 - 사운드 사전 락인]: 사용자가 브라우저 창을 끄기 직전 시스템 오디오 채널에 소리를 선결 예약합니다.
-            // 이 처리를 해두면 탭이 즉시 닫히더라도 지정된 초 뒤에 카카오톡 음향이 OS 전역 스레드에서 강제 사출됩니다.
-            setTimeout(() => {
-                // 실제 음원 데이터가 살아있는 카카오톡 공식 정품 알림음 MP3 경로로 교정 완료
-                const bgSound = new Audio("https://daumcdn.net");
-                bgSound.volume = 1.0;
-                bgSound.play().catch(err => console.log("백그라운드 사운드 오디오 예약 엔진 가동"));
-            }, delayMillis - 150); // 푸시 알림 배너가 화면에 노출되기 약 0.15초 전에 소리를 먼저 터뜨려 완벽한 싱크 매칭
-
-            // 브라우저가 완전히 꺼졌을 때 서비스 워커가 독자적으로 백그라운드 제어를 수행하도록 신호 전송
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                    action: 'RESERVE_DEMO_PUSH',
-                    delay: delayMillis,
-                    title: '🚨 LIVE [당직공지] 알람 정각 사출',
-                    body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
+            // 알림 권한이 거부되어 있다면 다시 요청
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        alert("OS 시스템 알림 권한이 승인되었습니다. 시연을 다시 실행해 주세요.");
+                    } else {
+                        alert("컴퓨터 OS 알림 권한이 거부되었습니다. 브라우저 주소창 왼쪽 자물쇠 아이콘을 눌러 알림을 허용해 주세요.");
+                    }
                 });
-            } else {
-                // 서비스 워커가 아직 등록되지 않은 경우를 위한 개발자 디버깅용 폴백 알림
-                console.warn("서비스 워커가 활성화되지 않아 로컬 브라우저 타이머로 우회 실행합니다.");
-                setTimeout(() => {
-                    launchDemoFlashingBlinkModal();
-                }, delayMillis);
-            }
-        }
-
-        // 2. 서비스 워커 푸시 배너를 클릭해 창이 재실행되거나 세션 복구 시 유입을 가로채는 인터셉터
-        window.addEventListener('DOMContentLoaded', () => {
-            // 💡 [웹 표준 권한 획득 가드]: 진입 시점에 브라우저 알림 권한 승인 상태를 강제 유도 및 확인합니다.
-            if ('Notification' in window && Notification.permission !== 'granted') {
-                Notification.requestPermission();
+                return;
             }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mode') === 'independentDemoLaunch') {
+            // 2. 관리자가 선택한 정각 사출 타이머 시간 확보 (5초 / 10초 / 20초)
+            const timerSelect = document.getElementById("demoNotificationTimer");
+            if (!timerSelect) return alert("타이머 엘리먼트를 찾을 수 없습니다.");
 
-                // 원본 함수를 우회하여 전산망 메인 화면을 모집공고 탭으로 즉시 배치
-                if (typeof changeMainViewport === "function") {
-                    changeMainViewport('recruitmentView');
-                }
+            const seconds = parseInt(timerSelect.value, 10) || 5;
+            alert(`⚙️ 기획안 사출 시연 예약 완료: 브라우저를 닫거나 내리셔도 ${seconds}초 뒤 컴퓨터 OS 하단에서 창이 팝업됩니다.`);
 
-                // 돔 렌더링 안정성을 위해 0.4초 대기 후 전용 독자 모달창 강제 기동
-                setTimeout(() => {
-                    launchDemoFlashingBlinkModal();
-                }, 400);
+            // 3. 백그라운드 카운트다운 타이머 가동 (브라우저를 최소화해도 백그라운드 스레드에서 정밀 역추적)
+            setTimeout(function () {
 
-                // 시연 완료 후 깔끔하게 주소창 파라미터 정제 제거
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-        });
-
-        // 3. 기존 openIntegratedBoardModal과 완전 별개로 주황/형광색으로 번쩍이는 모달 생성 함수
-        function launchDemoFlashingBlinkModal() {
-            // A. 기존에 만들어진 데모용 모달 레이어가 있다면 파기 후 재생성
-            const oldOverlay = document.getElementById('demoBlinkOverlayLayer');
-            if (oldOverlay) oldOverlay.remove();
-
-            // B. 정각 사출 모달창 HTML 구조화 구현
-            const overlay = document.createElement('div');
-            overlay.id = 'demoBlinkOverlayLayer';
-            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:999999; display:flex; justify-content:center; align-items:center;';
-
-            // C. 주황색과 형광색의 점멸 주기를 적용한 격렬한 테두리 박스 빌드
-            const modalBox = document.createElement('div');
-            modalBox.style.cssText = 'background:#1a233a; padding:30px; border-radius:16px; width:100%; max-width:550px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); box-sizing:border-box; text-align:center; transition: all 0.3s;';
-
-            // 💥 0.4초 주기로 주황색(#ff5722)과 형광색(#39ff14)을 강력 교차 점멸시키는 인라인 애니메이션 주입
-            modalBox.style.animation = 'demoNeonFlashLoop 0.4s infinite alternate ease-in-out';
-
-            // 글로벌 CSS 키프레임 주입을 위한 동적 스타일시트 빌드
-            if (!document.getElementById('demoBlinkAnimationCSS')) {
-                const styleSheet = document.createElement("style");
-                styleSheet.id = 'demoBlinkAnimationCSS';
-                styleSheet.innerText = `
-            @keyframes demoNeonFlashLoop {
-                0% { border: 3px solid #ff5722; box-shadow: 0 0 15px #ff5722, inset 0 0 10px rgba(255, 87, 34, 0.2); }
-                100% { border: 3px solid #39ff14; box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.3); }
-            }
-        `;
-                document.head.appendChild(styleSheet);
-            }
-
-            // D. 이미지 내 텍스트와 UI 규격을 일치화 정렬
-            modalBox.innerHTML = `
-        <div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 알람 정각 사출</span></div>
-        <h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">애드파마 로잘탄+로수+에제 (2기)</h2>
-        <div style="background:#0f172a; border-radius:8px; padding:20px; color:#cbd5e1; font-size:15px; line-height:1.6; text-align:left; margin-bottom:25px; border:1px solid #334155;">
-            지정된 야간 당직 소집 안내 공지입니다. <br>필히 구역 내에서 대기해 주세요.
-        </div>
-        <button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>
-    `;
-
-            overlay.appendChild(modalBox);
-            document.body.appendChild(overlay);
-
-            // E. 사용자가 알림 배너를 누르고 사이트에 복귀하여 진입한 순간 카카오톡 효과음 최고 볼륨 재생
-            executeKakaoDemoSoundEffect();
-        }
-
-        // 4. 독자 카카오톡 공식 오피셜 알림 비프 사운드 연동 스레드
-        function executeKakaoDemoSoundEffect() {
-            try {
-                // 💥 [교정]: 유실된 메인 도메인 주소 대신 실제 재생 가능한 정품 "카톡" 카카오톡 알림음 mp3 전체 파일 경로를 다이렉트 바인딩 완료
-                const audio = new Audio("https://daumcdn.net");
-                audio.volume = 1.0;
-                audio.play().catch(err => {
-                    console.log("브라우저 인터랙션 선결 조건 미충족에 따른 자율재생 제한 우회 처리 완료:", err);
+                // 4. 💥 컴퓨터 OS 공식 알림창 강제 사출
+                const osNotification = new Notification("🚨 [임상시험 시스템] 긴급 당직 소집 공지", {
+                    body: "지정식 이외 취식 금지 및 격리 규정 준수 요망. 공복 상태를 유지하고 소집 10분 전 대기해 주세요.",
+                    icon: "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' viewBox='0 0 24 24' fill='%23f97316'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/></svg>", // 주황색 경고 아이콘 바인딩
+                    requireInteraction: true, // 💡 관리자가 우측 하단 알림창의 [X]를 직접 누르기 전까지 창이 자동으로 사라지지 않고 강제 고정되는 옵션
+                    silent: false, // OS 지정 기본 알림음 벨소리 동시 재생
+                    tag: "clinical-urgent-call" // 중복 알림 방지용 고유 락인 태그
                 });
-            } catch (e) {
-                console.error("카카오톡 알림 오디오 버퍼 로드 오류:", e);
-            }
-        }
 
-        // 5. 시연 전용 독립 모달 파기 함수
-        function closeDemoIndependentModalPipeline() {
-            const overlay = document.getElementById('demoBlinkOverlayLayer');
-            if (overlay) overlay.remove();
-        }
+                // 5. [옵션] OS 하단 팝업창을 마우스로 클릭했을 때 관리자 시스템 웹페이지로 즉시 화면을 복구시키는 엔진
+                osNotification.onclick = function (event) {
+                    event.preventDefault();
+                    window.focus(); // 최소화되어 있던 브라우저 창을 컴퓨터 최상단 화면으로 강제 포커싱 인상
 
-        // 페이지 로드 시 백그라운드 스레드(sw.js)를 브라우저 시스템에 등록하는 센서
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                // 💡 [캐시 꼬임 원천 방지]: 업데이트 점검 속도 향상을 위해 타임스탬프 스펙 결합 버전을 강제 배포 등록합니다.
-                navigator.serviceWorker.register('sw.js?v=' + Date.now())
-                    .then(reg => {
-                        console.log('서비스 워커가 성공적으로 등록되었습니다.', reg);
-                        // 실시간 스레드 로직 즉시 갱신 반영을 유도하기 위한 강제 업데이트 실행
-                        reg.update();
-                    })
-                    .catch(err => console.error('서비스 워커 등록 실패:', err));
-            });
+                    // 대상자 관리나 알림 모달창이 바로 켜지도록 후속 연동 파이프라인 가동 가능
+                    if (typeof changeMainViewport === "function") {
+                        changeMainViewport('recruitmentView');
+                    }
+                    osNotification.close(); // 클릭 시 알림창 닫기
+                };
+
+            }, seconds * 1000);
         }
 
     </script>

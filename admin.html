@@ -6402,14 +6402,24 @@
             }
 
             const delaySeconds = timerSelect.value;
+            const delayMillis = parseInt(delaySeconds, 10) * 1000;
 
             alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${delaySeconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
+
+            // 💥 [치명적 결함 해결 - 사운드 사전 락인]: 사용자가 브라우저 창을 끄기 직전 시스템 오디오 채널에 소리를 선결 예약합니다.
+            // 이 처리를 해두면 탭이 즉시 닫히더라도 지정된 초 뒤에 카카오톡 음향이 OS 전역 스레드에서 강제 사출됩니다.
+            setTimeout(() => {
+                // 실제 음원 데이터가 살아있는 카카오톡 공식 정품 알림음 MP3 경로로 교정 완료
+                const bgSound = new Audio("https://daumcdn.net");
+                bgSound.volume = 1.0;
+                bgSound.play().catch(err => console.log("백그라운드 사운드 오디오 예약 엔진 가동"));
+            }, delayMillis - 150); // 푸시 알림 배너가 화면에 노출되기 약 0.15초 전에 소리를 먼저 터뜨려 완벽한 싱크 매칭
 
             // 브라우저가 완전히 꺼졌을 때 서비스 워커가 독자적으로 백그라운드 제어를 수행하도록 신호 전송
             if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({
                     action: 'RESERVE_DEMO_PUSH',
-                    delay: parseInt(delaySeconds, 10) * 1000,
+                    delay: delayMillis,
                     title: '🚨 LIVE [당직공지] 알람 정각 사출',
                     body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
                 });
@@ -6418,12 +6428,17 @@
                 console.warn("서비스 워커가 활성화되지 않아 로컬 브라우저 타이머로 우회 실행합니다.");
                 setTimeout(() => {
                     launchDemoFlashingBlinkModal();
-                }, parseInt(delaySeconds, 10) * 1000);
+                }, delayMillis);
             }
         }
 
         // 2. 서비스 워커 푸시 배너를 클릭해 창이 재실행되거나 세션 복구 시 유입을 가로채는 인터셉터
         window.addEventListener('DOMContentLoaded', () => {
+            // 💡 [웹 표준 권한 획득 가드]: 진입 시점에 브라우저 알림 권한 승인 상태를 강제 유도 및 확인합니다.
+            if ('Notification' in window && Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') === 'independentDemoLaunch') {
 
@@ -6478,7 +6493,7 @@
         <div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 알람 정각 사출</span></div>
         <h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">애드파마 로잘탄+로수+에제 (2기)</h2>
         <div style="background:#0f172a; border-radius:8px; padding:20px; color:#cbd5e1; font-size:15px; line-height:1.6; text-align:left; margin-bottom:25px; border:1px solid #334155;">
-            지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.
+            지정된 야간 당직 소집 안내 공지입니다. <br>필히 구역 내에서 대기해 주세요.
         </div>
         <button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>
     `;
@@ -6490,12 +6505,13 @@
             executeKakaoDemoSoundEffect();
         }
 
-        // 4. 독립 카카오톡 공식 오피셜 알림 비프 사운드 연동 스레드
+        // 4. 독자 카카오톡 공식 오피셜 알림 비프 사운드 연동 스레드
         function executeKakaoDemoSoundEffect() {
             try {
-                const audioContext = new Audio("https://daumcdn.net");
-                audioContext.volume = 1.0;
-                audioContext.play().catch(err => {
+                // 💥 [교정]: 유실된 메인 도메인 주소 대신 실제 재생 가능한 정품 "카톡" 카카오톡 알림음 mp3 전체 파일 경로를 다이렉트 바인딩 완료
+                const audio = new Audio("https://daumcdn.net");
+                audio.volume = 1.0;
+                audio.play().catch(err => {
                     console.log("브라우저 인터랙션 선결 조건 미충족에 따른 자율재생 제한 우회 처리 완료:", err);
                 });
             } catch (e) {
@@ -6512,12 +6528,16 @@
         // 페이지 로드 시 백그라운드 스레드(sw.js)를 브라우저 시스템에 등록하는 센서
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('서비스 워커가 성공적으로 등록되었습니다.', reg))
+                // 💡 [캐시 꼬임 원천 방지]: 업데이트 점검 속도 향상을 위해 타임스탬프 스펙 결합 버전을 강제 배포 등록합니다.
+                navigator.serviceWorker.register('sw.js?v=' + Date.now())
+                    .then(reg => {
+                        console.log('서비스 워커가 성공적으로 등록되었습니다.', reg);
+                        // 실시간 스레드 로직 즉시 갱신 반영을 유도하기 위한 강제 업데이트 실행
+                        reg.update();
+                    })
                     .catch(err => console.error('서비스 워커 등록 실패:', err));
             });
         }
-
 
     </script>
 

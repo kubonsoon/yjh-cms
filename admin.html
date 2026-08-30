@@ -6484,61 +6484,48 @@
 
         // 3. 주황/형광색 교차 점멸 루프 애니메이션 및 인라인 모달 사출 구현부
         function launchDemoFlashingBlinkModal() {
-            const oldOverlay = document.getElementById('demoBlinkOverlayLayer');
+            var oldOverlay = document.getElementById('demoBlinkOverlayLayer');
             if (oldOverlay) oldOverlay.remove();
 
-            // ──────────────────────────────────────────────────────────────
-            // 💡 [실데이터 추출 엔진 추가] 오늘 날짜 및 화면 입력값 실시간 동적 빌드
-            // ──────────────────────────────────────────────────────────────
-            // A. 시스템 컴퓨터상 오늘 날짜 구하기 (YYYY-MM-DD)
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const date = String(today.getDate()).padStart(2, '0');
-            const formattedDate = `${year}-${month}-${date}`;
+            // [실데이터 추출] 오늘 날짜 및 화면 입력값 실시간 동적 빌드
+            var today = new Date();
+            var year = today.getFullYear();
+            var month = String(today.getMonth() + 1).padStart(2, '0');
+            var date = String(today.getDate()).padStart(2, '0');
+            var formattedDate = year + '-' + month + '-' + date;
 
-            // B. admin.html 화면 내 신규 등록 폼 엘리먼트에서 실제 작성/선택된 값 추출
-            const inputTestTitle = document.getElementById('form-rec-title');
-            const inputTestTh = document.getElementById('form-rec-th');
+            var inputTestTitle = document.getElementById('form-rec-title');
+            var inputTestTh = document.getElementById('form-rec-th');
 
-            // 값이 존재하면 입력된 실데이터를 쓰고, 비어있다면 폴백(기본값) 적용
-            const testName = (inputTestTitle && inputTestTitle.value.trim()) ? inputTestTitle.value.trim() : "애드파마 로잘탄+로수+에제";
-            const testTerm = (inputTestTh && inputTestTh.value) ? inputTestTh.value : "2기";
-            // ──────────────────────────────────────────────────────────────
+            var testName = (inputTestTitle && inputTestTitle.value.trim()) ? inputTestTitle.value.trim() : "애드파마 로잘탄+로수+에제";
+            var testTerm = (inputTestTh && inputTestTh.value) ? inputTestTh.value : "2기";
 
-            const overlay = document.createElement('div');
+            var overlay = document.createElement('div');
             overlay.id = 'demoBlinkOverlayLayer';
             overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:999999; display:flex; justify-content:center; align-items:center;';
 
-            const modalBox = document.createElement('div');
+            var modalBox = document.createElement('div');
             modalBox.style.cssText = 'background:#1a233a; padding:30px; border-radius:16px; width:100%; max-width:550px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); box-sizing:border-box; text-align:center; transition: all 0.3s;';
             modalBox.style.animation = 'demoNeonFlashLoop 0.4s infinite alternate ease-in-out';
 
             if (!document.getElementById('demoBlinkAnimationCSS')) {
-                const styleSheet = document.createElement("style");
+                var styleSheet = document.createElement("style");
                 styleSheet.id = 'demoBlinkAnimationCSS';
-                styleSheet.innerText = `
-    @keyframes demoNeonFlashLoop {
-        0% { border: 3px solid #ff5722; box-shadow: 0 0 15px #ff5722, inset 0 0 10px rgba(255, 87, 34, 0.2); }
-        100% { border: 3px solid #39ff14; box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.3); }
-    }
-`;
+                styleSheet.innerText = "@keyframes demoNeonFlashLoop { 0% { border: 3px solid #ff5722; box-shadow: 0 0 15px #ff5722, inset 0 0 10px rgba(255, 87, 34, 0.2); } 100% { border: 3px solid #39ff14; box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.3); } }";
                 document.head.appendChild(styleSheet);
             }
 
-            // 백틱(`)을 활용해 실시간 변수가 반영되도록 HTML 구조 바인딩
-            modalBox.innerHTML = `
-            <div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 안내 사항이 도착했습니다</span></div>
-            <!-- 동적 시험명 및 기수가 노출되는 타이틀 매핑 구역 -->
-            <h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">${testName} (${testTerm})</h2>
-            <div style="background:#0f172a; border-radius:8px; padding:20px; color:#cbd5e1; font-size:15px; line-height:1.6; text-align:left; margin-bottom:25px; border:1px solid #334155;">
-            <!-- 시스템상 오늘 날짜가 연동되어 사출되는 공지일자 표기선 추가 -->
-            <span style="color:#ffbf24; font-weight:700;">[공지일자] ${formattedDate}</span><br><br>
-            금일 야간 안내 공지입니다. <br>해당 시험층에서 당직자의 안내에 따라 대기해 주세요.
-            </div>
-            <button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>
-`;
+            // 백틱 기호 충돌을 원천 차단하기 위해 일반 문자열 결합 방식으로 렌더링
+            var htmlContent = "";
+            htmlContent += '<div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 안내 사항이 도착했습니다</span></div>';
+            htmlContent += '<h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">' + testName + ' (' + testTerm + ')</h2>';
+            htmlContent += '<div style="background:#0f172a; border-radius:8px; padding:20px; color:#cbd5e1; font-size:15px; line-height:1.6; text-align:left; margin-bottom:25px; border:1px solid #334155;">';
+            htmlContent += '    <span style="color:#ffbf24; font-weight:700;">[공지일자] ' + formattedDate + '</span><br><br>';
+            htmlContent += '    금일 야간 안내 공지입니다. <br>해당 시험층에서 당직자의 안내에 따라 대기해 주세요.';
+            htmlContent += '</div>';
+            htmlContent += '<button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>';
 
+            modalBox.innerHTML = htmlContent;
             overlay.appendChild(modalBox);
             document.body.appendChild(overlay);
         }
@@ -6614,7 +6601,7 @@
             } catch (e) {
                 console.error(e);
             }
-        }, { once: true }); // 단 한 번만 실행되도록 설정
+        }, { once: true });
 
     </script>
 

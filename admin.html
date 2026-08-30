@@ -6428,7 +6428,7 @@
                     body: "지정식 이외 취식 금지 및 격리 규정 준수 요망. 공복 상태를 유지하고 소집 10분 전 대기해 주세요.",
                     icon: "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' viewBox='0 0 24 24' fill='%23f97316'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/></svg>", // 주황색 경고 아이콘 바인딩
                     requireInteraction: true, // 💡 관리자가 우측 하단 알림창의 [X]를 직접 누르기 전까지 창이 자동으로 사라지지 않고 강제 고정되는 옵션
-                    silent: false, // OS 지정 기본 알림음 벨소리 동시 재생
+                    silent: true, // OS 지정 기본 알림음 벨소리 동시 재생
                     tag: "clinical-urgent-call" // 중복 알림 방지용 고유 락인 태그
                 });
 

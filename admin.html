@@ -6535,6 +6535,25 @@
             });
         }
 
+
+        // 페이지 진입 후 사용자가 화면 아무 곳이나 처음 클릭하는 순간 오디오 제한을 강제로 해제하는 센서
+        window.addEventListener('click', () => {
+            try {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                if (context.state === 'suspended') {
+                    context.resume();
+                }
+                // 무음 버퍼를 한 번 흘려보내 브라우저의 자동재생 차단 방어막을 영구 파괴
+                const dummyAudio = new Audio("kakaotalk_sound.mp3");
+                dummyAudio.volume = 0.0; // 소리 안 나게 처리
+                dummyAudio.play().then(() => {
+                    console.log("🔓 브라우저 오디오 시스템 보안 해제 완료 (이제 백그라운드 유입 시 소리가 정상 작동합니다)");
+                }).catch(() => { });
+            } catch (e) {
+                console.error(e);
+            }
+        }, { once: true }); // 단 한 번만 실행되도록 설정
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

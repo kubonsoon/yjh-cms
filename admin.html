@@ -2900,7 +2900,7 @@
         }
 
         /**
-         * 💡 [하방 호환성 완전 통합 단일기]: 호이스팅 꼬임을 완벽히 회피하기 위해 
+         * 호이스팅 꼬임을 완벽히 회피하기 위해 
          * 구형 이름(saveApplicantRecord) 경로 링크 전산망을 이 자리에 고유 선언 기법으로 종결 융합합니다.
          */
         function saveApplicantRecord(index) {
@@ -2912,7 +2912,7 @@
 
 
         /**
-         * 🎯 원본 호출 인터페이스 매칭: 삭제 버튼 클릭 처리
+         * 원본 호출 인터페이스 매칭: 삭제 버튼 클릭 처리
          */
         function deleteApplicant(index) {
             if (confirm("정말로 이 대상자의 전체 정산 상태와 임상 명단 데이터를 영구 삭제하시겠습니까?")) {
@@ -2973,7 +2973,7 @@
                 return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
             }
 
-            // 💡 [형님 지시 사양 핵심 락인]: 성별 배지 분석(parseGenderFromSsn)용으로는 기호가 살아있는 원본 문자열(s)을 매칭시키고,
+            // 성별 배지 분석(parseGenderFromSsn)용으로는 기호가 살아있는 원본 문자열(s)을 매칭시키고,
             // 데이터베이스 대장(ssn)에 안착시킬 때는 성별 기호와 서식이 완벽하게 증발한 순수 생년월일 날짜만 강제 격리 락인 처리합니다.
             const finalizedSsn = cleanSsnToBirthDate(s);
 
@@ -6400,7 +6400,7 @@
 
             alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${seconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
 
-            // 💥 중요: controller가 바로 준비되지 않았을 수 있으므로 active 워커까지 폭넓게 탐색
+            // 중요: controller가 바로 준비되지 않았을 수 있으므로 active 워커까지 폭넓게 탐색
             const worker = navigator.serviceWorker.controller || (navigator.serviceWorker.ready && navigator.serviceWorker.ready.then(reg => reg.active));
 
             if ('serviceWorker' in navigator && worker) {
@@ -6408,7 +6408,7 @@
                     activeWorker.postMessage({
                         action: 'RESERVE_DEMO_PUSH',
                         delay: seconds * 1000,
-                        title: '🚨 LIVE [당직공지] 알람 정각 사출',
+                        title: '🚨 LIVE [당직공지] 안내 사항이 도착했습니다',
                         body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
                     });
                 };
@@ -6426,7 +6426,7 @@
             }
         }
 
-        // 2. 💥 서비스 워커 푸시 배너 클릭 유입 가로채기 엔진 (타이밍 완벽 교정)
+        // 2. 서비스 워커 푸시 배너 클릭 유입 가로채기 엔진 (타이밍 완벽 교정)
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') === 'independentDemoLaunch') {
@@ -6436,7 +6436,6 @@
                     changeMainViewport('recruitmentView');
                 }
 
-                // 💥 핵심: 브라우저가 "배너 클릭으로 들어온 사용자 상호작용 세션"을 완벽히 동기화하도록 유도
                 // 0.4초 돔 안정화 이후, 화면 전체에 보이지 않는 임시 클릭 센서를 심어 오디오 락을 깨부숩니다.
                 setTimeout(() => {
 
@@ -6489,10 +6488,10 @@
             }
 
             modalBox.innerHTML = `
-        <div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 알람 정각 사출</span></div>
+        <div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 안내 사항이 도착했습니다</span></div>
         <h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">애드파마 로잘탄+로수+에제 (2기)</h2>
         <div style="background:#0f172a; border-radius:8px; padding:20px; color:#cbd5e1; font-size:15px; line-height:1.6; text-align:left; margin-bottom:25px; border:1px solid #334155;">
-            지정된 야간 당직 소집 안내 공지입니다. <br>필히 구역 내에서 대기해 주세요.
+            금일 야간 안내 공지입니다. <br>해당 시험층에서 당직자의 안내에 따라 대기해 주세요.
         </div>
         <button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>
     `;
@@ -6501,7 +6500,7 @@
             document.body.appendChild(overlay);
         }
 
-        // 4. 💥 오디오 세션 리셋 로직이 결합된 독립 사운드 엔진
+        // 4. 오디오 세션 리셋 로직이 결합된 독립 사운드 엔진
         function executeKakaoDemoSoundEffect() {
             try {
                 // 브라우저의 Web Audio 컨텍스트 상태를 강제로 깨웁니다 (오디오 잠금 완벽 해제)
@@ -6539,7 +6538,7 @@
             if (overlay) overlay.remove();
         }
 
-        // 6. 💥 깃허브 하위 폴더(/yjh-cms/) 스코프 에러 완벽 대처 등록 센서
+        // 6. 깃허브 하위 폴더(/yjh-cms/) 스코프 에러 완벽 대처 등록 센서
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 // 상대 경로 등록 및 즉시 활성화(claim) 유도 스코프 지정

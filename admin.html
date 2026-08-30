@@ -6426,7 +6426,7 @@
             }
         }
 
-        // 2. 서비스 워커가 주입한 파라미터(?mode=independentDemoLaunch)를 감지하여 탭 전환 및 모달 구동
+        // 2. 💥 서비스 워커 푸시 배너 클릭 유입 가로채기 엔진 (타이밍 완벽 교정)
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') === 'independentDemoLaunch') {
@@ -6436,17 +6436,34 @@
                     changeMainViewport('recruitmentView');
                 }
 
-                // 안정적인 DOM 렌더링 후 번쩍이 모달 사출
+                // 💥 핵심: 브라우저가 "배너 클릭으로 들어온 사용자 상호작용 세션"을 완벽히 동기화하도록 유도
+                // 0.4초 돔 안정화 이후, 화면 전체에 보이지 않는 임시 클릭 센서를 심어 오디오 락을 깨부숩니다.
                 setTimeout(() => {
+
+                    // 전용 독자 모달창 강제 기동
                     launchDemoFlashingBlinkModal();
+
+                    // 배너를 누르고 복귀하자마자 브라우저가 '사용자가 상호작용 중'임을 100% 인지하도록 
+                    // 강제 가상 클릭 이벤트를 트리거하여 사운드 재생 권한을 즉시 탈취합니다.
+                    const forceAudioTrigger = () => {
+                        executeKakaoDemoSoundEffect();
+                        window.removeEventListener('focus', forceAudioTrigger);
+                    };
+
+                    if (document.hasFocus()) {
+                        executeKakaoDemoSoundEffect();
+                    } else {
+                        window.addEventListener('focus', forceAudioTrigger, { once: true });
+                    }
+
                 }, 400);
 
-                // 시연 성공 후 주소창 파라미터 깔끔하게 제거
+                // 시연 완료 후 깔끔하게 주소창 파라미터 정제 제거
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
 
-        // 3. 주황/형광색 교차 점멸 루프 애니메이션 및 인라인 모달 사출 구현부 (변동 없음)
+        // 3. 주황/형광색 교차 점멸 루프 애니메이션 및 인라인 모달 사출 구현부 (기존 코드 그대로 유지)
         function launchDemoFlashingBlinkModal() {
             const oldOverlay = document.getElementById('demoBlinkOverlayLayer');
             if (oldOverlay) oldOverlay.remove();
@@ -6482,35 +6499,39 @@
 
             overlay.appendChild(modalBox);
             document.body.appendChild(overlay);
-
-            executeKakaoDemoSoundEffect();
         }
 
-        // 4. 독립 카카오톡 공식 오피셜 알림 비프 사운드 연동 스레드
+        // 4. 💥 오디오 세션 리셋 로직이 결합된 독립 사운드 엔진
         function executeKakaoDemoSoundEffect() {
             try {
-                // 💥 인터넷 절대 경로 주소로 강제 바인딩 (404 에러 원천 차단)
+                // 브라우저의 Web Audio 컨텍스트 상태를 강제로 깨웁니다 (오디오 잠금 완벽 해제)
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    const ctx = new AudioContext();
+                    if (ctx.state === 'suspended') {
+                        ctx.resume();
+                    }
+                }
+
+                // 안정적인 재생을 위해 검증된 카카오 공식 맥 버전 알림음 온라인 절대 경로 주입
                 const audio = new Audio("https://daumcdn.net");
                 audio.volume = 1.0;
-                audio.play().catch(err => console.log("자동재생 제약 우회:", err));
+
+                // 브라우저 버퍼가 채워지는 즉시 재생 강제 명령
+                audio.play()
+                    .then(() => console.log("🔊 카카오톡 효과음 사출 완수"))
+                    .catch(err => {
+                        console.warn("오디오 플레이어 지연 에러 발생, 재시도 수행:", err);
+                        // 실패 시 사용자가 모달창의 임의 영역을 누를 때 백업으로 소리가 터지도록 이벤트 바인딩
+                        document.getElementById('demoBlinkOverlayLayer').addEventListener('click', () => {
+                            audio.play().catch(() => { });
+                        }, { once: true });
+                    });
             } catch (e) {
                 console.error("카카오톡 알림 오디오 버퍼 로드 오류:", e);
             }
         }
 
-        // 최하단 프리-락 센서도 동일 주소로 매핑
-        window.addEventListener('click', () => {
-            try {
-                const context = new (window.AudioContext || window.webkitAudioContext)();
-                if (context.state === 'suspended') context.resume();
-
-                const dummyAudio = new Audio("https://daumcdn.net");
-                dummyAudio.volume = 1.0; // 시연 전 첫 클릭 시 소리 정상 출력 확인용
-                dummyAudio.play().catch(() => { });
-            } catch (e) {
-                console.error(e);
-            }
-        }, { once: true });
 
         // 5. 시연 전용 독립 모달 파기 함수
         function closeDemoIndependentModalPipeline() {

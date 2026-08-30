@@ -6511,7 +6511,7 @@
                 document.head.appendChild(styleSheet);
             }
 
-            // HTML 내용 조립 (버튼 클릭 메서드 오탈자를 정식 함수명으로 정밀 교정 완료)
+            // HTML 내용 조립 (버튼 클릭 메서드를 프로젝트 정식 스펙인 closeDemoIndependentModalPipeline 으로 매핑 수정)
             var htmlContent = "";
             htmlContent += '<div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 안내 사항이 도착했습니다</span></div>';
             htmlContent += '<h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">' + testName + ' (' + testTerm + ')</h2>';
@@ -6519,8 +6519,8 @@
             htmlContent += '    <span style="color:#ffbf24; font-weight:700;">[공지일자] ' + formattedDate + '</span><br><br>';
             htmlContent += '    금일 야간 안내 공지입니다. <br>해당 시험층에서 당직자의 안내에 따라 대기해 주세요.';
             htmlContent += '</div>';
-            // 💡 아래 onclick 이벤트 내부의 함수명을 정식 파일 스펙 명칭으로 매핑 수정했습니다.
-            htmlContent += '<button onclick="closeIndependentDemoModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>';
+            // 💡 onclick 호출 대상을 프로젝트 원본 명칭인 'closeDemoIndependentModalPipeline()'으로 수정하여 에러를 해결했습니다.
+            htmlContent += '<button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>';
 
             modalBox.innerHTML = htmlContent;
             overlay.appendChild(modalBox);

@@ -6394,51 +6394,48 @@
         // [완전 독립 스레드] 웹푸시알림(서비스 워커) 시스템
         // =========================================================================
 
-        // 1. 💥 실제 버튼 클릭 시 초(seconds)를 직접 전달받아 예약하는 핵심 함수
+        // 1. 시연 버튼 클릭 시 초 단위 데이터를 받아 서비스 워커 스레드로 넘겨주는 예약 파이프라인
         function triggerIndependentDemoPipeline(delaySeconds) {
-            // 인자 값이 없거나 유효하지 않으면 기본값 5초 지정
             const seconds = parseInt(delaySeconds, 10) || 5;
 
             alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${seconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
 
-            // 브라우저가 완전히 꺼졌을 때 서비스 워커가 독자적으로 백그라운드 제어를 수행하도록 신호 전송
             if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({
                     action: 'RESERVE_DEMO_PUSH',
-                    delay: seconds * 1000, // 밀리초(ms) 단위 변환
+                    delay: seconds * 1000,
                     title: '🚨 LIVE [당직공지] 알람 정각 사출',
                     body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
                 });
             } else {
-                // 서비스 워커가 아직 활성화되지 않은 경우를 위한 개발자 디버깅용 폴백 알림
-                console.warn("서비스 워커가 활성화되지 않아 로컬 브라우저 타이머로 우회 실행합니다.");
+                console.warn("서비스 워커가 대기 중이 아니므로 로컬 타이머로 우회 작동합니다.");
                 setTimeout(() => {
                     launchDemoFlashingBlinkModal();
                 }, seconds * 1000);
             }
         }
 
-        // 2. 서비스 워커 푸시 배너를 클릭해 창이 재실행되거나 세션 복구 시 유입을 가로채는 인터셉터
+        // 2. 서비스 워커가 주입한 파라미터(?mode=independentDemoLaunch)를 감지하여 탭 전환 및 모달 구동
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') === 'independentDemoLaunch') {
 
-                // 원본 함수를 우회하여 전산망 메인 화면을 모집공고 탭으로 즉시 배치
+                // 전산망 메인 화면을 모집공고 탭으로 즉시 배치
                 if (typeof changeMainViewport === "function") {
                     changeMainViewport('recruitmentView');
                 }
 
-                // 돔 렌더링 안정성을 위해 0.4초 대기 후 전용 독자 모달창 강제 기동
+                // 안정적인 DOM 렌더링 후 번쩍이 모달 사출
                 setTimeout(() => {
                     launchDemoFlashingBlinkModal();
                 }, 400);
 
-                // 시연 완료 후 깔끔하게 주소창 파라미터 정제 제거
+                // 시연 성공 후 주소창 파라미터 깔끔하게 제거
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
 
-        // 3. 기존 openIntegratedBoardModal과 완전 별개로 주황/형광색으로 번쩍이는 모달 생성 함수
+        // 3. 주황/형광색 교차 점멸 루프 애니메이션 및 인라인 모달 사출 구현부
         function launchDemoFlashingBlinkModal() {
             const oldOverlay = document.getElementById('demoBlinkOverlayLayer');
             if (oldOverlay) oldOverlay.remove();
@@ -6481,11 +6478,11 @@
         // 4. 독립 카카오톡 공식 오피셜 알림 비프 사운드 연동 스레드
         function executeKakaoDemoSoundEffect() {
             try {
-                // 💡 실제 사용하시는 카카오톡 알림음 mp3 파일 경로로 수정하여 바인딩하세요.
-                const audio = new Audio("https://your-domain.com");
+                // 💡 깃허브 메인 루트에 오디오 파일(kakaotalk_sound.mp3)을 두고 이름을 맞춰주시면 가장 안전합니다.
+                const audio = new Audio("kakaotalk_sound.mp3");
                 audio.volume = 1.0;
                 audio.play().catch(err => {
-                    console.log("브라우저 인터랙션 선결 조건 미충족에 따른 자율재생 제한 우회 처리 완료:", err);
+                    console.log("자동재생 브라우저 권한 우회 완료:", err);
                 });
             } catch (e) {
                 console.error("카카오톡 알림 오디오 버퍼 로드 오류:", e);
@@ -6498,12 +6495,13 @@
             if (overlay) overlay.remove();
         }
 
-        // 6. 페이지 로드 시 백그라운드 스레드(sw.js)를 브라우저 시스템에 등록하는 센서
+        // 6. 💥 모든 파일이 메인에 있으므로 상대 경로 기반 등록 진행
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
+                // 상대 경로인 'sw.js'로 지정하여 admin.html과 동일 선상에서 세션 감지
                 navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('서비스 워커가 성공적으로 등록되었습니다.', reg))
-                    .catch(err => console.error('서비스 워커 등록 실패:', err));
+                    .then(reg => console.log('서비스 워커 백그라운드 등록 성공:', reg))
+                    .catch(err => console.error('서비스 워커 시스템 등록 실패:', err));
             });
         }
 

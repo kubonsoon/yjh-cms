@@ -6394,75 +6394,121 @@
         // [완전 독립 스레드] 웹푸시알림(서비스 워커) 시스템
         // =========================================================================
 
-        function triggerIndependentDemoPipeline() {
-            // 1. 브라우저 및 OS 알림 권한 체크 및 요청
-            if (!("Notification" in window)) {
-                alert("이 브라우저는 컴퓨터 OS 하단 알림 기능을 지원하지 않습니다.");
-                return;
-            }
+    // 1. 예약 버튼 클릭 시 작동하는 타이머 예약 함수
+function triggerIndependentDemoPipeline() {
+    const timerSelect = document.getElementById('demoNotificationTimer');
+    if (!timerSelect) {
+        return alert("오류: 알림 시간 선택 상자(demoNotificationTimer)를 찾을 수 없습니다.");
+    }
 
-            // 알림 권한이 거부되어 있다면 다시 요청
-            if (Notification.permission !== "granted") {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        alert("OS 시스템 알림 권한이 승인되었습니다. 시연을 다시 실행해 주세요.");
-                    } else {
-                        alert("컴퓨터 OS 알림 권한이 거부되었습니다. 브라우저 주소창 왼쪽 자물쇠 아이콘을 눌러 알림을 허용해 주세요.");
-                    }
-                });
-                return;
-            }
+    const delaySeconds = timerSelect.value;
+    alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${delaySeconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
 
-            // 2. 관리자가 선택한 정각 사출 타이머 시간 확보 (5초 / 10초 / 20초)
-            const timerSelect = document.getElementById("demoNotificationTimer");
-            if (!timerSelect) return alert("타이머 엘리먼트를 찾을 수 없습니다.");
+    // 💥 서비스 워커가 등록되어 있다면 브라우저가 꺼져도 작동하도록 sw.js 스레드로 데이터 토스
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+            action: 'RESERVE_DEMO_PUSH',
+            delay: parseInt(delaySeconds, 10) * 1000,
+            title: '🚨 LIVE [당직공지] 알람 정각 사출',
+            body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
+        });
+    } else {
+        console.warn("서비스 워커가 즉시 준비되지 않아 로컬 브라우저 타이머로 우회 실행합니다.");
+        setTimeout(() => {
+            launchDemoFlashingBlinkModal();
+        }, parseInt(delaySeconds, 10) * 1000);
+    }
+}
 
-            const seconds = parseInt(timerSelect.value, 10) || 5;
-            alert(`⚙️ 기획안 사출 시연 예약 완료: 브라우저를 닫거나 내리셔도 ${seconds}초 뒤 컴퓨터 OS 하단에서 창이 팝업됩니다.`);
+// 2. 푸시 배너를 클릭해 창이 재실행되거나 세션 복구 시 유입을 가로채는 인터셉터
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'independentDemoLaunch') {
 
-            // 3. 백그라운드 카운트다운 타이머 가동 (브라우저를 최소화해도 백그라운드 스레드에서 정밀 역추적)
-            setTimeout(function () {
-
-                // 4. 💥 컴퓨터 OS 공식 알림창 강제 사출
-                const osNotification = new Notification("🚨 [임상시험 시스템] 긴급 당직 소집 공지", {
-                    body: "지정식 이외 취식 금지 및 격리 규정 준수 요망. 공복 상태를 유지하고 소집 10분 전 대기해 주세요.",
-                    icon: "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' viewBox='0 0 24 24' fill='%23f97316'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/></svg>", // 주황색 경고 아이콘 바인딩
-                    requireInteraction: true, // 💡 관리자가 우측 하단 알림창의 [X]를 직접 누르기 전까지 창이 자동으로 사라지지 않고 강제 고정되는 옵션
-                    silent: true, // OS 지정 기본 알림음 벨소리 동시 재생
-                    tag: "clinical-urgent-call" // 중복 알림 방지용 고유 락인 태그
-                });
-
-                // 5. OS 하단 팝업창을 마우스로 클릭했을 때 처리
-                osNotification.onclick = function (event) {
-                    event.preventDefault();
-
-                    // 최소화되거나 뒤에 숨은 브라우저 창을 최상단으로 유도
-                    window.focus();
-
-                    // [Step 1] 모집공고 페이지로 화면 전환
-                    if (typeof changeMainViewport === "function") {
-                        changeMainViewport('recruitmentView');
-                    }
-
-                    // [Step 2] 💥 모집공고 페이지 내의 특정 모달창을 강제로 띄우는 로직 추가
-                    // 예시 A: 모달을 열어주는 별도 자바스크립트 함수가 있는 경우
-                    if (typeof openRecruitmentModal === "function") {
-                        openRecruitmentModal();
-                    }
-                    // 예시 B: 부트스트랩(Bootstrap) 등 UI 라이브러리 모달을 쓰는 경우
-                    else {
-                        const modalElement = document.getElementById("yourModalId"); // 실제 모달 ID로 변경
-                        if (modalElement) {
-                            // 부트스트랩 예시: new bootstrap.Modal(modalElement).show();
-                            // 일반 CSS 예시: modalElement.style.display = "block";
-                            modalElement.classList.add("show"); // 프로젝트 스타일에 맞게 수정
-                        }
-                    }
-
-                    osNotification.close(); // 클릭된 알림창 닫기
-                };
-            }, seconds * 1000);
+        // 전산망 메인 화면을 모집공고 탭으로 즉시 배치
+        if (typeof changeMainViewport === "function") {
+            changeMainViewport('recruitmentView');
         }
+
+        // 💥 렌더링 타이밍을 고려해 0.4초 대기 후 원본 번쩍이 모달창 강제 기동
+        setTimeout(() => {
+            launchDemoFlashingBlinkModal();
+        }, 400);
+
+        // 시연 완료 후 깔끔하게 주소창 파라미터 정제 제거
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+
+// 3. 주황/형광색으로 번쩍이는 모달 생성 함수
+function launchDemoFlashingBlinkModal() {
+    const oldOverlay = document.getElementById('demoBlinkOverlayLayer');
+    if (oldOverlay) oldOverlay.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'demoBlinkOverlayLayer';
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:999999; display:flex; justify-content:center; align-items:center;';
+
+    const modalBox = document.createElement('div');
+    modalBox.style.cssText = 'background:#1a233a; padding:30px; border-radius:16px; width:100%; max-width:550px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); box-sizing:border-box; text-align:center; transition: all 0.3s;';
+    modalBox.style.animation = 'demoNeonFlashLoop 0.4s infinite alternate ease-in-out';
+
+    if (!document.getElementById('demoBlinkAnimationCSS')) {
+        const styleSheet = document.createElement("style");
+        styleSheet.id = 'demoBlinkAnimationCSS';
+        styleSheet.innerText = `
+            @keyframes demoNeonFlashLoop {
+                0% { border: 3px solid #ff5722; box-shadow: 0 0 15px #ff5722, inset 0 0 10px rgba(255, 87, 34, 0.2); }
+                100% { border: 3px solid #39ff14; box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.3); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+    }
+
+    modalBox.innerHTML = `
+        <div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 알람 정각 사출</span></div>
+        <h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">애드파마 로잘탄+로수+에제 (2기)</h2>
+        <div style="background:#0f172a; border-radius:8px; padding:20px; color:#cbd5e1; font-size:15px; line-height:1.6; text-align:left; margin-bottom:25px; border:1px solid #334155;">
+            지정된 야간 당직 소집 안내 공지입니다. <br>필히 구역 내에서 대기해 주세요.
+        </div>
+        <button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>
+    `;
+
+    overlay.appendChild(modalBox);
+    document.body.appendChild(overlay);
+
+    // 사용자가 배너를 클릭하고 화면에 들어온 상호작용 시점이므로 사운드 100% 정상 재생 가능
+    executeKakaoDemoSoundEffect();
+}
+
+// 4. 독립 카카오톡 오피셜 알림 사운드 재생
+function executeKakaoDemoSoundEffect() {
+    try {
+        // 💡 실제 사용하시는 카카오톡 알림음 mp3 파일 경로로 수정하여 바인딩하세요.
+        const audio = new Audio("https://your-domain.com");
+        audio.volume = 1.0;
+        audio.play().catch(err => {
+            console.log("브라우저 자동재생 제약 우회:", err);
+        });
+    } catch (e) {
+        console.error("카카오톡 오디오 버퍼 로드 오류:", e);
+    }
+}
+
+// 5. 모달 파기 함수
+function closeDemoIndependentModalPipeline() {
+    const overlay = document.getElementById('demoBlinkOverlayLayer');
+    if (overlay) overlay.remove();
+}
+
+// 6. 페이지 로드 시 백그라운드 스레드(sw.js)를 브라우저 시스템에 등록
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('서비스 워커 성공적 등록 완료.', reg))
+            .catch(err => console.error('서비스 워커 등록 실패:', err));
+    });
+}
 
     </script>
 

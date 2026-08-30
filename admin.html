@@ -6393,44 +6393,45 @@
         // =========================================================================
         // [완전 독립 스레드] 웹푸시알림(서비스 워커) 시스템
         // =========================================================================
-
         function triggerIndependentDemoPipeline(delaySeconds) {
-            const seconds = parseInt(delaySeconds, 10) || 5;
+            // 💡 선택 드롭다운에서 초 데이터 파싱 (전달인자가 없으면 화면 select 박스에서 가져옴)
+            var timerSelect = document.getElementById('demoNotificationTimer');
+            var seconds = parseInt(delaySeconds, 10) || (timerSelect ? parseInt(timerSelect.value, 10) : 5);
 
             // [실데이터 추출] 오늘 날짜 및 화면 입력값 실시간 동적 빌드
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const date = String(today.getDate()).padStart(2, '0');
-            const formattedDate = `${year}-${month}-${date}`;
+            var today = new Date();
+            var year = today.getFullYear();
+            var month = String(today.getMonth() + 1).padStart(2, '0');
+            var date = String(today.getDate()).padStart(2, '0');
+            var formattedDate = year + '-' + month + '-' + date;
 
-            const inputTestTitle = document.getElementById('form-rec-title');
-            const inputTestTh = document.getElementById('form-rec-th');
+            var inputTestTitle = document.getElementById('form-rec-title');
+            var inputTestTh = document.getElementById('form-rec-th');
 
-            const testName = (inputTestTitle && inputTestTitle.value.trim()) ? inputTestTitle.value.trim() : "애드파마 로잘탄+로수+에제";
-            const testTerm = (inputTestTh && inputTestTh.value) ? inputTestTh.value : "2기";
+            var testName = (inputTestTitle && inputTestTitle.value.trim()) ? inputTestTitle.value.trim() : "애드파마 로잘탄+로수+에제";
+            var testTerm = (inputTestTh && inputTestTh.value) ? inputTestTh.value : "2기";
 
-            // 💡 [삼성인터넷/모바일 오디오 차단 락 해제]: alert 확인 단추를 누르는 순간 사운드 버퍼를 브라우저 몰래 선점합니다.
+            // 💡 [삼성인터넷/모바일 오디오 미디어 락 완전 해제] 
+            // 사용자가 버튼을 '터치'한 이 시점에 가상 오디오 객체를 메모리에 미리 로드하여 스마트폰 오디오 차단 정책을 무력화합니다.
             try {
                 window.globalSilentAudioContext = new Audio("./katalk.mp3");
                 window.globalSilentAudioContext.load();
             } catch (audioSetupErr) { }
 
-            // 시연 안내용 메시지 팝업 문맥 스마트 정렬
-            alert(`[시연 예약 완료]\n\n확인 버튼을 누르신 후 화면을 켠 채로 잠시만 기다려주세요.\n${seconds}초 뒤 실시간 당직공지 모달창이 기동됩니다.`);
+            // 💡 사용자가 버튼을 눌렀음을 인지시키는 시연용 알림창 안내 수평 정렬
+            alert("[시연 예약 완료]\n\n확인 버튼을 누르신 후 화면을 켠 채로 잠시만 기다려주세요.\n" + seconds + "초 뒤 실시간 당직공지 모달창이 기동됩니다.");
 
-            // 💡 [마스터 실시간 우회 타이머]: 서비스 워커 스팸 필터를 100% 우회하여 브라우저 내부에서 모달창 사출을 강제 보장합니다.
+            // 💡 [마스터 실시간 우회 타이머]: 브라우저 보안 필터(알림 자동차단 등)를 100% 우회하는 순수 화면 내부 스케줄러
             if (window.demoIndependentSafetyTimer) clearTimeout(window.demoIndependentSafetyTimer);
-            window.demoIndependentSafetyTimer = setTimeout(() => {
-                // 중복 사출 방지 가드 검증 후 무조건 100% 출격
+            window.demoIndependentSafetyTimer = setTimeout(function () {
+                // 중복 사출 방지 가드 검증 후 100% 정상 출격
                 if (!document.getElementById('demoBlinkOverlayLayer')) {
                     if (typeof launchDemoFlashingBlinkModal === "function") {
                         launchDemoFlashingBlinkModal();
                     }
                 }
-            }, seconds * 1000);
+            }, seconds * 1000); // 드롭다운에서 선택한 초(예: 5초 = 5000ms) 후에 정확히 발동
         }
-
         // 2. 서비스 워커 푸시 배너 클릭 유입 가로채기 엔진 (타이밍 완벽 교정)
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);

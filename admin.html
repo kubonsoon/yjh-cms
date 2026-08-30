@@ -1052,14 +1052,14 @@
                         style="display: inline-flex; align-items: center; gap: 10px;">
                         <select id="demoNotificationTimer"
                             style="height: 36px; background: #0b0f19; color: #ffffff; border: 1px solid #f97316; border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none; transition: border-color 0.2s;">
-                            <option value="5">5초 뒤 정각 사출 시연</option>
-                            <option value="10">10초 뒤 정각 사출 시연</option>
-                            <option value="20">20초 뒤 정각 사출 시연</option>
+                            <option value="5">5초 후 알림창</option>
+                            <option value="10">10초 후 알림창</option>
+                            <option value="20">20초 후 알림청</option>
                         </select>
                         <button onclick="triggerIndependentDemoPipeline()" type="button"
                             style="background: #f97316; color: #ffffff; padding: 0 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; height: 36px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); transition: all 0.2s ease;"
                             onmouseover="this.style.background='#ea580c'" onmouseout="this.style.background='#f97316'">
-                            ⚙️ 시연용 알림 예약
+                            ⚙️ 알림 예약
                         </button>
                     </div>
                 </div>
@@ -6394,78 +6394,76 @@
         // [완전 독립 스레드] 웹푸시알림(서비스 워커) 시스템
         // =========================================================================
 
-    // 1. 예약 버튼 클릭 시 작동하는 타이머 예약 함수
-function triggerIndependentDemoPipeline() {
-    const timerSelect = document.getElementById('demoNotificationTimer');
-    if (!timerSelect) {
-        return alert("오류: 알림 시간 선택 상자(demoNotificationTimer)를 찾을 수 없습니다.");
-    }
+        // 1. 💥 실제 버튼 클릭 시 초(seconds)를 직접 전달받아 예약하는 핵심 함수
+        function triggerIndependentDemoPipeline(delaySeconds) {
+            // 인자 값이 없거나 유효하지 않으면 기본값 5초 지정
+            const seconds = parseInt(delaySeconds, 10) || 5;
 
-    const delaySeconds = timerSelect.value;
-    alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${delaySeconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
+            alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${seconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
 
-    // 💥 서비스 워커가 등록되어 있다면 브라우저가 꺼져도 작동하도록 sw.js 스레드로 데이터 토스
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-            action: 'RESERVE_DEMO_PUSH',
-            delay: parseInt(delaySeconds, 10) * 1000,
-            title: '🚨 LIVE [당직공지] 알람 정각 사출',
-            body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
-        });
-    } else {
-        console.warn("서비스 워커가 즉시 준비되지 않아 로컬 브라우저 타이머로 우회 실행합니다.");
-        setTimeout(() => {
-            launchDemoFlashingBlinkModal();
-        }, parseInt(delaySeconds, 10) * 1000);
-    }
-}
-
-// 2. 푸시 배너를 클릭해 창이 재실행되거나 세션 복구 시 유입을 가로채는 인터셉터
-window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('mode') === 'independentDemoLaunch') {
-
-        // 전산망 메인 화면을 모집공고 탭으로 즉시 배치
-        if (typeof changeMainViewport === "function") {
-            changeMainViewport('recruitmentView');
+            // 브라우저가 완전히 꺼졌을 때 서비스 워커가 독자적으로 백그라운드 제어를 수행하도록 신호 전송
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    action: 'RESERVE_DEMO_PUSH',
+                    delay: seconds * 1000, // 밀리초(ms) 단위 변환
+                    title: '🚨 LIVE [당직공지] 알람 정각 사출',
+                    body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
+                });
+            } else {
+                // 서비스 워커가 아직 활성화되지 않은 경우를 위한 개발자 디버깅용 폴백 알림
+                console.warn("서비스 워커가 활성화되지 않아 로컬 브라우저 타이머로 우회 실행합니다.");
+                setTimeout(() => {
+                    launchDemoFlashingBlinkModal();
+                }, seconds * 1000);
+            }
         }
 
-        // 💥 렌더링 타이밍을 고려해 0.4초 대기 후 원본 번쩍이 모달창 강제 기동
-        setTimeout(() => {
-            launchDemoFlashingBlinkModal();
-        }, 400);
+        // 2. 서비스 워커 푸시 배너를 클릭해 창이 재실행되거나 세션 복구 시 유입을 가로채는 인터셉터
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'independentDemoLaunch') {
 
-        // 시연 완료 후 깔끔하게 주소창 파라미터 정제 제거
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-});
+                // 원본 함수를 우회하여 전산망 메인 화면을 모집공고 탭으로 즉시 배치
+                if (typeof changeMainViewport === "function") {
+                    changeMainViewport('recruitmentView');
+                }
 
-// 3. 주황/형광색으로 번쩍이는 모달 생성 함수
-function launchDemoFlashingBlinkModal() {
-    const oldOverlay = document.getElementById('demoBlinkOverlayLayer');
-    if (oldOverlay) oldOverlay.remove();
+                // 돔 렌더링 안정성을 위해 0.4초 대기 후 전용 독자 모달창 강제 기동
+                setTimeout(() => {
+                    launchDemoFlashingBlinkModal();
+                }, 400);
 
-    const overlay = document.createElement('div');
-    overlay.id = 'demoBlinkOverlayLayer';
-    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:999999; display:flex; justify-content:center; align-items:center;';
+                // 시연 완료 후 깔끔하게 주소창 파라미터 정제 제거
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
 
-    const modalBox = document.createElement('div');
-    modalBox.style.cssText = 'background:#1a233a; padding:30px; border-radius:16px; width:100%; max-width:550px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); box-sizing:border-box; text-align:center; transition: all 0.3s;';
-    modalBox.style.animation = 'demoNeonFlashLoop 0.4s infinite alternate ease-in-out';
+        // 3. 기존 openIntegratedBoardModal과 완전 별개로 주황/형광색으로 번쩍이는 모달 생성 함수
+        function launchDemoFlashingBlinkModal() {
+            const oldOverlay = document.getElementById('demoBlinkOverlayLayer');
+            if (oldOverlay) oldOverlay.remove();
 
-    if (!document.getElementById('demoBlinkAnimationCSS')) {
-        const styleSheet = document.createElement("style");
-        styleSheet.id = 'demoBlinkAnimationCSS';
-        styleSheet.innerText = `
+            const overlay = document.createElement('div');
+            overlay.id = 'demoBlinkOverlayLayer';
+            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:999999; display:flex; justify-content:center; align-items:center;';
+
+            const modalBox = document.createElement('div');
+            modalBox.style.cssText = 'background:#1a233a; padding:30px; border-radius:16px; width:100%; max-width:550px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); box-sizing:border-box; text-align:center; transition: all 0.3s;';
+            modalBox.style.animation = 'demoNeonFlashLoop 0.4s infinite alternate ease-in-out';
+
+            if (!document.getElementById('demoBlinkAnimationCSS')) {
+                const styleSheet = document.createElement("style");
+                styleSheet.id = 'demoBlinkAnimationCSS';
+                styleSheet.innerText = `
             @keyframes demoNeonFlashLoop {
                 0% { border: 3px solid #ff5722; box-shadow: 0 0 15px #ff5722, inset 0 0 10px rgba(255, 87, 34, 0.2); }
                 100% { border: 3px solid #39ff14; box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.3); }
             }
         `;
-        document.head.appendChild(styleSheet);
-    }
+                document.head.appendChild(styleSheet);
+            }
 
-    modalBox.innerHTML = `
+            modalBox.innerHTML = `
         <div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 알람 정각 사출</span></div>
         <h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">애드파마 로잘탄+로수+에제 (2기)</h2>
         <div style="background:#0f172a; border-radius:8px; padding:20px; color:#cbd5e1; font-size:15px; line-height:1.6; text-align:left; margin-bottom:25px; border:1px solid #334155;">
@@ -6474,41 +6472,40 @@ function launchDemoFlashingBlinkModal() {
         <button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>
     `;
 
-    overlay.appendChild(modalBox);
-    document.body.appendChild(overlay);
+            overlay.appendChild(modalBox);
+            document.body.appendChild(overlay);
 
-    // 사용자가 배너를 클릭하고 화면에 들어온 상호작용 시점이므로 사운드 100% 정상 재생 가능
-    executeKakaoDemoSoundEffect();
-}
+            executeKakaoDemoSoundEffect();
+        }
 
-// 4. 독립 카카오톡 오피셜 알림 사운드 재생
-function executeKakaoDemoSoundEffect() {
-    try {
-        // 💡 실제 사용하시는 카카오톡 알림음 mp3 파일 경로로 수정하여 바인딩하세요.
-        const audio = new Audio("https://your-domain.com");
-        audio.volume = 1.0;
-        audio.play().catch(err => {
-            console.log("브라우저 자동재생 제약 우회:", err);
-        });
-    } catch (e) {
-        console.error("카카오톡 오디오 버퍼 로드 오류:", e);
-    }
-}
+        // 4. 독립 카카오톡 공식 오피셜 알림 비프 사운드 연동 스레드
+        function executeKakaoDemoSoundEffect() {
+            try {
+                // 💡 실제 사용하시는 카카오톡 알림음 mp3 파일 경로로 수정하여 바인딩하세요.
+                const audio = new Audio("https://your-domain.com");
+                audio.volume = 1.0;
+                audio.play().catch(err => {
+                    console.log("브라우저 인터랙션 선결 조건 미충족에 따른 자율재생 제한 우회 처리 완료:", err);
+                });
+            } catch (e) {
+                console.error("카카오톡 알림 오디오 버퍼 로드 오류:", e);
+            }
+        }
 
-// 5. 모달 파기 함수
-function closeDemoIndependentModalPipeline() {
-    const overlay = document.getElementById('demoBlinkOverlayLayer');
-    if (overlay) overlay.remove();
-}
+        // 5. 시연 전용 독립 모달 파기 함수
+        function closeDemoIndependentModalPipeline() {
+            const overlay = document.getElementById('demoBlinkOverlayLayer');
+            if (overlay) overlay.remove();
+        }
 
-// 6. 페이지 로드 시 백그라운드 스레드(sw.js)를 브라우저 시스템에 등록
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('서비스 워커 성공적 등록 완료.', reg))
-            .catch(err => console.error('서비스 워커 등록 실패:', err));
-    });
-}
+        // 6. 페이지 로드 시 백그라운드 스레드(sw.js)를 브라우저 시스템에 등록하는 센서
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('서비스 워커가 성공적으로 등록되었습니다.', reg))
+                    .catch(err => console.error('서비스 워커 등록 실패:', err));
+            });
+        }
 
     </script>
 

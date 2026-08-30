@@ -9,7 +9,8 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.action === "RESERVE_DEMO_PUSH") {
-    const { delay, title, body } = event.data;
+    // 💡 event.data 구조 분해 할당에 actions 속성을 추가로 받아옵니다.
+    const { delay, title, body, actions } = event.data;
 
     event.waitUntil(
       new Promise((resolve) => {
@@ -19,9 +20,10 @@ self.addEventListener("message", (event) => {
               body: body,
               icon: "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' viewBox='0 0 24 24' fill='%23f97316'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/></svg>",
               requireInteraction: true,
-              // silent: true,  이 줄을 지우거나 아래처럼 false로 변경하세요.
               silent: false, // OS 시스템 지정 기본 알림 벨소리 강제 동시 재생
               tag: "clinical-urgent-call",
+              // 💡 전달받은 알림 버튼 배열을 브라우저 노티 설정에 동적으로 주입합니다.
+              actions: actions || []
             })
             .then(resolve);
         }, delay);

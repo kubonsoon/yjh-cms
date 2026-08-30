@@ -6411,7 +6411,8 @@
             const testName = (inputTestTitle && inputTestTitle.value.trim()) ? inputTestTitle.value.trim() : "애드파마 로잘탄+로수+에제";
             const testTerm = (inputTestTh && inputTestTh.value) ? inputTestTh.value : "2기";
 
-            alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${seconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
+            // 💡 안내 멘트 문맥 교정
+            alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${seconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 알림이 발송되며, 알림 내 [공지 확인] 버튼을 누르면 반짝이 모달창이 기동됩니다.`);
 
             // 컴퓨터 푸쉬 알림 메세지
             const worker = navigator.serviceWorker.controller || (navigator.serviceWorker.ready && navigator.serviceWorker.ready.then(reg => reg.active));
@@ -6422,7 +6423,11 @@
                         action: 'RESERVE_DEMO_PUSH',
                         delay: seconds * 1000,
                         title: '🚨 LIVE [당직공지] 안내 사항이 도착했습니다',
-                        body: `[날짜] ${formattedDate}\n[시험] ${testName} (${testTerm})\n해당 시험층에서 당직자의 안내에 따라 대기해 주세요.`
+                        body: `[날짜] ${formattedDate}\n[시험] ${testName} (${testTerm})\n해당 시험층에서 당직자의 안내에 따라 대기해 주세요.`,
+                        // 💡 [버튼 커스텀 인프라 추가] OS 푸시 알림 배너 하단에 '공지 확인' 액션 버튼을 강제 주입합니다.
+                        actions: [
+                            { action: 'open_modal', title: '👉 공지 확인하기' }
+                        ]
                     });
                 };
 
@@ -6434,7 +6439,6 @@
             } else {
                 console.warn("서비스 워커가 활성화 상태가 아니므로 로컬 타이머로 우회 작동합니다.");
                 setTimeout(() => {
-                    // 로컬 우회 실행 시에도 실데이터 함수로 토스
                     if (typeof launchDemoFlashingBlinkModal === "function") {
                         launchDemoFlashingBlinkModal();
                     }

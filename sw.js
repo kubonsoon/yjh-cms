@@ -11,7 +11,6 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.action === "RESERVE_DEMO_PUSH") {
     const { delay, title, body } = event.data;
 
-    // 💥 중요: event.waitUntil로 감싸야 브라우저가 꺼져도 프로세스가 죽지 않고 타이머를 끝까지 수행합니다.
     event.waitUntil(
       new Promise((resolve) => {
         setTimeout(() => {
@@ -20,7 +19,8 @@ self.addEventListener("message", (event) => {
               body: body,
               icon: "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' viewBox='0 0 24 24' fill='%23f97316'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/></svg>",
               requireInteraction: true,
-              silent: true, // 카카오톡 커스텀 멜로디 출력을 위해 기본음 뮤트
+              // silent: true, 💥 이 줄을 지우거나 아래처럼 false로 변경하세요.
+              silent: false, // OS 시스템 지정 기본 알림 벨소리 강제 동시 재생
               tag: "clinical-urgent-call",
             })
             .then(resolve);

@@ -6398,9 +6398,28 @@
         function triggerIndependentDemoPipeline(delaySeconds) {
             const seconds = parseInt(delaySeconds, 10) || 5;
 
+            // ──────────────────────────────────────────────────────────────
+            // 💡 [실데이터 추출 엔진 추가] 오늘 날짜 및 화면 입력값 실시간 동적 빌드
+            // ──────────────────────────────────────────────────────────────
+            // A. 시스템 컴퓨터상 오늘 날짜 구하기 (YYYY-MM-DD)
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const date = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${date}`;
+
+            // B. admin.html 화면 내 신규 등록 폼 엘리먼트에서 실제 작성/선택된 값 추출
+            const inputTestTitle = document.getElementById('form-rec-title');
+            const inputTestTh = document.getElementById('form-rec-th');
+
+            // 값이 존재하면 입력된 실데이터를 쓰고, 비어있다면 폴백(기본값) 적용
+            const testName = (inputTestTitle && inputTestTitle.value.trim()) ? inputTestTitle.value.trim() : "애드파마 로잘탄+로수+에제";
+            const testTerm = (inputTestTh && inputTestTh.value) ? inputTestTh.value : "2기";
+            // ──────────────────────────────────────────────────────────────
+
             alert(`[시연 확인] 브라우저 창을 완전히 꺼두셔도 됩니다.\n${seconds}초 뒤 카카오톡 소리와 함께 백그라운드 푸시 및 반짝이 모달창이 기동됩니다.`);
 
-            // 중요: controller가 바로 준비되지 않았을 수 있으므로 active 워커까지 폭넓게 탐색
+            // 컴퓨터 푸쉬 알림 메세지
             const worker = navigator.serviceWorker.controller || (navigator.serviceWorker.ready && navigator.serviceWorker.ready.then(reg => reg.active));
 
             if ('serviceWorker' in navigator && worker) {
@@ -6409,7 +6428,8 @@
                         action: 'RESERVE_DEMO_PUSH',
                         delay: seconds * 1000,
                         title: '🚨 LIVE [당직공지] 안내 사항이 도착했습니다',
-                        body: '애드파마 로잘탄+로수+에제 (2기)\n지정된 야간 당직 소집 안내 공지입니다. 필히 구역 내에서 대기해 주세요.'
+                        // 백틱(`) 기호를 사용하여 동적 실데이터 문장 구성 및 줄바꿈 유지
+                        body: `[날짜] ${formattedDate}\n[시험] ${testName} (${testTerm})\n해당 시험층에서 당직자의 안내에 따라 대기해 주세요.`
                     });
                 };
 
@@ -6462,10 +6482,29 @@
             }
         });
 
-        // 3. 주황/형광색 교차 점멸 루프 애니메이션 및 인라인 모달 사출 구현부 (기존 코드 그대로 유지)
+        // 3. 주황/형광색 교차 점멸 루프 애니메이션 및 인라인 모달 사출 구현부
         function launchDemoFlashingBlinkModal() {
             const oldOverlay = document.getElementById('demoBlinkOverlayLayer');
             if (oldOverlay) oldOverlay.remove();
+
+            // ──────────────────────────────────────────────────────────────
+            // 💡 [실데이터 추출 엔진 추가] 오늘 날짜 및 화면 입력값 실시간 동적 빌드
+            // ──────────────────────────────────────────────────────────────
+            // A. 시스템 컴퓨터상 오늘 날짜 구하기 (YYYY-MM-DD)
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const date = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${date}`;
+
+            // B. admin.html 화면 내 신규 등록 폼 엘리먼트에서 실제 작성/선택된 값 추출
+            const inputTestTitle = document.getElementById('form-rec-title');
+            const inputTestTh = document.getElementById('form-rec-th');
+
+            // 값이 존재하면 입력된 실데이터를 쓰고, 비어있다면 폴백(기본값) 적용
+            const testName = (inputTestTitle && inputTestTitle.value.trim()) ? inputTestTitle.value.trim() : "애드파마 로잘탄+로수+에제";
+            const testTerm = (inputTestTh && inputTestTh.value) ? inputTestTh.value : "2기";
+            // ──────────────────────────────────────────────────────────────
 
             const overlay = document.createElement('div');
             overlay.id = 'demoBlinkOverlayLayer';
@@ -6479,22 +6518,26 @@
                 const styleSheet = document.createElement("style");
                 styleSheet.id = 'demoBlinkAnimationCSS';
                 styleSheet.innerText = `
-            @keyframes demoNeonFlashLoop {
-                0% { border: 3px solid #ff5722; box-shadow: 0 0 15px #ff5722, inset 0 0 10px rgba(255, 87, 34, 0.2); }
-                100% { border: 3px solid #39ff14; box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.3); }
-            }
-        `;
+    @keyframes demoNeonFlashLoop {
+        0% { border: 3px solid #ff5722; box-shadow: 0 0 15px #ff5722, inset 0 0 10px rgba(255, 87, 34, 0.2); }
+        100% { border: 3px solid #39ff14; box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.3); }
+    }
+`;
                 document.head.appendChild(styleSheet);
             }
 
+            // 백틱(`)을 활용해 실시간 변수가 반영되도록 HTML 구조 바인딩
             modalBox.innerHTML = `
-        <div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 안내 사항이 도착했습니다</span></div>
-        <h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">애드파마 로잘탄+로수+에제 (2기)</h2>
-        <div style="background:#0f172a; border-radius:8px; padding:20px; color:#cbd5e1; font-size:15px; line-height:1.6; text-align:left; margin-bottom:25px; border:1px solid #334155;">
+            <div style="margin-bottom:15px;"><span style="background:#ffbf24; color:#070a12; padding:4px 12px; border-radius:4px; font-weight:800; font-size:13px;">🚨 LIVE [당직공지] 안내 사항이 도착했습니다</span></div>
+            <!-- 동적 시험명 및 기수가 노출되는 타이틀 매핑 구역 -->
+            <h2 style="color:#ffffff; font-size:24px; font-weight:800; margin-bottom:20px; font-family:sans-serif;">${testName} (${testTerm})</h2>
+            <div style="background:#0f172a; border-radius:8px; padding:20px; color:#cbd5e1; font-size:15px; line-height:1.6; text-align:left; margin-bottom:25px; border:1px solid #334155;">
+            <!-- 시스템상 오늘 날짜가 연동되어 사출되는 공지일자 표기선 추가 -->
+            <span style="color:#ffbf24; font-weight:700;">[공지일자] ${formattedDate}</span><br><br>
             금일 야간 안내 공지입니다. <br>해당 시험층에서 당직자의 안내에 따라 대기해 주세요.
-        </div>
-        <button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>
-    `;
+            </div>
+            <button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>
+`;
 
             overlay.appendChild(modalBox);
             document.body.appendChild(overlay);

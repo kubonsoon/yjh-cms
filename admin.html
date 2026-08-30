@@ -6487,6 +6487,19 @@
             var oldOverlay = document.getElementById('demoBlinkOverlayLayer');
             if (oldOverlay) oldOverlay.remove();
 
+            // ──────────────────────────────────────────────────────────────
+            // 🎵 [사운드 안전 장치] 오직 함수가 호출되어 실행될 때만 오디오가 생성 및 재생됩니다.
+            // ──────────────────────────────────────────────────────────────
+            try {
+                var audio = new Audio("./katalk.mp3");
+                audio.play().catch(function (e) {
+                    console.warn("모바일 자동재생 보안 정책 방어 체인 가동:", e);
+                });
+            } catch (err) {
+                console.error("오디오 엔진 구동 실패 방어:", err);
+            }
+            // ──────────────────────────────────────────────────────────────
+
             // [실데이터 추출] 오늘 날짜 및 화면 입력값 실시간 동적 빌드
             var today = new Date();
             var year = today.getFullYear();
@@ -6522,7 +6535,6 @@
             htmlContent += '    <span style="color:#ffbf24; font-weight:700;">[공지일자] ' + formattedDate + '</span><br><br>';
             htmlContent += '    금일 야간 안내 공지입니다. <br>해당 시험층에서 당직자의 안내에 따라 대기해 주세요.';
             htmlContent += '</div>';
-            // 💡 onclick 타겟 함수명을 프로젝트에 구현된 정식 이름인 closeDemoIndependentModalPipeline() 으로 확실하게 일치시켰습니다.
             htmlContent += '<button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:180px; height:45px; border:none; border-radius:8px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>';
 
             modalBox.innerHTML = htmlContent;

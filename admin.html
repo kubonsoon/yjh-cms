@@ -6600,6 +6600,23 @@
             }
         }, { once: true });
 
+
+        // 푸시 알림 배너 클릭 후 진입 시 자동 모달 사출 엔진
+        window.addEventListener('DOMContentLoaded', () => {
+            // URL 파라미터 구조 분석 (?mode=independentDemoLaunch)
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+
+            // sw.js 스펙과 일치하는 모드로 진입했다면 점멸 모달창 즉시 가동
+            if (mode === 'independentDemoLaunch') {
+                if (typeof launchDemoFlashingBlinkModal === 'function') {
+                    // 이전에 입력했던 흔적이 스토리지에 있다면 매칭력을 높이기 위해 세팅 유도 가능
+                    setTimeout(() => {
+                        launchDemoFlashingBlinkModal();
+                    }, 300); // 돔 렌더링 안정성을 위해 0.3초 미세 지연 후 사출
+                }
+            }
+        });        
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

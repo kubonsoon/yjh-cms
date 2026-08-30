@@ -6394,7 +6394,6 @@
         // [완전 독립 스레드] 웹푸시알림(서비스 워커) 시스템
         // =========================================================================
         function triggerIndependentDemoPipeline(delaySeconds) {
-            // 💡 선택 드롭다운에서 초 데이터 파싱 (전달인자가 없으면 화면 select 박스에서 가져옴)
             var timerSelect = document.getElementById('demoNotificationTimer');
             var seconds = parseInt(delaySeconds, 10) || (timerSelect ? parseInt(timerSelect.value, 10) : 5);
 
@@ -6411,27 +6410,68 @@
             var testName = (inputTestTitle && inputTestTitle.value.trim()) ? inputTestTitle.value.trim() : "애드파마 로잘탄+로수+에제";
             var testTerm = (inputTestTh && inputTestTh.value) ? inputTestTh.value : "2기";
 
-            // 💡 [삼성인터넷/모바일 오디오 미디어 락 완전 해제] 
-            // 사용자가 버튼을 '터치'한 이 시점에 가상 오디오 객체를 메모리에 미리 로드하여 스마트폰 오디오 차단 정책을 무력화합니다.
+            // 모바일 오디오 미디어 락 원천 프리페치 해제
             try {
                 window.globalSilentAudioContext = new Audio("./katalk.mp3");
                 window.globalSilentAudioContext.load();
             } catch (audioSetupErr) { }
 
-            // 💡 사용자가 버튼을 눌렀음을 인지시키는 시연용 알림창 안내 수평 정렬
-            alert("[시연 예약 완료]\n\n확인 버튼을 누르신 후 화면을 켠 채로 잠시만 기다려주세요.\n" + seconds + "초 뒤 실시간 당직공지 모달창이 기동됩니다.");
+            // 사용자가 지금 PC(컴퓨터)로 접속했는지 스마트폰으로 접속했는지 기기 판별 환경 분석
+            var isMobileDevice = /Mobi|Android|iPhone|iPad|SamsungBrowser/i.test(navigator.userAgent);
 
-            // 💡 [마스터 실시간 우회 타이머]: 브라우저 보안 필터(알림 자동차단 등)를 100% 우회하는 순수 화면 내부 스케줄러
-            if (window.demoIndependentSafetyTimer) clearTimeout(window.demoIndependentSafetyTimer);
-            window.demoIndependentSafetyTimer = setTimeout(function () {
-                // 중복 사출 방지 가드 검증 후 100% 정상 출격
-                if (!document.getElementById('demoBlinkOverlayLayer')) {
-                    if (typeof launchDemoFlashingBlinkModal === "function") {
-                        launchDemoFlashingBlinkModal();
+            if (isMobileDevice) {
+                // ──────────────────────────────────────────────────────────────
+                // 📱 [모바일 제어 시나리오] 알림 자동차단 우회용 화면 내부 타이머 작동
+                // ──────────────────────────────────────────────────────────────
+                alert("[모바일 시연 예약 완료]\n\n화면을 켠 채로 잠시만 기다려주세요.\n" + seconds + "초 뒤 실시간 당직공지 모달창이 기동됩니다.");
+
+                if (window.demoIndependentSafetyTimer) clearTimeout(window.demoIndependentSafetyTimer);
+                window.demoIndependentSafetyTimer = setTimeout(function () {
+                    if (!document.getElementById('demoBlinkOverlayLayer')) {
+                        if (typeof launchDemoFlashingBlinkModal === "function") {
+                            launchDemoFlashingBlinkModal();
+                        }
                     }
+                }, seconds * 1000);
+            } else {
+                // ──────────────────────────────────────────────────────────────
+                // 🖥️ [PC 컴퓨터 제어 시나리오] 바탕화면 우측 하단 푸시 알림 배너 사출 가동
+                // ──────────────────────────────────────────────────────────────
+                alert("[PC 시연 예약 완료]\n\n" + seconds + "초 뒤 우측 하단 바탕화면에 푸시 알림 배너가 내려옵니다.\n알림 내 [공지 확인하기] 버튼을 누르시면 모달창이 기동됩니다.");
+
+                var worker = navigator.serviceWorker.controller || (navigator.serviceWorker.ready && navigator.serviceWorker.ready.then(function (reg) { return reg.active; }));
+
+                if ('serviceWorker' in navigator && worker) {
+                    var sendPostMessage = function (activeWorker) {
+                        activeWorker.postMessage({
+                            action: 'RESERVE_DEMO_PUSH',
+                            delay: seconds * 1000,
+                            title: '🚨 LIVE [당직공지] 안내 사항이 도착했습니다',
+                            body: '[날짜] ' + formattedDate + '\n[시험] ' + testName + ' (' + testTerm + ')\n해당 시험층에서 당직자의 안내에 따라 대기해 주세요.',
+                            actions: [
+                                { action: 'open_modal', title: '👉 공지 확인하기' }
+                            ]
+                        });
+                    };
+
+                    // 서비스 워커 상태 추적 바인딩 및 즉시 전송
+                    if (navigator.serviceWorker.controller) {
+                        sendPostMessage(navigator.serviceWorker.controller);
+                    } else {
+                        navigator.serviceWorker.ready.then(function (reg) {
+                            sendPostMessage(reg.active);
+                        });
+                    }
+                } else {
+                    // PC인데 서비스 워커 에러 발생 시 안전 폴백
+                    setTimeout(function () {
+                        if (typeof launchDemoFlashingBlinkModal === "function") launchDemoFlashingBlinkModal();
+                    }, seconds * 1000);
                 }
-            }, seconds * 1000); // 드롭다운에서 선택한 초(예: 5초 = 5000ms) 후에 정확히 발동
+            }
         }
+
+
         // 2. 서비스 워커 푸시 배너 클릭 유입 가로채기 엔진 (타이밍 완벽 교정)
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);

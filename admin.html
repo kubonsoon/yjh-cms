@@ -6699,14 +6699,15 @@
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', function (event) {
-                // 서비스 워커의 타이머 만료 후 배너 발송 공지 신호(PLAY_ALERT_AUDIO_SIGNAL) 접수
+                // 서비스 워커의 5초 타이머가 만료되어 배너를 화면에 뿌리는 정밀한 타이밍 신호 수신
                 if (event.data && event.data.action === 'PLAY_ALERT_AUDIO_SIGNAL') {
 
-                    // 로그인 상태 유무 및 화면에 다른 마스터 모달 오버레이가 점유 중인지 실시간 가드 체크
-                    if (typeof window.checkPushSoundPlayable === 'function' && window.checkPushSoundPlayable()) {
+                    // 💡 작성해 두신 checkKakaoTalkAlertPlayable 가드 엔진을 완벽하게 연동 호출합니다.
+                    // 로그인 전, 바탕화면 클릭, 모달창 제어(오픈/닫기) 시점의 불필요한 모든 소리를 완벽히 커트합니다.
+                    if (typeof window.checkKakaoTalkAlertPlayable === 'function' && window.checkKakaoTalkAlertPlayable()) {
                         try {
-                            // 💡 [핵심 교정]: 화면 제어부와 완벽히 격리된 독립형 순수 사운드 플레이어를 
-                            // 배너가 내려오는 바로 이 한정된 순간에만 즉석 사출하여 소리를 강제 출력합니다.
+                            // 화면 제어부와 완벽히 격리된 독립형 순수 사운드 플레이어를 
+                            // 배너가 내려오는 바로 이 한정된 타이밍에만 즉석 사출하여 소리를 강제 출력합니다.
                             var freshAudioPlayer = new Audio("./katalk.mp3");
                             freshAudioPlayer.muted = false;
                             freshAudioPlayer.volume = 1.0;

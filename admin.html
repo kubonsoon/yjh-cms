@@ -1866,6 +1866,17 @@
                 if (pw === account.pw || pw === account.sabun || (pw === "9793" && account.sabun === "admin")) {
                     sessionStorage.setItem('adminLoginSession', 'isAuthorizedSecureToken');
                     sessionStorage.setItem('adminLoginSabun', id);
+
+                    // 🎯 [핵심 추가]: 로그인 버튼을 누른 이 직접적인 상호작용 타이밍에 0.1초짜리 무음으로 브라우저 오디오 락을 완전히 깨부숩니다.
+                    if (window.globalSilentAudioContext && typeof window.globalSilentAudioContext.play === 'function') {
+                        window.globalSilentAudioContext.volume = 0; // 무음 설정
+                        window.globalSilentAudioContext.play().then(function () {
+                            window.globalSilentAudioContext.pause();
+                            window.globalSilentAudioContext.volume = 1; // 사운드 원상 복구
+                            console.log("[보안 해제] 로그인 상호작용을 통해 오디오 락을 완벽히 선제 획득했습니다.");
+                        }).catch(function (e) { console.log(e); });
+                    }
+
                     if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'none';
                     if (document.getElementById('mainDashboard')) document.getElementById('mainDashboard').style.display = 'flex';
                     bindTopBarProfile(id);
@@ -6332,9 +6343,11 @@
                 ${coreText.replace(/\n/g, '<br>')}
             </div>
             <div style="margin-top: 22px; display: flex; justify-content: center;">
-                <button type="button" onclick="document.getElementById('integrated-notice-modal').style.display='none'" style="background: ${flashColor}; color: #070a12; border: none; padding: 10px 35px; font-size: 14px; font-weight: 900; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px ${glowShadow}; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                    확인했습니다
-                </button>
+                <button type="button" 
+                onclick="if(window.globalSilentAudioContext){ window.globalSilentAudioContext.pause(); window.globalSilentAudioContext.currentTime = 0; } document.getElementById('integrated-notice-modal').style.display='none';" 
+                style="background: ${flashColor}; color: #070a12; border: none; padding: 10px 35px; font-size: 14px; font-weight: 900; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px ${glowShadow}; transition: all 0.2s;" 
+                onmouseover="this.style.transform='scale(1.02)'" 
+                onmouseout="this.style.transform='scale(1)'">확인했습니다</button>
             </div>
         `;
 
@@ -6691,18 +6704,17 @@
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', function (event) {
-                // 서비스 워커가 딜레이 타임아웃을 완수하고 배너를 밀어 올리는 바로 그 타이밍(PLAY_ALERT_AUDIO_SIGNAL) 확인
                 if (event.data && event.data.action === 'PLAY_ALERT_AUDIO_SIGNAL') {
 
-                    // 실시간 가드 엔진 작동: 로그인 유무 더블 체크 및 모달창 활성/닫기 시점의 불필요한 연쇄 작용 원천 컷트
+                    // 로그인 상태 및 화면에 모달이 없을 때만 통과 (닫을 때 실행되는 신호는 자동 필터링)
                     if (typeof window.checkPushSoundPlayable === 'function' && window.checkPushSoundPlayable()) {
 
-                        // 6676라인에서 이미 🔓 브라우저 오디오 시스템 보안 해제 완료를 선언했으므로, 이 시점에 무조건 딱 1번만 안전 재생됩니다.
-                        var realAudioPlayer = window.globalSilentAudioContext || new Audio("./katalk.mp3");
-                        if (realAudioPlayer && typeof realAudioPlayer.play === 'function') {
-                            realAudioPlayer.currentTime = 0; // 재생 포인트를 처음으로 리셋
-                            realAudioPlayer.play().catch(function (e) {
-                                console.warn('[오디오 안전 필터] 자동재생 제한 규제로 소리가 차단되었습니다.', e);
+                        // 1단계에서 로그인을 통해 이미 보안이 해제되었으므로 백그라운드 상태에서도 배너와 함께 소리가 즉시 터집니다.
+                        var realPlayer = window.globalSilentAudioContext || new Audio("./katalk.mp3");
+                        if (realPlayer && typeof realPlayer.play === 'function') {
+                            realPlayer.currentTime = 0;
+                            realPlayer.play().catch(function (err) {
+                                console.warn('[오디오 안전 필터] 런타임 재생 지연 방어 구동', err);
                             });
                         }
                     }

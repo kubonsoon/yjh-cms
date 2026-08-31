@@ -43,29 +43,40 @@ self.addEventListener("message", (event) => {
   }
 });
 
+// 💥 [완전 교정] 배너 본문 클릭 방어 및 액션 버튼 전용 라우팅 통제 섹션
 self.addEventListener("notificationclick", (event) => {
+  // 사용자가 배너 본문을 누르든 버튼을 누르든 상관없이 노티 배너 자체는 즉시 닫아줍니다.
   event.notification.close();
 
-  // 깃허브 서브디렉토리 주소 체계를 깨지 않도록 상대 경로 주소 정밀 정렬
-  const targetUrl = new URL(
-    "admin.html?mode=independentDemoLaunch",
-    self.location.href,
-  ).href;
+  // 🎯 [핵심 요구사항 반영]: 오직 하단의 [👉 공지 확인하기] 버튼을 클릭했을 때만 화면 라우팅 작동
+  // admin.html 원본에서 전송하여 actions 매트릭스에 바인딩된 고유 액션 키값('open_modal')을 추적합니다.
+  if (event.action === "open_modal") {
+    // 깃허브 서브디렉토리 주소 체계를 깨지 않도록 상대 경로 주소 정밀 정렬
+    const targetUrl = new URL(
+      "admin.html?mode=independentDemoLaunch",
+      self.location.href,
+    ).href;
 
-  event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        for (const client of clientList) {
-          if (client.url.includes("admin.html") && "focus" in client) {
-            return client
-              .navigate(targetUrl)
-              .then((fClient) => fClient.focus());
+    event.waitUntil(
+      clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((clientList) => {
+          for (const client of clientList) {
+            if (client.url.includes("admin.html") && "focus" in client) {
+              return client
+                .navigate(targetUrl)
+                .then((fClient) => fClient.focus());
+            }
           }
-        }
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
-        }
-      }),
-  );
+          if (clients.openWindow) {
+            return clients.openWindow(targetUrl);
+          }
+        }),
+    );
+  } else {
+    // 사용자가 버튼을 조준하지 않고 배너 본문이나 빈 공간을 클릭하여 닫은 경우 라우팅 처리 무시
+    console.log(
+      "[차단] 일반 배너 영역 클릭이 감지되어 화면 이동 포커싱을 차단했습니다.",
+    );
+  }
 });

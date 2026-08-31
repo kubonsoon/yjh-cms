@@ -2150,7 +2150,7 @@
                 else if (thNum === 4 || thNum === 5) thBadgeClass = "lvl-4";
                 else if (thNum >= 6) thBadgeClass = "lvl-6";
 
-                // 🎯 [지점 1 교체]: 참여 인원수 연산과 동시에 '동의/미동의/대기' 상태를 한 번에 전수 집계합니다.
+                // 🎯 참여 인원수 연산과 동시에 '동의/미동의/대기' 상태를 한 번에 전수 집계
                 let groupMatchCount = 0;
                 let dutyAgreedCnt = 0, dutyDisagreedCnt = 0, dutyWaitCnt = 0;
                 let callAgreedCnt = 0, callDisagreedCnt = 0, callWaitCnt = 0;
@@ -2168,32 +2168,34 @@
                         return isTitleMatched && isThMatched;
                     });
 
-                    groupMatchCount = matchedApplicants.length; // 실제 매칭 참여인원 (기존 분자값 복원)
+                    groupMatchCount = matchedApplicants.length;
 
-                    // 2. 🎯 [라이브 동의 통계 엔진]: 선별된 대상자 명단을 루프 돌며 상태별 글자를 카운팅 누적
+                    // 2. 🎯 선별된 대상자 명단을 루프 돌며 상태별 글자를 카운팅 누적
                     matchedApplicants.forEach(item => {
                         const dStatus = (item.isDutyAgreed || "대기").toString().trim();
                         const cStatus = (item.isCallAgreed || "대기").toString().trim();
 
-                        // 당직동의 3단계 정산 분류
                         if (dStatus === "동의") dutyAgreedCnt++;
                         else if (dStatus === "미동의") dutyDisagreedCnt++;
                         else dutyWaitCnt++;
 
-                        // 소집동의 3단계 정산 분류
                         if (cStatus === "동의") callAgreedCnt++;
                         else if (cStatus === "미동의") callDisagreedCnt++;
                         else callWaitCnt++;
                     });
                 } catch (e) { groupMatchCount = 0; }
 
-                // 3. 하단 버튼 백틱 문장에 사출 결합해 줄 실시간 변수 문자열 최종 포맷팅
                 const dutyStatsText = `동의${dutyAgreedCnt}명/미동의${dutyDisagreedCnt}명/대기${dutyWaitCnt}명`;
                 const callStatsText = `동의${callAgreedCnt}명/미동의${callDisagreedCnt}명/대기${callWaitCnt}명`;
 
                 const rawQuota = row.count || "60";
                 const pureQuotaNum = parseInt(rawQuota.toString().replace(/[^0-9]/g, ''), 10) || 60;
                 const isRecEditing = (window.currentEditingRecruitmentIndex === index) || (typeof currentEditingRecruitmentIndex !== 'undefined' && currentEditingRecruitmentIndex === index);
+
+                const displayTitle = row.title || "미지정 과제";
+                const displayTh = row.th || "1기";
+                const modalMetaText = `${displayTitle} ${displayTh}`;
+
                 // ----------------======================================================
                 // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (원본 유지)
                 // ----------------======================================================
@@ -2236,16 +2238,16 @@
                     <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='주의사항 안내 [${modalMetaText}]';" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='시험일정 안내 [${modalMetaText}]';" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='당직공지 안내 [${modalMetaText}]';" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='소집공지 안내 [${modalMetaText}]';" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 150px; vertical-align: middle; text-align: center;">
                     <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; pointer-events: auto !important; align-items: center; width: 100%;">
@@ -2293,22 +2295,21 @@
                 <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
                 <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
                 
-                <!-- 주의사항, 시험일정, 당직공지, 소집공지 모두 "보기" 배지 단추 형태로 컴백 -->
-      <td style="width: 80px; vertical-align: middle; text-align: center;">
+                <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <!-- 주의사항 보기 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice'); const btn=document.getElementById('btn-integrated-action-scheduler'); if(btn) btn.style.display='none';" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice'); const btn=document.getElementById('btn-integrated-action-scheduler'); if(btn) btn.style.display='none'; const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='주의사항 안내 [${modalMetaText}]';" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <!-- 시험일정 보기 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule'); const btn=document.getElementById('btn-integrated-action-scheduler'); if(btn) btn.style.display='none';" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule'); const btn=document.getElementById('btn-integrated-action-scheduler'); if(btn) btn.style.display='none'; const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='시험일정 안내 [${modalMetaText}]';" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 🎯 당직공지 보기: 인자 값 충돌을 방지하기 위해 단독 외부 바인딩 함수 구조로 우회 연동 수리 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '당직공지', 'dutyNoticeText');" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <!-- 🎯 당직공지 보기 -->
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '당직공지', 'dutyNoticeText'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='당직공지 안내 [${modalMetaText}]';" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 🎯 소집공지 보기: 인자 값 충돌을 방지하기 위해 단독 외부 바인딩 함수 구조로 우회 연동 수리 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '소집공지', 'callNoticeText');" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <!-- 🎯 소집공지 보기 -->
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '소집공지', 'callNoticeText'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='소집공지 안내 [${modalMetaText}]';" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 
                 <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
@@ -2328,6 +2329,8 @@
                 tbody.appendChild(tr);
             });
         }
+
+
 
         /**
          * 2. [교정] 수정 단추 선택 시 상단 타겟 인덱스를 락인하고 라인을 새로고침하는 진입점

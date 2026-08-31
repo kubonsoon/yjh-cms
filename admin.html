@@ -6464,7 +6464,7 @@
                 }, seconds * 1000);
             } else {
                 // ──────────────────────────────────────────────────────────────
-                // 🖥️ [PC 컴퓨터 제어 시나리오] 바탕화면 우측 하단 푸시 알림 배너 사출 가동
+                // PC 바탕화면 우측 하단 푸시 알림 배너 사출 가동
                 // ──────────────────────────────────────────────────────────────
                 alert("[PC 시연 예약 완료]\n\n" + seconds + "초 뒤 우측 하단 바탕화면에 푸시 알림 배너가 내려옵니다.\n알림 내 [공지 확인하기] 버튼을 누르시면 모달창이 기동됩니다.");
 
@@ -6476,7 +6476,7 @@
                             action: 'RESERVE_DEMO_PUSH',
                             delay: seconds * 1000,
                             title: '🚨 LIVE [당직공지] 안내 사항이 도착했습니다',
-                            body: '[날짜] ' + formattedDate + '\n[시험] ' + testName + ' (' + testTerm + ')\n해당 시험층에서 당직자의 안내에 따라 대기해 주세요.',
+                            body: '[날짜] ' + formattedDate + '\n[시험] ' + testName + ' (' + testTerm + ')\n해당 시험층에서 당직자의 안내에 따라 주세요.',
                             actions: [
                                 { action: 'open_modal', title: '👉 공지 확인하기' }
                             ]
@@ -6543,7 +6543,7 @@
             if (oldOverlay) oldOverlay.remove();
 
             // ──────────────────────────────────────────────────────────────
-            // 🎵 [무설정 사운드 런처] 미세 지연법을 활용해 삼성인터넷 미디어 필터를 무력화하고 소리를 재생합니다.
+            // [무설정 사운드 런처] 미세 지연법을 활용해 삼성인터넷 미디어 필터를 무력화하고 소리를 재생합니다.
             // ──────────────────────────────────────────────────────────────
             try {
                 var audioPlayer = window.globalSilentAudioContext || new Audio("./katalk.mp3");
@@ -6590,7 +6590,7 @@
             htmlContent += '<h2 style="color:#ffffff; font-size:22px; font-weight:800; margin-bottom:15px; font-family:sans-serif; word-break:break-all;">' + testName + ' (' + testTerm + ')</h2>';
             htmlContent += '<div style="background:#0f172a; border-radius:8px; padding:15px; color:#cbd5e1; font-size:14px; line-height:1.6; text-align:left; margin-bottom:20px; border:1px solid #334155;">';
             htmlContent += '    <span style="color:#ffbf24; font-weight:700;">[공지일자] ' + formattedDate + '</span><br><br>';
-            htmlContent += '    금일 야간 안내 공지입니다. <br>해당 시험층에서 당직자의 안내에 따라 대기해 주세요.';
+            htmlContent += '    금일 야간 안내 공지입니다. <br>해당 시험층에서 당직자의 안내에 따라 주세요.';
             htmlContent += '</div>';
             htmlContent += '<button onclick="closeDemoIndependentModalPipeline()" style="background:#ffbf24; color:#070a12; width:100%; max-width:180px; height:45px; border:none; border-radius:8px; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(251,191,36,0.4); transition:all 0.1s;">확인했습니다</button>';
 

@@ -1867,14 +1867,32 @@
                     sessionStorage.setItem('adminLoginSession', 'isAuthorizedSecureToken');
                     sessionStorage.setItem('adminLoginSabun', id);
 
-                    // 🎯 [핵심 추가]: 로그인 버튼을 누른 이 직접적인 상호작용 타이밍에 0.1초짜리 무음으로 브라우저 오디오 락을 완전히 깨부숩니다.
+                    // 🎯 [완전 교정]: play() 실행 전에 볼륨 0 상태를 확실하게 락인(Lock-in)하여 소리 분출 차단
                     if (window.globalSilentAudioContext && typeof window.globalSilentAudioContext.play === 'function') {
-                        window.globalSilentAudioContext.volume = 0; // 무음 설정
+
+                        // 1. play를 하기 전에 오디오 재생 시점을 강제로 끝으로 밀거나 음소거 상태를 하드웨어적으로 선언합니다.
+                        window.globalSilentAudioContext.muted = true; // 💡 2중 안전 장치: 음소거 강제 켬
+                        window.globalSilentAudioContext.volume = 0;   // 볼륨 제로 락
+
+                        // 2. 음소거 상태가 완벽히 적용된 안전한 환경에서 브라우저 오디오 보안 락만 파괴합니다.
                         window.globalSilentAudioContext.play().then(function () {
+                            // 3. 보안 권한 획득 성공 직후 즉시 정지시킵니다.
                             window.globalSilentAudioContext.pause();
-                            window.globalSilentAudioContext.volume = 1; // 사운드 원상 복구
-                            console.log("[보안 해제] 로그인 상호작용을 통해 오디오 락을 완벽히 선제 획득했습니다.");
-                        }).catch(function (e) { console.log(e); });
+
+                            // 4. 재생 위치를 다시 맨 처음으로 되감기 처리합니다.
+                            window.globalSilentAudioContext.currentTime = 0;
+
+                            // 5. 💡 [중요]: 5초 뒤 실제 웹푸시 알림 배너가 뜰 때는 우렁차게 소리가 나도록 음소거를 풀고 볼륨을 1로 원상 복구합니다.
+                            window.globalSilentAudioContext.muted = false;
+                            window.globalSilentAudioContext.volume = 1;
+
+                            console.log("[보안 해제] 로그인 상호작용 완료, 웹푸시 사출 시점 사운드 대기 공급 상태 전환.");
+                        }).catch(function (e) {
+                            console.log("[사운드 가드] 권한 가로채기 예외 대응:", e);
+                            // 에러가 나더라도 시연에 방해되지 않도록 사운드 상태 1로 안전 복구
+                            window.globalSilentAudioContext.muted = false;
+                            window.globalSilentAudioContext.volume = 1;
+                        });
                     }
 
                     if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'none';
@@ -6343,31 +6361,11 @@
                 ${coreText.replace(/\n/g, '<br>')}
             </div>
             <div style="margin-top: 22px; display: flex; justify-content: center;">
-             <button type="button" 
-        onclick="try { 
-            /* 1. 화면 내에서 돌고 있는 모든 무한 재시도 타이머(setTimeout)를 번호 순으로 전수 추적하여 강제 사살 */
-            var 최고타이머ID = setTimeout(function(){}, 0);
-            for (var i = 0; i <= 최고타이머ID; i++) { clearTimeout(i); }
-
-            /* 2. 전역 변수 오디오 플레이어 전격 정지 및 무음화 */
-            if(window.globalSilentAudioContext) { window.globalSilentAudioContext.pause(); window.globalSilentAudioContext.currentTime = 0; }
-            if(window.audioPlayer) { window.audioPlayer.pause(); window.audioPlayer.currentTime = 0; }
-            if(window.audioTarget) { window.audioTarget.pause(); window.audioTarget.currentTime = 0; }
-
-            /* 3. HTML 문서 내에 몰래 생성되어 재생 중인 모든 오디오 태그를 찾아내어 전원 끄기 */
-            var 모든오디오태그 = document.querySelectorAll('audio, video');
-            for(var j = 0; j < 모든오디오태그.length; j++) {
-                모든오디오태그[j].pause();
-                모든오디오태그[j].currentTime = 0;
-            }
-        } catch(e) {} 
-        /* 4. 소리 관련 독소를 완벽히 제거한 후 최종적으로 모달창 격리 폐쇄 */
-        document.getElementById('integrated-notice-modal').style.display='none';" 
-        style="background: ${flashColor}; color: #070a12; border: none; padding: 10px 35px; font-size: 14px; font-weight: 900; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px ${glowShadow}; transition: all 0.2s;" 
-        onmouseover="this.style.transform='scale(1.02)'" 
-        onmouseout="this.style.transform='scale(1)'">
-    확인했습니다
-</button>
+                <button type="button" 
+                onclick="if(window.globalSilentAudioContext){ window.globalSilentAudioContext.pause(); window.globalSilentAudioContext.currentTime = 0; } document.getElementById('integrated-notice-modal').style.display='none';" 
+                style="background: ${flashColor}; color: #070a12; border: none; padding: 10px 35px; font-size: 14px; font-weight: 900; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px ${glowShadow}; transition: all 0.2s;" 
+                onmouseover="this.style.transform='scale(1.02)'" 
+                onmouseout="this.style.transform='scale(1)'">확인했습니다</button>
             </div>
         `;
 

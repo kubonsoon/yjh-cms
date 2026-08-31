@@ -2359,16 +2359,35 @@
         }
 
         /**
-         * 3. [신규] 인라인 상태에서 타이핑한 최종 서식 데이터를 대장에 업데이트하는 저장소 핸들러
-         */
+   * 3. [원본 정밀 교정] 인라인 상태에서 타이핑한 최종 서식 데이터를 대장에 업데이트하는 저장소 핸들러
+   * 소집일 정렬 가동 상태에서도 데이터 뒤틀림 현상을 원천 방지하도록 고유 식별 UID 기반 추적 로직을 융합했습니다.
+   */
         function saveInlineRecruitmentRecord(index) {
-            // 🎯 [오류 원천 분쇄 가드]: 테이블 돔 요소를 안전하게 스캔하기 위해 값 존재 여부 가드 장착
-            const elTitle = document.getElementById(`inline-rec-title-${index}`);
-            const elTh = document.getElementById(`inline-rec-th-${index}`);
-            const elCount = document.getElementById(`inline-rec-count-${index}`);
-            const elPeriod = document.getElementById(`inline-rec-period-${index}`);
-            const elCrc = document.getElementById(`inline-rec-crc-${index}`);
-            const elDate = document.getElementById(`inline-rec-date-${index}`);
+            // 🎯 최신 로컬스토리지 배열 확보 및 원본 데이터 수립
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            if (typeof dataStoreRecruitment !== "undefined" && dataStoreRecruitment.length > 0) {
+                recruitmentDB = dataStoreRecruitment;
+            }
+
+            // 💡 [정렬 버그 완파 인터셉터] 화면상의 index 배열 순서가 아닌, 편집 모드가 활성화된 타겟 행의 변하지 않는 고유 UID값을 직접 확보합니다.
+            const currentTargetUid = recruitmentDB[index] ? recruitmentDB[index].uid : null;
+            if (!currentTargetUid) {
+                return alert("시스템 알림: 편집 중인 공고 레코드의 고유 식별자(UID)를 추적할 수 없습니다.");
+            }
+
+            // 💡 확보한 고유 UID를 기반으로 가상 DB 내부에 보존되어 있는 진짜 원본 객체 타겟을 정확히 색인합니다 (정렬 위치 무관)
+            const targetRecord = recruitmentDB.find(row => row.uid == currentTargetUid);
+            if (!targetRecord) {
+                return alert("알림: 수정 타겟 공고 원본 데이터를 가상 데이터베이스에서 찾을 수 없습니다.");
+            }
+
+            // 🎯 [오류 원천 분쇄 가드]: 테이블 돔 요소를 안전하게 스캔하기 위해 값 존재 여부 가드 장착 (row.uid 매핑 규격 변환 완료)
+            const elTitle = document.getElementById(`inline-rec-title-${currentTargetUid}`);
+            const elTh = document.getElementById(`inline-rec-th-${currentTargetUid}`);
+            const elCount = document.getElementById(`inline-rec-count-${currentTargetUid}`);
+            const elPeriod = document.getElementById(`inline-rec-period-${currentTargetUid}`);
+            const elCrc = document.getElementById(`inline-rec-crc-${currentTargetUid}`);
+            const elDate = document.getElementById(`inline-rec-date-${currentTargetUid}`);
 
             if (!elTitle || !elTh || !elCount || !elPeriod || !elCrc || !elDate) {
                 return alert("시스템 알림: 인라인 수정 필드 엘리먼트를 추적할 수 없습니다.");
@@ -2381,10 +2400,10 @@
             const nextCrc = elCrc.value.trim();
             const nextDate = elDate.value;
 
-            // 🎯 [핵심 교정 구역]: 인라인 행 내부에 임베딩된 미니 3단 데이트 피커 요소로부터 수정된 데이터 실시간 개별 스캔
-            const nextPay1 = document.getElementById(`inline-rec-pay1-${index}`)?.value || "";
-            const nextPay2 = document.getElementById(`inline-rec-pay2-${index}`)?.value || "";
-            const nextPay3 = document.getElementById(`inline-rec-pay3-${index}`)?.value || "";
+            // 🎯 [핵심 교정 구역]: 인라인 행 내부에 임베딩된 미니 3단 데이트 피커 요소로부터 수정된 데이터 실시간 개별 스캔 (row.uid 매핑 규격)
+            const nextPay1 = document.getElementById(`inline-rec-pay1-${currentTargetUid}`)?.value || "";
+            const nextPay2 = document.getElementById(`inline-rec-pay2-${currentTargetUid}`)?.value || "";
+            const nextPay3 = document.getElementById(`inline-rec-pay3-${currentTargetUid}`)?.value || "";
 
             // 시험 기본 정보 및 소집일 필수 유효성 검증 [원형 보존]
             if (!nextTitle || !nextCount || !nextPeriod || !nextDate) {
@@ -2392,48 +2411,38 @@
                 return;
             }
 
-            // 🎯 최신 로컬스토리지 배열 확보 및 원본 주의사항 데이터 유실 방지 가드
-            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            if (typeof dataStoreRecruitment !== "undefined" && dataStoreRecruitment.length > 0) {
-                recruitmentDB = dataStoreRecruitment;
-            }
+            // 🌟 [버그 킬러 핵심]: 가상 DB에서 색인한 진짜 원본 타겟 객체(`targetRecord`)로부터 기존 주의사항 및 당직공지 원본 값을 안전하게 유지 보존합니다.
+            const savedNotice = targetRecord.notice || "";
+            const savedCustomDutyText = targetRecord.customDutyText || "";
 
-            if (!recruitmentDB[index]) return alert("알림: 수정 타겟 공고 데이터를 찾을 수 없습니다.");
-
-            // 🌟 [버그 킬러 핵심]: 화면에서 지워진 구형 inline-rec-notice 인풋 상자를 리딩하지 않고 기존 대장 원본 값을 안전하게 유지 보존합니다.
-            const savedNotice = recruitmentDB[index].notice || "";
-            const savedCustomDutyText = recruitmentDB[index].customDutyText || "";
-
-            // 🎯 [지능형 동적 리스트 파싱 엔진]: 수정 모드에서 관리자가 날짜를 남겨둔 차수만 선별 조립합니다.
+            // 🎯 [지능형 동적 리스트 파싱 엔진]: 수정 모드에서 관리자가 날짜를 남겨둔 차수만 선별 조립합니다. [원형 보존]
             let nextPayArray = [];
             if (nextPay1) nextPayArray.push(`1차: ${nextPay1}`);
             if (nextPay2) nextPayArray.push(`2차: ${nextPay2}`);
             if (nextPay3) nextPayArray.push(`3차: ${nextPay3}`);
 
-            // 만약 수정 중 실수로 3개 달력을 모두 공란으로 비워두었을 때 작동하는 폴백 가드
             if (nextPayArray.length === 0) {
                 nextPayArray.push("추후공지");
             }
 
-            // 목록 테이블 하방 호환성 및 간소화 출력을 위한 슬래시 결합 문자열 형성
             const nextPayText = nextPayArray.join(' / ');
 
-            // 🎯 마스터 데이터베이스 대장에 가변 릴레이션 스펙 최종 오버라이드 갱신
-            recruitmentDB[index].title = nextTitle;
-            recruitmentDB[index].th = nextTh;
-            recruitmentDB[index].count = typeof getOnlyNumbers === "function" ? getOnlyNumbers(nextCount) : nextCount.replace(/[^0-9]/g, '');
-            recruitmentDB[index].period = typeof getOnlyNumbers === "function" ? getOnlyNumbers(nextPeriod) : nextPeriod.replace(/[^0-9]/g, '');
-            recruitmentDB[index].crc = nextCrc;
-            recruitmentDB[index].recDate = nextDate;
-            recruitmentDB[index].notice = savedNotice; // 원본 주의사항 안전 락업
-            recruitmentDB[index].customDutyText = savedCustomDutyText; // 수정 완료된 당직공지 텍스트도 안전 보존
+            // 🎯 마스터 데이터베이스 대장의 실제 타겟 레코드 객체에 가변 릴레이션 스펙 최종 오버라이드 갱신
+            targetRecord.title = nextTitle;
+            targetRecord.th = nextTh;
+            targetRecord.count = typeof getOnlyNumbers === "function" ? getOnlyNumbers(nextCount) : nextCount.replace(/[^0-9]/g, '');
+            targetRecord.period = typeof getOnlyNumbers === "function" ? getOnlyNumbers(nextPeriod) : nextPeriod.replace(/[^0-9]/g, '');
+            targetRecord.crc = nextCrc;
+            targetRecord.recDate = nextDate;
+            targetRecord.notice = savedNotice; // 원본 주의사항 안전 락업
+            targetRecord.customDutyText = savedCustomDutyText; // 수정 완료된 당직공지 텍스트도 안전 보존
 
             // 🎯 가변 축소 수정된 차수별 날짜 데이터를 맵 필드에 정밀 전격 박제 기록
-            recruitmentDB[index].paySchedule = nextPayText;
-            recruitmentDB[index].payDate = nextPayText;
-            recruitmentDB[index].payDate1 = nextPay1; // 💡 비워진 칸은 빈 문자열("")로 덮어써져 영구 청소됩니다.
-            recruitmentDB[index].payDate2 = nextPay2;
-            recruitmentDB[index].payDate3 = nextPay3;
+            targetRecord.paySchedule = nextPayText;
+            targetRecord.payDate = nextPayText;
+            targetRecord.payDate1 = nextPay1; // 💡 비워진 칸은 빈 문자열("")로 덮어써져 영구 청소됩니다.
+            targetRecord.payDate2 = nextPay2;
+            targetRecord.payDate3 = nextPay3;
 
             // 전역 배열 변수 싱크 일치
             if (typeof dataStoreRecruitment !== "undefined") {
@@ -2453,7 +2462,7 @@
 
             alert("🎉 해당 줄(Line)의 모집공고 가변 참여비 일정이 완벽하게 수정 저장되었습니다.");
 
-            // 🌟 [수정 제어자 싱크 처리]: 혼용되던 제어 플래그 변수를 둘 다 안전하게 초기화 릴레이합니다.
+            // 🌟 [수정 제어자 싱크 처리]: 혼용되던 제어 플래그 변수를 둘 다 안전하게 초기화 릴레이합니다. [원형 보존]
             window.currentEditingRecruitmentIndex = null;
             if (typeof currentEditingRecruitmentIndex !== 'undefined') currentEditingRecruitmentIndex = null;
             window.currentRecruitmentEditingIndex = null;
@@ -2463,7 +2472,7 @@
         }
 
         /**
-         * 4. [신규] 수정 작업을 원치 않을 때 입력 상태를 원상 복구시키는 취소 엔진
+         * 4. [신규] 수정 작업을 원치 않을 때 입력 상태를 원상 복구시키는 취소 엔진 [원형 보존]
          */
         function cancelInlineRecruitmentEdit() {
             window.currentEditingRecruitmentIndex = null;

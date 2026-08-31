@@ -1867,14 +1867,8 @@
                     sessionStorage.setItem('adminLoginSession', 'isAuthorizedSecureToken');
                     sessionStorage.setItem('adminLoginSabun', id);
 
-                    // 🎯 [최종 완결]: 로그인 시점의 모든 오디오 흔적과 Pending 예약을 완전 삭제하여 
-                    // 로그인 직후 바탕화면을 클릭할 때 소리가 나던 증상을 원천 차단합니다.
-                    try {
-                        if (window.globalSilentAudioContext) {
-                            window.globalSilentAudioContext.muted = true;
-                            window.globalSilentAudioContext.volume = 0;
-                        }
-                    } catch (e) { }
+                    // 🎯 [완전 교정] 오디오 관련 스크립트 찌꺼기를 통째로 완전히 삭제 완료!
+                    // 로그인 성공 시에는 사운드를 단 0.001초도 건드리지 않고 조용히 넘어갑니다.
 
                     if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'none';
                     if (document.getElementById('mainDashboard')) document.getElementById('mainDashboard').style.display = 'flex';
@@ -6668,25 +6662,23 @@
                     context.resume();
                 }
 
-                // 💡 [핵심 교정]: 최초 상호작용 시 소리가 단 1밀리초도 밖으로 새어 나가지 못하도록 완벽하게 음소거 제어합니다.
-                const dummyAudio = new Audio("katalk.mp3");
-                dummyAudio.muted = true; // 🔒 하드웨어 음소거 강제 활성화
-                dummyAudio.volume = 0.0; // 🔒 볼륨 제로 락인
+                // 💡 [핵심 교정]: 카톡 음원 대신, 아무 소리도 나지 않는 0.1초짜리 순수 '무음 오디오 데이터 바이트(Base64)'를 즉석 사출합니다.
+                // 이로 인해 사용자가 로그인 화면이나 바탕을 클릭해도 귀에는 단 0.001초도 아무 소리가 나지 않습니다(완벽 무음).
+                const silentPayload = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAoA";
+                const dummyAudio = new Audio(silentPayload);
 
-                // 음소거 상태로 플레이하여 브라우저의 자동재생 차단 방어막은 영구 파괴하되, 물리적인 카톡 소리는 차단합니다.
+                dummyAudio.volume = 1.0; // 🔓 브라우저를 속이기 위해 볼륨은 최대로 둡니다.
                 dummyAudio.play().then(() => {
-                    console.log("🔓 브라우저 오디오 시스템 보안 해제 완료 (이제 로그인 전 클릭 시 소리가 나지 않으며, 백그라운드 유입 시 소리가 정상 작동합니다)");
+                    console.log("🔓 [마스터 보안 해제] 무음 바이트 재생 성공으로 브라우저 오디오 시스템 락을 완벽히 영구 파괴했습니다.");
 
-                    // 재생 성공 즉시 정지 및 대기 상태로 볼륨 안전 복구
+                    // 재생 성공 즉시 파기 처리하여 Pending 누적 버퍼 찌꺼기를 원천 차단
                     dummyAudio.pause();
-                    dummyAudio.muted = false;
-                    dummyAudio.volume = 1.0;
+                    dummyAudio.remove();
                 }).catch(() => { });
             } catch (e) {
                 console.error(e);
             }
         }, { once: true });
-
 
         // 푸시 알림 배너 클릭 후 진입 시 자동 모달 사출 엔진
         window.addEventListener('DOMContentLoaded', () => {
@@ -6707,22 +6699,29 @@
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', function (event) {
-                // 서비스 워커의 타이머 만료 후 배너 발송 공지 신호 접수
+                // 서비스 워커의 타이머 만료 후 배너 발송 공지 신호(PLAY_ALERT_AUDIO_SIGNAL) 접수
                 if (event.data && event.data.action === 'PLAY_ALERT_AUDIO_SIGNAL') {
 
-                    // 로그인 상태 유무 및 화면에 다른 모달 오버레이가 점유 중인지 실시간 가드 체크
+                    // 로그인 상태 유무 및 화면에 다른 마스터 모달 오버레이가 점유 중인지 실시간 가드 체크
                     if (typeof window.checkPushSoundPlayable === 'function' && window.checkPushSoundPlayable()) {
                         try {
-                            // 💡 [핵심 교정]: 기존에 에러가 났던 찌꺼기 객체를 쓰지 않고, 
-                            // 배너가 내려오는 바로 이 한정된 타이밍에만 새 오디오 스트림을 즉석 사출하여 소리를 강제 출력합니다.
+                            // 💡 [핵심 교정]: 화면 제어부와 완벽히 격리된 독립형 순수 사운드 플레이어를 
+                            // 배너가 내려오는 바로 이 한정된 순간에만 즉석 사출하여 소리를 강제 출력합니다.
                             var freshAudioPlayer = new Audio("./katalk.mp3");
                             freshAudioPlayer.muted = false;
-                            freshAudioPlayer.volume = 1;
+                            freshAudioPlayer.volume = 1.0;
 
                             var freshPlayPromise = freshAudioPlayer.play();
                             if (freshPlayPromise !== undefined) {
                                 freshPlayPromise.then(function () {
                                     console.log("[성공] 오직 웹푸시 알림 배너 사출 타이밍에만 카톡음이 정상 출력되었습니다.");
+
+                                    // 🎯 [뒷북 방어선]: 재생 성공 직후 해당 객체를 안전하게 자동 소멸시켜 
+                                    // 추후 모달창을 닫거나 다른 버튼을 클릭할 때 소리가 뒤늦게 재출력되는 현상을 원천 삭제합니다.
+                                    setTimeout(function () {
+                                        freshAudioPlayer.pause();
+                                        freshAudioPlayer.remove();
+                                    }, 2000); // 카톡음 길이인 2초 후 메모리에서 완전 소멸
                                 }).catch(function (err) {
                                     console.warn("[오디오 안전 가드] 브라우저 자동재생 보안 제한 우회 작동", err);
                                 });
@@ -6734,6 +6733,7 @@
                 }
             });
         }
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

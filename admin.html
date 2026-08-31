@@ -2211,7 +2211,7 @@
                 const modalMetaText = `${displayTitle} ${displayTh}`;
 
                 // ----------------======================================================
-                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (기수 선택 가독성 보정 완료)
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (고유 UID 기반 데이터 방어 정착)
                 // ----------------======================================================
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
@@ -2229,11 +2229,11 @@
 
                     tr.innerHTML = `
                 <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
-                    <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <!-- 💡 정렬 버그 방지를 위해 모든 인풋 요소의 식별자를 index에서 row.uid 체계로 전격 전환했습니다 -->
+                    <input type="text" id="inline-rec-title-${row.uid}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; text-align: center !important; vertical-align: middle;">
-                    <!-- 💡 color: #ffffff !important 속성을 추가하여 선택된 기수가 어두운 배경에서도 완벽하게 보이도록 조치했습니다 -->
-                    <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 6px; text-align:center; text-align-last:center; color: #ffffff !important; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
+                    <select id="inline-rec-th-${row.uid}" class="inline-input" style="height:32px; padding:2px 24px 2px 6px; text-align:center; text-align-last:center; color: #ffffff !important; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
                         <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
                         <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
                         <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
@@ -2241,16 +2241,16 @@
                     </select>
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-count-${row.uid}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-period-${row.uid}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 110px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-crc-${row.uid}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 130px; vertical-align: middle; text-align: center;">
-                    <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
+                    <input type="date" id="inline-rec-date-${row.uid}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
                     <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='주의사항 안내 [${modalMetaText}]';" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
@@ -2266,21 +2266,23 @@
                 </td>
                 <td style="width: 150px; vertical-align: middle; text-align: center;">
                     <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; pointer-events: auto !important; align-items: center; width: 100%;">
-                        <input type="date" id="inline-rec-pay1-${index}" class="inline-input" value="${row.payDate1 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
-                        <input type="date" id="inline-rec-pay2-${index}" class="inline-input" value="${row.payDate2 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
-                        <input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
+                        <input type="date" id="inline-rec-pay1-${row.uid}" class="inline-input" value="${row.payDate1 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
+                        <input type="date" id="inline-rec-pay2-${row.uid}" class="inline-input" value="${row.payDate2 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
+                        <input type="date" id="inline-rec-pay3-${row.uid}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
                     </div>
                 </td>
                 <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important;">
-                        <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
+                        <!-- 💡 저장 타겟 지정을 인덱스가 아닌 row.uid 문자열 매개변수로 안전 우회 호출 처리합니다 -->
+                        <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecordByUid('${row.uid}')" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
                         <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
                     </div>
                 </td>
             `;
                 }
+
                 // ----------------======================================================
-                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (순정 "보기" 버튼 양식 100% 복원)
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (고유 식별 UID 완벽 매핑 제어)
                 // ----------------======================================================
                 else {
                     const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
@@ -2334,6 +2336,7 @@
                 </td>
                 <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
+                        <!-- 💡 수정 진입점을 index 기반 호출 함수로 정확하게 타겟 락인하여 연동합니다 -->
                         <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
                         <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
                     </div>

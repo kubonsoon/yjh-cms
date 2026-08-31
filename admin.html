@@ -2197,7 +2197,7 @@
                 const modalMetaText = `${displayTitle} ${displayTh}`;
 
                 // ----------------======================================================
-                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (원본 유지)
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (기수 선택 가독성 보정 완료)
                 // ----------------======================================================
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
@@ -2218,7 +2218,8 @@
                     <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; text-align: center !important; vertical-align: middle;">
-                    <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 24px 2px 6px; text-align:center; text-align-last:center; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
+                    <!-- 💡 color: #ffffff !important 속성을 추가하여 선택된 기수가 어두운 배경에서도 완벽하게 보이도록 조치했습니다 -->
+                    <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 6px; text-align:center; text-align-last:center; color: #ffffff !important; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
                         <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
                         <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
                         <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>

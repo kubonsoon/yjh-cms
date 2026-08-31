@@ -15,15 +15,26 @@ self.addEventListener("message", (event) => {
     event.waitUntil(
       new Promise((resolve) => {
         setTimeout(() => {
+          // 🎵 [신규 추가] 알림 배너 사출 시점에 화면(admin.html)으로 카톡 사운드 실행 신호 전송
+          self.clients
+            .matchAll({ type: "window", includeUncontrolled: true })
+            .then((clientList) => {
+              clientList.forEach((client) => {
+                client.postMessage({
+                  action: "PLAY_ALERT_AUDIO_SIGNAL",
+                });
+              });
+            });
+
           self.registration
             .showNotification(title, {
               body: body,
               icon: "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' viewBox='0 0 24 24' fill='%23f97316'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/></svg>",
               requireInteraction: true,
-              silent: false, // OS 시스템 지정 기본 알림 벨소리 강제 동시 재생
+              silent: true, // 💡 OS 자체 기본 알림음과 섞여 겹치지 않도록 true(무음)로 변경하여 온전한 카톡음만 구현
               tag: "clinical-urgent-call",
               // 💡 전달받은 알림 버튼 배열을 브라우저 노티 설정에 동적으로 주입합니다.
-              actions: actions || []
+              actions: actions || [],
             })
             .then(resolve);
         }, delay);

@@ -6667,11 +6667,20 @@
                 if (context.state === 'suspended') {
                     context.resume();
                 }
-                // 무음 버퍼를 한 번 흘려보내 브라우저의 자동재생 차단 방어막을 영구 파괴
+
+                // 💡 [핵심 교정]: 최초 상호작용 시 소리가 단 1밀리초도 밖으로 새어 나가지 못하도록 완벽하게 음소거 제어합니다.
                 const dummyAudio = new Audio("katalk.mp3");
-                dummyAudio.volume = 1.0; // 소리 안 나게 처리
+                dummyAudio.muted = true; // 🔒 하드웨어 음소거 강제 활성화
+                dummyAudio.volume = 0.0; // 🔒 볼륨 제로 락인
+
+                // 음소거 상태로 플레이하여 브라우저의 자동재생 차단 방어막은 영구 파괴하되, 물리적인 카톡 소리는 차단합니다.
                 dummyAudio.play().then(() => {
-                    console.log("🔓 브라우저 오디오 시스템 보안 해제 완료 (이제 백그라운드 유입 시 소리가 정상 작동합니다)");
+                    console.log("🔓 브라우저 오디오 시스템 보안 해제 완료 (이제 로그인 전 클릭 시 소리가 나지 않으며, 백그라운드 유입 시 소리가 정상 작동합니다)");
+
+                    // 재생 성공 즉시 정지 및 대기 상태로 볼륨 안전 복구
+                    dummyAudio.pause();
+                    dummyAudio.muted = false;
+                    dummyAudio.volume = 1.0;
                 }).catch(() => { });
             } catch (e) {
                 console.error(e);

@@ -6343,11 +6343,24 @@
                 ${coreText.replace(/\n/g, '<br>')}
             </div>
             <div style="margin-top: 22px; display: flex; justify-content: center;">
-                <button type="button" 
-                onclick="if(window.globalSilentAudioContext){ window.globalSilentAudioContext.pause(); window.globalSilentAudioContext.currentTime = 0; } document.getElementById('integrated-notice-modal').style.display='none';" 
-                style="background: ${flashColor}; color: #070a12; border: none; padding: 10px 35px; font-size: 14px; font-weight: 900; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px ${glowShadow}; transition: all 0.2s;" 
-                onmouseover="this.style.transform='scale(1.02)'" 
-                onmouseout="this.style.transform='scale(1)'">확인했습니다</button>
+              <button type="button" 
+        onclick="try { 
+            /* 1. 화면 내 모든 임의의 Audio 객체를 전수조사하여 일시정지 및 음소거 */
+            if(window.globalSilentAudioContext) { 
+                window.globalSilentAudioContext.pause(); 
+                window.globalSilentAudioContext.currentTime = 0; 
+            }
+            /* 2. 브라우저 메모리에 떠돌아다니는 백업 오디오 플레이어 변수들 일괄 락다운 */
+            if(window.audioPlayer) { window.audioPlayer.pause(); window.audioPlayer.currentTime = 0; }
+            if(window.audioTarget) { window.audioTarget.pause(); window.audioTarget.currentTime = 0; }
+        } catch(e) {} 
+        /* 3. 최종적으로 모달창 레이어를 화면에서 격리 숨김 처리 */
+        document.getElementById('integrated-notice-modal').style.display='none';" 
+        style="background: ${flashColor}; color: #070a12; border: none; padding: 10px 35px; font-size: 14px; font-weight: 900; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px ${glowShadow}; transition: all 0.2s;" 
+        onmouseover="this.style.transform='scale(1.02)'" 
+        onmouseout="this.style.transform='scale(1)'">
+    확인했습니다
+</button>
             </div>
         `;
 

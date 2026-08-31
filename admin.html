@@ -1800,7 +1800,7 @@
                 ];
                 isUpdated = true;
             } else {
-                // 브라우저 저장소에 디폴트 값
+                // 브라우저 저장소에 디폴트 값  
                 dataStoreRecruitment.forEach(row => {
                     if (!row.recDate || row.recDate === "미정" || row.recDate.trim() === "" || row.recDate.includes("년")) {
                         if (row.uid == 101 || row.title.includes("명인제약")) { row.recDate = "2025-07-22"; isUpdated = true; }

@@ -5224,6 +5224,9 @@
         // ==========================================================================
         function openIntegratedBoardModal(index, type) {
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            //최근글 정렬
+            recruitmentDB.sort((a, b) => (b.recDate || "0000-00-00").replace(/[^0-9-]/g, "") > (a.recDate || "0000-00-00").replace(/[^0-9-]/g, "") ? 1 : -1);
+
             const targetRow = recruitmentDB[index] || {};
             const examTitle = targetRow.title || "지정 과제";
             const examTh = targetRow.th || "1기";

@@ -6610,34 +6610,25 @@
         // 4. 오디오 세션 리셋 로직이 결합된 독립 사운드 엔진
         function executeKakaoDemoSoundEffect() {
             try {
-                // 브라우저의 Web Audio 컨텍스트 상태를 강제로 깨웁니다 (오디오 잠금 완벽 해제)
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (AudioContext) {
-                    const ctx = new AudioContext();
-                    if (ctx.state === 'suspended') {
-                        ctx.resume();
-                    }
-                }
+                var audioTarget = window.globalSilentAudioContext || new Audio("./katalk.mp3");
 
-                // 안정적인 재생을 위해 검증된 카카오 공식 맥 버전 알림음 온라인 절대 경로 주입
-                const audio = new Audio("https://daumcdn.net");
-                audio.volume = 1.0;
+                // 💡 [수정]: 지연 재시도 루프를 유발하는 에러 핸들러를 안전한 폴백 구조로 격리 교체
+                audioTarget.addEventListener('error', function () {
+                    console.warn("[사운드 가드] 음원 유실로 시스템을 안전 무음 모드로 전환하여 루프를 차단합니다.");
+                    window.globalSilentAudioContext = {
+                        play: function () { return Promise.resolve(); },
+                        currentTime: 0
+                    };
+                });
 
-                // 브라우저 버퍼가 채워지는 즉시 재생 강제 명령
-                audio.play()
-                    .then(() => console.log("🔊 카카오톡 효과음 사출 완수"))
-                    .catch(err => {
-                        console.warn("오디오 플레이어 지연 에러 발생, 재시도 수행:", err);
-                        // 실패 시 사용자가 모달창의 임의 영역을 누를 때 백업으로 소리가 터지도록 이벤트 바인딩
-                        document.getElementById('demoBlinkOverlayLayer').addEventListener('click', () => {
-                            audio.play().catch(() => { });
-                        }, { once: true });
-                    });
-            } catch (e) {
-                console.error("카카오톡 알림 오디오 버퍼 로드 오류:", e);
+                // 소리를 직접 재생하지 않고 메모리에 준비(Load)만 강제 수행
+                audioTarget.load();
+                console.log("[사운드 가드] 무한 지연 재시도 인터셉터 해제 완료");
+
+            } catch (err) {
+                console.warn("오디오 플레이어 자동제어 백업:", err);
             }
         }
-
 
         // 5. 시연 전용 독립 모달 파기 함수
         function closeDemoIndependentModalPipeline() {
@@ -6700,14 +6691,18 @@
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', function (event) {
-                // 서비스워커에서 배너 사출 공지를 감지했을 때 동작
+                // 서비스 워커가 딜레이 타임아웃을 완수하고 배너를 밀어 올리는 바로 그 타이밍(PLAY_ALERT_AUDIO_SIGNAL) 확인
                 if (event.data && event.data.action === 'PLAY_ALERT_AUDIO_SIGNAL') {
-                    // 💡 실시간으로 로그인 유무와 모달창 활성화 상태를 체크하여 최종 트리거
-                    if (typeof window.checkKakaoTalkAlertPlayable === 'function' && window.checkKakaoTalkAlertPlayable()) {
-                        if (window.globalSilentAudioContext) {
-                            window.globalSilentAudioContext.currentTime = 0; // 재생 포인트 동기화 초기화
-                            window.globalSilentAudioContext.play().catch(function (err) {
-                                console.warn('미디어 자동재생 규제 정책에 의해 블로킹되었습니다.', err);
+
+                    // 실시간 가드 엔진 작동: 로그인 유무 더블 체크 및 모달창 활성/닫기 시점의 불필요한 연쇄 작용 원천 컷트
+                    if (typeof window.checkPushSoundPlayable === 'function' && window.checkPushSoundPlayable()) {
+
+                        // 6676라인에서 이미 🔓 브라우저 오디오 시스템 보안 해제 완료를 선언했으므로, 이 시점에 무조건 딱 1번만 안전 재생됩니다.
+                        var realAudioPlayer = window.globalSilentAudioContext || new Audio("./katalk.mp3");
+                        if (realAudioPlayer && typeof realAudioPlayer.play === 'function') {
+                            realAudioPlayer.currentTime = 0; // 재생 포인트를 처음으로 리셋
+                            realAudioPlayer.play().catch(function (e) {
+                                console.warn('[오디오 안전 필터] 자동재생 제한 규제로 소리가 차단되었습니다.', e);
                             });
                         }
                     }

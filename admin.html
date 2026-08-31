@@ -6546,13 +6546,21 @@
             // [무설정 사운드 런처] 미세 지연법을 활용해 삼성인터넷 미디어 필터를 무력화하고 소리를 재생합니다.
             // ──────────────────────────────────────────────────────────────
             try {
-                var audioPlayer = window.globalSilentAudioContext || new Audio("./katalk.mp3");
-                var playPromise = audioPlayer.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(function (err) {
-                        console.warn("오디오 플레이어 자동제어 백업:", err);
-                    });
-                }
+                // 기존 객체가 있으면 쓰고 없으면 새로 생성하되, 절대 즉시 play() 하지 않습니다.
+                window.globalSilentAudioContext = window.globalSilentAudioContext || new Audio("./katalk.mp3");
+
+                // 파일 유실이나 경로가 꼬여 에러가 날 때 시스템이 멈추지 않도록 안전 가드만 바인딩
+                window.globalSilentAudioContext.addEventListener('error', function () {
+                    console.warn("[사운드 가드] 음원 파일에 접근할 수 없어 무음 모드로 전환합니다.");
+                    window.globalSilentAudioContext = {
+                        play: function () { return Promise.resolve(); },
+                        currentTime: 0
+                    };
+                });
+
+                // 소리 재생 없이, 브라우저 메모리에 음원을 올려놓는 준비(Load) 작업만 수행
+                window.globalSilentAudioContext.load();
+
             } catch (soundErr) {
                 console.warn("사운드 스트림 예외 처리 폴백 단추 작동:", soundErr);
             }

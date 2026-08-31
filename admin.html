@@ -1453,6 +1453,35 @@
         </div>
     </div>
     <script>
+        // 카톡 알림음 실행 가부 정밀 실시간 필터링 함수
+        window.checkKakaoTalkAlertPlayable = function () {
+            // 1. 로그인 인증 세션 검증 (로그인 전에 무분별하게 터지는 사운드 원천 차단)
+            var isAuthorized = sessionStorage.getItem('adminLoginSession');
+            var currentSabun = sessionStorage.getItem('adminLoginSabun');
+            if (isAuthorized !== 'isAuthorizedSecureToken' || !currentSabun) {
+                console.log('[차단] 관리자 세션 로그인 전 상태이므로 카톡 알림음을 차단합니다.');
+                return false;
+            }
+
+            // 2. 현재 화면에 노출 중인 3대 마스터 모달 컴포넌트의 오버레이 점유 상태 추적
+            var pwModal = document.querySelector('.pw-modal-overlay');
+            var editorModal = document.querySelector('.editor-modal-overlay');
+            var historyModal = document.getElementById('historyModalOverlay') || document.querySelector('.history-modal-overlay');
+
+            var isPwOpen = pwModal && (window.getComputedStyle(pwModal).display !== 'none');
+            var isEditorOpen = editorModal && (window.getComputedStyle(editorModal).display !== 'none');
+            var isHistoryOpen = historyModal && (window.getComputedStyle(historyModal).display !== 'none');
+
+            // 3. 화면을 가리는 특정 모달창 팝업이 활성화되어 있다면 소리 출력을 즉시 거부
+            if (isPwOpen || isEditorOpen || isHistoryOpen) {
+                console.log('[차단] 모달 통제창이 띄워져 있어 카톡 알림음을 동작하지 않습니다.');
+                return false;
+            }
+
+            return true; // 모든 관문을 통과하면 카톡음 재생 적격 상태로 판정
+        };
+
+
         // ==================================================================
         // [1파트] 시스템 상수 구조 및 로컬 가상 데이터베이스(localStorage) 선언부
         // ==================================================================
@@ -6659,7 +6688,25 @@
                     }, 300); // 돔 렌더링 안정성을 위해 0.3초 미세 지연 후 사출
                 }
             }
-        });        
+        });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', function (event) {
+                // 서비스워커에서 배너 사출 공지를 감지했을 때 동작
+                if (event.data && event.data.action === 'PLAY_ALERT_AUDIO_SIGNAL') {
+                    // 💡 실시간으로 로그인 유무와 모달창 활성화 상태를 체크하여 최종 트리거
+                    if (typeof window.checkKakaoTalkAlertPlayable === 'function' && window.checkKakaoTalkAlertPlayable()) {
+                        if (window.globalSilentAudioContext) {
+                            window.globalSilentAudioContext.currentTime = 0; // 재생 포인트 동기화 초기화
+                            window.globalSilentAudioContext.play().catch(function (err) {
+                                console.warn('미디어 자동재생 규제 정책에 의해 블로킹되었습니다.', err);
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

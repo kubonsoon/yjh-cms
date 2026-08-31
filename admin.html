@@ -6343,18 +6343,25 @@
                 ${coreText.replace(/\n/g, '<br>')}
             </div>
             <div style="margin-top: 22px; display: flex; justify-content: center;">
-              <button type="button" 
+             <button type="button" 
         onclick="try { 
-            /* 1. 화면 내 모든 임의의 Audio 객체를 전수조사하여 일시정지 및 음소거 */
-            if(window.globalSilentAudioContext) { 
-                window.globalSilentAudioContext.pause(); 
-                window.globalSilentAudioContext.currentTime = 0; 
-            }
-            /* 2. 브라우저 메모리에 떠돌아다니는 백업 오디오 플레이어 변수들 일괄 락다운 */
+            /* 1. 화면 내에서 돌고 있는 모든 무한 재시도 타이머(setTimeout)를 번호 순으로 전수 추적하여 강제 사살 */
+            var 최고타이머ID = setTimeout(function(){}, 0);
+            for (var i = 0; i <= 최고타이머ID; i++) { clearTimeout(i); }
+
+            /* 2. 전역 변수 오디오 플레이어 전격 정지 및 무음화 */
+            if(window.globalSilentAudioContext) { window.globalSilentAudioContext.pause(); window.globalSilentAudioContext.currentTime = 0; }
             if(window.audioPlayer) { window.audioPlayer.pause(); window.audioPlayer.currentTime = 0; }
             if(window.audioTarget) { window.audioTarget.pause(); window.audioTarget.currentTime = 0; }
+
+            /* 3. HTML 문서 내에 몰래 생성되어 재생 중인 모든 오디오 태그를 찾아내어 전원 끄기 */
+            var 모든오디오태그 = document.querySelectorAll('audio, video');
+            for(var j = 0; j < 모든오디오태그.length; j++) {
+                모든오디오태그[j].pause();
+                모든오디오태그[j].currentTime = 0;
+            }
         } catch(e) {} 
-        /* 3. 최종적으로 모달창 레이어를 화면에서 격리 숨김 처리 */
+        /* 4. 소리 관련 독소를 완벽히 제거한 후 최종적으로 모달창 격리 폐쇄 */
         document.getElementById('integrated-notice-modal').style.display='none';" 
         style="background: ${flashColor}; color: #070a12; border: none; padding: 10px 35px; font-size: 14px; font-weight: 900; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px ${glowShadow}; transition: all 0.2s;" 
         onmouseover="this.style.transform='scale(1.02)'" 

@@ -1679,62 +1679,142 @@
                 dataStoreRecruitment = [
                     {
                         uid: 101,
-                        title: "애드파마 로잘탄+로수+에제",
+                        title: "[생동] 명인제약 아고멜라틴",
+                        th: "1기",
+                        count: "46",
+                        period: "10",
+                        crc: "이선경",
+                        notice: "지정식 이외 취식 금지 및 지각 시 입소 불가",
+                        examSchedule: "2025-07-22",
+                        paySchedule: "1차: 2025-08-02",
+                        payDate1: "2025-08-02",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2025-07-22"
+                    },
+                    {
+                        uid: 102,
+                        title: "대우제약 피타+에제",
                         th: "2기",
                         count: "60",
                         period: "72",
-                        crc: "석정은",
+                        crc: "유성은",
                         notice: "공복 유지 필수 및 소집 10분 전 대기",
-                        examSchedule: "2026-09-01",
+                        examSchedule: "2025-08-14",
+                        paySchedule: "1차: 2025-09-10",
+                        payDate1: "2025-09-10",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2025-08-14"
+                    },
+                    {
+                        uid: 103,
+                        title: "삼진제약 팔보시클립",
+                        th: "3기",
+                        count: "30",
+                        period: "96",
+                        crc: "최미현",
+                        notice: "지정식 이외 취식 금지 및 격리 규정 준수",
+                        examSchedule: "2025-10-17",
+                        paySchedule: "1차: 2025-11-23",
+                        payDate1: "2025-11-23",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2025-10-17"
+                    },
+                    {
+                        uid: 104,
+                        title: "[임상] 파마사이언스 룩소리틴",
+                        th: "4기",
+                        count: "48",
+                        period: "24",
+                        crc: "손해리",
+                        notice: "임상 지침 준수 및 이상 반응 시 즉시 보고",
+                        examSchedule: "2025-10-17",
+                        paySchedule: "1차: 2025-11-23",
+                        payDate1: "2025-11-23",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2025-10-17"
+                    },
+                    {
+                        uid: 105,
+                        title: "애드파마 로잘탄+로수+에제",
+                        th: "2기",
+                        count: "44",
+                        period: "72",
+                        crc: "석정은",
+                        notice: "공복 유지 필수 및 복용 약물 상시 점검",
+                        examSchedule: "2026-08-10",
                         paySchedule: "1차: 2026-09-10",
                         payDate1: "2026-09-10",
                         payDate2: "",
                         payDate3: "",
-                        recDate: "2026-08-10" // 🌟 디폴트 초기값 고정
+                        recDate: "2026-08-10"
                     },
                     {
-                        uid: 102,
+                        uid: 106,
                         title: "신일제약 사쿠+발사",
                         th: "4기",
                         count: "46",
                         period: "96",
-                        crc: "최미현",
-                        notice: "지정식 이외 취식 금지 및 격리 규정 준수",
-                        examSchedule: "2026-09-15",
-                        paySchedule: "1차: 2026-09-30",
-                        payDate1: "2026-09-30",
+                        crc: "이은정",
+                        notice: "격리 수칙 준수 및 통제 구역 출입 금지",
+                        examSchedule: "2026-08-22",
+                        paySchedule: "1차: 2026-09-24",
+                        payDate1: "2026-09-24",
                         payDate2: "",
                         payDate3: "",
-                        recDate: "2026-08-30" // 🌟 디폴트 초기값 고정
+                        recDate: "2026-08-22"
                     },
                     {
-                        uid: 103,
+                        uid: 107,
+                        title: "[생동] 하나제약 로수+에제",
+                        th: "3기",
+                        count: "60",
+                        period: "72",
+                        crc: "이승호",
+                        notice: "카페인 및 금지 식품 섭취 절대 불가",
+                        examSchedule: "2026-09-26",
+                        paySchedule: "1차: 2026-10-15",
+                        payDate1: "2026-10-15",
+                        payDate2: "",
+                        payDate3: "",
+                        recDate: "2026-09-26"
+                    },
+                    {
+                        uid: 108,
                         title: "경동제약 식후 임상시험",
                         th: "4기",
                         count: "46",
                         period: "96",
                         crc: "강은애",
-                        notice: "지정식 이외 취식 금지 및 격리 규정 준수",
-                        examSchedule: "2026-10-15",
-                        paySchedule: "1차: 2026-10-30",
-                        payDate1: "2026-10-30",
+                        notice: "식후 검사 시간 엄수 및 개인 행동 금지",
+                        examSchedule: "2026-10-17",
+                        paySchedule: "1차: 2026-11-26",
+                        payDate1: "2026-11-26",
                         payDate2: "",
                         payDate3: "",
-                        recDate: "2026-09-30" // 🌟 디폴트 초기값 고정
+                        recDate: "2026-10-17"
                     }
                 ];
                 isUpdated = true;
             } else {
-                // 🌟 [핵심 캐시 킬러 가드]: 이미 데이터가 존재하더라도, 기존 초기 데이터 3종의 소집일가 
-                // "미정"이거나 누락되어 있다면 강제로 정확한 디폴트 날짜를 오버라이드하여 교정합니다.
+                // 브라우저 저장소에 디폴트 값
                 dataStoreRecruitment.forEach(row => {
-                    if (!row.recDate || row.recDate === "미정" || row.recDate.trim() === "") {
-                        if (row.uid == 101 || row.title.includes("애드파마")) { row.recDate = "2026-08-10"; isUpdated = true; }
-                        else if (row.uid == 102 || row.title.includes("신일제약")) { row.recDate = "2026-08-30"; isUpdated = true; }
-                        else if (row.uid == 103 || row.title.includes("경동제약")) { row.recDate = "2026-09-30"; isUpdated = true; }
+                    if (!row.recDate || row.recDate === "미정" || row.recDate.trim() === "" || row.recDate.includes("년")) {
+                        if (row.uid == 101 || row.title.includes("명인제약")) { row.recDate = "2025-07-22"; isUpdated = true; }
+                        else if (row.uid == 102 || row.title.includes("대우제약")) { row.recDate = "2025-08-14"; isUpdated = true; }
+                        else if (row.uid == 103 || row.title.includes("삼진제약")) { row.recDate = "2025-10-17"; isUpdated = true; }
+                        else if (row.uid == 104 || row.title.includes("파마사이언스")) { row.recDate = "2025-10-17"; isUpdated = true; }
+                        else if (row.uid == 105 || row.title.includes("애드파마")) { row.recDate = "2026-08-10"; isUpdated = true; }
+                        else if (row.uid == 106 || row.title.includes("신일제약")) { row.recDate = "2026-08-22"; isUpdated = true; }
+                        else if (row.uid == 107 || row.title.includes("하나제약")) { row.recDate = "2026-09-26"; isUpdated = true; }
+                        else if (row.uid == 108 || row.title.includes("경동제약")) { row.recDate = "2026-10-17"; isUpdated = true; }
                     }
                 });
             }
+
 
             // 관리 임직원 프리셋 영역 [원안 보존]
             if (dataStoreAdminMembers.length === 0) {

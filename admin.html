@@ -2211,8 +2211,8 @@
                 const modalMetaText = `${displayTitle} ${displayTh}`;
 
                 // ----------------======================================================
-                // [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (고유 UID 기반 데이터 방어 정착)
-                // ----------------======================================================
+                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (원본 유지 및 보정)
+                // ----------------------------------------------------------------======
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
                     if (defaultDateVal === "미정" || !defaultDateVal || defaultDateVal.includes("년")) {
@@ -2229,11 +2229,10 @@
 
                     tr.innerHTML = `
                 <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
-                    <!-- 정렬 버그 방지를 위해 모든 인풋 요소의 식별자를 index에서 row.uid 체계로 전격 전환했습니다 -->
-                    <input type="text" id="inline-rec-title-${row.uid}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; text-align: center !important; vertical-align: middle;">
-                    <select id="inline-rec-th-${row.uid}" class="inline-input" style="height:32px; padding:2px 24px 2px 6px; text-align:center; text-align-last:center; color: #ffffff !important; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
+                    <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 24px 2px 6px; text-align:center; text-align-last:center; pointer-events: auto !important; background: #1e293b !important; cursor: pointer !important;">
                         <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
                         <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
                         <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
@@ -2241,40 +2240,39 @@
                     </select>
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-count-${row.uid}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-period-${row.uid}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 110px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-crc-${row.uid}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 130px; vertical-align: middle; text-align: center;">
-                    <input type="date" id="inline-rec-date-${row.uid}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
+                    <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='주의사항 안내 [${modalMetaText}]';" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModalByIndex(${index}, 'notice', '주의사항 안내 [${modalMetaText}]')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='시험일정 안내 [${modalMetaText}]';" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModalByIndex(${index}, 'schedule', '시험일정 안내 [${modalMetaText}]')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='당직공지 안내 [${modalMetaText}]';" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModalByIndex(${index}, 'duty', '당직공지 안내 [${modalMetaText}]')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='소집공지 안내 [${modalMetaText}]';" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModalByIndex(${index}, 'call', '소집공지 안내 [${modalMetaText}]')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 150px; vertical-align: middle; text-align: center;">
                     <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; pointer-events: auto !important; align-items: center; width: 100%;">
-                        <input type="date" id="inline-rec-pay1-${row.uid}" class="inline-input" value="${row.payDate1 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
-                        <input type="date" id="inline-rec-pay2-${row.uid}" class="inline-input" value="${row.payDate2 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
-                        <input type="date" id="inline-rec-pay3-${row.uid}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
+                        <input type="date" id="inline-rec-pay1-${index}" class="inline-input" value="${row.payDate1 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
+                        <input type="date" id="inline-rec-pay2-${index}" class="inline-input" value="${row.payDate2 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
+                        <input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
                     </div>
                 </td>
                 <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important;">
-                        <!-- 저장 타겟 지정을 인덱스가 아닌 row.uid 문자열 매개변수로 안전 우회 호출 처리합니다 -->
-                        <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecordByUid('${row.uid}')" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
+                        <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
                         <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
                     </div>
                 </td>
@@ -2282,7 +2280,7 @@
                 }
 
                 // ----------------======================================================
-                // [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (고유 식별 UID 완벽 매핑 제어)
+                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (순정 "보기" 버튼 양식 100% 보존)
                 // ----------------======================================================
                 else {
                     const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
@@ -2313,20 +2311,16 @@
                 <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
                 
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 주의사항 보기 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice'); const btn=document.getElementById('btn-integrated-action-scheduler'); if(btn) btn.style.display='none'; const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='주의사항 안내 [${modalMetaText}]';" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice', '주의사항 안내 [${modalMetaText}]');" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 시험일정 보기 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule'); const btn=document.getElementById('btn-integrated-action-scheduler'); if(btn) btn.style.display='none'; const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='시험일정 안내 [${modalMetaText}]';" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule', '시험일정 안내 [${modalMetaText}]');" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 당직공지 보기 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '당직공지', 'dutyNoticeText'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='당직공지 안내 [${modalMetaText}]';" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty', '당직공지 안내 [${modalMetaText}]'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '당직공지', 'dutyNoticeText');" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <!-- 소집공지 보기 -->
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '소집공지', 'callNoticeText'); const titleEl=document.querySelector('.editor-modal-title'); if(titleEl) titleEl.innerText='소집공지 안내 [${modalMetaText}]';" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call', '소집공지 안내 [${modalMetaText}]'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '소집공지', 'callNoticeText');" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                 </td>
                 
                 <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
@@ -2334,10 +2328,9 @@
                         ${multiLinePayHTML}
                     </div>
                 </td>
-                 <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
+                <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
-                        <!-- 💡 원본의 디자인 스타일을 100% 유지하며, 정렬 인덱스 뒤틀림 방지를 위해 호출 함수만 UID 중계 체계로 안전 전환했습니다 -->
-                        <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecordByUid('${row.uid}')" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
+                        <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
                         <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
                     </div>
                 </td>
@@ -5377,7 +5370,84 @@
             }, 50);
         }
 
+        // 에디터 마크업 변수 선언 구역 (원본 원형 100% 무결점 보존)
+        const boardEditorHTML = `
+                <div id="integrated-editor-form-area" style="display: none; width: 100%; text-align: left;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: ${config.color}; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 게시판 에디터</label>
+                    <div style="display: flex; gap: 4px; background: #1e293b; padding: 6px; border-radius: 6px 6px 0 0; border: 2px solid var(--border-color); border-bottom: none; flex-wrap: wrap;">
+                        <button type="button" onclick="execIntegratedCmd('bold')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; font-weight: 900; cursor: pointer;">B</button>
+                        <button type="button" onclick="execIntegratedCmd('italic')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; font-style: italic; cursor: pointer;">I</button>
+                        <button type="button" onclick="execIntegratedCmd('underline')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; text-decoration: underline; cursor: pointer;">U</button>
+                        <button type="button" onclick="execIntegratedCmd('strikeThrough')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; text-decoration: line-through; cursor: pointer;">S</button>
+                        <span style="border-left: 1px solid #475569; margin: 2px 4px;"></span>
+                        <button type="button" onclick="execIntegratedCmd('foreColor', '#f87171')" style="background: #ef4444; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
+                        <button type="button" onclick="execIntegratedCmd('foreColor', '#fbbf24')" style="background: #f59e0b; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
+                        <button type="button" onclick="execIntegratedCmd('foreColor', '#4ade80')" style="background: #10b981; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
+                        <button type="button" onclick="execIntegratedCmd('foreColor', '#38bdf8')" style="background: #0ea5e9; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
+                        <button type="button" onclick="execIntegratedCmd('foreColor', '#ffffff')" style="background: #ffffff; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
+                    </div>
+                    <div id="html-integrated-workspace" contenteditable="true" style="width: 100%; height: 200px; background: #0b0f19; border: 2px solid var(--border-color); border-radius: 0 0 8px 8px; color: #ffffff; padding: 14px; font-size: 14px; line-height: 1.6; outline: none; overflow-y: auto; box-sizing: border-box;"></div>
+                </div>
+            `;
 
+        const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
+        const contentBox = document.querySelector(".editor-modal-content");
+        if (!overlay || !contentBox) return console.error("통합 모달창 돔 오류");
+
+        contentBox.style.background = "var(--card-color)";
+        contentBox.style.border = "1px solid var(--border-color)";
+        contentBox.style.color = "var(--text-color)";
+        contentBox.style.width = "520px";
+
+        // 🎯 [하단 레이아웃 완벽 이식]: 닫기 단추 바로 위에 한 줄 수평 정렬로 안착될 동의/미동의/대기 스코어 판넬 구성
+        let footerStatsLineHTML = "";
+        if (type === 'duty' || type === 'call') {
+            footerStatsLineHTML = `
+                    <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px; margin-bottom: 15px; font-size: 13px; font-weight: 700; box-sizing: border-box;">
+                        <span style="color: var(--text-color);"><i class="fa-solid fa-chart-pie" style="color: ${config.color};"></i> 실시간 대상자 서명 현황:</span>
+                        <div style="display: flex; gap: 12px;">
+                            <span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> 동의: ${agreeCnt}명</span>
+                            <span style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> 미동의: ${disagreeCnt}명</span>
+                            <span style="color: #94a3b8;"><i class="fa-regular fa-circle-dot"></i> 대기: ${waitCnt}명</span>
+                        </div>
+                    </div>
+                `;
+        }
+
+        // 원본 모달 팝업 내부의 동적 요소 결합 및 텍스트 교체 바인딩 처리
+        const modalTitle = contentBox.querySelector(".editor-modal-title");
+        if (modalTitle) {
+            modalTitle.innerHTML = `<i class="${config.icon}" style="color:${config.color}; margin-right:8px;"></i> ${config.title} <span style="font-size:12px; color:var(--text-muted); font-weight:normal; margin-left:6px;">[${examTitle} ${examTh}]</span>`;
+        }
+
+        // 본문 영역 바인딩 객체 조립
+        const modalBody = contentBox.querySelector(".editor-form-group") || contentBox.querySelector(".modal-body");
+        if (modalBody) {
+            modalBody.innerHTML = `
+                    <div id="integrated-static-html-view" style="width:100%; min-height:120px; max-height:280px; overflow-y:auto; background:#0b0f19; border:1px solid var(--border-color); padding:15px; border-radius:8px; box-sizing:border-box; margin-bottom:15px;">
+                        ${currentHTMLContent}
+                    </div>
+                    ${boardEditorHTML}
+                    ${footerStatsLineHTML}
+                `;
+        }
+
+        // 모달 오픈 릴레이 포인터 기록 연동 및 스위칭
+        overlay.setAttribute("data-active-index", index);
+        overlay.setAttribute("data-active-field", config.dbField);
+        overlay.setAttribute("data-active-type", type);
+
+        overlay.style.display = "flex";
+
+        // 내부 워크스페이스 동기화 리셋 가드
+        const ws = document.getElementById("html-integrated-workspace");
+        if (ws) ws.innerHTML = targetRow[config.dbField] || "";
+
+        const editorForm = document.getElementById("integrated-editor-form-area");
+        if (editorForm) editorForm.style.display = "none";
+
+        const saveBtn = document.querySelector(".editor-btn-save");
+        if (saveBtn) saveBtn.style.display = "none";
 
 
         /**

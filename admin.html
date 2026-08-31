@@ -5223,7 +5223,21 @@
         // [4대 공지 통합형 HTML 에디터 인프라]: 통계 한 줄 매핑 및 버튼 우측 정렬
         // ==========================================================================
         function openIntegratedBoardModal(index, type) {
-            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            // 🎯 [정렬 버그 완파]: 로컬스토리지 대장을 불러와 화면 렌더러와 동일한 소집일 최신순 정렬 필터를 가동합니다.
+            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            if (typeof dataStoreRecruitment !== "undefined" && dataStoreRecruitment.length > 0) {
+                recruitmentDB = dataStoreRecruitment;
+            }
+
+            // 소집일자 기준 내림차순 정렬을 선행하여 화면상의 index가 정확한 데이터를 색인하도록 유도합니다.
+            recruitmentDB.sort((a, b) => {
+                const dateA = a.recDate ? a.recDate.replace(/[^0-9-]/g, "").trim() : "0000-00-00";
+                const dateB = b.recDate ? b.recDate.replace(/[^0-9-]/g, "").trim() : "0000-00-00";
+                if (dateA < dateB) return 1;
+                if (dateA > dateB) return -1;
+                return 0;
+            });
+
             const targetRow = recruitmentDB[index] || {};
             const examTitle = targetRow.title || "지정 과제";
             const examTh = targetRow.th || "1기";
@@ -5280,9 +5294,9 @@
                 });
             } catch (err) { console.error("실시간 통계 집계 에러 가드 가동", err); }
 
-            // 🎯 [상단 현황판 차단막 제거]: 구형 popupStatLineHTML 변수 문자열을 완전히 공백 소멸 처리합니다.
             let popupStatLineHTML = "";
-            // 에디터 마크업 변수 선언 구역 (원본 원형 100% 무결점 보존)
+
+            // 💡 [버그 완파] 백틱 템플릿 리터럴 문장과 변수 서식이 완전하게 종결되도록 교정했습니다.
             const boardEditorHTML = `
         <div id="integrated-editor-form-area" style="display: none; width: 100%; text-align: left;">
             <label style="display: block; font-size: 12px; font-weight: 700; color: ${config.color}; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 게시판 에디터</label>
@@ -5311,7 +5325,6 @@
             contentBox.style.color = "var(--text-color)";
             contentBox.style.width = "520px";
 
-            // 🎯 [하단 레이아웃 완벽 이식]: 닫기 단추 바로 위에 한 줄 수평 정렬로 안착될 동의/미동의/대기 스코어 판넬 구성
             let footerStatsLineHTML = "";
             if (type === 'duty' || type === 'call') {
                 footerStatsLineHTML = `
@@ -5326,128 +5339,37 @@
         `;
             }
 
-            // 🎯 [제목 결합 및 레이아웃 출력]: 지저분한 40ms 상단 기습 바를 차단하고 요구하신 디자인을 강제 인젝션합니다.
-            contentBox.innerHTML = `
-        <h3 style="margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; color: ${config.color}; font-size: 18px; font-weight: 800; text-align: left;">
-            <i class="${config.icon}"></i> ${config.title} [<span style="color:#ffffff;">${examTitle} ${examTh}</span>]
-        </h3>
-        <div style="padding: 15px 5px; max-height: 280px; overflow-y: auto; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; width: 100%;">
-            <div id="integrated-display-view-area" style="width: 100%; text-align: left;">${currentHTMLContent}</div>
+            const modalTitle = contentBox.querySelector(".editor-modal-title");
+            if (modalTitle) {
+                modalTitle.innerHTML = `<i class="${config.icon}" style="color:${config.color}; margin-right:8px;"></i> ${config.title} <span style="font-size:12px; color:var(--text-muted); font-weight:normal; margin-left:6px;">[${examTitle} ${examTh}]</span>`;
+            }
+
+            const modalBody = contentBox.querySelector(".editor-form-group") || contentBox.querySelector(".modal-body");
+            if (modalBody) {
+                modalBody.innerHTML = `
+            <div id="integrated-static-html-view" style="width:100%; min-height:120px; max-height:280px; overflow-y:auto; background:#0b0f19; border:1px solid var(--border-color); padding:15px; border-radius:8px; box-sizing:border-box; margin-bottom:15px;">
+                ${currentHTMLContent}
+            </div>
             ${boardEditorHTML}
-        </div>
-        
-        <!-- 🎯 최하단 액션 버튼바 윗줄에 정확히 달라붙는 수평 한 줄 통계 패널 슬롯 -->
-        ${footerStatsLineHTML}
-        
-        <!-- 하단 액션 버튼바: 전체 우측 정렬(flex-end) 및 오리지널 버튼 세트 보존 -->
-          <div style="display: flex; justify-content: flex-end; align-items: center; width: 100%; gap: 8px;">
-            <button type="button" id="btn-integrated-action-scheduler" class="btn-inline save" onclick="openAlarmSchedulerModal(${index}, '${type}', '${config.dbField}')" style="display: none; margin-right: auto; background: #a855f7; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);">⏰ 시간 설정</button>
-            <button type="button" id="btn-integrated-action-edit" onclick="switchIntegratedToEditorMode()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">편집</button>
-            <button type="button" id="btn-integrated-action-save" onclick="saveIntegratedEditorContent(${index}, '${type}', '${config.dbField}')" style="display: none; background: var(--success-color); color: #070a12; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);">수정완료</button>
-            <button type="button" onclick="closeIntegratedModal()" style="background: #475569; color: white; border: none; padding: 8px 22px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">닫기</button>
-        </div>
-    `;
+            ${footerStatsLineHTML}
+        `;
+            }
+
+            let origRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            const realPhysicalIndex = origRecruitmentDB.findIndex(m => m.uid == targetRow.uid || (m.title === targetRow.title && m.th === targetRow.th));
+
+            overlay.setAttribute("data-active-index", realPhysicalIndex !== -1 ? realPhysicalIndex : index);
+            overlay.setAttribute("data-active-field", config.dbField);
+            overlay.setAttribute("data-active-type", type);
             overlay.style.display = "flex";
 
-            // ────────────────────────────────────────────────────────────────────────
-            // 🌟 [치명적 단선 해결 핵심 주입]: 모달이 열리는 즉시 타입(Type)을 판별하여 
-            // 왼쪽 아래 [시간 설정] 버튼에 실시간 클릭 이벤트와 인자값을 다이렉트로 강제 주입합니다.
-            // ────────────────────────────────────────────────────────────────────────
-            setTimeout(() => {
-                const sb = document.getElementById('btn-integrated-action-scheduler');
-                if (sb) {
-                    if (type === 'duty') {
-                        sb.style.display = 'block'; // 당직공지일 때 노출
-                        sb.onclick = function () { window.openAlarmSchedulerModal(index, '당직공지', 'dutyNoticeText'); };
-                    } else if (type === 'call') {
-                        sb.style.display = 'block'; // 소집공지일 때 노출
-                        sb.onclick = function () { window.openAlarmSchedulerModal(index, '소집공지', 'callNoticeText'); };
-                    } else {
-                        sb.style.display = 'none';  // 주의사항, 시험일정일 땐 은닉
-                        sb.onclick = null;
-                    }
-                }
-            }, 50);
+            const ws = document.getElementById("html-integrated-workspace");
+            if (ws) ws.innerHTML = targetRow[config.dbField] || "";
+            const editorForm = document.getElementById("integrated-editor-form-area");
+            if (editorForm) editorForm.style.display = "none";
+            const saveBtn = document.querySelector(".editor-btn-save");
+            if (saveBtn) saveBtn.style.display = "none";
         }
-
-        // 에디터 마크업 변수 선언 구역 (원본 원형 100% 무결점 보존)
-        const boardEditorHTML = `
-                <div id="integrated-editor-form-area" style="display: none; width: 100%; text-align: left;">
-                    <label style="display: block; font-size: 12px; font-weight: 700; color: ${config.color}; margin-bottom: 8px;"><i class="fa-solid fa-pen-to-square"></i> 게시판 에디터</label>
-                    <div style="display: flex; gap: 4px; background: #1e293b; padding: 6px; border-radius: 6px 6px 0 0; border: 2px solid var(--border-color); border-bottom: none; flex-wrap: wrap;">
-                        <button type="button" onclick="execIntegratedCmd('bold')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; font-weight: 900; cursor: pointer;">B</button>
-                        <button type="button" onclick="execIntegratedCmd('italic')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; font-style: italic; cursor: pointer;">I</button>
-                        <button type="button" onclick="execIntegratedCmd('underline')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; text-decoration: underline; cursor: pointer;">U</button>
-                        <button type="button" onclick="execIntegratedCmd('strikeThrough')" style="background: #334155; border: none; color: #fff; width: 28px; height: 26px; border-radius: 4px; text-decoration: line-through; cursor: pointer;">S</button>
-                        <span style="border-left: 1px solid #475569; margin: 2px 4px;"></span>
-                        <button type="button" onclick="execIntegratedCmd('foreColor', '#f87171')" style="background: #ef4444; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
-                        <button type="button" onclick="execIntegratedCmd('foreColor', '#fbbf24')" style="background: #f59e0b; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
-                        <button type="button" onclick="execIntegratedCmd('foreColor', '#4ade80')" style="background: #10b981; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
-                        <button type="button" onclick="execIntegratedCmd('foreColor', '#38bdf8')" style="background: #0ea5e9; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
-                        <button type="button" onclick="execIntegratedCmd('foreColor', '#ffffff')" style="background: #ffffff; border: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; margin-top: 3px;"></button>
-                    </div>
-                    <div id="html-integrated-workspace" contenteditable="true" style="width: 100%; height: 200px; background: #0b0f19; border: 2px solid var(--border-color); border-radius: 0 0 8px 8px; color: #ffffff; padding: 14px; font-size: 14px; line-height: 1.6; outline: none; overflow-y: auto; box-sizing: border-box;"></div>
-                </div>
-            `;
-
-        const overlay = document.getElementById("editorModalOverlay") || document.querySelector(".editor-modal-overlay");
-        const contentBox = document.querySelector(".editor-modal-content");
-        if (!overlay || !contentBox) return console.error("통합 모달창 돔 오류");
-
-        contentBox.style.background = "var(--card-color)";
-        contentBox.style.border = "1px solid var(--border-color)";
-        contentBox.style.color = "var(--text-color)";
-        contentBox.style.width = "520px";
-
-        // 🎯 [하단 레이아웃 완벽 이식]: 닫기 단추 바로 위에 한 줄 수평 정렬로 안착될 동의/미동의/대기 스코어 판넬 구성
-        let footerStatsLineHTML = "";
-        if (type === 'duty' || type === 'call') {
-            footerStatsLineHTML = `
-                    <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px; margin-bottom: 15px; font-size: 13px; font-weight: 700; box-sizing: border-box;">
-                        <span style="color: var(--text-color);"><i class="fa-solid fa-chart-pie" style="color: ${config.color};"></i> 실시간 대상자 서명 현황:</span>
-                        <div style="display: flex; gap: 12px;">
-                            <span style="color: #34d399;"><i class="fa-solid fa-circle-check"></i> 동의: ${agreeCnt}명</span>
-                            <span style="color: #f87171;"><i class="fa-solid fa-circle-xmark"></i> 미동의: ${disagreeCnt}명</span>
-                            <span style="color: #94a3b8;"><i class="fa-regular fa-circle-dot"></i> 대기: ${waitCnt}명</span>
-                        </div>
-                    </div>
-                `;
-        }
-
-        // 원본 모달 팝업 내부의 동적 요소 결합 및 텍스트 교체 바인딩 처리
-        const modalTitle = contentBox.querySelector(".editor-modal-title");
-        if (modalTitle) {
-            modalTitle.innerHTML = `<i class="${config.icon}" style="color:${config.color}; margin-right:8px;"></i> ${config.title} <span style="font-size:12px; color:var(--text-muted); font-weight:normal; margin-left:6px;">[${examTitle} ${examTh}]</span>`;
-        }
-
-        // 본문 영역 바인딩 객체 조립
-        const modalBody = contentBox.querySelector(".editor-form-group") || contentBox.querySelector(".modal-body");
-        if (modalBody) {
-            modalBody.innerHTML = `
-                    <div id="integrated-static-html-view" style="width:100%; min-height:120px; max-height:280px; overflow-y:auto; background:#0b0f19; border:1px solid var(--border-color); padding:15px; border-radius:8px; box-sizing:border-box; margin-bottom:15px;">
-                        ${currentHTMLContent}
-                    </div>
-                    ${boardEditorHTML}
-                    ${footerStatsLineHTML}
-                `;
-        }
-
-        // 모달 오픈 릴레이 포인터 기록 연동 및 스위칭
-        overlay.setAttribute("data-active-index", index);
-        overlay.setAttribute("data-active-field", config.dbField);
-        overlay.setAttribute("data-active-type", type);
-
-        overlay.style.display = "flex";
-
-        // 내부 워크스페이스 동기화 리셋 가드
-        const ws = document.getElementById("html-integrated-workspace");
-        if (ws) ws.innerHTML = targetRow[config.dbField] || "";
-
-        const editorForm = document.getElementById("integrated-editor-form-area");
-        if (editorForm) editorForm.style.display = "none";
-
-        const saveBtn = document.querySelector(".editor-btn-save");
-        if (saveBtn) saveBtn.style.display = "none";
 
 
         /**

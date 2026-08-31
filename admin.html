@@ -1867,32 +1867,23 @@
                     sessionStorage.setItem('adminLoginSession', 'isAuthorizedSecureToken');
                     sessionStorage.setItem('adminLoginSabun', id);
 
-                    // 🎯 [완전 교정]: play() 실행 전에 볼륨 0 상태를 확실하게 락인(Lock-in)하여 소리 분출 차단
-                    if (window.globalSilentAudioContext && typeof window.globalSilentAudioContext.play === 'function') {
-
-                        // 1. play를 하기 전에 오디오 재생 시점을 강제로 끝으로 밀거나 음소거 상태를 하드웨어적으로 선언합니다.
-                        window.globalSilentAudioContext.muted = true; // 💡 2중 안전 장치: 음소거 강제 켬
-                        window.globalSilentAudioContext.volume = 0;   // 볼륨 제로 락
-
-                        // 2. 음소거 상태가 완벽히 적용된 안전한 환경에서 브라우저 오디오 보안 락만 파괴합니다.
-                        window.globalSilentAudioContext.play().then(function () {
-                            // 3. 보안 권한 획득 성공 직후 즉시 정지시킵니다.
+                    // ──────────────────────────────────────────────────────────────
+                    // 🎯 [최종 완결] 로그인 시 바탕화면 클릭 유령 소리 누적(Pending) 상태 원천 박멸
+                    // ──────────────────────────────────────────────────────────────
+                    if (window.globalSilentAudioContext) {
+                        try {
+                            // 💡 [핵심 교정]: 비동기 Pending 현상을 유발하는 로그인 .play() 트리거를 원천 제거합니다.
+                            // 대신 오디오를 물리적으로 확실하게 일시정지시키고 하드웨어 음소거 철장을 채워버립니다.
                             window.globalSilentAudioContext.pause();
 
-                            // 4. 재생 위치를 다시 맨 처음으로 되감기 처리합니다.
-                            window.globalSilentAudioContext.currentTime = 0;
+                            window.globalSilentAudioContext.muted = true;  // 하드웨어 음소거 자물쇠 잠금
+                            window.globalSilentAudioContext.volume = 0;    // 볼륨 완전히 제로 강제 고정
+                            window.globalSilentAudioContext.currentTime = 0; // 재생 타임라인 맨 앞으로 되감기
 
-                            // 5. 💡 [중요]: 5초 뒤 실제 웹푸시 알림 배너가 뜰 때는 우렁차게 소리가 나도록 음소거를 풀고 볼륨을 1로 원상 복구합니다.
-                            window.globalSilentAudioContext.muted = false;
-                            window.globalSilentAudioContext.volume = 1;
-
-                            console.log("[보안 해제] 로그인 상호작용 완료, 웹푸시 사출 시점 사운드 대기 공급 상태 전환.");
-                        }).catch(function (e) {
-                            console.log("[사운드 가드] 권한 가로채기 예외 대응:", e);
-                            // 에러가 나더라도 시연에 방해되지 않도록 사운드 상태 1로 안전 복구
-                            window.globalSilentAudioContext.muted = false;
-                            window.globalSilentAudioContext.volume = 1;
-                        });
+                            console.log("[사운드 락다운] 로그인 단계 유령음 보류 상태 완전 차단 및 철저한 무음 대기 진입.");
+                        } catch (audioLockErr) {
+                            console.warn("오디오 마스터 보안 락 가동 예외 대응:", audioLockErr);
+                        }
                     }
 
                     if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'none';
@@ -6722,18 +6713,29 @@
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('message', function (event) {
+                // 서비스 워커가 딜레이 타임아웃 만료 후 전송한 배너 사출 시그널 공지(PLAY_ALERT_AUDIO_SIGNAL) 확인
                 if (event.data && event.data.action === 'PLAY_ALERT_AUDIO_SIGNAL') {
 
-                    // 로그인 상태 및 화면에 모달이 없을 때만 통과 (닫을 때 실행되는 신호는 자동 필터링)
+                    // 실시간 가드 엔진 작동: 로그인 상태 유무 체크 및 화면에 모달창이 활성화되지 않았을 때만 통과
                     if (typeof window.checkPushSoundPlayable === 'function' && window.checkPushSoundPlayable()) {
 
-                        // 1단계에서 로그인을 통해 이미 보안이 해제되었으므로 백그라운드 상태에서도 배너와 함께 소리가 즉시 터집니다.
-                        var realPlayer = window.globalSilentAudioContext || new Audio("./katalk.mp3");
-                        if (realPlayer && typeof realPlayer.play === 'function') {
-                            realPlayer.currentTime = 0;
-                            realPlayer.play().catch(function (err) {
-                                console.warn('[오디오 안전 필터] 런타임 재생 지연 방어 구동', err);
-                            });
+                        var realAudioPlayer = window.globalSilentAudioContext || new Audio("./katalk.mp3");
+                        if (realAudioPlayer && typeof realAudioPlayer.play === 'function') {
+                            try {
+                                // 🎯 [핵심]: 오직 실제 웹푸시가 화면에 꽂히는 이 정밀한 런타임 순간에만 음소거를 풀고 볼륨을 채워 알림을 터뜨립니다.
+                                realAudioPlayer.muted = false;
+                                realAudioPlayer.volume = 1;
+                                realAudioPlayer.currentTime = 0; // 재생 위치 원점 리셋
+
+                                var pushPlayPromise = realAudioPlayer.play();
+                                if (pushPlayPromise !== undefined) {
+                                    pushPlayPromise.catch(function (err) {
+                                        console.warn('[오디오 안전 필터] 브라우저 자동재생 보안 제한으로 인한 차단 제어:', err);
+                                    });
+                                }
+                            } catch (playExecutionErr) {
+                                console.error("물리 웹푸시 알림 사운드 재생 파이프라인 오류:", playExecutionErr);
+                            }
                         }
                     }
                 }

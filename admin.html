@@ -2675,15 +2675,6 @@
                 return 0;
             });
 
-            // 최신글이 상단에 배치되므로, 번호 분자 수치도 상단이 가장 높은 숫자가 매립되도록 순정 순번 수식 동기화
-            // 이 가드가 구동되어야 리스트 맨 윗줄이 30/44명, 다음 줄이 29/44명 형태로 수려하게 정렬 출력됩니다.
-            pagedList.forEach((row, currentIdx) => {
-                row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
-                    filterIdx >= currentIdx &&
-                    cleanString(item.title) === cleanString(row.title) &&
-                    item.th === row.th
-                ).length;
-            });
 
             // 하단 내비게이션 버튼의 전역 변수인 window.currentApplicantPage 명칭과 100% 일치시켜 단선을 완파합니다.
             const APPLICANT_PAGE_SIZE = 8;
@@ -2696,6 +2687,7 @@
             const startIndex = (window.currentApplicantPage - 1) * APPLICANT_PAGE_SIZE;
             const endIndex = startIndex + APPLICANT_PAGE_SIZE;
             const pagedList = displayList.slice(startIndex, endIndex);
+
 
             // 15개 데이터 조각 루프 렌더링 시동
             pagedList.forEach((row, pagedIdx) => {

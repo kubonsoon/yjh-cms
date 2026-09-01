@@ -3338,7 +3338,7 @@
 
             // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크
             const elTitle = document.getElementById(`inline-app-title-${index}`);
-            const elTh = document.getElementById(`inline-app-th-${index}`);
+            const elTh = document.getElementById(`inline-app-th-${index}`); // 💡 마크업 구조와 일치하는 셀렉트 박스 요소를 완벽히 색인합니다.
             const elCount = document.getElementById(`inline-app-count-${index}`);
             const elPeriod = document.getElementById(`inline-app-period-${index}`);
             const elName = document.getElementById(`inline-app-name-${index}`);
@@ -3357,7 +3357,7 @@
                 ...dataStoreApplicant[idx], // 기존 첨부 이미지 주소 등 핵심 원본 데이터 누락 없이 완벽 상속 가드
                 uid: id,
                 title: elTitle ? elTitle.value.trim() : (dataStoreApplicant[idx].title || ""),
-                th: elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || ""),
+                th: elTh ? elTh.value : (dataStoreApplicant[idx].th || ""), // 💡 기수 셀렉트 박스의 선택 값을 유실 없이 다이렉트로 반영합니다.
                 count: elCount ? getOnlyNumbers(elCount.value) : (dataStoreApplicant[idx].count || "0"),
                 period: elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0"),
                 name: currentNameVal,
@@ -3380,7 +3380,7 @@
                 isAgreed: dataStoreApplicant[idx].isAgreed || "대기",
 
                 category: dataStoreApplicant[idx].category || "내분비내과 / 대장 수동 등록",
-                stage: `${elTh ? elTh.value.trim() : (dataStoreApplicant[idx].th || "1기")} 참여(소집)`
+                stage: `${elTh ? elTh.value : (dataStoreApplicant[idx].th || "1기")} 참여(소집)` // 💡 스테이지 텍스트 역시 동적 반영
             };
 
             // 3. 로컬스토리지 영구 커밋 및 인라인 에디팅 수정 포인터 포기 해제

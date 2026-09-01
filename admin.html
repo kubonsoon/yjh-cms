@@ -2763,7 +2763,12 @@
             <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
         </td>
         <td style="width: 90px; vertical-align: middle;">
-            <input type="text" id="inline-app-th-${masterIndex}" class="inline-input" value="${row.th || ''}" style="text-align:center; background: var(--card-color) !important;">
+             <select id="inline-app-th-${masterIndex}" class="inline-input" style="height:32px; padding:2px; text-align:center; text-align-last:center; background: #1e293b !important; cursor: pointer !important;">
+                <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
+                <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
+                <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
+                <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
+            </select>
         </td>
         <td style="width: 75px; vertical-align: middle;">
             <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">

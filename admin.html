@@ -2603,7 +2603,7 @@
         // 🎯 [완전 종결] 대상자 마스터 테이블 기수 문자열 싱크 및 배지 드로잉 엔진 (당직/소집 분리형)
         // ========================================================
         window.currentApplicantPage = 1;
-        const APPLICANT_PAGE_SIZE = 15; // 페이지당 최대 15개 로깅 제한
+        const APPLICANT_PAGE_SIZE = 8; // 페이지당 최대 15개 로깅 제한
 
         /**
          * 🎯 [대장 화면 렌더러 엔진 - 5파트 완전 분할 무결성 조립본]
@@ -2740,7 +2740,18 @@
                 const dutyAgreed = (row.isDutyAgreed || "대기").trim();
                 const callAgreed = (row.isCallAgreed || "대기").trim();
                 const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
-                let thClass = thNum === 1 ? "lvl-1" : (thNum === 2 || thNum === 3) ? "lvl-2" : (thNum === 4 || thNum === 5) ? "lvl-4" : "lvl-6";
+
+                // [모집공고 기준 4색 완벽 일치]: 기존 thClass 변수에 모집공고와 똑같은 고대비 인라인 폰트 컬러 스타일을 인젝션합니다. [INDEX: 0.1.337]
+                let thClass = "lvl-1";
+                if (thNum === 1) {
+                    thClass = "lvl-1\" style=\"color: #f8fafc !important; background: rgba(248, 250, 252, 0.12) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; display: inline-block;";
+                } else if (thNum === 2) {
+                    thClass = "lvl-2\" style=\"color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important; display: inline-block;";
+                } else if (thNum === 3) {
+                    thClass = "lvl-3\" style=\"color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important; display: inline-block;";
+                } else if (thNum >= 4) {
+                    thClass = "lvl-4\" style=\"color: #fbbf24 !important; background: rgba(245, 158, 11, 0.15) !important; border: 1px solid #f59e0b !important; font-weight: 800 !important; display: inline-block;";
+                }
 
                 let currentQuota = parseInt(row.count?.toString().replace(/[^0-9]/g, ''), 10) || 60;
                 const matchedRec = recruitmentDB.find(rec => cleanString(rec.title) === cleanString(row.title) && rec.th === row.th);
@@ -2752,7 +2763,6 @@
 
                 const masterIndex = db.findIndex(item => item.uid === row.uid);
                 const isAppEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === masterIndex) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === masterIndex);
-
                 // ----------------======================================================
                 // 🔒 [A 분기]: 대표님 오리지널 인라인 수정 마크업 (masterIndex 싱크 완료)
                 // ----------------======================================================

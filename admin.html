@@ -2937,6 +2937,28 @@
             refreshApplicantView();
         }
 
+
+        // ==========================================================================
+        // 🎯 [이벤트 가로채기 엔진]: 화면의 고장난 [저장] 버튼을 완전 우회하는 인프라 가드
+        // 대상자 수정 모드 상태에서 키보드 엔터(Enter)를 누르면 이 함수가 강제로 가동됩니다.
+        // ==========================================================================
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                // 현재 인라인 수정 중인 대상자 인덱스 포인터 역추적 스캔
+                const targetIndex = window.currentAppEditingIndex !== undefined && window.currentAppEditingIndex !== null
+                    ? window.currentAppEditingIndex
+                    : (typeof currentEditingApplicantIndex !== 'undefined' ? currentEditingApplicantIndex : null);
+
+                if (targetIndex !== null && targetIndex !== undefined && targetIndex >= 0) {
+                    // 브라우저 기본 엔터 동작(페이지 새로고침)을 원천 차단하고 저장 트랜잭션 강제 트리거
+                    event.preventDefault();
+                    console.log(`🎯 [엔터 키 감지] 고장난 화면 버튼을 우회하여 ${targetIndex}번 대상자 강제 세이브 파이프라인 가동`);
+                    saveApplicantInline(targetIndex);
+                }
+            }
+        });
+
+
         /**
          * 🎯 인라인 편집본 최종 유효성 검사 및 LocalStorage 원본 데이터베이스 커밋 연동 함수
          */

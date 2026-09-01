@@ -2686,13 +2686,21 @@
 
             const startIndex = (window.currentApplicantPage - 1) * APPLICANT_PAGE_SIZE;
             const endIndex = startIndex + APPLICANT_PAGE_SIZE;
+
+            // 🔥 에러의 원인이 되던 자르기 변수가 여기서 안전하게 1등으로 초기화 완료됩니다.
             const pagedList = displayList.slice(startIndex, endIndex);
 
 
             // 15개 데이터 조각 루프 렌더링 시동
             pagedList.forEach((row, pagedIdx) => {
-                const index = displayList.findIndex(item => item.uid === row.uid);
+                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역
+                row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
+                    filterIdx >= pagedIdx &&
+                    cleanString(item.title) === cleanString(row.title) &&
+                    item.th === row.th
+                ).length;
 
+                const index = displayList.findIndex(item => item.uid === row.uid);
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
 

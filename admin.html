@@ -4924,7 +4924,11 @@
             let filteredList = adminApplicantDB.filter(row => {
                 const rowTitleClean = cleanString(row.title);
                 const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
-                const matchTitle = (filterTitle === 'ALL' || rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
+                const filterTitleClean = cleanString(filterTitle);
+                const filterThNum = filterTh.toString().replace(/[^0-9]/g, "");
+
+                // 글자 알맹이 단위 매칭 처리 기법 가동
+                const matchTitle = (filterTitle === 'ALL' || rowTitleClean === filterTitleClean || rowTitleClean.includes(filterTitleClean) || filterTitleClean.includes(rowTitleClean));
                 const matchTh = (filterTh === 'ALL' || filterTh === '' || rowThNum === filterThNum);
                 return matchTitle && matchTh;
             });

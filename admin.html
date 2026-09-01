@@ -2981,10 +2981,10 @@
                 const elSsn = document.getElementById(`inline-app-ssn-${index}`);
                 const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
-                // 🎯 [원본 소스 돔 실시간 싱크 일치화]: 화면 대상자 목록 한 칸에 사출된 진짜 참여비 셀렉트 박스 단일 ID 추적
-                const elPay = document.getElementById(`inline-app-payStatus-${index}`) ||
-                    document.getElementById(`inline-pay-status-${index}`) ||
-                    document.getElementById(`inline-app-pay-${index}`);
+                // 🎯 [차수별 독립 정밀 스캔]: 고정된 참여비 한 칸 안에 사출된 1차, 2차, 3차 각각의 가변 드롭다운 상자 ID를 격리하여 추적합니다.
+                const elS1 = document.getElementById(`inline-app-payStatus1-${index}`) || document.getElementById(`inline-pay-status1-${index}`);
+                const elS2 = document.getElementById(`inline-app-payStatus2-${index}`) || document.getElementById(`inline-pay-status2-${index}`);
+                const elS3 = document.getElementById(`inline-app-payStatus3-${index}`) || document.getElementById(`inline-pay-status3-${index}`);
 
                 // 새로 개편된 대기/동의/미동의 가변 다크 셀렉터 드롭다운 돔 캡처
                 const elDuty = document.getElementById(`inline-app-duty-${index}`);
@@ -3003,17 +3003,31 @@
                 if (elSsn) adminApplicantDB[index].ssn = elSsn.value.trim();
                 if (elPhone) adminApplicantDB[index].phone = elPhone.value.trim();
 
-                // 🎯 [참여비 가변 상태 수집 파이프라인]: 사용자가 화면 단일 드롭다운에서 선택한 진짜 값을 정밀 가로채기
-                const changedPayStatus = elPay ? elPay.value : (adminApplicantDB[index].payStatus || "접수");
+                // 🎯 [기획 의도 격리 완수]: 각 차수별 선택 상자의 값(대기/접수/검토중/완료)을 섞이지 않게 따로 추출합니다.
+                const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
+                const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
+                const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
 
-                // 대장 데이터 속성 및 상단 대시보드 스코어보드 연동 규격인 "대기", "접수", "검토중", "완료" 정밀 매칭 적재
-                adminApplicantDB[index].payStatus = changedPayStatus;
-                adminApplicantDB[index].result = changedPayStatus;
+                // 대장 데이터 파일 내부의 독립된 1차, 2차, 3차 고유 변수 공간에 정밀하게 각각 주입 (동시 오염 원천 방어)
+                adminApplicantDB[index].payStatus1 = nextS1;
+                adminApplicantDB[index].payStatus2 = nextS2;
+                adminApplicantDB[index].payStatus3 = nextS3;
 
-                // 내장 1~3차 분할 데이터셋의 데이터 무결성 파괴를 막기 위해 일치화 동기화
-                adminApplicantDB[index].payStatus1 = changedPayStatus;
-                adminApplicantDB[index].payStatus2 = changedPayStatus;
-                adminApplicantDB[index].payStatus3 = changedPayStatus;
+                // 🎯 [지능형 종합 정산 파이프라인]: 1~3차 개별 상태값을 조합하여 상단 스코어보드용 마스터 4단계 상태 연동 판정
+                let finalPipelineStatus = "접수";
+                if (nextS1 === "완료" && nextS2 === "완료" && nextS3 === "완료") {
+                    finalPipelineStatus = "완료";
+                } else if (nextS1 === "검토중" || nextS2 === "검토중" || nextS3 === "검토중") {
+                    finalPipelineStatus = "검토중";
+                } else if (nextS1 === "접수" || nextS2 === "접수" || nextS3 === "접수") {
+                    finalPipelineStatus = "접수";
+                } else {
+                    finalPipelineStatus = "대기";
+                }
+
+                // 전체 통합 상태 마스터 변수 최신 동기화 업데이트
+                adminApplicantDB[index].payStatus = finalPipelineStatus;
+                adminApplicantDB[index].result = finalPipelineStatus;
 
                 // 활성화된 드롭다운 셀렉트 박스에서 받아온 밸류만 정확히 현재 타겟 행(Index)에 밀봉합니다.
                 if (elDuty) adminApplicantDB[index].isDutyAgreed = elDuty.value;
@@ -3060,13 +3074,14 @@
                     refreshRecruitmentView();
                 }
 
-                alert(`📢 선택하신 대상자의 참여비 정산 상태가 "${changedPayStatus}"(으)로 대장에 완전 반영되었습니다.`);
+                alert(`📢 대상자의 차수별 참여비 정산 상태가 완벽히 저장되었습니다.\n[1차: ${nextS1} | 2차: ${nextS2} | 3차: ${nextS3}]`);
 
             } catch (error) {
                 console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);
                 alert("시스템 오류: 저장 중 문제가 발생했습니다.");
             }
         }
+
 
         /**
          * 호이스팅 꼬임을 완벽히 회피하기 위해 

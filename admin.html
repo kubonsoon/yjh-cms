@@ -2963,6 +2963,7 @@
          * 🎯 인라인 편집본 최종 유효성 검사 및 LocalStorage 원본 데이터베이스 커밋 연동 함수
          */
         function saveApplicantInline(index) {
+            // 💡 [초기화 원복 엔진 격리 우회]: 캐시 킬러 가드의 덮어쓰기를 피하기 위해 로컬스토리지 최신 상태를 직접 캡처
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
                 adminApplicantDB = dataStoreApplicant;
@@ -2981,7 +2982,7 @@
                 const elSsn = document.getElementById(`inline-app-ssn-${index}`);
                 const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
-                // 🎯 [차수별 독립 정밀 스캔]: 고정된 참여비 한 칸 안에 사출된 1차, 2차, 3차 각각의 가변 드롭다운 상자 ID를 격리하여 추적합니다.
+                // 🎯 화면 고정 한 칸 안에 사출된 1, 2, 3차 각각의 가변 드롭다운 상자 ID 개별 격리 추적
                 const elS1 = document.getElementById(`inline-app-payStatus1-${index}`) || document.getElementById(`inline-pay-status1-${index}`);
                 const elS2 = document.getElementById(`inline-app-payStatus2-${index}`) || document.getElementById(`inline-pay-status2-${index}`);
                 const elS3 = document.getElementById(`inline-app-payStatus3-${index}`) || document.getElementById(`inline-pay-status3-${index}`);
@@ -2994,7 +2995,7 @@
                     return alert("대상자 성명은 필수 입력사항입니다.");
                 }
 
-                // [안전 오버라이드]: 엘리먼트가 존재할 때만 대장에 주입하여 간섭 오염 원천 차단
+                // [안전 오버라이드]: 엘리먼트가 존재할 때만 대장에 입력값 주입
                 if (elTitle) adminApplicantDB[index].title = elTitle.value.trim();
                 if (elTh) adminApplicantDB[index].th = elTh.value.trim();
                 if (elCount) adminApplicantDB[index].count = elCount.value.trim();
@@ -3003,17 +3004,16 @@
                 if (elSsn) adminApplicantDB[index].ssn = elSsn.value.trim();
                 if (elPhone) adminApplicantDB[index].phone = elPhone.value.trim();
 
-                // 🎯 [기획 의도 격리 완수]: 각 차수별 선택 상자의 값(대기/접수/검토중/완료)을 섞이지 않게 따로 추출합니다.
+                // 🎯 사용자가 수정한 1~3차 참여비 변경 데이터 수집
                 const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
                 const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
                 const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
 
-                // 대장 데이터 파일 내부의 독립된 1차, 2차, 3차 고유 변수 공간에 정밀하게 각각 주입 (동시 오염 원천 방어)
                 adminApplicantDB[index].payStatus1 = nextS1;
                 adminApplicantDB[index].payStatus2 = nextS2;
                 adminApplicantDB[index].payStatus3 = nextS3;
 
-                // 🎯 [지능형 종합 정산 파이프라인]: 1~3차 개별 상태값을 조합하여 상단 스코어보드용 마스터 4단계 상태 연동 판정
+                // 🎯 변경하신 규칙 매칭 파이프라인 ("대기", "접수", "검토중", "완료")
                 let finalPipelineStatus = "접수";
                 if (nextS1 === "완료" && nextS2 === "완료" && nextS3 === "완료") {
                     finalPipelineStatus = "완료";
@@ -3025,16 +3025,15 @@
                     finalPipelineStatus = "대기";
                 }
 
-                // 전체 통합 상태 마스터 변수 최신 동기화 업데이트
                 adminApplicantDB[index].payStatus = finalPipelineStatus;
                 adminApplicantDB[index].result = finalPipelineStatus;
 
-                // 활성화된 드롭다운 셀렉트 박스에서 받아온 밸류만 정확히 현재 타겟 행(Index)에 밀봉합니다.
+                // 동의 여부 값 밀봉
                 if (elDuty) adminApplicantDB[index].isDutyAgreed = elDuty.value;
                 if (elCall) adminApplicantDB[index].isCallAgreed = elCall.value;
                 adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
 
-                // 4. [메모리 참조 일치화 가드] 전역 대장 배열 동기화 완전히 락인
+                // 4. [메모리 참조 일치화 가드] 전역 배열과 캐시 메모리 주소 동치화 완전히 고정
                 if (typeof dataStoreApplicant !== 'undefined') {
                     dataStoreApplicant = adminApplicantDB;
                     dataStoreApplicant[index] = adminApplicantDB[index];
@@ -3044,11 +3043,10 @@
                     adminApplicantDBGlobal[index] = adminApplicantDB[index];
                 }
 
-                // 5. 로컬 스토리지 최종 세이브 커밋
+                // 5. 🎯 [초기화 엔진 원천 차단 마운트]: 초기화 로직이 덮어쓰지 못하도록 로컬스토리지 하드웨어에 다이렉트 강제 고정 락인
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
                 if (typeof commitToLocalStorage === 'function') {
                     commitToLocalStorage();
-                } else {
-                    localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
                 }
 
                 // 6. [편집 스위치 완전 초기화]
@@ -3074,14 +3072,13 @@
                     refreshRecruitmentView();
                 }
 
-                alert(`📢 대상자의 차수별 참여비 정산 상태가 완벽히 저장되었습니다.\n[1차: ${nextS1} | 2차: ${nextS2} | 3차: ${nextS3}]`);
+                alert(`📢 대상자의 차수별 참여비 정산 상태가 안전하게 영구 저장되었습니다.\n[1차: ${nextS1} | 2차: ${nextS2} | 3차: ${nextS3}]`);
 
             } catch (error) {
                 console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);
                 alert("시스템 오류: 저장 중 문제가 발생했습니다.");
             }
         }
-
 
         /**
          * 호이스팅 꼬임을 완벽히 회피하기 위해 

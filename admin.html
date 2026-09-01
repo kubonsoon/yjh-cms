@@ -2226,14 +2226,16 @@
                 <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
                     <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
-                <td style="width: 80px; text-align: center !important; vertical-align: middle;">
-                    <!-- 💡 [패딩 긴축 해결]: 우측 패딩을 14px로 좁혀 내부 공간을 확보하고 화살표(▼) 아이콘이 짤림 없이 상자 안에 안착하도록 교정했습니다 -->
-                    <select id="inline-rec-th-${index}" class="inline-input" style="height: 32px; padding: 2px 14px 2px 2px !important; text-align: center; text-align-last: center; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; color: #ffffff !important; background: #0f172a url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 10 10\'><path fill=\'%23ffffff\' d=\'M0 3l5 5 5-5z\'/></svg>') no-repeat !important; background-position: right 4px center !important; background-size: 8px !important; border: 2px solid var(--warning-color) !important; cursor: pointer !important; pointer-events: auto !important; width: 100% !important; box-sizing: border-box !important;">
+                <td style="width: 80px; text-align: center !important; vertical-align: middle; position: relative;">
+                    <!-- 💡 [화살표 영구 복원]: 복잡한 url 이미지를 걷어내고, select 요소를 감싸는 td에 흰색 유니코드 화살표(▼)를 절대 좌표로 띄워 브라우저 숨김 버그를 완벽히 우회했습니다 -->
+                    <select id="inline-rec-th-${index}" class="inline-input" style="height: 32px; padding: 2px 20px 2px 6px !important; text-align: center; text-align-last: center; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; color: #ffffff !important; background: #0f172a !important; border: 2px solid var(--warning-color) !important; cursor: pointer !important; pointer-events: auto !important; width: 100% !important; box-sizing: border-box !important;">
                         <option value="1기" ${row.th === '1기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">1기</option>
                         <option value="2기" ${row.th === '2기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">2기</option>
                         <option value="3기" ${row.th === '3기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">3기</option>
                         <option value="4기" ${row.th === '4기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">4기</option>
                     </select>
+                    <!-- 🎯 우측 끝 공간에 상시 박제되는 순백색 역삼각형 화살표 아이콘 -->
+                    <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #ffffff !important; font-size: 8px; pointer-events: none; user-select: none; font-weight: bold;">▼</span>
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
                     <input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">

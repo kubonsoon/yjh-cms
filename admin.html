@@ -2959,12 +2959,11 @@
                 const elSsn = document.getElementById(`inline-app-ssn-${index}`);
                 const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
-                // 🎯 [차수별 독립 돔 캡처]: 화면 수정모드 뷰에서 사출된 1, 2, 3차 각각의 셀렉트 박스 요소를 정확하게 잡아냅니다.
-                const elS1 = document.getElementById(`inline-app-payStatus1-${index}`) || document.getElementById(`inline-pay-status1-${index}`);
-                const elS2 = document.getElementById(`inline-app-payStatus2-${index}`) || document.getElementById(`inline-pay-status2-${index}`);
-                const elS3 = document.getElementById(`inline-app-payStatus3-${index}`) || document.getElementById(`inline-pay-status3-${index}`);
+                const elS1 = document.getElementById(`inline-app-payStatus1-${index}`);
+                const elS2 = document.getElementById(`inline-app-payStatus2-${index}`);
+                const elS3 = document.getElementById(`inline-app-payStatus3-${index}`);
 
-                // 새로 개편된 대기/동의/미동의 가변 다크 셀렉터 드롭다운 돔 캡처
+                // 🌟 새로 개편된 대기/동의/미동의 가변 다크 셀렉터 드롭다운 돔 캡처
                 const elDuty = document.getElementById(`inline-app-duty-${index}`);
                 const elCall = document.getElementById(`inline-app-call-${index}`);
 
@@ -2972,7 +2971,7 @@
                     return alert("대상자 성명은 필수 입력사항입니다.");
                 }
 
-                // [안전 오버라이드]: 엘리먼트가 존재할 때만 대장에 주입하여 간섭 오염 원천 차단
+                // 🎯 [세이브 패스 철거 및 안전 오버라이드]: 엘리먼트가 존재할 때만 대장에 주입하여 간섭 오염 원천 차단
                 if (elTitle) adminApplicantDB[index].title = elTitle.value.trim();
                 if (elTh) adminApplicantDB[index].th = elTh.value.trim();
                 if (elCount) adminApplicantDB[index].count = elCount.value.trim();
@@ -2981,17 +2980,16 @@
                 if (elSsn) adminApplicantDB[index].ssn = elSsn.value.trim();
                 if (elPhone) adminApplicantDB[index].phone = elPhone.value.trim();
 
-                // 🎯 [1, 2, 3차 개별 수정값 반영]: 드롭다운에서 선택된 가변 값을 들고 오되, 돔이 없으면 디폴트/과거값을 보존(Fallback)합니다.
+                // 1~3차 참여비 정산 배지 정보 독립 스캔 및 기존 대장 보존 폴백 연동
                 const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
                 const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
                 const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
 
-                // 대장 내부의 독립된 1, 2, 3차 변수 자리에 사용자가 변경한 상태값을 정확하게 각각 쪼개서 업데이트 마운트
                 adminApplicantDB[index].payStatus1 = nextS1;
                 adminApplicantDB[index].payStatus2 = nextS2;
                 adminApplicantDB[index].payStatus3 = nextS3;
 
-                // 🎯 [지능형 종합 정산 파이프라인]: 1~3차 상태 조합을 역추적하여 상단 대시보드 및 마스터 필드 통합 갱신
+                // 🎯 [원본 스펙 매칭 완료]: 비교 문자열을 "처리완료"에서 시스템 규격인 "지급완료"로 정밀 정렬
                 let finalPipelineStatus = "접수";
                 if (nextS1 === "지급완료" && nextS2 === "지급완료" && nextS3 === "지급완료") {
                     finalPipelineStatus = "지급완료";
@@ -3003,35 +3001,20 @@
                     finalPipelineStatus = "접수";
                 }
 
-                // 전체 통합 상태 마스터 변수 최신 동기화 업데이트
                 adminApplicantDB[index].payStatus = finalPipelineStatus;
                 adminApplicantDB[index].result = finalPipelineStatus;
 
-                // 드롭다운 셀렉트 박스에서 받아온 당직/소집 동의 여부 값 밀봉
+                // 활성화된 드롭다운 셀렉트 박스에서 받아온 밸류만 정확히 현재 타겟 행(Index)에 밀봉합니다.
                 if (elDuty) adminApplicantDB[index].isDutyAgreed = elDuty.value;
                 if (elCall) adminApplicantDB[index].isCallAgreed = elCall.value;
+                adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
 
-                // 원안 프리셋 구조 보존 처리
-                if (!adminApplicantDB[index].stage || adminApplicantDB[index].stage.includes("참여(소집)")) {
-                    adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
-                }
-
-                // 4. [메모리 참조 일치화 가드]: 전역 배열과 완전히 동기화시킵니다.
-                if (typeof dataStoreApplicant !== 'undefined') {
-                    dataStoreApplicant = adminApplicantDB;
-                    dataStoreApplicant[index] = adminApplicantDB[index];
-                }
-                if (typeof adminApplicantDBGlobal !== 'undefined') {
-                    adminApplicantDBGlobal = adminApplicantDB;
-                    adminApplicantDBGlobal[index] = adminApplicantDB[index];
-                }
+                // 4. [메모리 폭파 방지 가드] 전역 대장 배열 동기화
+                if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = adminApplicantDB;
+                if (typeof adminApplicantDBGlobal !== 'undefined') adminApplicantDBGlobal = adminApplicantDB;
 
                 // 5. 로컬 스토리지 최종 세이브 커밋
-                if (typeof commitToLocalStorage === 'function') {
-                    commitToLocalStorage();
-                } else {
-                    localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-                }
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
                 // 6. [편집 스위치 완전 초기화]
                 window.currentAppEditingIndex = null;
@@ -3039,31 +3022,34 @@
                 if (typeof currentEditingApplicantIndex !== 'undefined') currentEditingApplicantIndex = null;
                 if (typeof currentEditingUid !== 'undefined') currentEditingUid = null;
 
-                // 상단 대시보드 라이브 통계 즉시 재계산 작동
+                // 상단 대시보드 통계 실시간 재계산 함수 자동 리트리거 연동
                 if (typeof calculateLiveDashboardStats === 'function') {
                     calculateLiveDashboardStats();
                 }
 
-                // 7. 대상자 관리 테이블 실시간 새로고침 그리개 가동
+                // 7. [안전 분기 리렌더링] 대상자 관리 테이블 실시간 리플래시 가동
                 if (typeof refreshApplicantView === 'function') {
                     refreshApplicantView();
                 } else if (typeof renderApplicantTable === 'function') {
                     renderApplicantTable();
                 }
 
-                // 모집공고 상단/목록 실시간 동기화 리트리거 연동
+                // ==========================================================================
+                // 🌟 [통계 즉시 연동 파이프라인]: 대상자 저장이 끝남과 동시에,
+                // 배후에 대기 중인 모집공고 마스터 테이블 뷰 목록 함수를 배후에서 강제 실행시킵니다.
+                // ==========================================================================
                 if (typeof refreshRecruitmentView === 'function') {
+                    console.log("🔄 [양방향 동기화 완수] 대상자 정보 격리 수정 검지로 모집공고 실시간 누적 카운터 동기화 작동");
                     refreshRecruitmentView();
                 }
 
-                alert("📢 선택하신 대상자의 차수별(1~3차) 참여비 정산 상태가 대장에 정상 반영되었습니다.");
+                alert("📢 선택하신 대상자의 정보 및 당직/소집 정산 상태가 대장에 완전 반영되었습니다.");
 
             } catch (error) {
                 console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);
-                alert("시스템 오류: 저장 중 문제가 발생했습니다.");
+                alert("システム 오류: 저장 중 문제가 발생했습니다.");
             }
         }
-
 
         /**
          * 호이스팅 꼬임을 완벽히 회피하기 위해 

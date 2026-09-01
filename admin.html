@@ -2227,11 +2227,11 @@
                     <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; text-align: center !important; vertical-align: middle;">
-                        <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 24px 2px 6px; text-align:center; text-align-last:center; pointer-events: auto !important; color:#ffffff !important; background: #1e293b !important; cursor: pointer !important;">
-                        <option value="1기" ${row.th === '1기' ? 'selected' : ''} style="color:#ffffff;">1기</option>
-                        <option value="2기" ${row.th === '2기' ? 'selected' : ''} style="color:#ffffff;">2기</option>
-                        <option value="3기" ${row.th === '3기' ? 'selected' : ''} style="color:#ffffff;">3기</option>
-                        <option value="4기" ${row.th === '4기' ? 'selected' : ''} style="color:#ffffff;">4기</option>
+                    <select id="inline-rec-th-${index}" class="inline-input" style="height:32px; padding:2px 6px; text-align:center; text-align-last:center; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; color:#ffffff !important; background: #0f172a !important; border: 2px solid var(--warning-color) !important; cursor: pointer !important; pointer-events: auto !important;">
+                        <option value="1기" ${row.th === '1기' ? 'selected' : ''} style="background:#0f172a; color:#ffffff !important;">1기</option>
+                        <option value="2기" ${row.th === '2기' ? 'selected' : ''} style="background:#0f172a; color:#ffffff !important;">2기</option>
+                        <option value="3기" ${row.th === '3기' ? 'selected' : ''} style="background:#0f172a; color:#ffffff !important;">3기</option>
+                        <option value="4기" ${row.th === '4기' ? 'selected' : ''} style="background:#0f172a; color:#ffffff !important;">4기</option>
                     </select>
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">

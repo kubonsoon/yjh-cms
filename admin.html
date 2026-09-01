@@ -2893,29 +2893,32 @@
                 }
 
                 tbody.appendChild(tr);
-            }); // displayList 루프 마감 지점
+            }); // pagedList.forEach 루프 마감 지점
 
 
             // ----------------======================================================
             // [페이징 내비게이션]: 데이터가 설정된 페이지 한도를 초과 시 하단 중앙 슬롯에 버튼 자동 생성 마운트
             // ----------------======================================================
-            if (totalRecords > APPLICANT_PAGE_SIZE && paginator) {
+            const currentTotalCount = displayList.length;
+
+            if (currentTotalCount > APPLICANT_PAGE_SIZE && paginator) {
                 let paginationHTML = '';
-                paginationHTML += `<button onclick="window.currentApplicantPage--; refreshApplicantView();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
+                paginationHTML += `<button type="button" onclick="window.currentApplicantPage--; refreshApplicantView();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
 
                 for (let p = 1; p <= totalPages; p++) {
                     const isCurrent = (p === window.currentApplicantPage);
                     const activeBtnStyle = isCurrent
                         ? `background: var(--secondary-color) !important; color: #ffffff !important; border: 1px solid var(--secondary-color);`
                         : `background: #1a233a; color: var(--text-muted); border: 1px solid var(--border-color);`;
-                    paginationHTML += `<button onclick="window.currentApplicantPage = ${p}; refreshApplicantView();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
+                    paginationHTML += `<button type="button" onclick="window.currentApplicantPage = ${p}; refreshApplicantView();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
                 }
 
-                paginationHTML += `<button onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
+                paginationHTML += `<button type="button" onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
+
+                // 돔 슬롯에 최종 동적 사출 커밋
                 paginator.innerHTML = paginationHTML;
             }
         }
-
 
 
         /**

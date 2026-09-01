@@ -2227,7 +2227,6 @@
                     <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; text-align: center !important; vertical-align: middle; position: relative;">
-                    <!-- 💡 [화살표 영구 복원]: 복잡한 url 이미지를 걷어내고, select 요소를 감싸는 td에 흰색 유니코드 화살표(▼)를 절대 좌표로 띄워 브라우저 숨김 버그를 완벽히 우회했습니다 -->
                     <select id="inline-rec-th-${index}" class="inline-input" style="height: 32px; padding: 2px 20px 2px 6px !important; text-align: center; text-align-last: center; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; color: #ffffff !important; background: #0f172a !important; border: 2px solid var(--warning-color) !important; cursor: pointer !important; pointer-events: auto !important; width: 100% !important; box-sizing: border-box !important;">
                         <option value="1기" ${row.th === '1기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">1기</option>
                         <option value="2기" ${row.th === '2기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">2기</option>
@@ -2676,7 +2675,7 @@
                 return 0;
             });
 
-            // 💡 [카운팅 역산 패치]: 최신글이 상단에 배치되므로, 번호 분자 수치도 상단이 가장 높은 숫자가 매립되도록 순정 순번 수식 동기화
+            // 최신글이 상단에 배치되므로, 번호 분자 수치도 상단이 가장 높은 숫자가 매립되도록 순정 순번 수식 동기화
             // 이 가드가 구동되어야 리스트 맨 윗줄이 30/44명, 다음 줄이 29/44명 형태로 수려하게 정렬 출력됩니다.
             displayList.forEach((row, currentIdx) => {
                 row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
@@ -2686,15 +2685,16 @@
                 ).length;
             });
 
+            // 하단 내비게이션 버튼의 전역 변수인 window.currentApplicantPage 명칭과 100% 일치시켜 단선을 완파합니다.
+            const APPLICANT_PAGE_SIZE = 8;
             const totalRecords = displayList.length;
             const totalPages = Math.ceil(totalRecords / APPLICANT_PAGE_SIZE) || 1;
 
+            if (!window.currentApplicantPage) window.currentApplicantPage = 1;
             if (window.currentApplicantPage > totalPages) window.currentApplicantPage = totalPages;
-            if (window.currentApplicantPage < 1) window.currentApplicantPage = 1;
 
             const startIndex = (window.currentApplicantPage - 1) * APPLICANT_PAGE_SIZE;
             const endIndex = startIndex + APPLICANT_PAGE_SIZE;
-
             const pagedList = displayList.slice(startIndex, endIndex);
 
             // 15개 데이터 조각 루프 렌더링 시동

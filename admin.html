@@ -2940,7 +2940,7 @@
         /**
          * 🎯 인라인 편집본 최종 유효성 검사 및 LocalStorage 원본 데이터베이스 커밋 연동 함수
          */
- function saveApplicantInline(index) {
+function saveApplicantInline(index) {
     let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
     if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
         adminApplicantDB = dataStoreApplicant;
@@ -2959,20 +2959,21 @@
         const elSsn = document.getElementById(`inline-app-ssn-${index}`);
         const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
-        // 🎯 [원본 테이블 돔 정밀 싱크 마스터 매칭]: 화면 대상자 목록에 사출된 진짜 단일 참여비 셀렉트 박스 캡처
+        // 🎯 [원본 돔 구조 예외 방어 인터셉터]: 화면에 사출될 수 있는 모든 참여비 드롭다운 ID 교차 추적
         const elPay = document.getElementById(`inline-app-payStatus-${index}`) || 
-                      document.getElementById(`inline-app-pay-${index}`) || 
-                      document.getElementById(`inline-pay-status-${index}`);
+                      document.getElementById(`inline-app-payStatus1-${index}`) || 
+                      document.getElementById(`inline-pay-status-${index}`) ||
+                      document.getElementById(`inline-pay-status1-${index}`);
 
-        // 새로 개편된 대기/동의/미동의 가변 다크 셀렉터 드롭다운 돔 캡처
-        const elDuty = document.getElementById(`inline-app-duty-${index}`);
-        const elCall = document.getElementById(`inline-app-call-${index}`);
+        // 가변 다크 셀렉터 드롭다운 돔 캡처
+        const elDuty = document.getElementById(`inline-app-duty-${index}`) || document.getElementById(`inline-duty-${index}`);
+        const elCall = document.getElementById(`inline-app-call-${index}`) || document.getElementById(`inline-call-${index}`);
 
         if (elName && !elName.value.trim()) {
             return alert("대상자 성명은 필수 입력사항입니다.");
         }
 
-        // 🎯 [안전 오버라이드]: 엘리먼트가 존재할 때만 대장에 주입하여 간섭 오염 원천 차단
+        // 엘리먼트가 존재할 때만 대장에 안전하게 주입
         if (elTitle) adminApplicantDB[index].title = elTitle.value.trim();
         if (elTh) adminApplicantDB[index].th = elTh.value.trim();
         if (elCount) adminApplicantDB[index].count = elCount.value.trim();
@@ -2981,24 +2982,35 @@
         if (elSsn) adminApplicantDB[index].ssn = elSsn.value.trim();
         if (elPhone) adminApplicantDB[index].phone = elPhone.value.trim();
 
-        // 🎯 [참여비 필드 완벽 보정 트랜잭션]: 폼에서 선택된 참여비 상태값을 안전하게 가로채기
-        const selectedPayStatus = elPay ? elPay.value : (adminApplicantDB[index].payStatus || "접수");
+        // 🎯 [참여비 정산 데이터 무결성 동기화]: 사용자가 화면 드롭다운에서 선택한 진짜 값을 가로챔
+        const selectedPayValue = elPay ? elPay.value : null;
 
-        // 대시보드 통계 및 리스트 출력 규격인 "접수", "처리중", "지급완료" 무결성 매칭
-        adminApplicantDB[index].payStatus = selectedPayStatus;
-        adminApplicantDB[index].result = selectedPayStatus;
-        
-        // 내장 분할 데이터셋(1~3차)의 정산 무결성을 파괴하지 않도록 연쇄 동기화 적재
-        adminApplicantDB[index].payStatus1 = selectedPayStatus;
-        if (selectedPayStatus === "지급완료") {
-            adminApplicantDB[index].payStatus2 = "지급완료";
-            adminApplicantDB[index].payStatus3 = "지급완료";
+        if (selectedPayValue) {
+            // 사용자가 화면에서 값을 변경했다면 그 값을 마스터 필드에 확실하게 각인
+            adminApplicantDB[index].payStatus = selectedPayValue;
+            adminApplicantDB[index].result = selectedPayValue;
+            
+            // 내장 차수별 데이터 분기 오염 방지를 위한 하위 필드 연쇄 적재
+            adminApplicantDB[index].payStatus1 = selectedPayValue;
+            if (selectedPayValue === "지급완료") {
+                adminApplicantDB[index].payStatus2 = "지급완료";
+                adminApplicantDB[index].payStatus3 = "지급완료";
+            }
+        } else {
+            // 만약 참여비 엘리먼트 스캔이 안 되었다면 대장의 기존 값 무결성 유지 (폴백)
+            const fallbackPay = adminApplicantDB[index].payStatus || adminApplicantDB[index].payStatus1 || "접수";
+            adminApplicantDB[index].payStatus = fallbackPay;
+            adminApplicantDB[index].result = fallbackPay;
+            adminApplicantDB[index].payStatus1 = fallbackPay;
         }
 
-        // 활성화된 드롭다운 셀렉트 박스에서 받아온 동의 밸류 밀봉합니다.
+        // 활성화된 드롭다운 셀렉트 박스에서 받아온 동의 여부 밸류 밀봉
         if (elDuty) adminApplicantDB[index].isDutyAgreed = elDuty.value;
         if (elCall) adminApplicantDB[index].isCallAgreed = elCall.value;
-        adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
+        
+        if (!adminApplicantDB[index].stage || adminApplicantDB[index].stage.includes("참여(소집)")) {
+            adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
+        }
 
         // 4. [메모리 주소 파괴 가드] 전역 대장 배열 참조 위치 강제 일치화
         if (typeof dataStoreApplicant !== 'undefined') {
@@ -3010,7 +3022,7 @@
             adminApplicantDBGlobal[index] = adminApplicantDB[index];
         }
 
-        // 5. 로컬 스토리지 최종 세이브 커밋 (공통 함수 최우선 연동)
+        // 5. 로컬 스토리지 최종 세이브 커밋 (공통 함수 싱크)
         if (typeof commitToLocalStorage === 'function') {
             commitToLocalStorage();
         } else {
@@ -3035,9 +3047,7 @@
             renderApplicantTable();
         }
 
-        // ==========================================================================
-        // 🌟 [양방향 동기화 완수]: 모집공고 실시간 누적 카운터 동기화 작동
-        // ==========================================================================
+        // 모집공고 실시간 누적 카운터 동기화 연쇄 작동
         if (typeof refreshRecruitmentView === 'function') {
             refreshRecruitmentView();
         }
@@ -3049,7 +3059,6 @@
         alert("시스템 오류: 저장 중 문제가 발생했습니다.");
     }
 }
-
 
         /**
          * 호이스팅 꼬임을 완벽히 회피하기 위해 

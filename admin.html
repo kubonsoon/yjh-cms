@@ -2959,18 +2959,9 @@
                 const elSsn = document.getElementById(`inline-app-ssn-${index}`);
                 const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
-                // 🎯 [원본 소스 규격 전수 교차 매칭]: 화면 참여비 한 칸 안에 고정 배치될 수 있는 모든 차수별 ID 완벽 방어 추적
-                const elS1 = document.getElementById(`inline-app-payStatus1-${index}`) ||
-                    document.getElementById(`inline-pay-status1-${index}`) ||
-                    document.getElementById(`inline-app-pay1-${index}`);
-
-                const elS2 = document.getElementById(`inline-app-payStatus2-${index}`) ||
-                    document.getElementById(`inline-pay-status2-${index}`) ||
-                    document.getElementById(`inline-app-pay2-${index}`);
-
-                const elS3 = document.getElementById(`inline-app-payStatus3-${index}`) ||
-                    document.getElementById(`inline-pay-status3-${index}`) ||
-                    document.getElementById(`inline-app-pay3-${index}`);
+                const elS1 = document.getElementById(`inline-app-payStatus1-${index}`) || document.getElementById(`inline-pay-status1-${index}`);
+                const elS2 = document.getElementById(`inline-app-payStatus2-${index}`) || document.getElementById(`inline-pay-status2-${index}`);
+                const elS3 = document.getElementById(`inline-app-payStatus3-${index}`) || document.getElementById(`inline-pay-status3-${index}`);
 
                 // 새로 개편된 대기/동의/미동의 가변 다크 셀렉터 드롭다운 돔 캡처
                 const elDuty = document.getElementById(`inline-app-duty-${index}`);
@@ -2989,26 +2980,25 @@
                 if (elSsn) adminApplicantDB[index].ssn = elSsn.value.trim();
                 if (elPhone) adminApplicantDB[index].phone = elPhone.value.trim();
 
-                // 1~3차 참여비 정산 배지 정보 독립 스캔 및 기존 대장 보존 폴백 연동
+                // 🎯 [기획 변경사항 완벽 바인딩]: 1~3차 참여비 정산 배지 정보 독립 스캔 및 수정 데이터 수집 ("대기" 기본 기드로 보존)
                 const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
                 const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
                 const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
 
-                // 사용자가 수정한 차수별 상태값을 대장의 독립적 변수 칸에 개별 할당 보존
                 adminApplicantDB[index].payStatus1 = nextS1;
                 adminApplicantDB[index].payStatus2 = nextS2;
                 adminApplicantDB[index].payStatus3 = nextS3;
 
-                // 🎯 [원본 스펙 무결성 동기화]: 비교 조건을 프리셋에 설정된 "지급완료" 문자열 규격과 정밀 대응 일치화
+                // 🎯 [정산 스펙 문자열 교정 파이프라인]: 초기 프리셋 및 수정 상태 명칭 ("완료", "검토중", "접수") 100% 일치 매칭
                 let finalPipelineStatus = "접수";
-                if (nextS1 === "지급완료" && nextS2 === "지급완료" && nextS3 === "지급완료") {
-                    finalPipelineStatus = "지급완료";
-                } else if (nextS1 === "처리중" || nextS2 === "처리중" || nextS3 === "처리중") {
-                    finalPipelineStatus = "처리중";
+                if (nextS1 === "완료" && nextS2 === "완료" && nextS3 === "완료") {
+                    finalPipelineStatus = "완료";
+                } else if (nextS1 === "검토중" || nextS2 === "검토중" || nextS3 === "검토중") {
+                    finalPipelineStatus = "검토중";
                 } else if (nextS1 === "접수" || nextS2 === "접수" || nextS3 === "접수") {
                     finalPipelineStatus = "접수";
                 } else {
-                    finalPipelineStatus = "접수";
+                    finalPipelineStatus = "대기";
                 }
 
                 adminApplicantDB[index].payStatus = finalPipelineStatus;
@@ -3019,7 +3009,7 @@
                 if (elCall) adminApplicantDB[index].isCallAgreed = elCall.value;
                 adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
 
-                // 4. [메모리 폭파 방지 가드] 전역 대장 배열 참조 메모리 주소 동치화
+                // 4. [메모리 폭파 방지 가드] 전역 대장 배열 동기화
                 if (typeof dataStoreApplicant !== 'undefined') {
                     dataStoreApplicant = adminApplicantDB;
                     dataStoreApplicant[index] = adminApplicantDB[index];
@@ -3050,12 +3040,12 @@
                     renderApplicantTable();
                 }
 
-                // 모집공고 마스터 테이블 뷰 목록 함수 연쇄 실행 동기화
+                // 모집공고 마스터 테이블 누적 카운터 실시간 양방향 동기화 연쇄반응 가동
                 if (typeof refreshRecruitmentView === 'function') {
                     refreshRecruitmentView();
                 }
 
-                alert("📢 선택하신 대상자의 차수별 참여비 일정이 대장 및 상단 대시보드 통계판에 완벽히 반영되었습니다.");
+                alert("📢 변경하신 대기/접수/검토중/완료 파이프라인 규격에 맞춰 참여비 일정이 정상 저장되었습니다.");
 
             } catch (error) {
                 console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);

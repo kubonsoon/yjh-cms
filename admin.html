@@ -2959,26 +2959,20 @@
         const elSsn = document.getElementById(`inline-app-ssn-${index}`);
         const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
-        // 🎯 [원본 소스 정밀 역추적 매칭]: 테이블 뷰에서 사출할 수 있는 가변 ID 규격 일체 교차 방어 확인
-        const elS1 = document.getElementById(`inline-app-payStatus1-${index}`) || 
-                     document.getElementById(`inline-pay-status1-${index}`) || 
-                     document.getElementById(`inline-pay-status-${index}`);
-                     
-        const elS2 = document.getElementById(`inline-app-payStatus2-${index}`) || 
-                     document.getElementById(`inline-pay-status2-${index}`);
-                     
-        const elS3 = document.getElementById(`inline-app-payStatus3-${index}`) || 
-                     document.getElementById(`inline-pay-status3-${index}`);
+        // 🎯 [원본 테이블 돔 정밀 싱크 마스터 매칭]: 화면 대상자 목록에 사출된 진짜 단일 참여비 셀렉트 박스 캡처
+        const elPay = document.getElementById(`inline-app-payStatus-${index}`) || 
+                      document.getElementById(`inline-app-pay-${index}`) || 
+                      document.getElementById(`inline-pay-status-${index}`);
 
-        // 새로 개편된 대기/동의/미동의 가변 다크 셀렉터 드롭다운 돔 교차 추적
-        const elDuty = document.getElementById(`inline-app-duty-${index}`) || document.getElementById(`inline-duty-${index}`);
-        const elCall = document.getElementById(`inline-app-call-${index}`) || document.getElementById(`inline-call-${index}`);
+        // 새로 개편된 대기/동의/미동의 가변 다크 셀렉터 드롭다운 돔 캡처
+        const elDuty = document.getElementById(`inline-app-duty-${index}`);
+        const elCall = document.getElementById(`inline-app-call-${index}`);
 
         if (elName && !elName.value.trim()) {
             return alert("대상자 성명은 필수 입력사항입니다.");
         }
 
-        // [안전 오버라이드]: 엘리먼트가 존재할 때만 대장에 주입하여 간섭 오염 원천 차단
+        // 🎯 [안전 오버라이드]: 엘리먼트가 존재할 때만 대장에 주입하여 간섭 오염 원천 차단
         if (elTitle) adminApplicantDB[index].title = elTitle.value.trim();
         if (elTh) adminApplicantDB[index].th = elTh.value.trim();
         if (elCount) adminApplicantDB[index].count = elCount.value.trim();
@@ -2987,40 +2981,26 @@
         if (elSsn) adminApplicantDB[index].ssn = elSsn.value.trim();
         if (elPhone) adminApplicantDB[index].phone = elPhone.value.trim();
 
-        // 1~3차 참여비 정산 배지 정보 독립 스캔 및 기존 대장 보존 폴백 연동
-        const nextS1 = elS1 ? elS1.value : (adminApplicantDB[index].payStatus1 || "대기");
-        const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
-        const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
+        // 🎯 [참여비 필드 완벽 보정 트랜잭션]: 폼에서 선택된 참여비 상태값을 안전하게 가로채기
+        const selectedPayStatus = elPay ? elPay.value : (adminApplicantDB[index].payStatus || "접수");
 
-        adminApplicantDB[index].payStatus1 = nextS1;
-        adminApplicantDB[index].payStatus2 = nextS2;
-        adminApplicantDB[index].payStatus3 = nextS3;
-
-        // [지능형 통계 현황판 연쇄 연동]: 시스템 가상 DB 규격인 "지급완료", "처리중", "접수" 정밀 판정
-        let finalPipelineStatus = "접수";
-        if (nextS1 === "지급완료" && nextS2 === "지급완료" && nextS3 === "지급완료") {
-            finalPipelineStatus = "지급완료";
-        } else if (nextS1 === "처리중" || nextS2 === "처리중" || nextS3 === "처리중") {
-            finalPipelineStatus = "처리중";
-        } else if (nextS1 === "접수" || nextS2 === "접수" || nextS3 === "접수") {
-            finalPipelineStatus = "접수";
-        } else {
-            finalPipelineStatus = "접수";
+        // 대시보드 통계 및 리스트 출력 규격인 "접수", "처리중", "지급완료" 무결성 매칭
+        adminApplicantDB[index].payStatus = selectedPayStatus;
+        adminApplicantDB[index].result = selectedPayStatus;
+        
+        // 내장 분할 데이터셋(1~3차)의 정산 무결성을 파괴하지 않도록 연쇄 동기화 적재
+        adminApplicantDB[index].payStatus1 = selectedPayStatus;
+        if (selectedPayStatus === "지급완료") {
+            adminApplicantDB[index].payStatus2 = "지급완료";
+            adminApplicantDB[index].payStatus3 = "지급완료";
         }
 
-        adminApplicantDB[index].payStatus = finalPipelineStatus;
-        adminApplicantDB[index].result = finalPipelineStatus;
-
-        // 활성화된 드롭다운 셀렉트 박스에서 받아온 밸류 세팅
+        // 활성화된 드롭다운 셀렉트 박스에서 받아온 동의 밸류 밀봉합니다.
         if (elDuty) adminApplicantDB[index].isDutyAgreed = elDuty.value;
         if (elCall) adminApplicantDB[index].isCallAgreed = elCall.value;
-        
-        // 기존 원본 소스의 무결성 유지를 위한 기수 데이터 결합
-        if (!adminApplicantDB[index].stage || adminApplicantDB[index].stage.includes("참여(소집)")) {
-            adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
-        }
+        adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
 
-        // 4. [메모리 폭파 방지 가드] 전역 대장 배열 동기화 및 메모리 포인터 강제 일치
+        // 4. [메모리 주소 파괴 가드] 전역 대장 배열 참조 위치 강제 일치화
         if (typeof dataStoreApplicant !== 'undefined') {
             dataStoreApplicant = adminApplicantDB;
             dataStoreApplicant[index] = adminApplicantDB[index];
@@ -3030,7 +3010,7 @@
             adminApplicantDBGlobal[index] = adminApplicantDB[index];
         }
 
-        // 5. 원본 소스 31페이지의 트랜잭션 함수를 활용한 로컬 스토리지 최종 세이브 커밋
+        // 5. 로컬 스토리지 최종 세이브 커밋 (공통 함수 최우선 연동)
         if (typeof commitToLocalStorage === 'function') {
             commitToLocalStorage();
         } else {
@@ -3055,18 +3035,22 @@
             renderApplicantTable();
         }
 
-        // 🌟 [양방향 동기화 완수] 대상자 정보 격리 수정 검지로 모집공고 실시간 누적 카운터 동기화 작동
+        // ==========================================================================
+        // 🌟 [양방향 동기화 완수]: 모집공고 실시간 누적 카운터 동기화 작동
+        // ==========================================================================
         if (typeof refreshRecruitmentView === 'function') {
             refreshRecruitmentView();
         }
 
-        alert("📢 선택하신 대상자의 정보 및 당직/소집 정산 상태가 대장에 완전 반영되었습니다.");
+        alert("📢 선택하신 대상자의 정보 및 참여비 정산 상태가 대장에 완전 반영되었습니다.");
 
     } catch (error) {
         console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);
         alert("시스템 오류: 저장 중 문제가 발생했습니다.");
     }
 }
+
+
         /**
          * 호이스팅 꼬임을 완벽히 회피하기 위해 
          * 구형 이름(saveApplicantRecord) 경로 링크 전산망을 이 자리에 고유 선언 기법으로 종결 융합합니다.

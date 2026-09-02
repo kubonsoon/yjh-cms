@@ -3277,15 +3277,21 @@
 
                 } else {
                     // [수정 완료 모드] (기존 데이터 구조 유실 방지 가드 상속 원형 유지)
-                    if (!payload.result) payload.result = document.getElementById('form-app-result')?.value || dataStoreApplicant[editIndex].result || '접수';
-                    if (!payload.payStatus) payload.payStatus = payload.result;
+                    // 🎯 [교정 완수]: 구형 찌꺼기 텍스트인 '접수' 리셋을 제거하고, 사용자가 수정한 1차 참여비 상태(payStatus1)를 마스터 필드에 정밀하게 강제 락인
+                    if (!payload.payStatus1) {
+                        payload.payStatus1 = dataStoreApplicant[editIndex].payStatus1 || '대기';
+                    }
+
+                    // 마스터 결과값 변수(result)와 정산 상태(payStatus)를 최신 1차 참여비 단어와 100% 한 몸으로 묶어 상속 [index: 0.1.174, 0.1.175]
+                    payload.payStatus = payload.payStatus1;
+                    payload.result = payload.payStatus1;
 
                     // 수정 시에는 관리자가 선택해둔 기존 상태를 그대로 유지 및 상속
                     payload.isDutyAgreed = dataStoreApplicant[editIndex].isDutyAgreed || "대기";
                     payload.isCallAgreed = dataStoreApplicant[editIndex].isCallAgreed || "대기";
                     payload.isAgreed = dataStoreApplicant[editIndex].isAgreed || "대기";
 
-                    dataStoreApplicant[editIndex] = payload; //
+                    dataStoreApplicant[editIndex] = payload;
                     alert(`📋 정보 갱신 완료: [${n}] 대상자의 마스터 레코드가 업데이트되었습니다.`);
                 }
 
@@ -3373,13 +3379,13 @@
                 phone: getOnlyNumbers(ph),
 
                 // 💡 [참여비 엔진 전면 수리]: 3단 분화된 셀렉트 박스에서 실시간 선택값 개별 스캔 바인딩
-                payStatus1: elPay1 ? elPay1.value : (origin.payStatus1 || "접수"),
+                payStatus1: elPay1 ? elPay1.value : (origin.payStatus1 || "대기"),
                 payStatus2: elPay2 ? elPay2.value : (origin.payStatus2 || "대기"),
                 payStatus3: elPay3 ? elPay3.value : (origin.payStatus3 || "대기"),
 
                 // 💡 [무결성 연동 가드]: 대표님 정산 기준 스코어보드 통계 계산용 메인 상태는 '1차 참여비 지급 상태'와 완벽 동기화 [index: 0.1.30]
-                result: elPay1 ? elPay1.value : (origin.result || "접수"),
-                payStatus: elPay1 ? elPay1.value : (origin.payStatus || "접수"),
+                result: elPay1 ? elPay1.value : (origin.result || "대기"),
+                payStatus: elPay1 ? elPay1.value : (origin.payStatus || "대기"),
 
                 isDutyAgreed: elDuty ? elDuty.value : (origin.isDutyAgreed || "대기"),
                 isCallAgreed: elCall ? elCall.value : (origin.isCallAgreed || "대기"),
@@ -3481,9 +3487,9 @@
                 phone: elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || ""),
 
                 // 3단 분할 정산 채널 분기 독립 싱크 일치 유지
-                result: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].result || "접수"),
-                payStatus: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus || "접수"),
-                payStatus1: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus1 || "접수"),
+                result: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].result || "대기"),
+                payStatus: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus || "대기"),
+                payStatus1: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus1 || "대기"),
 
                 isDutyAgreed: elDuty ? elDuty.value : (dataStoreApplicant[idx].isDutyAgreed || "대기"),
                 isCallAgreed: elCall ? elCall.value : (dataStoreApplicant[idx].isCallAgreed || "대기"),
@@ -3957,13 +3963,13 @@
                 period: "72",
                 name: en,
 
-                // 🎯 형님 지시 완료: 대장 스토리지에는 성별 기호가 완벽 세척된 순수 날짜 숫자만 기록 보존 [INDEX]
+                // 대장 스토리지에는 성별 기호가 완벽 세척된 순수 날짜 숫자만 기록 보존 [INDEX]
                 ssn: finalizedSsn,
 
                 phone: ep,
-                result: "접수",
-                payStatus: "접수",
-                payStatus1: "접수",
+                result: "대기",
+                payStatus: "대기",
+                payStatus1: "대기",
                 payStatus2: "대기",
                 payStatus3: "대기",
                 isDutyAgreed: "대기",
@@ -6101,12 +6107,18 @@
 
                     let receivedCount = 0, processingCount = 0, completeCount = 0;
                     filteredData.forEach(row => {
-                        let status = (row.result || row.payStatus || '접수').toString().trim();
-                        if (status === '확인' || status === '접수완료') status = '접수';
+                        //데이터 유실 시 초기 디폴트선 상태인 '대기'로 안전 폴백 처리하여 접수현황판 누수 원천 차단 [index: 0.1.175]
+                        let status = (row.result || row.payStatus || '대기').toString().trim();
 
-                        if (status === '접수') receivedCount++;
-                        else if (status === '처리중') processingCount++;
-                        else if (status === '처리완료' || status === '지급완료' || status === '완료') completeCount++;
+                        //옛날 용어(확인, 처리완료 등) 비교문을 전면 삭제하고 오직 순정 4대 표기 단어로만 1:1 정밀 집계 [index: 0.1.175]
+                        if (status === '접수') {
+                            receivedCount++;
+                        } else if (status === '처리중') {
+                            processingCount++;
+                        } else if (status === '완료') {
+                            completeCount++;
+                        }
+                        // '대기' 상태인 인원들은 어떠한 조건문에도 걸리지 않으므로 기획 대원칙대로 상단 진행 통계에서 자연스럽게 제외 처리됩니다.
                     });
 
                     // 🎯 [UI 동시 렌더링]: querySelectorAll 전수 주입 방식을 도입하여 두 화면 카드를 동시에 1/60명 형태로 갱신합니다.

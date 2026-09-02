@@ -2845,8 +2845,7 @@
         <td style="width: 80px; vertical-align: middle;">
             <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
         </td>
-        <td style="width: 85px; vertical-align: middle;">
-            <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; background: var(--card-color) !important;">
+        <td style="text-align: center; width: 85px; min-width: 85px; font-size: 14px; color: #ffffff; font-weight: 500;">${cleanSsnToBirthDate(row.ssn) || '-'}
         </td>
         <td style="width: 65px; vertical-align: middle; text-align: center;">
             <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">

@@ -3452,15 +3452,20 @@
             const idx = dataStoreApplicant.findIndex(d => d.uid === id);
             if (idx === -1) return;
 
-            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크
+            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크 (3단 멀티 참여비 셀렉트 박스 전수 색인 완료)
             const elTitle = document.getElementById(`inline-app-title-${index}`);
-            const elTh = document.getElementById(`inline-app-th-${index}`); // 💡 마크업 구조와 일치하는 셀렉트 박스 요소를 완벽히 색인합니다.
+            const elTh = document.getElementById(`inline-app-th-${index}`);
             const elCount = document.getElementById(`inline-app-count-${index}`);
             const elPeriod = document.getElementById(`inline-app-period-${index}`);
             const elName = document.getElementById(`inline-app-name-${index}`);
             const elSsn = document.getElementById(`inline-app-ssn-${index}`);
             const elPhone = document.getElementById(`inline-app-phone-${index}`);
-            const elPayStatus = document.getElementById(`inline-app-status-${index}`);
+
+            // 🎯 [교정 완수]: 단일 구형 박스 대신 1차, 2차, 3차 멀티 셀렉트 박스 요소를 정확히 타겟팅 색인합니다.
+            const elPay1 = document.getElementById(`inline-app-pay1-${index}`);
+            const elPay2 = document.getElementById(`inline-app-pay2-${index}`);
+            const elPay3 = document.getElementById(`inline-app-pay3-${index}`);
+
             const elDuty = document.getElementById(`inline-app-duty-${index}`);
             const elCall = document.getElementById(`inline-app-call-${index}`);
 
@@ -3468,35 +3473,46 @@
             const currentSsnVal = elSsn ? elSsn.value.trim().toUpperCase() : (dataStoreApplicant[idx].ssn || "");
             const currentNameVal = elName ? elName.value.trim() : (dataStoreApplicant[idx].name || "");
 
+            // 수집된 참여비 상태값 정화 가이드 (4대 순정 단어 보장)
+            const cleanPayVal = (v, fallback) => {
+                if (!v) return fallback || "대기";
+                return v.toString().trim();
+            };
+
+            const nextPay1 = elPay1 ? cleanPayVal(elPay1.value, "대기") : (dataStoreApplicant[idx].payStatus1 || "대기");
+            const nextPay2 = elPay2 ? cleanPayVal(elPay2.value, "대기") : (dataStoreApplicant[idx].payStatus2 || "대기");
+            const nextPay3 = elPay3 ? cleanPayVal(elPay3.value, "대기") : (dataStoreApplicant[idx].payStatus3 || "대기");
+
             // 2. 가상 데이터베이스 구조에 안전한 값 주입 (성별 실시간 추적 엔진 연동 완비)
             dataStoreApplicant[idx] = {
                 ...dataStoreApplicant[idx], // 기존 첨부 이미지 주소 등 핵심 원본 데이터 누락 없이 완벽 상속 가드
                 uid: id,
                 title: elTitle ? elTitle.value.trim() : (dataStoreApplicant[idx].title || ""),
-                th: elTh ? elTh.value : (dataStoreApplicant[idx].th || ""), // 💡 기수 셀렉트 박스의 선택 값을 유실 없이 다이렉트로 반영합니다.
+                th: elTh ? elTh.value : (dataStoreApplicant[idx].th || ""),
                 count: elCount ? getOnlyNumbers(elCount.value) : (dataStoreApplicant[idx].count || "0"),
                 period: elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0"),
                 name: currentNameVal,
 
-                // 🎯 [생년월일 원형 보존 적재]: 영문 성별 식별 기호 및 하이픈 유지를 허용합니다.
+                // 생년월일 원형 보존 적재 및 성별 실시간 재연산 동기화
                 ssn: currentSsnVal,
-
-                // 🎯 [실시간 성별 추적 이식 완료]: 수정 창에서 바꾼 생년월일 데이터를 기반으로 즉시 성별(남/여)을 재연산하여 실시간 동기화합니다.
                 gender: typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(currentSsnVal, currentNameVal) : "미정",
-
                 phone: elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || ""),
 
-                // 3단 분할 정산 채널 분기 독립 싱크 일치 유지
-                result: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].result || "대기"),
-                payStatus: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus || "대기"),
-                payStatus1: elPayStatus ? elPayStatus.value : (dataStoreApplicant[idx].payStatus1 || "대기"),
+                // 🎯 [3단 분할 정산 채널 독립 싱크 및 마스터 스코어보드 락인 완수]
+                payStatus1: nextPay1,
+                payStatus2: nextPay2,
+                payStatus3: nextPay3,
+
+                // 상단 통계판(25페이지 스코어보드) 연동을 위해 대표 정산 상태(result, payStatus)를 1차 참여비와 100% 다이렉트 싱크
+                result: nextPay1,
+                payStatus: nextPay1,
 
                 isDutyAgreed: elDuty ? elDuty.value : (dataStoreApplicant[idx].isDutyAgreed || "대기"),
                 isCallAgreed: elCall ? elCall.value : (dataStoreApplicant[idx].isCallAgreed || "대기"),
                 isAgreed: dataStoreApplicant[idx].isAgreed || "대기",
 
                 category: dataStoreApplicant[idx].category || "내분비내과 / 대장 수동 등록",
-                stage: `${elTh ? elTh.value : (dataStoreApplicant[idx].th || "1기")} 참여(소집)` // 💡 스테이지 텍스트 역시 동적 반영
+                stage: `${elTh ? elTh.value : (dataStoreApplicant[idx].th || "1기")} 참여(소집)`
             };
 
             // 3. 로컬스토리지 영구 커밋 및 인라인 에디팅 수정 포인터 포기 해제

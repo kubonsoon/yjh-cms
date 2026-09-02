@@ -6279,14 +6279,18 @@
             });
             // 라이브 정산 진행률 내부 미니 배지 렌더러 (원본 소스 1:1 이식 보존)
             const buildHistoryBadge = (val) => {
-                let s = val;
-                if (s === '확인' || s === '접수완료') s = '접수';
-                if (s === '지급완료') s = '완료';
-                let style = "background:#334155; color:#cbd5e1;";
+                let s = (val || '대기').toString().trim();
 
-                if (s === '접수') style = "background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3);";
-                else if (s === '처리중') style = "background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);";
-                else if (s === '완료' || s === '처리완료') style = "background:rgba(74,222,128,0.15); color:#4ade80; border:1px solid rgba(74,222,128,0.3);";
+                // 기본 '대기' 상태 테마 (메인 목록 및 동의 현황과 동일한 차분한 무채색 회색 계열 매칭)
+                let style = "background: rgba(148, 163, 184, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25);";
+
+                if (s === '접수') {
+                    style = "background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;"; // 🔵 접수 (스카이 블루)
+                } else if (s === '처리중') {
+                    style = "background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24;"; // 🟡 처리중 (고명도 옐로우)
+                } else if (s === '완료') {
+                    style = "background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid #34d399;"; // 🟢 완료 (고명도 그린)
+                }
 
                 return `<span class="lvl-badge" style="${style} padding:2px 8px; font-size:11px; font-weight:700; border-radius:4px; display:inline-block;">${s}</span>`;
             };
@@ -6297,11 +6301,19 @@
                 const isCurrentJob = (hist.uid && row.uid && hist.uid === row.uid) ||
                     (hist.title === row.title && hist.th === row.th);
 
-                let hStatus = (hist.result || hist.payStatus || '접수').toString().trim();
-                if (hStatus === '확인' || hStatus === '접수완료') hStatus = '접수';
-                if (hStatus === '지급완료') hStatus = '처리완료';
+                // 🎯 [교정 완수]: 구형 단어 찌꺼기 변환을 전면 삭제하고 순정 4대 표준 단어만 다이렉트 매칭 [index: 0.1.182]
+                let hStatus = (hist.result || hist.payStatus || '대기').toString().trim();
 
-                let hBadgeColor = hStatus === '접수' ? '#38bdf8' : hStatus === '처리중' ? '#fbbf24' : '#4ade80';
+                // 🎯 [교정 완수]: 4대 표준 단어별 고대비 폰트 컬러 스타일 정밀 인젝션 (누락되었던 '대기' 테마 색상 추가) [index: 0.1.149]
+                let hBadgeColor = "#94a3b8"; // 대기: 차분한 무채색 회색 계열
+                if (hStatus === '접수') {
+                    hBadgeColor = "#38bdf8"; // 접수: 스카이 블루
+                } else if (hStatus === '처리중') {
+                    hBadgeColor = "#fbbf24"; // 처리중: 고명도 옐로우
+                } else if (hStatus === '완료') {
+                    hBadgeColor = "#34d399"; // 완료: 고명도 그린
+                }
+
                 const prefixTag = isCurrentJob
                     ? `<span style="color:#0ea5e9; font-weight:800; margin-right:6px;">[현재시험]</span>`
                     : `<span style="color:#94a3b8; font-weight:700; margin-right:6px;">[과거시험]</span>`;

@@ -1579,7 +1579,7 @@
                         uid: 203, name: "진재영", ssn: "050607", phone: "01023469876",
                         title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96",
                         category: "비뇨의학과 / 4 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
-                        result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기", // 💡 '지급완료'를 '완료'로 변경
+                        result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
@@ -1600,7 +1600,7 @@
                         uid: 303, name: "이정용", ssn: "821208", phone: "010-7896-9522",
                         title: "삼진제약 팔보시클립", th: "3기", count: "30", period: "96",
                         category: "혈액종양내과 / 3 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
-                        result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기", // 💡 '지급완료'를 '완료'로 변경
+                        result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
@@ -1639,7 +1639,7 @@
                     // 3. 진재영 (경동제약) -> 디폴트: 완료 [index: 0.1.33]
                     else if (row.name === "진재영" && row.title.includes("경동제약")) {
                         if (row.result !== "완료" || row.payStatus1 !== "완료" || row.payStatus2 !== "대기") {
-                            row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true; // 💡 '지급완료' -> '완료'로 변경
+                            row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
                     // 4. 김정환 (명인제약) -> 디폴트: 접수 [index: 0.1.32]
@@ -1657,7 +1657,7 @@
                     // 6. 이정용 (삼진제약) -> 디폴트: 완료 [index: 0.1.32]
                     else if (row.name === "이정용" && row.title.includes("삼진제약")) {
                         if (row.result !== "완료" || row.payStatus1 !== "완료") {
-                            row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true; // 💡 '지급완료' -> '완료'로 변경
+                            row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
                     // 7. 김태희 (파마사이언스) -> 디폴트: 처리중 [index: 0.1.33]
@@ -2118,8 +2118,19 @@
                 statusDiv.style.whiteSpace = "nowrap";
 
                 const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
-                // 지급 완료 시 초록색 고대비 강조, 그 외 대기 색상 매칭 [index: 0.1.1]
-                const statusColor = currentPayStatus === "지급완료" ? "var(--success-color)" : "#fbbf24";
+
+                // 🎯 [교정 완수]: 4대 표준 단어별로 고대비 시그니처 폰트 컬러 스타일을 인젝션합니다. [index: 0.1.150]
+                let statusColor = "#94a3b8"; // 기본 대기 색상 (설명글 그레이)
+                if (currentPayStatus === "접수") {
+                    statusColor = "#38bdf8"; // 스카이 블루 (디자인 시스템 컬러)
+                } else if (currentPayStatus === "처리중") {
+                    statusColor = "#fbbf24"; // 경고성 옐로우 (디자인 시스템 컬러)
+                } else if (currentPayStatus === "완료") {
+                    statusColor = "var(--success-color)"; // 통과성 그린 (디자인 시스템 고명도 그린)
+                } else if (currentPayStatus === "대기") {
+                    statusColor = "var(--danger-color)"; // 경고성 레드 (디자인 시스템 고명도 레드)
+                }
+
                 statusDiv.innerHTML = `지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>`;
 
                 cardTr.appendChild(infoDiv);
@@ -2755,16 +2766,21 @@
                 docsHTML += `</div>`;
 
                 const buildCoreMiniStatusBadgeHTML = (label, val) => {
+                    // 🎯 [교정 완수]: 구형 단어(확인, 검토중 등)를 완전히 삭제하고 순정 4대 단어만 다이렉트 매칭
                     let s = val || '대기';
-                    // 외부 구형 규격 데이터 오염 방지 가드
-                    if (s === '확인' || s === '접수완료') s = '접수';
-                    if (s === '지급완료' || s === '처리완료') s = '완료';
-                    if (s === '검토중') s = '처리중';
 
-                    let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
-                    if (s === '접수') st = "background:var(--card-color); color:#38bdf8; border:1px solid #38bdf8;";
-                    else if (s === '처리중') st = "background:var(--card-color); color:#fbbf24; border:1px solid #fbbf24;";
-                    else if (s === '완료') st = "background:var(--card-color); color:#34d399; border:1px solid #34d399;";
+                    // 🎯 [4단계 색상 표시자 정의]: 디자인 시스템 고대비 컬러 변수 및 시그니처 색상 상호 결합 [index: 0.1.149]
+                    let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;"; // 기본 그레이 폴백
+
+                    if (s === '대기') {
+                        st = "background:rgba(248,113,113,0.1); color:var(--danger-color); border:1px solid var(--danger-color);"; // 🔴 1단계: 대기 (고명도 레드) [index: 0.1.149]
+                    } else if (s === '접수') {
+                        st = "background:rgba(14,165,233,0.1); color:#38bdf8; border:1px solid #38bdf8;"; // 🔵 2단계: 접수 (스카이 블루)
+                    } else if (s === '처리중') {
+                        st = "background:rgba(251,191,36,0.1); color:var(--warning-color); border:1px solid var(--warning-color);"; // 🟡 3단계: 처리중 (고명도 옐로우) [index: 0.1.149]
+                    } else if (s === '완료') {
+                        st = "background:rgba(74,222,128,0.1); color:var(--success-color); border:1px solid var(--success-color);"; // 🟢 4단계: 완료 (고명도 그린) [index: 0.1.149]
+                    }
 
                     return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s}</span></div>`;
                 };
@@ -2843,30 +2859,37 @@
             <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
         </td>
         
-        <!-- 💡 [교정 핵심 구역]: 참여비 1차, 2차, 3차 수정을 위한 3단 멀티 셀렉트 박스 인프라 구축 -->
+      <!-- 💡 [교정 및 흰색 글자 고정 완료]: 참여비 1차, 2차, 3차 수정을 위한 3단 멀티 셀렉트 박스 인프라 구축 -->
         <td style="width: 85px; vertical-align: middle; text-align: center;">
             <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
-                <!-- 1차 참여비 상태 제어 -->
-                <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:75px; cursor: pointer;">
+                
+                <!-- 1차 참여비 상태 제어 (순백색 글자 고정) -->
+                <select id="inline-app-pay1-${masterIndex}" class="inline-input" 
+                    style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
                     <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대기</option>
                     <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>1차: 접수</option>
                     <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>1차: 처리중</option>
-                    <option value="지급완료" ${row.payStatus1 === '지급완료' ? 'selected' : ''}>1차: 지급</option>
+                    <option value="완료" ${row.payStatus1 === '완료' ? 'selected' : ''}>1차: 완료</option>
                 </select>
-                <!-- 2차 참여비 상태 제어 -->
-                <select id="inline-app-pay2-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:75px; cursor: pointer;">
+                
+                <!-- 2차 참여비 상태 제어 (순백색 글자 고정) -->
+                <select id="inline-app-pay2-${masterIndex}" class="inline-input" 
+                    style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
                     <option value="대기" ${row.payStatus2 === '대기' ? 'selected' : ''}>2차: 대기</option>
                     <option value="접수" ${row.payStatus2 === '접수' ? 'selected' : ''}>2차: 접수</option>
                     <option value="처리중" ${row.payStatus2 === '처리중' ? 'selected' : ''}>2차: 처리중</option>
-                    <option value="지급완료" ${row.payStatus2 === '지급완료' ? 'selected' : ''}>2차: 지급</option>
+                    <option value="완료" ${row.payStatus2 === '완료' ? 'selected' : ''}>2차: 완료</option>
                 </select>
-                <!-- 3차 참여비 상태 제어 -->
-                <select id="inline-app-pay3-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:75px; cursor: pointer;">
+                
+                <!-- 3차 참여비 상태 제어 (순백색 글자 고정) -->
+                <select id="inline-app-pay3-${masterIndex}" class="inline-input" 
+                    style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
                     <option value="대기" ${row.payStatus3 === '대기' ? 'selected' : ''}>3차: 대기</option>
                     <option value="접수" ${row.payStatus3 === '접수' ? 'selected' : ''}>3차: 접수</option>
                     <option value="처리중" ${row.payStatus3 === '처리중' ? 'selected' : ''}>3차: 처리중</option>
-                    <option value="지급완료" ${row.payStatus3 === '지급완료' ? 'selected' : ''}>3차: 지급</option>
+                    <option value="완료" ${row.payStatus3 === '완료' ? 'selected' : ''}>3차: 완료</option>
                 </select>
+                
             </div>
         </td>
         
@@ -5164,9 +5187,6 @@
                 const matchedPaySchedule = matchedRec && matchedRec.paySchedule ? matchedRec.paySchedule : "추후공지";
 
                 let statusText = historyRow.payStatus || '대기';
-                if (statusText === '확인' || statusText === '접수완료') statusText = '접수';
-                if (statusText === '지급완료') statusText = '처리완료';
-                if (statusText === '처리중') statusText = '재무 검토 (처리중)';
 
                 // 오리지널 [임상시험 배정 이력] 내부에 '참여비 세부 지급일정' 행을 정밀 결합 추가
                 historyCardsHTML += `
@@ -5217,23 +5237,27 @@
 
             // E. 하단 닫기 단추 및 4단계 상태 제어 버튼 결합 마운트 [원안 프레임 100% 보존]
             actionSlot.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; flex-wrap: nowrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; flex-wrap: nowrap;">
             <div style="display: flex; gap: 8px;">
+                <!-- 1. 대기 상태 제어 단추 -->
+                <button type="button" onclick="updateApplicantStatusViaModal(${index}, '대기')" 
+                    style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); color: var(--danger-color); padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size:12.5px; transition: all 0.2s;">
+                    <i class="fa-solid fa-user-slash"></i> 대기
+                </button>
+                <!-- 2. 접수 상태 제어 단추 -->
                 <button type="button" onclick="updateApplicantStatusViaModal(${index}, '접수')" 
                     style="background: rgba(14, 165, 233, 0.15); border: 1px solid #0ea5e9; color: #38bdf8; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size:12.5px; transition: all 0.2s;">
-                    <i class="fa-solid fa-user-check"></i> 참여확인(접수)
+                    <i class="fa-solid fa-user-check"></i> 접수
                 </button>
+                <!-- 3. 처리중 상태 제어 단추 -->
                 <button type="button" onclick="updateApplicantStatusViaModal(${index}, '처리중')" 
                     style="background: rgba(245, 158, 11, 0.15); border: 1px solid #fbbf24; color: #fbbf24; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size:12.5px; transition: all 0.2s;">
-                    <i class="fa-solid fa-calculator"></i> 재무검토
+                    <i class="fa-solid fa-calculator"></i> 처리중
                 </button>
-                <button type="button" onclick="updateApplicantStatusViaModal(${index}, '지급완료')" 
+                <!-- 4. 완료 상태 제어 단추 -->
+                <button type="button" onclick="updateApplicantStatusViaModal(${index}, '완료')" 
                     style="background: rgba(52, 211, 153, 0.15); border: 1px solid #34d399; color: #34d399; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size:12.5px; transition: all 0.2s;">
-                    <i class="fa-solid fa-money-check-dollar"></i> 지급완료
-                </button>
-                <button type="button" onclick="updateApplicantStatusViaModal(${index}, '대기')" 
-                    style="background: rgba(239, 68, 68, 0.1) ; border: 1px solid var(--danger-color); color: var(--danger-color); padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size:12.5px; transition: all 0.2s;">
-                    <i class="fa-solid fa-user-slash"></i> 미참석/탈락(대기)
+                    <i class="fa-solid fa-money-check-dollar"></i> 완료
                 </button>
             </div>
             <div>
@@ -5751,23 +5775,21 @@
 
                 let totalCount = filteredData.length; // 참여현황 총 n수
                 let receivedCount = 0;               // 1단계: 청구서 접수 현황
-                let processingCount = 0;             // 2단계: 재무 검토 (처리중)
-                let completeCount = 0;               // 3단계: 정산 종결 (지급완료)
+                let processingCount = 0;             // 2단계: 처리중
+                let completeCount = 0;               // 3단계: 지급완료
 
                 // 2. [기획 핵심]: 대기, 접수, 처리중, 처리완료 토큰을 오차 없이 4단계에 매핑 카운트
                 filteredData.forEach(row => {
                     const status = row.result || row.payStatus || "대기";
 
-                    // "대기" 또는 "접수" 상태는 모두 1단계 [청구서 접수 현황]에 합산
-                    if (status === "대기" || status === "접수") {
+                    // 🎯 4대 표준 표기법 단어 규격과 조건문을 한 자의 오차도 없이 완벽 일치 [INDEX: 0.1.175]
+                    if (status === "접수") {
                         receivedCount++;
                     }
-                    // "처리중" 상태는 2단계 [재무 검토]에 합산
                     else if (status === "처리중") {
                         processingCount++;
                     }
-                    // "지급완료" 또는 기획하신 "처리완료" 상태는 3단계 [정산 종결]에 완벽 마운트
-                    else if (status === "지급완료" || status === "처리완료") {
+                    else if (status === "완료") {
                         completeCount++;
                     }
                 });

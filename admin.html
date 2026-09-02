@@ -1579,7 +1579,7 @@
                         uid: 203, name: "진재영", ssn: "050607", phone: "01023469876",
                         title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96",
                         category: "비뇨의학과 / 4 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
-                        result: "지급완료", payStatus: "지급완료", payStatus1: "지급완료", payStatus2: "대기", payStatus3: "대기",
+                        result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기", // 💡 '지급완료'를 '완료'로 변경
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
@@ -1600,7 +1600,7 @@
                         uid: 303, name: "이정용", ssn: "821208", phone: "010-7896-9522",
                         title: "삼진제약 팔보시클립", th: "3기", count: "30", period: "96",
                         category: "혈액종양내과 / 3 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
-                        result: "지급완료", payStatus: "지급완료", payStatus1: "지급완료", payStatus2: "대기", payStatus3: "대기",
+                        result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기", // 💡 '지급완료'를 '완료'로 변경
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
@@ -1636,10 +1636,10 @@
                             row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-                    // 3. 진재영 (경동제약) -> 디폴트: 지급완료 [index: 0.1.33]
+                    // 3. 진재영 (경동제약) -> 디폴트: 완료 [index: 0.1.33]
                     else if (row.name === "진재영" && row.title.includes("경동제약")) {
-                        if (row.result !== "지급완료" || row.payStatus1 !== "지급완료" || row.payStatus2 !== "대기") {
-                            row.result = "지급완료"; row.payStatus = "지급완료"; row.payStatus1 = "지급완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
+                        if (row.result !== "완료" || row.payStatus1 !== "완료" || row.payStatus2 !== "대기") {
+                            row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true; // 💡 '지급완료' -> '완료'로 변경
                         }
                     }
                     // 4. 김정환 (명인제약) -> 디폴트: 접수 [index: 0.1.32]
@@ -1654,10 +1654,10 @@
                             row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-                    // 6. 이정용 (삼진제약) -> 디폴트: 지급완료 [index: 0.1.32]
+                    // 6. 이정용 (삼진제약) -> 디폴트: 완료 [index: 0.1.32]
                     else if (row.name === "이정용" && row.title.includes("삼진제약")) {
-                        if (row.result !== "지급완료" || row.payStatus1 !== "지급완료") {
-                            row.result = "지급완료"; row.payStatus = "지급완료"; row.payStatus1 = "지급완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
+                        if (row.result !== "완료" || row.payStatus1 !== "완료") {
+                            row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true; // 💡 '지급완료' -> '완료'로 변경
                         }
                     }
                     // 7. 김태희 (파마사이언스) -> 디폴트: 처리중 [index: 0.1.33]
@@ -2755,13 +2755,20 @@
                 docsHTML += `</div>`;
 
                 const buildCoreMiniStatusBadgeHTML = (label, val) => {
-                    let s = val || '대기'; if (s === '확인' || s === '접수완료') s = '접수'; if (s === '지급완료') s = '처리완료';
+                    let s = val || '대기';
+                    // 외부 구형 규격 데이터 오염 방지 가드
+                    if (s === '확인' || s === '접수완료') s = '접수';
+                    if (s === '지급완료' || s === '처리완료') s = '완료';
+                    if (s === '검토중') s = '처리중';
+
                     let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;";
                     if (s === '접수') st = "background:var(--card-color); color:#38bdf8; border:1px solid #38bdf8;";
                     else if (s === '처리중') st = "background:var(--card-color); color:#fbbf24; border:1px solid #fbbf24;";
-                    else if (s === '처리완료') st = "background:var(--card-color); color:#34d399; border:1px solid #34d399;";
-                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s === '처리중' ? '처리중' : s === '처리완료' ? '완료' : s}</span></div>`;
+                    else if (s === '완료') st = "background:var(--card-color); color:#34d399; border:1px solid #34d399;";
+
+                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s}</span></div>`;
                 };
+
                 const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
 
                 const buildAgreementStatusBadgeHTML = (val) => {
@@ -3041,41 +3048,27 @@
                 const nextS2 = elS2 ? elS2.value : (adminApplicantDB[index].payStatus2 || "대기");
                 const nextS3 = elS3 ? elS3.value : (adminApplicantDB[index].payStatus3 || "대기");
 
+                // 수정한 순정 4대 단어 그대로 데이터 스토리지 차수별 변수에 보관 [INDEX: 0.1.31]
                 adminApplicantDB[index].payStatus1 = nextS1;
                 adminApplicantDB[index].payStatus2 = nextS2;
                 adminApplicantDB[index].payStatus3 = nextS3;
 
-                // 🎯 [완벽 교정]: 화면 select 돔의 실제 저장값 규격('지급완료' -> '완료')만 조건식 비교용으로 매칭 가공
-                const checkStatus = (v) => {
-                    if (v === "지급완료" || v === "완료" || v === "처리완료") return "완료";
-                    return v; // "접수", "처리중", "대기"는 순정 데이터 그대로 유지
-                };
-
-                const p1 = checkStatus(nextS1);
-                const p2 = checkStatus(nextS2);
-                const p3 = checkStatus(nextS3);
-
-                // 🎯 변경하신 규칙 매칭 파이프라인 ("대기", "접수", "처리중", "완료")
-                // '검토중' 단어를 '처리중' 데이터 규격으로 완벽하게 전면 교체 완료
+                // 🎯 표준 단어 명칭 기반 규칙 매칭 파이프라인 ("대기", "접수", "처리중", "완료")
+                // 화면의 select value값과 조건 비교문, 결과 데이터를 단 하나의 어휘 오차도 없이 완전히 일치시킵니다.
                 let finalPipelineStatus = "접수";
-                if (p1 === "완료" && p2 === "완료" && p3 === "완료") {
+                if (nextS1 === "완료" && nextS2 === "완료" && nextS3 === "완료") {
                     finalPipelineStatus = "완료";
-                } else if (p1 === "처리중" || p2 === "처리중" || p3 === "처리중") {
+                } else if (nextS1 === "처리중" || nextS2 === "처리중" || nextS3 === "처리중") {
                     finalPipelineStatus = "처리중";
-                } else if (p1 === "접수" || p2 === "접수" || p3 === "접수") {
+                } else if (nextS1 === "접수" || nextS2 === "접수" || nextS3 === "접수") {
                     finalPipelineStatus = "접수";
                 } else {
                     finalPipelineStatus = "대기";
                 }
 
-                // 📊 파이프라인 결과를 시스템 데이터 정산 마스터 규격 상수("처리중", "지급완료")로 최종 변환하여 동기화 락인 [INDEX: 0.1.26, 0.1.31]
-                let systemStatus = finalPipelineStatus;
-                if (finalPipelineStatus === "완료") {
-                    systemStatus = "지급완료";
-                }
-
-                adminApplicantDB[index].payStatus = systemStatus;
-                adminApplicantDB[index].result = systemStatus;
+                // 🎯 저장 변수 락인 싱크 (지정하신 단어 그대로 변형 없이 마스터 대장에 최종 안착시킵니다) [INDEX: 0.1.26, 0.1.31]
+                adminApplicantDB[index].payStatus = finalPipelineStatus;
+                adminApplicantDB[index].result = finalPipelineStatus;
 
 
 
@@ -5065,14 +5058,14 @@
             let completeCount = 0;
 
             filteredList.forEach(row => {
-                let status = (row.result || row.payStatus || '접수').toString().trim();
-                if (status === '확인' || status === '접수완료') status = '접수';
+                let status = (row.result || row.payStatus || '대기').toString().trim();
 
+                // 4대 표준 단어 조건문 매칭 파이프라인 ("대기", "접수", "처리중", "완료")
                 if (status === '접수') {
                     receivedCount++;
                 } else if (status === '처리중') {
                     processingCount++;
-                } else if (status === '처리완료' || status === '지급완료' || status === '완료') {
+                } else if (status === '완료') {
                     completeCount++;
                 }
             });

@@ -3045,18 +3045,18 @@
                 adminApplicantDB[index].payStatus2 = nextS2;
                 adminApplicantDB[index].payStatus3 = nextS3;
 
-                // 🎯 [교정 완수] select 돔의 value값(지급완료, 처리중)을 파이프라인 규칙 문자열(완료, 처리중)로 변환 가공
-                const pipeStatus = (v) => {
-                    if (v === "지급완료" || v === "완료") return "완료";
-                    if (v === "처리중" || v === "처리중") return "처리중";
-                    return v; // "접수", "대기"는 그대로 유지
+                // 🎯 [완벽 교정]: 화면 select 돔의 실제 저장값 규격('지급완료' -> '완료')만 조건식 비교용으로 매칭 가공
+                const checkStatus = (v) => {
+                    if (v === "지급완료" || v === "완료" || v === "처리완료") return "완료";
+                    return v; // "접수", "처리중", "대기"는 순정 데이터 그대로 유지
                 };
 
-                const p1 = pipeStatus(nextS1);
-                const p2 = pipeStatus(nextS2);
-                const p3 = pipeStatus(nextS3);
+                const p1 = checkStatus(nextS1);
+                const p2 = checkStatus(nextS2);
+                const p3 = checkStatus(nextS3);
 
                 // 🎯 변경하신 규칙 매칭 파이프라인 ("대기", "접수", "처리중", "완료")
+                // '검토중' 단어를 '처리중' 데이터 규격으로 완벽하게 전면 교체 완료
                 let finalPipelineStatus = "접수";
                 if (p1 === "완료" && p2 === "완료" && p3 === "완료") {
                     finalPipelineStatus = "완료";
@@ -3068,13 +3068,16 @@
                     finalPipelineStatus = "대기";
                 }
 
-                // 🎯 [정산 락인 싱크] 결과물을 다시 시스템 정산 마스터 규격 상수("처리중", "지급완료")로 원상복구하여 대입 [INDEX: 0.1.26, 0.1.31]
+                // 📊 파이프라인 결과를 시스템 데이터 정산 마스터 규격 상수("처리중", "지급완료")로 최종 변환하여 동기화 락인 [INDEX: 0.1.26, 0.1.31]
                 let systemStatus = finalPipelineStatus;
-                if (finalPipelineStatus === "처리중") systemStatus = "처리중";
-                else if (finalPipelineStatus === "완료") systemStatus = "지급완료";
+                if (finalPipelineStatus === "완료") {
+                    systemStatus = "지급완료";
+                }
 
                 adminApplicantDB[index].payStatus = systemStatus;
                 adminApplicantDB[index].result = systemStatus;
+
+
 
                 // 동의 여부 값 밀봉
                 if (elDuty) adminApplicantDB[index].isDutyAgreed = elDuty.value;

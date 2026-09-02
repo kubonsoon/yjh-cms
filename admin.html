@@ -2766,67 +2766,68 @@
                 docsHTML += `</div>`;
 
                 const buildCoreMiniStatusBadgeHTML = (label, val) => {
-                    // 🎯 [교정 완수]: 구형 단어(확인, 검토중 등)를 완전히 삭제하고 순정 4대 단어만 다이렉트 매칭
+                    // 🎯 [교정 완수]: 순정 4대 단어 구조 1:1 다이렉트 매칭 [index: 0.1.182]
                     let s = val || '대기';
 
-                    // 🎯 [4단계 색상 표시자 정의]: 디자인 시스템 고대비 컬러 변수 및 시그니처 색상 상호 결합 [index: 0.1.149]
-                    let st = "background:var(--card-color); color:#94a3b8; border:1px solid #334155;"; // 기본 그레이 폴백
+                    // 🎯 [색상 표시자 매칭]: 대시보드 상단 4단계 통계 스코어보드 및 주변 셀과 테마 컬러 완벽 일치 [index: 0.1.149]
+                    let st = "background: rgba(148, 163, 184, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25);"; // 🔴 대기: 당직/소집동의와 동일한 고해상도 회색 계열로 변경
 
-                    if (s === '대기') {
-                        st = "background:rgba(248,113,113,0.1); color:var(--danger-color); border:1px solid var(--danger-color);"; // 🔴 1단계: 대기 (고명도 레드) [index: 0.1.149]
-                    } else if (s === '접수') {
-                        st = "background:rgba(14,165,233,0.1); color:#38bdf8; border:1px solid #38bdf8;"; // 🔵 2단계: 접수 (스카이 블루)
+                    if (s === '접수') {
+                        st = "background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;"; // 🔵 접수: 상단 청구서 접수 현황판과 동일한 스카이 블루
                     } else if (s === '처리중') {
-                        st = "background:rgba(251,191,36,0.1); color:var(--warning-color); border:1px solid var(--warning-color);"; // 🟡 3단계: 처리중 (고명도 옐로우) [index: 0.1.149]
+                        st = "background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24;"; // 🟡 처리중: 상단 재무 검토 현황판과 동일한 고명도 옐로우
                     } else if (s === '완료') {
-                        st = "background:rgba(74,222,128,0.1); color:var(--success-color); border:1px solid var(--success-color);"; // 🟢 4단계: 완료 (고명도 그린) [index: 0.1.149]
+                        st = "background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid #34d399;"; // 🟢 완료: 상단 정산 종결 현황판과 동일한 고명도 그린
                     }
 
                     return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s}</span></div>`;
                 };
 
-                const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
+                return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s}</span></div>`;
+            };
 
-                const buildAgreementStatusBadgeHTML = (val) => {
-                    let s = (val || '대기').trim();
-                    let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
-                    if (s === '동의') st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
-                    else if (s === '미동의') st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
-                    return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
-                };
+            const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
 
-                const dutyAgreed = (row.isDutyAgreed || "대기").trim();
-                const callAgreed = (row.isCallAgreed || "대기").trim();
-                const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
+            const buildAgreementStatusBadgeHTML = (val) => {
+                let s = (val || '대기').trim();
+                let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
+                if (s === '동의') st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
+                else if (s === '미동의') st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
+                return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
+            };
 
-                // [모집공고 기준 4색 완벽 일치]: 기존 thClass 변수에 모집공고와 똑같은 고대비 인라인 폰트 컬러 스타일을 인젝션합니다. [INDEX: 0.1.337]
-                let thClass = "lvl-1";
-                if (thNum === 1) {
-                    thClass = "lvl-1\" style=\"color: #f8fafc !important; background: rgba(248, 250, 252, 0.12) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; display: inline-block;";
-                } else if (thNum === 2) {
-                    thClass = "lvl-2\" style=\"color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important; display: inline-block;";
-                } else if (thNum === 3) {
-                    thClass = "lvl-3\" style=\"color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important; display: inline-block;";
-                } else if (thNum >= 4) {
-                    thClass = "lvl-4\" style=\"color: #fbbf24 !important; background: rgba(245, 158, 11, 0.15) !important; border: 1px solid #f59e0b !important; font-weight: 800 !important; display: inline-block;";
-                }
+            const dutyAgreed = (row.isDutyAgreed || "대기").trim();
+            const callAgreed = (row.isCallAgreed || "대기").trim();
+            const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
 
-                let currentQuota = parseInt(row.count?.toString().replace(/[^0-9]/g, ''), 10) || 60;
-                const matchedRec = recruitmentDB.find(rec => cleanString(rec.title) === cleanString(row.title) && rec.th === row.th);
-                if (matchedRec && matchedRec.count) {
-                    currentQuota = parseInt(matchedRec.count.toString().replace(/[^0-9]/g, ''), 10) || currentQuota;
-                }
+            // [모집공고 기준 4색 완벽 일치]: 기존 thClass 변수에 모집공고와 똑같은 고대비 인라인 폰트 컬러 스타일을 인젝션합니다. [INDEX: 0.1.337]
+            let thClass = "lvl-1";
+            if (thNum === 1) {
+                thClass = "lvl-1\" style=\"color: #f8fafc !important; background: rgba(248, 250, 252, 0.12) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; display: inline-block;";
+            } else if (thNum === 2) {
+                thClass = "lvl-2\" style=\"color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important; display: inline-block;";
+            } else if (thNum === 3) {
+                thClass = "lvl-3\" style=\"color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important; display: inline-block;";
+            } else if (thNum >= 4) {
+                thClass = "lvl-4\" style=\"color: #fbbf24 !important; background: rgba(245, 158, 11, 0.15) !important; border: 1px solid #f59e0b !important; font-weight: 800 !important; display: inline-block;";
+            }
 
-                let matchCnt = displayList.slice(0, index + 1).filter(item => cleanString(item.title) === cleanString(row.title) && item.th === row.th).length;
+            let currentQuota = parseInt(row.count?.toString().replace(/[^0-9]/g, ''), 10) || 60;
+            const matchedRec = recruitmentDB.find(rec => cleanString(rec.title) === cleanString(row.title) && rec.th === row.th);
+            if (matchedRec && matchedRec.count) {
+                currentQuota = parseInt(matchedRec.count.toString().replace(/[^0-9]/g, ''), 10) || currentQuota;
+            }
 
-                const masterIndex = db.findIndex(item => item.uid === row.uid);
-                const isAppEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === masterIndex) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === masterIndex);
-                // ----------------======================================================
-                // 🔒 [A 분기]: 대표님 오리지널 인라인 수정 마크업 (masterIndex 싱크 완료)
-                // ----------------======================================================
-                if (isAppEditing) {
-                    tr.className = "editing-row";
-                    tr.innerHTML = `
+            let matchCnt = displayList.slice(0, index + 1).filter(item => cleanString(item.title) === cleanString(row.title) && item.th === row.th).length;
+
+            const masterIndex = db.findIndex(item => item.uid === row.uid);
+            const isAppEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === masterIndex) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === masterIndex);
+            // ----------------======================================================
+            // 🔒 [A 분기]: 대표님 오리지널 인라인 수정 마크업 (masterIndex 싱크 완료)
+            // ----------------======================================================
+            if (isAppEditing) {
+                tr.className = "editing-row";
+                tr.innerHTML = `
         <td style="vertical-align: middle; padding-left: 15px;">
             <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
         </td>
@@ -2914,13 +2915,13 @@
                 <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
             </div>
         </td>`;
-                }
+            }
 
-                // ----------------======================================================
-                // 🔒 [B 분기]: 대표님 오리지널 일반 명단 목록 조회 HTML (100% 원형 보존)
-                // ----------------======================================================
-                else {
-                    tr.innerHTML = `
+            // ----------------======================================================
+            // 🔒 [B 분기]: 대표님 오리지널 일반 명단 목록 조회 HTML (100% 원형 보존)
+            // ----------------======================================================
+            else {
+                tr.innerHTML = `
                   <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
                 <td style="width: 90px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
@@ -2952,34 +2953,34 @@
                         <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
                     </div>
                 </td>`;
-                }
-
-                tbody.appendChild(tr);
-            }); // pagedList.forEach 루프 마감 지점
-
-
-            // ----------------======================================================
-            // [페이징 내비게이션]: 데이터가 설정된 페이지 한도를 초과 시 하단 중앙 슬롯에 버튼 자동 생성 마운트
-            // ----------------======================================================
-            const currentTotalCount = displayList.length;
-
-            if (currentTotalCount > APPLICANT_PAGE_SIZE && paginator) {
-                let paginationHTML = '';
-                paginationHTML += `<button type="button" onclick="window.currentApplicantPage--; refreshApplicantView();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
-
-                for (let p = 1; p <= totalPages; p++) {
-                    const isCurrent = (p === window.currentApplicantPage);
-                    const activeBtnStyle = isCurrent
-                        ? `background: var(--secondary-color) !important; color: #ffffff !important; border: 1px solid var(--secondary-color);`
-                        : `background: #1a233a; color: var(--text-muted); border: 1px solid var(--border-color);`;
-                    paginationHTML += `<button type="button" onclick="window.currentApplicantPage = ${p}; refreshApplicantView();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
-                }
-
-                paginationHTML += `<button type="button" onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
-
-                // 돔 슬롯에 최종 동적 사출 커밋
-                paginator.innerHTML = paginationHTML;
             }
+
+            tbody.appendChild(tr);
+        }); // pagedList.forEach 루프 마감 지점
+
+
+        // ----------------======================================================
+        // [페이징 내비게이션]: 데이터가 설정된 페이지 한도를 초과 시 하단 중앙 슬롯에 버튼 자동 생성 마운트
+        // ----------------======================================================
+        const currentTotalCount = displayList.length;
+
+        if (currentTotalCount > APPLICANT_PAGE_SIZE && paginator) {
+            let paginationHTML = '';
+            paginationHTML += `<button type="button" onclick="window.currentApplicantPage--; refreshApplicantView();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
+
+            for (let p = 1; p <= totalPages; p++) {
+                const isCurrent = (p === window.currentApplicantPage);
+                const activeBtnStyle = isCurrent
+                    ? `background: var(--secondary-color) !important; color: #ffffff !important; border: 1px solid var(--secondary-color);`
+                    : `background: #1a233a; color: var(--text-muted); border: 1px solid var(--border-color);`;
+                paginationHTML += `<button type="button" onclick="window.currentApplicantPage = ${p}; refreshApplicantView();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
+            }
+
+            paginationHTML += `<button type="button" onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
+
+            // 돔 슬롯에 최종 동적 사출 커밋
+            paginator.innerHTML = paginationHTML;
+        }
         }
 
 

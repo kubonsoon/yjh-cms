@@ -545,13 +545,20 @@
     </div>
 
     <script>
+        // 1. 달력 전역 상태 관리 포인터 스케줄러
         let currentDate = new Date();
         let currentFilter = 'ALL';
 
+        /**
+         * 2. 메인 대시보드(admin.html)의 로컬스토리지 임상시험 마스터 레코드 스트림 연동
+         */
         function getMasterData() {
             return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
         }
 
+        /**
+         * 3. 상단 우측 참여/미참여 필터링 트랜잭션 제어 함수
+         */
         function setFilter(type) {
             currentFilter = type;
             document.querySelectorAll('.toolbar-group .tool-btn').forEach(btn => btn.classList.remove('active'));
@@ -561,11 +568,17 @@
             renderCalendar();
         }
 
+        /**
+         * 4. 월 선택 컨트롤러 네비게이터 작동기
+         */
         function moveMonth(v) {
             currentDate.setMonth(currentDate.getMonth() + v);
             renderCalendar();
         }
 
+        /**
+         * 5. 전체 스케줄링 백업 데이터 JSON 파일 사출 다운로드 함수
+         */
         function executeDownload() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getMasterData(), null, 2));
             const downloadAnchor = document.createElement('a');
@@ -576,11 +589,13 @@
             downloadAnchor.remove();
         }
 
+        /**
+         * 6. [상세보기] 배지 클릭 시 동적 모달 팝업 가동 및 데이터 바인딩 엔진
+         */
         window.openClinicalDetailModal = function (uid, typeTitle) {
             const records = getMasterData();
-            // 특정 UID 사양 검증 추적 연동
             const target = records.find(item => item.uid == uid || item.title === uid);
-            if (!target) return;
+            if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다.");
 
             document.getElementById('m-popup-type').innerText = `[${typeTitle} 상세 안내]`;
             document.getElementById('m-title').innerText = target.title || '-';
@@ -591,19 +606,28 @@
             document.getElementById('m-recDate').innerText = target.recDate || '-';
 
             let payInfo = [];
-            if (target.payDate1) payInfo.push(`• 1차 지급일: ${target.payDate1}`);
-            if (target.payDate2) payInfo.push(`• 2차 지급일: ${target.payDate2}`);
-            if (target.payDate3) payInfo.push(`• 3차 지급일: ${target.payDate3}`);
-            document.getElementById('m-payDates').innerHTML = payInfo.length > 0 ? payInfo.join('<br>') : '등록된 지급일정이 없습니다.';
+            if (target.payDate1) payInfo.push(`• 1차 지급일: <span style="color:#ffffff;">${target.payDate1}</span>`);
+            if (target.payDate2) payInfo.push(`• 2차 지급일: <span style="color:#ffffff;">${target.payDate2}</span>`);
+            if (target.payDate3) payInfo.push(`• 3차 지급일: <span style="color:#ffffff;">${target.payDate3}</span>`);
+
+            document.getElementById('m-payDates').innerHTML = payInfo.length > 0
+                ? payInfo.join('<br>')
+                : '등록된 지급일정 데이터가 없습니다.';
 
             const overlay = document.getElementById('detailModalOverlay');
             overlay.setAttribute('style', 'display: flex !important;');
         };
 
+        /**
+         * 7. 상세안내 모달 팝업 창 닫기 처리기
+         */
         window.closeDetailModal = function (e) {
             document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
         };
 
+        /**
+         * 8. [데이터 무결성 완전 잠금] 날짜 정합성 오류를 완벽하게 보정한 캘린더 렌더러 함수
+         */
         function renderCalendar() {
             const board = document.getElementById('calendarBoard');
             const label = document.getElementById('currentMonthLabel');
@@ -617,6 +641,7 @@
             const lastDate = new Date(year, month + 1, 0).getDate();
             const prevLastDate = new Date(year, month, 0).getDate();
 
+            // 지난달 역산 빈칸 채우기
             for (let i = firstDay - 1; i >= 0; i--) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell other-month';
@@ -626,13 +651,17 @@
 
             const records = getMasterData();
 
+            // 이번 달 1일부터 말일까지 보드 사출 루프
             for (let d = 1; d <= lastDate; d++) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
                 cell.innerHTML = `<div class="day-num">${d}</div>`;
 
-                // 💡 [버그 원천 해결 가드] YYYY-MM-DD 포맷 완벽 대조용 타겟 문자열
-                const thisDateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+                // 💡 기준 포맷 정의: 자릿수를 완벽하게 동기화한 표준 YYYY-MM-DD 데이터 생성 (예: 2026-09-04)
+                const targetYearStr = year.toString();
+                const targetMonthStr = (month + 1).toString().padStart(2, '0');
+                const targetDayStr = d.toString().padStart(2, '0');
+                const thisDateStr = `${targetYearStr}-${targetMonthStr}-${targetDayStr}`;
 
                 records.forEach(item => {
                     if (currentFilter === 'DUTY' && (!item.count || parseInt(item.count) <= 0)) return;
@@ -644,8 +673,8 @@
 
                     const dynamicColorClass = `th-color-${thText}`;
 
-                    // A. 소집 배지 (앞에 + 기호 추가 및 기수별 글자색 동기화)
-                    if (item.recDate === thisDateStr) {
+                    // A. 소집 배지 매핑
+                    if (item.recDate && item.recDate.trim() === thisDateStr) {
                         const badge = document.createElement('div');
                         badge.className = `event-badge ${dynamicColorClass}`;
                         badge.innerHTML = `+ ${item.title || '과제'}${thLabel}`;
@@ -653,10 +682,12 @@
                         cell.appendChild(badge);
                     }
 
-                    // B. 참여비 지급 배지 (연도 검증 강화로 오매핑 차단 + 앞에 - 기호 추가 + 기수별 글자색 동기화)
+                    // B. 참여비 지급 배지 매핑 (연-월-일 포맷 무결성 3중 락 가동)
                     ['payDate1', 'payDate2', 'payDate3'].forEach((pKey, idx) => {
-                        // 💡 일자 매칭 시 YYYY-MM-DD 전체 문자열이 완벽히 일치할 때만 렌더링되도록 락(Lock) 보정 완료
-                        if (item[pKey] === thisDateStr) {
+                        const dbPayDate = item[pKey];
+
+                        // 💡 [버그 완전 패치] 데이터가 존재하고, 공백이 아니며, 연-월-일 전체가 완벽하게 일치하는 레코드만 화면에 바인딩
+                        if (dbPayDate && dbPayDate.trim() !== "" && dbPayDate.trim() === thisDateStr) {
                             const badge = document.createElement('div');
                             badge.className = `event-badge ${dynamicColorClass}`;
                             badge.innerHTML = `- [${item.title || '과제'}] ${idx + 1}차 참여비`;
@@ -670,6 +701,7 @@
             }
         }
 
+        // 9. 파일 초기 마운트 완료 시 자동 첫 실행 트리거
         window.onload = renderCalendar;
     </script>
 </body>

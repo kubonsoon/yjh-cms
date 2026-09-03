@@ -672,6 +672,7 @@
 
         // 글로벌 스코프에 현재 활성화된 모달 과제 컨텍스트 데이터 보존
         let currentActiveModalJob = null;
+        let currentTemporaryUid = ""; // 💡 [인덱스 버그 해결] 실시간 배열 순서 변동에 대응할 고유 UID 락 보존 변수
 
         /**
          * 6. 오직 소집일자만 추적 매핑하는 정밀 달력 격자 사출 렌더러 함수
@@ -727,10 +728,9 @@
                 board.appendChild(cell);
             }
         }
-
         /**
-          * 7. m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진 + 원본 버튼 하이재킹 모듈 결합
-          */
+           * 7. m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진 + 원본 버튼 하이재킹 모듈 결합
+           */
         window.openClinicalDetailModal = function (uid, typeTitle) {
             const records = getMasterData();
             let applicantDB = getApplicantData();
@@ -750,11 +750,15 @@
             }
 
             const currentSessionName = loggedInUser.name.toString().trim();
-            const isUserExists = applicantDB.some(app => (app.name || "").toString().trim() === currentSessionName);
 
-            if (!isUserExists) {
-                const newPassTicket = {
-                    uid: "TEMP_" + Date.now(),
+            // 💡 현재 로그인한 사용자의 고유한 가상 티켓 또는 정식 신청건을 찾아 추적
+            let myTicket = applicantDB.find(app => (app.name || "").toString().trim() === currentSessionName);
+
+            if (!myTicket) {
+                // 전연 참여 적 없는 완전 신규 방문 대상자인 경우 즉석 가상 티켓 발행
+                currentTemporaryUid = "TEMP_" + Date.now();
+                myTicket = {
+                    uid: currentTemporaryUid,
                     name: currentSessionName,
                     title: targetTitle,
                     th: targetTh,
@@ -762,8 +766,11 @@
                     payStatus: "대기",
                     isVirtualGhost: true
                 };
-                applicantDB.push(newPassTicket);
+                applicantDB.push(myTicket);
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
+            } else {
+                // 이미 등록되어 있던 계정이라면 해당 객체의 불변 고유 uid를 시스템 추적 키로 락인
+                currentTemporaryUid = myTicket.uid;
             }
 
             document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 상세 안내]`;
@@ -777,6 +784,7 @@
             const scrollZone = document.getElementById("modal-history-scroll-zone");
             scrollZone.innerHTML = "";
 
+            // 💡 [버그 교정 핵심] 타인의 데이터가 섞이지 않도록 오직 현재 로그인된 대상자 성명 정보만 단독 정밀 추출
             const rawHistoryRecords = applicantDB.filter(item =>
                 (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== ""
             );
@@ -839,10 +847,11 @@
                     btnJoin.onclick = function (e) {
                         e.preventDefault();
                         let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                        const myTargetIdx = appDB.findIndex(app => (app.name || "").toString().trim() === currentSessionName && (app.isVirtualGhost === true || app.isNewUserGhost === true));
+
+                        // 💡 이름뿐만 아니라 모달창 진입 시 락인해 둔 고유 UID 속성을 완벽하게 추적 매핑하여 다른 사람의 인덱스가 침범하는 현상 원천 차단
+                        const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
 
                         if (myTargetIdx !== -1) {
-                            // 💡 [정렬 요구사항 완수] 임시 데이터를 복사 가공한 뒤 unshift 처리
                             let targetObject = { ...appDB[myTargetIdx] };
 
                             delete targetObject.isVirtualGhost;
@@ -852,7 +861,7 @@
                             targetObject.period = currentActiveModalJob.period || "0";
                             targetObject.payStatus = "대기";
 
-                            // 기존 가상 배열 내 원래 위치에서 지우고 unshift를 통해 0번 인덱스(최상단)로 강제 정렬 전환
+                            // 기존 가상 위치에서 삭제 후 unshift를 통해 0번 인덱스(최상단)로 강제 정렬 전환
                             appDB.splice(myTargetIdx, 1);
                             appDB.unshift(targetObject);
 

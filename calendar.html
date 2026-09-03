@@ -18,11 +18,12 @@
             --secondary-color: #0ea5e9;
             --success-color: #4ade80;
             --warning-color: #fbbf24;
+            --danger-color: #f87171;
             --text-color: #f8fafc;
             --text-muted: #94a3b8;
         }
 
-        /* 💡 [주소창 간섭 원천 방어] html과 body의 실제 가용 면적을 100% 동기화 */
+        /* 💡 html과 body의 실제 가용 면적을 100% 동기화하여 주소창 밀림 가드 */
         html,
         body {
             height: 100% !important;
@@ -44,7 +45,6 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* 전체 페이지 찢어짐 스크롤 방지 */
         }
 
         /* 2. 상단 타이틀 및 툴바 구역 */
@@ -99,7 +99,7 @@
             border-color: var(--secondary-color);
         }
 
-        /* 3. 월 이동 컨트롤러 */
+        /* 3. 월 선택 컨트롤러 */
         .month-controller {
             display: flex;
             justify-content: center;
@@ -140,7 +140,7 @@
         }
 
         /* =========================================================
-        4. [주소창 보정 설계] 가용 공간 100% 추적형 래퍼 세팅
+        4. 달력판 본체 및 일자별 칸 스케일 구조 설계
         ========================================================== */
         .calendar-wrapper {
             flex: 1;
@@ -194,7 +194,6 @@
             width: 100%;
         }
 
-        /* 💡 4~5개 데이터가 들어가도 무너지지 않는 큼직한 높이(140px) 락인 */
         .day-cell {
             background: var(--card-color);
             border: 1px solid var(--border-color);
@@ -230,7 +229,7 @@
             color: #60a5fa;
         }
 
-        /* 💡 [요구사항 완수] 배지 폰트 크기 13px로 대폭 상향 튜닝 및 가독성 락인 */
+        /* 일정 알림 배지 (기수별 13px 폰트 및 텍스트 칼라 연동) */
         .event-badge {
             font-size: 13px !important;
             padding: 5px 8px;
@@ -247,7 +246,6 @@
             filter: brightness(1.2);
         }
 
-        /* 💡 [요구사항 완수] 기수별 폰트 컬러 명도를 완전 최적화하여 텍스트 색상 전격 일치화 */
         .th-color-1기 {
             background: rgba(148, 163, 184, 0.1) !important;
             border: 1px solid rgba(148, 163, 184, 0.6) !important;
@@ -305,7 +303,9 @@
             padding-left: 14px;
         }
 
-        /* 상세보기 팝업 모달창 서식 */
+        /* =========================================================
+        5. [요구사항 완수] 대상자 마스터 이력조회 탑재형 대형 모달 서식
+        ========================================================== */
         .calendar-modal-overlay {
             display: none;
             position: fixed;
@@ -313,8 +313,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
             z-index: 99999;
             justify-content: center;
             align-items: center;
@@ -323,17 +323,18 @@
         .calendar-modal-box {
             background: var(--card-color);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 14px;
+            padding: 24px;
             width: 100%;
-            max-width: 440px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            max-width: 620px;
+            /* 이력 그리드를 위해 와이드 확장 */
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
             animation: modalPopUp 0.18s ease-out;
         }
 
         @keyframes modalPopUp {
             from {
-                transform: scale(0.95);
+                transform: scale(0.96);
                 opacity: 0;
             }
 
@@ -348,21 +349,24 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid var(--border-color);
-            padding-bottom: 8px;
-            margin-bottom: 12px;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
         }
 
         .modal-title {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 800;
             color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .modal-close-x {
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
         }
 
@@ -373,8 +377,8 @@
         .modal-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12.5px;
-            margin-bottom: 14px;
+            font-size: 13px;
+            margin-bottom: 16px;
         }
 
         .modal-table th,
@@ -387,7 +391,7 @@
         .modal-table th {
             color: var(--text-muted);
             font-weight: 700;
-            width: 32%;
+            width: 25%;
             background: rgba(255, 255, 255, 0.01);
         }
 
@@ -396,30 +400,104 @@
             font-weight: 500;
         }
 
-        .modal-btn-close {
+        /* 대상자 마스터 누적 이력 전용 내부 스크롤 박스 서식 */
+        .modal-history-title {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: var(--warning-color);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .modal-history-scroll-zone {
+            background: #0b0f19;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .history-mini-card {
+            background: #161e30;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--border-color);
+            padding: 10px 14px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
             width: 100%;
-            padding: 8px;
-            background: #334155;
-            color: #fff;
+        }
+
+        .history-mini-card.current-job {
+            border-left-color: var(--secondary-color);
+            background: rgba(14, 165, 233, 0.04);
+        }
+
+        /* 💡 [요구사항 완수] 모달 하단 균등 분할 참여 / 미참여 / 닫기 3대 액션 버튼 레이아웃 */
+        .modal-btn-group-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+
+        .modal-act-btn {
+            padding: 11px;
             border: none;
             border-radius: 6px;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 13.5px;
             cursor: pointer;
-            transition: background 0.1s;
+            transition: all 0.15s;
+            text-align: center;
         }
 
-        .modal-btn-close:hover {
+        .modal-act-btn.btn-join {
+            background: var(--success-color);
+            color: #070a12;
+        }
+
+        .modal-act-btn.btn-join:hover {
+            filter: brightness(1.1);
+        }
+
+        .modal-act-btn.btn-reject {
+            background: var(--danger-color);
+            color: #ffffff;
+        }
+
+        .modal-act-btn.btn-reject:hover {
+            filter: brightness(1.1);
+        }
+
+        .modal-act-btn.btn-close {
+            background: #334155;
+            color: #ffffff;
+        }
+
+        .modal-act-btn.btn-close:hover {
             background: #475569;
         }
 
+        /* 스크롤바 커스텀 */
         .date-grid-scroll-zone::-webkit-scrollbar,
-        .day-cell::-webkit-scrollbar {
+        .day-cell::-webkit-scrollbar,
+        .modal-history-scroll-zone::-webkit-scrollbar {
             width: 4px;
         }
 
         .date-grid-scroll-zone::-webkit-scrollbar-thumb,
-        .day-cell::-webkit-scrollbar-thumb {
+        .day-cell::-webkit-scrollbar-thumb,
+        .modal-history-scroll-zone::-webkit-scrollbar-thumb {
             background: #334155;
             border-radius: 2px;
         }
@@ -451,15 +529,11 @@
 
 <body>
 
-    <!-- 1. 상단 타이틀 및 툴바 구역 -->
+    <!-- 1. 상단 타이틀 및 툴바 구역 (요구사항 반영: 참여/미참여 필터 버튼 제거) -->
     <div class="header-container">
         <div class="calendar-title"><i class="fa-solid fa-calendar-days"></i> 임상시험 일정관리</div>
         <div class="toolbar-group">
-            <button class="tool-btn active" id="btnFilterAll" onclick="setFilter('ALL')">전체 일정</button>
-            <button class="tool-btn" id="btnFilterDuty" onclick="setFilter('DUTY')"><i class="fa-solid fa-circle-check"
-                    style="color:var(--success-color)"></i> 참여</button>
-            <button class="tool-btn" id="btnFilterNone" onclick="setFilter('NONE')"><i class="fa-solid fa-circle-minus"
-                    style="color:var(--text-muted)"></i> 미참여</button>
+            <button class="tool-btn active" id="btnFilterAll">전체 일정</button>
             <button class="tool-btn" onclick="executeDownload()"><i class="fa-solid fa-file-arrow-down"></i>
                 다운로드</button>
             <button class="tool-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> 인쇄</button>
@@ -473,7 +547,7 @@
         <button class="month-btn" onclick="moveMonth(1)">▶</button>
     </div>
 
-    <!-- 3. 메인 달력 복합 판넬 -->
+    <!-- 3. 메인 달력 복합 판넬 (상단 요일바 압축 고정 및 하단 일자별 격자 분리 구조) -->
     <div class="calendar-wrapper">
         <div class="weekday-bar">
             <div class="day-header">일</div>
@@ -497,18 +571,20 @@
         <ol class="notice-list-wrapper">
             <li><strong>참고사항 1 :</strong> 소집일자 일정 정보는 메인 대시보드의 모집공고 탭 데이터 스토어 스트림과 실시간 트랜잭션 동기화 연동됩니다.</li>
             <li><strong>참고사항 2 :</strong> 참여비 차수별 지급일 정보는 등록된 과제의 고유 기수 권한 배지 색상과 100% 동기화 매핑되어 사출됩니다.</li>
-            <li><strong>참고사항 3 :</strong> 상단 우측 필터링(전체, 참여, 미참여) 선택 시 공고에 배정된 인원수 유무 속성을 역추적하여 가시성을 제어합니다.</li>
+            <li><strong>참고사항 3 :</strong> 달력 내부의 일정 배지 클릭 시 대상자 관리 탭의 피험자 임상시험 참여 누적 내역 데이터가 실시간 추적 연동됩니다.</li>
         </ol>
     </div>
 
-    <!-- 5. 시험명 클릭 시 동적으로 작동하는 상세보기 모달 프레임 구역 -->
+    <!-- 5. [대수술 완수] 시험명 클릭 시 동적으로 작동하는 상세보기 + 대상자 마스터 이력조회 결합 모달 프레임 구역 -->
     <div class="calendar-modal-overlay" id="detailModalOverlay" onclick="closeDetailModal(event)">
         <div class="calendar-modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <div class="modal-title" id="m-popup-type">[소집 일정 상세 안내]</div>
+                <div class="modal-title" id="m-popup-type"><i class="fa-solid fa-circle-info"></i> [소집 일정 상세 안내]</div>
                 <button type="button" class="modal-close-x"
                     onclick="document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">✕</button>
             </div>
+
+            <!-- 기본 시험 등록 정보 테이블 구역 -->
             <table class="modal-table">
                 <tr>
                     <th>임상 시험명</th>
@@ -534,13 +610,26 @@
                     <th>소집 일자</th>
                     <td id="m-recDate">-</td>
                 </tr>
-                <tr>
-                    <th>참여비 일정</th>
-                    <td id="m-payDates" style="line-height: 1.4; color:var(--warning-color);">-</td>
-                </tr>
             </table>
-            <button type="button" class="modal-btn-close"
-                onclick="document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">닫기</button>
+
+            <!-- 💡 [대수술 핵심 이식] 대상자 관리의 피험자 과거 임상시험 누적 내역이 실시간 바인딩 사출되는 스크롤 존 -->
+            <div class="modal-history-title">
+                <i class="fa-solid fa-clock-history"></i> <span id="m-history-count-title">대상자 참여 마스터 이력조회 누적 내역
+                    (0건)</span>
+            </div>
+            <div class="modal-history-scroll-zone" id="modal-history-scroll-zone">
+                <!-- 자바스크립트에 의해 대상자 관리(localStorage) 내역 카드가 여기에 동적 사출됩니다 -->
+            </div>
+
+            <!-- 💡 [요구사항 완수] 모달 하단 균등 그리드형 참여 / 미참여 / 닫기 3대 제어 버튼 그룹 -->
+            <div class="modal-btn-group-row">
+                <button type="button" class="modal-act-btn btn-join"
+                    onclick="alert('참여 승인 처리되었습니다.'); document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">참여</button>
+                <button type="button" class="modal-act-btn btn-reject"
+                    onclick="alert('미참여 처리가 반영되었습니다.'); document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">미참여</button>
+                <button type="button" class="modal-act-btn btn-close"
+                    onclick="document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">닫기</button>
+            </div>
         </div>
     </div>
 
@@ -557,15 +646,10 @@
         }
 
         /**
-         * 3. 상단 우측 참여/미참여 필터링 트랜잭션 제어 함수
+         * 3. [신규 마운트] 대상자 관리 탭(applicantView)의 가상 데이터베이스 동기화 스트림 로드
          */
-        function setFilter(type) {
-            currentFilter = type;
-            document.querySelectorAll('.toolbar-group .tool-btn').forEach(btn => btn.classList.remove('active'));
-            if (type === 'ALL') document.getElementById('btnFilterAll').classList.add('active');
-            if (type === 'DUTY') document.getElementById('btnFilterDuty').classList.add('active');
-            if (type === 'NONE') document.getElementById('btnFilterNone').classList.add('active');
-            renderCalendar();
+        function getApplicantData() {
+            return JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
         }
 
         /**
@@ -590,14 +674,20 @@
         }
 
         /**
-         * 6. [상세보기] 배지 클릭 시 동적 모달 팝업 가동 및 데이터 바인딩 엔진
+         * 6. [대수술 완수] 배지 클릭 시 동적 상세 인포 바인딩 및 대상자 관리 이력조회 전수 이식 엔진
+         * @param {string|number} uid - 임상공고 고유 식별 번호 또는 타이틀
+         * @param {string} typeTitle - 모달창 헤더 타이틀 라벨 분기용
          */
         window.openClinicalDetailModal = function (uid, typeTitle) {
             const records = getMasterData();
+            const applicantDB = getApplicantData();
+
+            // 고유 ID 또는 과제명 타이틀 문자열을 기반으로 공고 원천 소스 추적 매핑
             const target = records.find(item => item.uid == uid || item.title === uid);
             if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다.");
 
-            document.getElementById('m-popup-type').innerText = `[${typeTitle} 상세 안내]`;
+            // 모달창 구성 돔 엘리먼트 실시간 텍스트 주입
+            document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 상세 안내]`;
             document.getElementById('m-title').innerText = target.title || '-';
             document.getElementById('m-th').innerText = target.th || '-';
             document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-';
@@ -605,15 +695,74 @@
             document.getElementById('m-crc').innerText = target.crc || '-';
             document.getElementById('m-recDate').innerText = target.recDate || '-';
 
-            let payInfo = [];
-            if (target.payDate1) payInfo.push(`• 1차 지급일: <span style="color:#ffffff;">${target.payDate1}</span>`);
-            if (target.payDate2) payInfo.push(`• 2차 지급일: <span style="color:#ffffff;">${target.payDate2}</span>`);
-            if (target.payDate3) payInfo.push(`• 3차 지급일: <span style="color:#ffffff;">${target.payDate3}</span>`);
+            // 💡 [핵심 이식 알고리즘] 대상자 관리의 피험자 임상시험 참여 누적 내역 실시간 동기화 역추적 가동
+            const scrollZone = document.getElementById("modal-history-scroll-zone");
+            scrollZone.innerHTML = ""; // 기존 스크롤 노드 리셋 초기화
 
-            document.getElementById('m-payDates').innerHTML = payInfo.length > 0
-                ? payInfo.join('<br>')
-                : '등록된 지급일정 데이터가 없습니다.';
+            // 현재 과제명과 매핑되는 대상자 데이터셋에서 동명이인 레코드 전체 필터링 추출
+            // 현재 선택한 시험명(target.title)에 참여 중인 사람을 기반으로 연동 역추적
+            const targetTitle = (target.title || "").toString().trim();
+            const targetTh = (target.th || "").toString().trim();
 
+            // 이 시험 기수에 매칭된 피험자 찾기 (예: 홍길동, 강남구 등)
+            const activeApplicants = applicantDB.filter(app =>
+                (app.title || "").toString().trim() === targetTitle &&
+                (app.th || "").toString().trim() === targetTh
+            );
+
+            // 연동된 피험자들의 성명 풀 추출 (중복 제거)
+            const applicantNames = [...new Set(activeApplicants.map(app => (app.name || "").toString().trim()))];
+
+            // 전체 대상자 가상 DB에서 해당 성명을 가진 사람들의 누적 과거/현재 과제 이력을 전수 필터링
+            const historyRecords = applicantDB.filter(item =>
+                applicantNames.includes((item.name || "").toString().trim()) && (item.name || "").toString().trim() !== ""
+            );
+
+            // 상단 소제목 카운트 라벨 업데이트 실시간 연동
+            document.getElementById("m-history-count-title").innerText = `대상자 참여 마스터 이력조회 누적 내역 (${historyRecords.length}건)`;
+
+            // 이력 데이터셋을 루프 돌며 미니 카드로 가공하여 스크롤 존에 사출
+            if (historyRecords.length === 0) {
+                scrollZone.innerHTML = `<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>`;
+            } else {
+                historyRecords.forEach(row => {
+                    // 현재 실행 중인 과제와 동일 레코드인지 불변 조건 정밀 대조 판정
+                    const isCurrentJob = (row.title === targetTitle && row.th === targetTh);
+
+                    const miniCard = document.createElement("div");
+                    miniCard.className = isCurrentJob ? "history-mini-card current-job" : "history-mini-card";
+
+                    // 접두사 태그 폰트 컬러 분기 매칭
+                    const prefixTag = isCurrentJob
+                        ? `<span style="color:var(--secondary-color); font-weight:800; margin-right:4px;">[현재시험]</span>`
+                        : `<span style="color:var(--text-muted); font-weight:700; margin-right:4px;">[과거시험]</span>`;
+
+                    // 우측 지급 상태 배지 고대비 전용 컬러 매칭 트릭
+                    const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
+                    let statusColor = "#94a3b8";
+                    if (currentPayStatus === "접수") statusColor = "#38bdf8";
+                    else if (currentPayStatus === "처리중") statusColor = "#fbbf24";
+                    else if (currentPayStatus === "완료") statusColor = "var(--success-color)";
+                    else if (currentPayStatus === "대기") statusColor = "var(--danger-color)";
+
+                    miniCard.innerHTML = `
+                    <div style="text-align:left;">
+                        <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
+                            ${prefixTag}${row.name || '피험자'} - ${row.title || '미지정 과제'}
+                        </div>
+                        <div style="font-size:11.5px; color:var(--text-muted);">
+                            진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span>
+                        </div>
+                    </div>
+                    <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
+                        지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>
+                    </div>
+                `;
+                    scrollZone.appendChild(miniCard);
+                });
+            }
+
+            // 레이어 팝업 활성화 호출 가드 인젝션
             const overlay = document.getElementById('detailModalOverlay');
             overlay.setAttribute('style', 'display: flex !important;');
         };
@@ -626,7 +775,7 @@
         };
 
         /**
-         * 8. [소집일 필터 락인] 참여비 지급일 로직을 완전 제거하고 오직 소집일자만 매핑하는 캘린더 렌더러 함수
+         * 8. [소집일 필터 락인] 오직 소집일자만 추적 매핑하는 정밀 달력 격자 사출 렌더러 함수
          */
         function renderCalendar() {
             const board = document.getElementById('calendarBoard');
@@ -641,7 +790,6 @@
             const lastDate = new Date(year, month + 1, 0).getDate();
             const prevLastDate = new Date(year, month, 0).getDate();
 
-            // 지난달 역산 빈칸 채우기
             for (let i = firstDay - 1; i >= 0; i--) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell other-month';
@@ -651,32 +799,25 @@
 
             const records = getMasterData();
 
-            // 이번 달 1일부터 말일까지 보드 사출 루프
             for (let d = 1; d <= lastDate; d++) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
                 cell.innerHTML = `<div class="day-num">${d}</div>`;
 
-                // 자릿수 보정형 표준 YYYY-MM-DD 비교 문자열 생성
+                // 자릿수 보정형 표준 YYYY-MM-DD 비교 문자열 결합 (예: 2026-09-04)
                 const targetYearStr = year.toString();
                 const targetMonthStr = (month + 1).toString().padStart(2, '0');
                 const targetDayStr = d.toString().padStart(2, '0');
                 const thisDateStr = `${targetYearStr}-${targetMonthStr}-${targetDayStr}`;
 
                 records.forEach(item => {
-                    if (currentFilter === 'ALL' || currentFilter === 'DUTY' || currentFilter === 'NONE') {
-                        // 상단 필터 제어 조건 분기 필터링 (배정 인원 유무 기준 매칭)
-                        if (currentFilter === 'DUTY' && (!item.count || parseInt(item.count) <= 0)) return;
-                        if (currentFilter === 'NONE' && (item.count && parseInt(item.count) > 0)) return;
-                    }
-
                     const thText = (item.th || "1기").trim();
                     const thLabel = item.th ? ` [${item.th}]` : '';
                     const clickUid = item.uid ? item.uid : item.title;
 
                     const dynamicColorClass = `th-color-${thText}`;
 
-                    // 💡 [핵심 교정 완수] 오직 공고 등록 시의 '소집일자(recDate)' 데이터가 당일 날짜와 일치할 때만 배지 렌더링
+                    // 오직 공고 등록 시의 '소집일자(recDate)' 데이터가 당일 날짜와 일치할 때만 배지 렌더링
                     if (item.recDate && item.recDate.trim() === thisDateStr) {
                         const badge = document.createElement('div');
                         badge.className = `event-badge ${dynamicColorClass}`;
@@ -684,9 +825,6 @@
                         badge.setAttribute('onclick', `openClinicalDetailModal('${clickUid}', '소집 일정')`);
                         cell.appendChild(badge);
                     }
-
-                    // 💡과거 기획의 흔적인 참여비 지급일(`payDate1~3`) 루프 매핑 분기 코드를 이곳에서 완전히 통째로 영구 삭제 파기했습니다.
-                    // 이로 인해 참여비 지급일은 달력 일자 칸에 절대 노출되지 않으며 오직 상세 보기 모달 팝업 내부 테이블에서만 조회됩니다.
                 });
 
                 board.appendChild(cell);

@@ -626,7 +626,7 @@
         };
 
         /**
-         * 8. [데이터 무결성 완전 잠금] 날짜 정합성 오류를 완벽하게 보정한 캘린더 렌더러 함수
+         * 8. [소집일 필터 락인] 참여비 지급일 로직을 완전 제거하고 오직 소집일자만 매핑하는 캘린더 렌더러 함수
          */
         function renderCalendar() {
             const board = document.getElementById('calendarBoard');
@@ -657,15 +657,18 @@
                 cell.className = 'day-cell';
                 cell.innerHTML = `<div class="day-num">${d}</div>`;
 
-                // 💡 기준 포맷 정의: 자릿수를 완벽하게 동기화한 표준 YYYY-MM-DD 데이터 생성 (예: 2026-09-04)
+                // 자릿수 보정형 표준 YYYY-MM-DD 비교 문자열 생성
                 const targetYearStr = year.toString();
                 const targetMonthStr = (month + 1).toString().padStart(2, '0');
                 const targetDayStr = d.toString().padStart(2, '0');
                 const thisDateStr = `${targetYearStr}-${targetMonthStr}-${targetDayStr}`;
 
                 records.forEach(item => {
-                    if (currentFilter === 'DUTY' && (!item.count || parseInt(item.count) <= 0)) return;
-                    if (currentFilter === 'NONE' && (item.count && parseInt(item.count) > 0)) return;
+                    if (currentFilter === 'ALL' || currentFilter === 'DUTY' || currentFilter === 'NONE') {
+                        // 상단 필터 제어 조건 분기 필터링 (배정 인원 유무 기준 매칭)
+                        if (currentFilter === 'DUTY' && (!item.count || parseInt(item.count) <= 0)) return;
+                        if (currentFilter === 'NONE' && (item.count && parseInt(item.count) > 0)) return;
+                    }
 
                     const thText = (item.th || "1기").trim();
                     const thLabel = item.th ? ` [${item.th}]` : '';
@@ -673,7 +676,7 @@
 
                     const dynamicColorClass = `th-color-${thText}`;
 
-                    // A. 소집 배지 매핑
+                    // 💡 [핵심 교정 완수] 오직 공고 등록 시의 '소집일자(recDate)' 데이터가 당일 날짜와 일치할 때만 배지 렌더링
                     if (item.recDate && item.recDate.trim() === thisDateStr) {
                         const badge = document.createElement('div');
                         badge.className = `event-badge ${dynamicColorClass}`;
@@ -682,19 +685,8 @@
                         cell.appendChild(badge);
                     }
 
-                    // B. 참여비 지급 배지 매핑 (연-월-일 포맷 무결성 3중 락 가동)
-                    ['payDate1', 'payDate2', 'payDate3'].forEach((pKey, idx) => {
-                        const dbPayDate = item[pKey];
-
-                        // 💡 [버그 완전 패치] 데이터가 존재하고, 공백이 아니며, 연-월-일 전체가 완벽하게 일치하는 레코드만 화면에 바인딩
-                        if (dbPayDate && dbPayDate.trim() !== "" && dbPayDate.trim() === thisDateStr) {
-                            const badge = document.createElement('div');
-                            badge.className = `event-badge ${dynamicColorClass}`;
-                            badge.innerHTML = `- [${item.title || '과제'}] ${idx + 1}차 참여비`;
-                            badge.setAttribute('onclick', `openClinicalDetailModal('${clickUid}', '참여비 지급')`);
-                            cell.appendChild(badge);
-                        }
-                    });
+                    // 💡과거 기획의 흔적인 참여비 지급일(`payDate1~3`) 루프 매핑 분기 코드를 이곳에서 완전히 통째로 영구 삭제 파기했습니다.
+                    // 이로 인해 참여비 지급일은 달력 일자 칸에 절대 노출되지 않으며 오직 상세 보기 모달 팝업 내부 테이블에서만 조회됩니다.
                 });
 
                 board.appendChild(cell);

@@ -674,17 +674,49 @@
         }
 
         /**
-         * 6. [정렬 대수술 완수] 배지 클릭 시 현재참여 위로, 과거이력 아래로 정렬하여 이력조회 바인딩하는 엔진
+         * 6. [대안 1 및 정렬 대수술 완수] m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진
          * @param {string|number} uid - 임상공고 고유 식별 번호 또는 타이틀
          * @param {string} typeTitle - 모달창 헤더 타이틀 라벨 분기용
          */
         window.openClinicalDetailModal = function (uid, typeTitle) {
             const records = getMasterData();
-            const applicantDB = getApplicantData();
+            let applicantDB = getApplicantData();
 
-            // 고유 ID 또는 과제명 타이틀 문자열을 기반으로 공고 원천 소스 추적 매핑
+            // 공고 원천 소스 추적 매핑
             const target = records.find(item => item.uid == uid || item.title === uid);
             if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다.");
+
+            const targetTitle = (target.title || "").toString().trim();
+            const targetTh = (target.th || "").toString().trim();
+
+            // 💡 [대안 1 핵심] m-login.html 인증서 통과 시 세션에 저장된 '로그인 한 피험자 본인'의 정보 캐치
+            let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+
+            // 시연 발표장 예외 방어 가드: 만약 세션에 로그인 기록이 없다면 발표 테스트용 기본 세션 강제 발급
+            if (!loggedInUser || !loggedInUser.name) {
+                loggedInUser = { name: "홍길동", isNew: false };
+                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+            }
+
+            const currentSessionName = loggedInUser.name.toString().trim();
+
+            // 💡 [대안 1 가상 회원가입 인터셉터] 전체 대상자 가상 DB에 로그인한 피험자 성명이 아예 존재하지 않는 뉴페이스인 경우
+            const isUserExists = applicantDB.some(app => (app.name || "").toString().trim() === currentSessionName);
+
+            if (!isUserExists) {
+                // 즉석에서 가상 회원가입 / 임시 패스권 데이터를 로컬스토리지에push 주입하여 시스템 프리징 차단
+                const newPassTicket = {
+                    uid: "TEMP_" + Date.now(),
+                    name: currentSessionName,
+                    title: targetTitle,       // 현재 누른 시험명에 자동 매핑 예약
+                    th: targetTh,             // 현재 누른 기수에 자동 매핑 예약
+                    period: target.period || "0",
+                    payStatus: "대기",         // 최초 등록 시 정산 대기 상태 부여
+                    isVirtualGhost: true       // 임시 발급 대상자 마킹 식별자
+                };
+                applicantDB.push(newPassTicket);
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
+            }
 
             // 모달창 구성 돔 엘리먼트 실시간 텍스트 주입
             document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 상세 안내]`;
@@ -695,29 +727,16 @@
             document.getElementById('m-crc').innerText = target.crc || '-';
             document.getElementById('m-recDate').innerText = target.recDate || '-';
 
-            // 대상자 관리의 피험자 임상시험 참여 누적 내역 실시간 동기화 역추적 가동
+            // 대상자 마스터 이력조회 패널 동적 빌드
             const scrollZone = document.getElementById("modal-history-scroll-zone");
-            scrollZone.innerHTML = ""; // 기존 스크롤 노드 리셋 초기화
+            scrollZone.innerHTML = "";
 
-            const targetTitle = (target.title || "").toString().trim();
-            const targetTh = (target.th || "").toString().trim();
-
-            // 이 시험 기수에 매칭된 피험자 찾기 (예: 홍길동, 강남구 등)
-            const activeApplicants = applicantDB.filter(app =>
-                (app.title || "").toString().trim() === targetTitle &&
-                (app.th || "").toString().trim() === targetTh
-            );
-
-            // 연동된 피험자들의 성명 풀 추출 (중복 제거)
-            const applicantNames = [...new Set(activeApplicants.map(app => (app.name || "").toString().trim()))];
-
-            // 전체 대상자 가상 DB에서 해당 성명을 가진 사람들의 누적 레코드 1차 추출
+            // 💡 [본인 한정 보안 락] 무작위 대상자가 아니라, 오직 로그인한 '본인'의 이름과 일치하는 마스터 참여 이력만 단독 추출
             const rawHistoryRecords = applicantDB.filter(item =>
-                applicantNames.includes((item.name || "").toString().trim()) && (item.name || "").toString().trim() !== ""
+                (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== ""
             );
 
-            // 💡 [요구사항 완수 : 2트랙 정렬 알고리즘 마운트]
-            // 현재 참여 중인 과제 레코드와 과거 이력 레코드를 칼같이 분리수거함
+            // 💡 현재 참여 중인 과제와 과거 참여했던 과제 내역을 분리수거하여 2트랙 정렬 가동
             const currentJobArray = rawHistoryRecords.filter(row =>
                 (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
             );
@@ -725,29 +744,33 @@
                 !((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh)
             );
 
-            // 💡 분리된 두 배열을 병합하여 [최근/현재 참여중] 데이터가 무조건 인덱스 0번(최상단)에 오도록 우선순위 락인
+            // 현재참여 과제 내역이 무조건 인덱스 0번(최상단)에 오도록 우선순위 소팅 합병
             const sortedHistoryRecords = currentJobArray.concat(pastJobArray);
 
             // 상단 소제목 카운트 라벨 업데이트 실시간 연동
             document.getElementById("m-history-count-title").innerText = `대상자 참여 마스터 이력조회 누적 내역 (${sortedHistoryRecords.length}건)`;
 
-            // 정렬이 완료된 데이터셋을 루프 돌며 미니 카드로 가공하여 스크롤 존에 사출
+            // 미니 카드 가공 사출 유틸리티
             if (sortedHistoryRecords.length === 0) {
                 scrollZone.innerHTML = `<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>`;
             } else {
                 sortedHistoryRecords.forEach(row => {
-                    // 현재 실행 중인 과제와 동일 레코드인지 다시 한번 조건 판정
                     const isCurrentJob = ((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh);
 
                     const miniCard = document.createElement("div");
                     miniCard.className = isCurrentJob ? "history-mini-card current-job" : "history-mini-card";
 
-                    // 접두사 태그 폰트 컬러 분기 매칭
-                    const prefixTag = isCurrentJob
+                    // 신규 회원 즉석 임시 패스권인 경우 특수 UX 안내 배너 텍스트 치환 적용
+                    let prefixTag = isCurrentJob
                         ? `<span style="color:var(--secondary-color); font-weight:800; margin-right:4px;">[현재시험]</span>`
                         : `<span style="color:var(--text-muted); font-weight:700; margin-right:4px;">[과거시험]</span>`;
 
-                    // 우측 지급 상태 배지 고대비 전용 컬러 매칭 트릭
+                    let rowTitleDisplay = row.title || '미지정 과제';
+                    if (row.isVirtualGhost) {
+                        prefixTag = `<span style="color:var(--success-color); font-weight:800; margin-right:4px;">[최초인증]</span>`;
+                        rowTitleDisplay = `${rowTitleDisplay} (가상 회원 패스권 즉시 발급됨)`;
+                    }
+
                     const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
                     let statusColor = "#94a3b8";
                     if (currentPayStatus === "접수") statusColor = "#38bdf8";
@@ -756,37 +779,33 @@
                     else if (currentPayStatus === "대기") statusColor = "var(--danger-color)";
 
                     miniCard.innerHTML = `
-                    <div style="text-align:left;">
-                        <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
-                            ${prefixTag}${row.name || '피험자'} - ${row.title || '미지정 과제'}
+                        <div style="text-align:left;">
+                            <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
+                                ${prefixTag}${row.name || '피험자'} - ${rowTitleDisplay}
+                            </div>
+                            <div style="font-size:11.5px; color:var(--text-muted);">
+                                진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span>
+                            </div>
                         </div>
-                        <div style="font-size:11.5px; color:var(--text-muted);">
-                            진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span>
+                        <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
+                            지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>
                         </div>
-                    </div>
-                    <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
-                        지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>
-                    </div>
-                `;
+                    `;
                     scrollZone.appendChild(miniCard);
                 });
             }
 
-            // 레이어 팝업 활성화 호출 가드 인젝션
             const overlay = document.getElementById('detailModalOverlay');
             overlay.setAttribute('style', 'display: flex !important;');
         };
 
-        /**
-         * 7. 상세안내 모달 팝업 창 닫기 처리기
-         */
         window.closeDetailModal = function (e) {
             document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
         };
 
         /**
-         * 8. 오직 소집일자만 추적 매핑하는 정밀 달력 격자 사출 렌더러 함수
-         */
+  * 7. 오직 소집일자만 추적 매핑하는 정밀 달력 격자 사출 렌더러 함수 (참여비 지급 유령일정 배지 간섭 원천 배제 완료)
+  */
         function renderCalendar() {
             const board = document.getElementById('calendarBoard');
             const label = document.getElementById('currentMonthLabel');
@@ -839,8 +858,9 @@
             }
         }
 
-        // 9. 파일 초기 마운트 완료 시 자동 첫 실행 트리거
+        // 8. 파일 초기 마운트 완료 시 자동 첫 실행 트리거
         window.onload = renderCalendar;
+
     </script>
 </body>
 

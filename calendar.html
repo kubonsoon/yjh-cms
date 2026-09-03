@@ -571,7 +571,7 @@
         <ol class="notice-list-wrapper">
             <li><strong>참고사항 1 :</strong> 소집일자 일정 정보는 메인 대시보드의 모집공고 탭 데이터 스토어 스트림과 실시간 트랜잭션 동기화 연동됩니다.</li>
             <li><strong>참고사항 2 :</strong> 참여비 차수별 지급일 정보는 등록된 과제의 고유 기수 권한 배지 색상과 100% 동기화 매핑되어 사출됩니다.</li>
-            <li><strong>참고사항 3 :</strong> 달력 내부의 일정 배지 클릭 시 대상자 관리 탭의 피험자 임상시험 참여 누적 내역 데이터가 실시간 추적 연동됩니다.</li>
+            <li><strong>참고사항 3 :</strong> 달력 내부의 일정 배지 클릭 시 대상자 관리 탭의 대상자 임상시험 참여 누적 내역 데이터가 실시간 추적 연동됩니다.</li>
         </ol>
     </div>
 
@@ -612,7 +612,7 @@
                 </tr>
             </table>
 
-            <!-- 💡 [대수술 핵심 이식] 대상자 관리의 피험자 과거 임상시험 누적 내역이 실시간 바인딩 사출되는 스크롤 존 -->
+            <!-- 💡 [대수술 핵심 이식] 대상자 관리의 대상자 과거 임상시험 누적 내역이 실시간 바인딩 사출되는 스크롤 존 -->
             <div class="modal-history-title">
                 <i class="fa-solid fa-clock-history"></i> <span id="m-history-count-title">대상자 참여 이력 내역
                     (0건)</span>
@@ -621,15 +621,12 @@
                 <!-- 자바스크립트에 의해 대상자 관리(localStorage) 내역 카드가 여기에 동적 사출됩니다 -->
             </div>
 
-            <!-- 💡 [요구사항 완수] 모달 하단 균등 그리드형 참여 / 미참여 / 닫기 3대 제어 버튼 그룹 -->
             <div class="modal-btn-group-row">
-                <button type="button" class="modal-act-btn btn-join"
-                    onclick="alert('참여 신청 접수되었습니다.'); document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">참여</button>
-                <button type="button" class="modal-act-btn btn-reject"
-                    onclick="alert('미참여 신청 되었습니다.'); document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">미참여</button>
-                <button type="button" class="modal-act-btn btn-close"
-                    onclick="document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">닫기</button>
+                <button type="button" class="modal-act-btn btn-join" onclick="executeModalJoinAction()">참여</button>
+                <button type="button" class="modal-act-btn btn-reject" onclick="executeModalRejectAction()">미참여</button>
+                <button type="button" class="modal-act-btn btn-close" onclick="closeDetailModal()">닫기</button>
             </div>
+
         </div>
     </div>
 
@@ -673,139 +670,12 @@
             downloadAnchor.remove();
         }
 
+        // 글로벌 스코프에 현재 활성화된 모달 과제 컨텍스트 데이터 보존
+        let currentActiveModalJob = null;
+
         /**
-         * 6. [대안 1 및 정렬 대수술 완수] m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진
-         * @param {string|number} uid - 임상공고 고유 식별 번호 또는 타이틀
-         * @param {string} typeTitle - 모달창 헤더 타이틀 라벨 분기용
+         * 6. 오직 소집일자만 추적 매핑하는 정밀 달력 격자 사출 렌더러 함수
          */
-        window.openClinicalDetailModal = function (uid, typeTitle) {
-            const records = getMasterData();
-            let applicantDB = getApplicantData();
-
-            // 공고 원천 소스 추적 매핑
-            const target = records.find(item => item.uid == uid || item.title === uid);
-            if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다.");
-
-            const targetTitle = (target.title || "").toString().trim();
-            const targetTh = (target.th || "").toString().trim();
-
-            // 💡 [대안 1 핵심] m-login.html 인증서 통과 시 세션에 저장된 '로그인 한 피험자 본인'의 정보 캐치
-            let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-
-            // 시연 발표장 예외 방어 가드: 만약 세션에 로그인 기록이 없다면 발표 테스트용 기본 세션 강제 발급
-            if (!loggedInUser || !loggedInUser.name) {
-                loggedInUser = { name: "홍길동", isNew: false };
-                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
-            }
-
-            const currentSessionName = loggedInUser.name.toString().trim();
-
-            // 💡 [대안 1 가상 회원가입 인터셉터] 전체 대상자 가상 DB에 로그인한 피험자 성명이 아예 존재하지 않는 뉴페이스인 경우
-            const isUserExists = applicantDB.some(app => (app.name || "").toString().trim() === currentSessionName);
-
-            if (!isUserExists) {
-                // 즉석에서 가상 회원가입 / 임시 패스권 데이터를 로컬스토리지에push 주입하여 시스템 프리징 차단
-                const newPassTicket = {
-                    uid: "TEMP_" + Date.now(),
-                    name: currentSessionName,
-                    title: targetTitle,       // 현재 누른 시험명에 자동 매핑 예약
-                    th: targetTh,             // 현재 누른 기수에 자동 매핑 예약
-                    period: target.period || "0",
-                    payStatus: "대기",         // 최초 등록 시 정산 대기 상태 부여
-                    isVirtualGhost: true       // 임시 발급 대상자 마킹 식별자
-                };
-                applicantDB.push(newPassTicket);
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
-            }
-
-            // 모달창 구성 돔 엘리먼트 실시간 텍스트 주입
-            document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 상세 안내]`;
-            document.getElementById('m-title').innerText = target.title || '-';
-            document.getElementById('m-th').innerText = target.th || '-';
-            document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-';
-            document.getElementById('m-period').innerText = target.period ? target.period + '시간' : '-';
-            document.getElementById('m-crc').innerText = target.crc || '-';
-            document.getElementById('m-recDate').innerText = target.recDate || '-';
-
-            // 대상자 마스터 이력조회 패널 동적 빌드
-            const scrollZone = document.getElementById("modal-history-scroll-zone");
-            scrollZone.innerHTML = "";
-
-            // 💡 [본인 한정 보안 락] 무작위 대상자가 아니라, 오직 로그인한 '본인'의 이름과 일치하는 마스터 참여 이력만 단독 추출
-            const rawHistoryRecords = applicantDB.filter(item =>
-                (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== ""
-            );
-
-            // 💡 현재 참여 중인 과제와 과거 참여했던 과제 내역을 분리수거하여 2트랙 정렬 가동
-            const currentJobArray = rawHistoryRecords.filter(row =>
-                (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
-            );
-            const pastJobArray = rawHistoryRecords.filter(row =>
-                !((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh)
-            );
-
-            // 현재참여 과제 내역이 무조건 인덱스 0번(최상단)에 오도록 우선순위 소팅 합병
-            const sortedHistoryRecords = currentJobArray.concat(pastJobArray);
-
-            // 상단 소제목 카운트 라벨 업데이트 실시간 연동
-            document.getElementById("m-history-count-title").innerText = `대상자 참여 마스터 이력조회 누적 내역 (${sortedHistoryRecords.length}건)`;
-
-            // 미니 카드 가공 사출 유틸리티
-            if (sortedHistoryRecords.length === 0) {
-                scrollZone.innerHTML = `<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>`;
-            } else {
-                sortedHistoryRecords.forEach(row => {
-                    const isCurrentJob = ((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh);
-
-                    const miniCard = document.createElement("div");
-                    miniCard.className = isCurrentJob ? "history-mini-card current-job" : "history-mini-card";
-
-                    // 신규 회원 즉석 임시 패스권인 경우 특수 UX 안내 배너 텍스트 치환 적용
-                    let prefixTag = isCurrentJob
-                        ? `<span style="color:var(--secondary-color); font-weight:800; margin-right:4px;">[현재시험]</span>`
-                        : `<span style="color:var(--text-muted); font-weight:700; margin-right:4px;">[과거시험]</span>`;
-
-                    let rowTitleDisplay = row.title || '미지정 과제';
-                    if (row.isVirtualGhost) {
-                        prefixTag = `<span style="color:var(--success-color); font-weight:800; margin-right:4px;">[최초인증]</span>`;
-                        rowTitleDisplay = `${rowTitleDisplay} (가상 회원 패스권 즉시 발급됨)`;
-                    }
-
-                    const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
-                    let statusColor = "#94a3b8";
-                    if (currentPayStatus === "접수") statusColor = "#38bdf8";
-                    else if (currentPayStatus === "처리중") statusColor = "#fbbf24";
-                    else if (currentPayStatus === "완료") statusColor = "var(--success-color)";
-                    else if (currentPayStatus === "대기") statusColor = "var(--danger-color)";
-
-                    miniCard.innerHTML = `
-                        <div style="text-align:left;">
-                            <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
-                                ${prefixTag}${row.name || '피험자'} - ${rowTitleDisplay}
-                            </div>
-                            <div style="font-size:11.5px; color:var(--text-muted);">
-                                진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span>
-                            </div>
-                        </div>
-                        <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
-                            지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>
-                        </div>
-                    `;
-                    scrollZone.appendChild(miniCard);
-                });
-            }
-
-            const overlay = document.getElementById('detailModalOverlay');
-            overlay.setAttribute('style', 'display: flex !important;');
-        };
-
-        window.closeDetailModal = function (e) {
-            document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
-        };
-
-        /**
-  * 7. 오직 소집일자만 추적 매핑하는 정밀 달력 격자 사출 렌더러 함수 (참여비 지급 유령일정 배지 간섭 원천 배제 완료)
-  */
         function renderCalendar() {
             const board = document.getElementById('calendarBoard');
             const label = document.getElementById('currentMonthLabel');
@@ -858,9 +728,151 @@
             }
         }
 
-        // 8. 파일 초기 마운트 완료 시 자동 첫 실행 트리거
-        window.onload = renderCalendar;
+        /**
+         * 7. m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진 + 원본 버튼 하이재킹 모듈 결합
+         */
+        window.openClinicalDetailModal = function (uid, typeTitle) {
+            const records = getMasterData();
+            let applicantDB = getApplicantData();
 
+            const target = records.find(item => item.uid == uid || item.title === uid);
+            if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다.");
+
+            const targetTitle = (target.title || "").toString().trim();
+            const targetTh = (target.th || "").toString().trim();
+
+            currentActiveModalJob = target;
+
+            let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+            if (!loggedInUser || !loggedInUser.name) {
+                loggedInUser = { name: "홍길동", isNew: false };
+                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+            }
+
+            const currentSessionName = loggedInUser.name.toString().trim();
+            const isUserExists = applicantDB.some(app => (app.name || "").toString().trim() === currentSessionName);
+
+            if (!isUserExists) {
+                const newPassTicket = {
+                    uid: "TEMP_" + Date.now(),
+                    name: currentSessionName,
+                    title: targetTitle,
+                    th: targetTh,
+                    period: target.period || "0",
+                    payStatus: "대기",
+                    isVirtualGhost: true
+                };
+                applicantDB.push(newPassTicket);
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
+            }
+
+            document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 상세 안내]`;
+            document.getElementById('m-title').innerText = target.title || '-';
+            document.getElementById('m-th').innerText = target.th || '-';
+            document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-';
+            document.getElementById('m-period').innerText = target.period ? target.period + '시간' : '-';
+            document.getElementById('m-crc').innerText = target.crc || '-';
+            document.getElementById('m-recDate').innerText = target.recDate || '-';
+
+            const scrollZone = document.getElementById("modal-history-scroll-zone");
+            scrollZone.innerHTML = "";
+
+            const rawHistoryRecords = applicantDB.filter(item =>
+                (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== ""
+            );
+
+            const currentJobArray = rawHistoryRecords.filter(row =>
+                (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
+            );
+            const pastJobArray = rawHistoryRecords.filter(row =>
+                !((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh)
+            );
+
+            const sortedHistoryRecords = currentJobArray.concat(pastJobArray);
+            document.getElementById("m-history-count-title").innerText = `대상자 참여 마스터 이력조회 누적 내역 (${sortedHistoryRecords.length}건)`;
+
+            if (sortedHistoryRecords.length === 0) {
+                scrollZone.innerHTML = `<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>`;
+            } else {
+                sortedHistoryRecords.forEach(row => {
+                    const isCurrentJob = ((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh);
+                    const miniCard = document.createElement("div");
+                    miniCard.className = isCurrentJob ? "history-mini-card current-job" : "history-mini-card";
+
+                    let prefixTag = isCurrentJob ? `<span style="color:var(--secondary-color); font-weight:800; margin-right:4px;">[현재시험]</span>` : `<span style="color:var(--text-muted); font-weight:700; margin-right:4px;">[과거시험]</span>`;
+                    let rowTitleDisplay = row.title || '미지정 과제';
+                    if (row.isVirtualGhost) {
+                        prefixTag = `<span style="color:var(--success-color); font-weight:800; margin-right:4px;">[최초인증]</span>`;
+                        rowTitleDisplay = `${rowTitleDisplay} (가상 회원 패스권 즉시 발급됨)`;
+                    }
+
+                    const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
+                    let statusColor = "#94a3b8";
+                    if (currentPayStatus === "접수") statusColor = "#38bdf8";
+                    else if (currentPayStatus === "처리중") statusColor = "#fbbf24";
+                    else if (currentPayStatus === "완료") statusColor = "var(--success-color)";
+                    else if (currentPayStatus === "대기") statusColor = "var(--danger-color)";
+
+                    miniCard.innerHTML = `
+                    <div style="text-align:left;">
+                        <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
+                            ${prefixTag}${row.name || '피험자'} - ${rowTitleDisplay}
+                        </div>
+                        <div style="font-size:11.5px; color:var(--text-muted);">
+                            진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span>
+                        </div>
+                    </div>
+                    <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
+                        지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>
+                    </div>
+                `;
+                    scrollZone.appendChild(miniCard);
+                });
+            }
+
+            // 💡 [핵심 인터셉터 기술] 원본 HTML의 버튼을 그대로 둔 상태에서 클릭 이벤트를 하이재킹하여 동적 전산 갱신 연동
+            setTimeout(() => {
+                const btnJoin = document.querySelector('.btn-join');
+                const btnReject = document.querySelector('.btn-reject');
+
+                if (btnJoin) {
+                    btnJoin.onclick = function (e) {
+                        e.preventDefault();
+                        let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                        const myTargetIdx = appDB.findIndex(app => (app.name || "").toString().trim() === currentSessionName && (app.isVirtualGhost === true || app.isNewUserGhost === true));
+
+                        if (myTargetIdx !== -1) {
+                            delete appDB[myTargetIdx].isVirtualGhost;
+                            delete appDB[myTargetIdx].isNewUserGhost;
+                            appDB[myTargetIdx].title = targetTitle;
+                            appDB[myTargetIdx].th = targetTh;
+                            appDB[myTargetIdx].period = currentActiveModalJob.period || "0";
+                            appDB[myTargetIdx].payStatus = "대기";
+                            localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                        }
+                        alert('참여 신청 접수되었습니다.');
+                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
+                    };
+                }
+
+                if (btnReject) {
+                    btnReject.onclick = function (e) {
+                        e.preventDefault();
+                        alert('미참여 신청 되었습니다.');
+                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
+                    };
+                }
+            }, 50);
+
+            const overlay = document.getElementById('detailModalOverlay');
+            overlay.setAttribute('style', 'display: flex !important;');
+        };
+
+        window.closeDetailModal = function (e) {
+            document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
+        };
+
+        window.onload = renderCalendar;
     </script>
 </body>
 

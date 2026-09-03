@@ -645,13 +645,20 @@
     </div>
 
     <script>
+        // 1. 달력 전역 상태 관리 포인터 스케줄러
         let currentDate = new Date();
         let currentFilter = 'ALL';
 
+        /**
+         * 2. 메인 대시보드(admin.html)의 로컬스토리지 임상시험 마스터 레코드 스트림 연동
+         */
         function getMasterData() {
             return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
         }
 
+        /**
+         * 3. 상단 우측 참여/미참여 필터링 트랜잭션 제어 함수
+         */
         function setFilter(type) {
             currentFilter = type;
             document.querySelectorAll('.toolbar-group .tool-btn').forEach(btn => btn.classList.remove('active'));
@@ -661,11 +668,17 @@
             renderCalendar();
         }
 
+        /**
+         * 4. 월 선택 컨트롤러 네비게이터 작동기
+         */
         function moveMonth(v) {
             currentDate.setMonth(currentDate.getMonth() + v);
             renderCalendar();
         }
 
+        /**
+         * 5. 전체 스케줄링 백업 데이터 JSON 파일 사출 다운로드 함수
+         */
         function executeDownload() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getMasterData(), null, 2));
             const downloadAnchor = document.createElement('a');
@@ -676,23 +689,60 @@
             downloadAnchor.remove();
         }
 
+        /**
+         * 6. [핵심 요구사항 완수] 배지 클릭 시 동적 모달 팝업 가동 및 데이터 바인딩 엔진
+         * @param {string|number} uid - 임상공고 고유 식별 번호 또는 타이틀
+         * @param {string} typeTitle - 소집 일정 또는 참여비 일정 라벨 분기용
+         */
+        window.openClinicalDetailModal = function (uid, typeTitle) {
+            const records = getMasterData();
+            // 고유 ID(uid) 또는 과제명 타이틀 문자열을 기반으로 가상 DB 역추적 매핑
+            const target = records.find(item => item.uid == uid || item.title === uid);
+            if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다.");
+
+            // 모달창 구성 돔 엘리먼트 실시간 텍스트 주입
+            document.getElementById('m-popup-type').innerText = `[${typeTitle} 상세 안내]`;
+            document.getElementById('m-title').innerText = target.title || '-';
+            document.getElementById('m-th').innerText = target.th || '-';
+            document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-';
+            document.getElementById('m-period').innerText = target.period ? target.period + '시간' : '-';
+            document.getElementById('m-crc').innerText = target.crc || '-';
+            document.getElementById('m-recDate').innerText = target.recDate || '-';
+
+            // 참여비 차수별 3단 가변 데이터 정렬 빌더
+            let payInfo = [];
+            if (target.payDate1) payInfo.push(`• 1차 지급일: <span style="color:#ffffff;">${target.payDate1}</span>`);
+            if (target.payDate2) payInfo.push(`• 2차 지급일: <span style="color:#ffffff;">${target.payDate2}</span>`);
+            if (target.payDate3) payInfo.push(`• 3차 지급일: <span style="color:#ffffff;">${target.payDate3}</span>`);
+
+            document.getElementById('m-payDates').innerHTML = payInfo.length > 0
+                ? payInfo.join('<br>')
+                : '등록된 지급일정 데이터가 없습니다.';
+
+            // 레이어 팝업 활성화 호출
+            document.getElementById('detailModalOverlay').style.display = 'flex';
+        };
+
+        /**
+         * 7. 상세안내 모달 팝업 창 닫기 처리기
+         */
+        window.closeDetailModal = function (e) {
+            document.getElementById('detailModalOverlay').style.display = 'none';
+        };
+
+        /**
+         * 8. [메커니즘 전면 개정] 4~5개 데이터 경량화 매핑 및 달력 그리드 렌더러 함수
+         */
         function renderCalendar() {
             const board = document.getElementById('calendarBoard');
             const label = document.getElementById('currentMonthLabel');
-            board.innerHTML = '';
+            board.innerHTML = ''; // 기존 격자 초기화 청소
 
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             label.innerText = `${year}년 ${(month + 1).toString().padStart(2, '0')}월`;
 
-            const weeks = ['일', '월', '화', '수', '목', '금', '토'];
-            weeks.forEach(w => {
-                const head = document.createElement('div');
-                head.className = 'day-header';
-                head.innerText = w;
-                board.appendChild(head);
-            });
-
+            // 1일 시작 점 기준 지난달 역산 빈칸 채우기
             const firstDay = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month + 1, 0).getDate();
             const prevLastDate = new Date(year, month, 0).getDate();
@@ -706,31 +756,39 @@
 
             const records = getMasterData();
 
+            // 이번 달 1일부터 말일까지 본체 셀 동적 사출 루프
             for (let d = 1; d <= lastDate; d++) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
                 cell.innerHTML = `<div class="day-num">${d}</div>`;
 
+                // 매칭 검증용 YYYY-MM-DD 포맷 락인 타겟 문자열 생성
                 const thisDateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
 
                 records.forEach(item => {
+                    // 상단 필터 제어 조건 분기 필터링
                     if (currentFilter === 'DUTY' && (!item.count || parseInt(item.count) <= 0)) return;
                     if (currentFilter === 'NONE' && (item.count && parseInt(item.count) > 0)) return;
 
-                    const thInfo = item.th ? ` [${item.th}]` : '';
+                    const thLabel = item.th ? ` [${item.th}]` : '';
+                    const clickUid = item.uid ? item.uid : item.title;
 
+                    // A. [요구사항 반영] 소집일정 배지 (경량화: 시험명[기수]만 표시 및 클릭 핸들러 바인딩)
                     if (item.recDate === thisDateStr) {
                         const badge = document.createElement('div');
                         badge.className = 'event-badge badge-rec';
-                        badge.innerHTML = `<i class="fa-solid fa-hospital-user"></i> ${item.title || '과제'}${thInfo}<br>• 인원: ${item.count || 0}명 / 기간: ${item.period || 0}h / CRC: ${item.crc || '-'}`;
+                        badge.innerHTML = `<i class="fa-solid fa-hospital-user"></i> ${item.title || '과제'}${thLabel}`;
+                        badge.setAttribute('onclick', `openClinicalDetailModal('${clickUid}', '소집 일정')`);
                         cell.appendChild(badge);
                     }
 
+                    // B. [요구사항 반영] 참여비 지급 배지 (경량화: 차수 정보 표시 및 클릭 핸들러 바인딩)
                     ['payDate1', 'payDate2', 'payDate3'].forEach((pKey, idx) => {
                         if (item[pKey] === thisDateStr) {
                             const badge = document.createElement('div');
                             badge.className = 'event-badge badge-pay';
-                            badge.innerHTML = `<i class="fa-solid fa-coins"></i> [참여비 ${idx + 1}차 지급] ${item.title || '과제'}`;
+                            badge.innerHTML = `<i class="fa-solid fa-coins"></i> ${idx + 1}차 참여비 지급`;
+                            badge.setAttribute('onclick', `openClinicalDetailModal('${clickUid}', '참여비 지급')`);
                             cell.appendChild(badge);
                         }
                     });
@@ -740,6 +798,7 @@
             }
         }
 
+        // 9. 파일 초기 마운트 완료 시 자동 첫 실행 트리거
         window.onload = renderCalendar;
     </script>
 </body>

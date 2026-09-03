@@ -666,8 +666,8 @@
             <div class="settlement-card">
                 <div class="settlement-title">참여비 지급 신청 서식</div>
                 <div class="progress-status" id="ui_stage_text">
-                    ⏳ <b>차수 전산 검증 단계</b><br>
-                    <span style="font-size:11px;color:#94A3B8;">* 관리자 허브창에서 [신청가능] 상태를 승인해 주시면 아래 입력 양식 잠금이 자동
+                    ⏳ <b>전산 검증 단계</b><br>
+                    <span style="font-size:11px;color:#94A3B8;">* 관리자가 [신청가능] 상태를 승인해 주시면 아래 입력 양식 잠금이 자동
                         해제됩니다.</span>
                 </div>
                 <div class="form-grid">
@@ -693,7 +693,7 @@
                     </div>
                 </div>
                 <button id="ui_submit_btn" class="btn-submit-form" onclick="submitFinalSettlementForm()" disabled>관리자 승인
-                    대기 중 (신청 불가)</button>
+                    대기중 (신청 불가)</button>
             </div>
         </div>
 
@@ -705,7 +705,7 @@
             </div>
             <div
                 style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.2); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; color: #e2e8f0;">
-                🔒 <strong id="lblSetTargetNew" style="color:#06B6D4;">-</strong> 최초 인증 피험자 가상 스케줄러 연동 완료
+                🔒 <strong id="lblSetTargetNew" style="color:#06B6D4;">-</strong> 최초 인증 대상자 가상 스케줄러 연동 완료
             </div>
             <div
                 style="flex: 1; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; background: #0b0f19;">
@@ -800,9 +800,9 @@
                 popup.parentElement.className = "popup-display-zone pop-theme-pass";
                 if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
-                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 피험자명: ${name}\n\n📢 [사례비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
+                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}\n\n📢 [사례비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
             } else {
-                // 💡 [트랙 B: 최초 방문 신규 피험자] 가상 패스권 즉석 발급 가동
+                // 💡 [트랙 B: 최초 방문 신규 대상자] 가상 패스권 즉석 발급 가동
                 const ghostPassTicket = {
                     uid: "VIRTUAL_" + Date.now(),
                     name: name,
@@ -822,8 +822,8 @@
 
                 popup.parentElement.className = "popup-display-zone pop-theme-pass";
                 if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
-                document.getElementById('txtPopTitle').innerText = "신규 피험자 본인인증 완료";
-                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 피험자명: ${name}님\n\n양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.\n\n확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
+                document.getElementById('txtPopTitle').innerText = "신규 대상자 본인인증 완료";
+                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}님\n\n양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.\n\n확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
             }
 
             navigateToStep(3);
@@ -834,9 +834,9 @@
             if (matchedPatientData) {
                 // 💡 객체 내 신규방문 플래그 유무 속성을 역추적하여 전산망 분기
                 if (matchedPatientData.isNewUserGhost) {
-                    // [분기 트랙 B] 참여 적 없는 신규 피험자는 5단계 캘린더 컴포넌트로 리디렉션!
+                    // [분기 트랙 B] 참여 적 없는 신규 대상자는 5단계 캘린더 컴포넌트로 리디렉션!
                     navigateToStep(5);
-                    document.getElementById('lblSetTargetNew').innerText = `${matchedPatientData.name} 피험자님 (최초인증)`;
+                    document.getElementById('lblSetTargetNew').innerText = `${matchedPatientData.name} 대상자님 (최초인증)`;
 
                     const iframe = document.getElementById('mobileCalendarFrame');
                     if (iframe && iframe.contentWindow && typeof iframe.contentWindow.renderCalendar === "function") {
@@ -847,7 +847,7 @@
                     navigateToStep(4);
                     document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
                     const userBirthInput = document.getElementById('txtUserBirth').value.trim();
-                    document.getElementById('lblSetTarget').innerText = `${matchedPatientData.name} 피험자님 (${userBirthInput})`;
+                    document.getElementById('lblSetTarget').innerText = `${matchedPatientData.name} 대상자님 (${userBirthInput})`;
 
                     if (matchedPatientData.stage) {
                         document.getElementById('ui_stage_text').innerHTML = matchedPatientData.stage;
@@ -919,7 +919,7 @@
                 adminApplicantDB[idx].accountInfo = finalFinancialInfo;
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
-                alert(`[전산 접수 완료]\n\n${temporaryVerifiedName} 피험자님의 사례비 청구서가 [${finalFinancialInfo}] 허브를 통해 전산 최종 접수 완료되었습니다.`);
+                alert(`[전산 접수 완료]\n\n${temporaryVerifiedName} 대상자님의 사례비 청구서가 [${finalFinancialInfo}] 허브를 통해 전산 최종 접수 완료되었습니다.`);
 
                 const targetBtn = document.getElementById('ui_submit_btn');
                 targetBtn.disabled = true;

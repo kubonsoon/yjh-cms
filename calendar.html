@@ -489,7 +489,7 @@
         </div>
         <ol class="notice-list-wrapper">
             <li><strong>참고사항 1 :</strong> 소집일자 일정 정보는 메인 대시보드의 모집공고 탭 데이터 스토어 스트림과 실시간 트랜잭션 동기화 연동됩니다.</li>
-            <li><strong>참고사항 2 :</strong> 참여비 차수별 지급일 정보는 노란색 포인트 배지로 표기되며 최대 3차 일정까지 격자 추적 렌더링을 지원합니다.</li>
+            <li><strong>참고사항 2 :</strong> 참여비 차수별 지급일 정보는 등록된 과제의 고유 기수 권한 배지 색상과 100% 동기화 매핑되어 사출됩니다.</li>
             <li><strong>참고사항 3 :</strong> 상단 우측 필터링(전체, 참여, 미참여) 선택 시 공고에 배정된 인원수 유무 속성을 역추적하여 가시성을 제어합니다.</li>
         </ol>
     </div>
@@ -629,12 +629,15 @@
                     if (currentFilter === 'DUTY' && (!item.count || parseInt(item.count) <= 0)) return;
                     if (currentFilter === 'NONE' && (item.count && parseInt(item.count) > 0)) return;
 
+                    const thText = (item.th || "1기").trim();
                     const thLabel = item.th ? ` [${item.th}]` : '';
                     const clickUid = item.uid ? item.uid : item.title;
 
+                    const dynamicColorClass = `th-color-${thText}`;
+
                     if (item.recDate === thisDateStr) {
                         const badge = document.createElement('div');
-                        badge.className = 'event-badge badge-rec';
+                        badge.className = `event-badge ${dynamicColorClass}`;
                         badge.innerHTML = `<i class="fa-solid fa-hospital-user"></i> ${item.title || '과제'}${thLabel}`;
                         badge.setAttribute('onclick', `openClinicalDetailModal('${clickUid}', '소집 일정')`);
                         cell.appendChild(badge);
@@ -643,8 +646,8 @@
                     ['payDate1', 'payDate2', 'payDate3'].forEach((pKey, idx) => {
                         if (item[pKey] === thisDateStr) {
                             const badge = document.createElement('div');
-                            badge.className = 'event-badge badge-pay';
-                            badge.innerHTML = `<i class="fa-solid fa-coins"></i> ${idx + 1}차 참여비 지급`;
+                            badge.className = `event-badge ${dynamicColorClass}`;
+                            badge.innerHTML = `<i class="fa-solid fa-coins"></i> [${item.title || '과제'}] ${idx + 1}차 참여비`;
                             badge.setAttribute('onclick', `openClinicalDetailModal('${clickUid}', '참여비 지급')`);
                             cell.appendChild(badge);
                         }

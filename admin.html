@@ -2975,7 +2975,7 @@
                 <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
-                        <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal(${masterIndex})" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
+                        <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal('${item.uid ? item.uid : item.name + '_' + index}')" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
                         <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">수정</button>
                         <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
                     </div>
@@ -6268,14 +6268,22 @@
         // =========================================================================
         // 이력조회 부분
         // =========================================================================
-        function openIndividualHistoryModal(index) {
+
+
+
+
+
+
+
+        function openIndividualHistoryModal(targetUid) {
             // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
                 db = dataStoreApplicant;
             }
 
-            const row = db[index];
+            // 💡 [인덱스 버그 타파] 줄번호(index) 대신, 유일무이한 고유 식별 키(UID)를 기반으로 해당 대상자 단독 추적
+            const row = db.find(app => String(app.uid) === String(targetUid));
             if (!row) return alert("시스템 알림: 해당 대상자의 이력 데이터를 추적할 수 없습니다.");
 
             // 2. 형님께서 지정하신 진짜 원본 HTML 모달 레이어 프레임 돔 요소 스캔
@@ -6301,63 +6309,65 @@
             const pay2 = row.payStatus2 || '대기';
             const pay3 = row.payStatus3 || '대기';
 
-            // 💡 [오타 원천 세척 가드]: 변수명을 validSsn으로 확실하게 선언 락인
             const validSsn = row.ssn || "-";
             const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(validSsn, row.name) : "미정";
-            const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185'; // 고대비 서식
+            const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185';
 
-            // 💡 [원본 지시 핵심 이식]: 성명/생년월일/전화번호 알맹이 추출용 정형화 함수 및 검색 조건 일치화
             const getPurePhone = (p) => (p || "").toString().replace(/[^0-9]/g, "").trim();
             const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9 가-힣]/g, "").trim();
-
-            // 생년월일 앞 6자리만 추출하여 비교하는 토큰 가이드 장착
             const getSsnSixDigit = (s) => getPureString(s).substring(0, 6);
 
             const targetNameToken = getPureString(row.name);
             const targetSsnToken = getSsnSixDigit(row.ssn);
             const targetPhoneToken = getPurePhone(row.phone);
 
-            // 전역 대장에서 이름/전화번호/생년월일 앞 6자리가 100% 일치하는 모든 내역 병합
+            // 원본 토큰 대조 방식을 100% 완벽히 보존하여, 뒤틀림 없이 오직 본인의 내역만 정밀 필터링 병합
             const historyRecords = db.filter(item => {
                 return getPureString(item.name) === targetNameToken &&
                     getSsnSixDigit(item.ssn) === targetSsnToken &&
                     getPurePhone(item.phone) === targetPhoneToken;
             });
+
             // 라이브 정산 진행률 내부 미니 배지 렌더러 (원본 소스 1:1 이식 보존)
             const buildHistoryBadge = (val) => {
                 let s = (val || '대기').toString().trim();
-
-                // 기본 '대기' 상태 테마 (메인 목록 및 동의 현황과 동일한 차분한 무채색 회색 계열 매칭)
-                let style = "background: rgba(148, 163, 184, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25);";
+                let style = "background: rgba(14, 165, 233, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25);";
 
                 if (s === '접수') {
-                    style = "background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;"; // 🔵 접수 (스카이 블루)
+                    style = "background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;";
                 } else if (s === '처리중') {
-                    style = "background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24;"; // 🟡 처리중 (고명도 옐로우)
+                    style = "background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24;";
                 } else if (s === '완료') {
-                    style = "background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid #34d399;"; // 🟢 완료 (고명도 그린)
+                    style = "background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid #34d399;";
                 }
-
                 return `<span class="lvl-badge" style="${style} padding:2px 8px; font-size:11px; font-weight:700; border-radius:4px; display:inline-block;">${s}</span>`;
             };
 
+            // 💡 [2트랙 소팅 처리 완료]: 모바일과 동기화를 맞춰 현재 참여 중인 임상이 무조건 최상단(1위)에 오도록 가상 분류 가동
+            const currentActiveTitle = (row.title || "").toString().trim();
+            const currentActiveTh = (row.th || "").toString().trim();
+
+            const currentJobArray = historyRecords.filter(item => (item.title || "").toString().trim() === currentActiveTitle && (item.th || "").toString().trim() === currentActiveTh);
+            const pastJobArray = historyRecords.filter(item => !((item.title || "").toString().trim() === currentActiveTitle && (item.th || "").toString().trim() === currentActiveTh));
+
+            // 두 그룹을 상단 고정식 배열로 병합 조립
+            const sortedHistoryRecords = currentJobArray.concat(pastJobArray);
+
             // [실시간 과거 이력 스크롤 스케줄러 뼈대 조립]
             let historyRowsHTML = "";
-            historyRecords.forEach((hist, hIdx) => {
+            sortedHistoryRecords.forEach((hist, hIdx) => {
                 const isCurrentJob = (hist.uid && row.uid && hist.uid === row.uid) ||
                     (hist.title === row.title && hist.th === row.th);
 
-                // 🎯 [교정 완수]: 구형 단어 찌꺼기 변환을 전면 삭제하고 순정 4대 표준 단어만 다이렉트 매칭 [index: 0.1.182]
                 let hStatus = (hist.result || hist.payStatus || '대기').toString().trim();
 
-                // 🎯 [교정 완수]: 4대 표준 단어별 고대비 폰트 컬러 스타일 정밀 인젝션 (누락되었던 '대기' 테마 색상 추가) [index: 0.1.149]
-                let hBadgeColor = "#94a3b8"; // 대기: 차분한 무채색 회색 계열
+                let hBadgeColor = "#94a3b8";
                 if (hStatus === '접수') {
-                    hBadgeColor = "#38bdf8"; // 접수: 스카이 블루
+                    hBadgeColor = "#38bdf8";
                 } else if (hStatus === '처리중') {
-                    hBadgeColor = "#fbbf24"; // 처리중: 고명도 옐로우
+                    hBadgeColor = "#fbbf24";
                 } else if (hStatus === '완료') {
-                    hBadgeColor = "#34d399"; // 완료: 고명도 그린
+                    hBadgeColor = "#34d399";
                 }
 
                 const prefixTag = isCurrentJob
@@ -6382,7 +6392,7 @@
                 historyRowsHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:15px 0;">과거 임상 참여 내역이 존재하지 않습니다.</div>`;
             }
 
-            // 4. [4단계 예고 구역 처리]: 6021라인 부근의 오타를 validSsn으로 완벽하게 수정하여 슬롯에 투사
+            // 4. 인적 신상 정보 및 이력 목록/정산 진행률 컨텐츠 슬롯 인젝션 투사
             contentSlot.innerHTML = `
         <!-- 상단: 기본 인적 신상 정보리스트 그리드 -->
         <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top:15px; margin-bottom: 20px; text-align:left;">
@@ -6391,7 +6401,6 @@
                 <div style="font-weight:700; color:var(--success-color); margin-top:2px;">${cleanName}</div>
             </div>
             <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
-                <!-- 💡 오타 전면 수정 구역: rawSsn 대신 상단에 안전하게 정의된 validSsn을 호출하도록 완벽 수리 -->
                 <span style="color:var(--text-muted); font-size:12px; font-weight:700;">생년월일(성별):</span>
                 <div style="font-weight: 700; color: #ffffff; margin-top:2px;">${validSsn} <span style="color: ${genderColor}; font-weight:800;">(${genderSign})</span></div>
             </div>
@@ -6416,7 +6425,7 @@
         <!-- 💡 요구사항 2 결합: 동일 대상자 과거 임상시험 참여 누적 내역 구역 -->
         <div style="margin-bottom: 20px; text-align:left;">
             <span style="display: block; font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom: 8px;">
-                동일 대상자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)
+                동일 대상자 과거 임상시험 참여 누적 내역 (${sortedHistoryRecords.length}건)
             </span>
             
             <!-- 🎯 가변형 컴포넌트 래퍼: 최대 높이 240px 제한, 초과 시 다크 스크롤바 작동 보장 -->
@@ -6436,7 +6445,7 @@
         </div>
     `;
 
-            // 6. [5단계 예고 구역 처리]: 원본 스타일 유지 닫기 단추 결합 바인딩
+            // 6. 원본 스타일 유지 닫기 단추 결합 바인딩
             actionSlot.innerHTML = `
         <div style="display: flex; justify-content: flex-end; width: 100%;">
             <button type="button" onclick="closeIndividualHistoryModal()" style="background: #475569; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13.5px; transition: opacity 0.2s;">이력 닫기</button>
@@ -6446,6 +6455,8 @@
             // 최종 오버레이 패널 시각화 사출 작동
             mainOverlay.style.display = 'flex';
         }
+
+
 
         /**
          * 개인 이력 종합 마스터 대장 모달 팝업 오버레이 제거 함수 (원본 명칭 100% 보존)

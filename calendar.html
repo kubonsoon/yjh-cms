@@ -646,7 +646,7 @@
         }
 
         /**
-         * 3. [신규 마운트] 대상자 관리 탭(applicantView)의 가상 데이터베이스 동기화 스트림 로드
+         * 3. 대상자 관리 탭(applicantView)의 가상 데이터베이스 동기화 스트림 로드
          */
         function getApplicantData() {
             return JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -674,7 +674,7 @@
         }
 
         /**
-         * 6. [대수술 완수] 배지 클릭 시 동적 상세 인포 바인딩 및 대상자 관리 이력조회 전수 이식 엔진
+         * 6. [정렬 대수술 완수] 배지 클릭 시 현재참여 위로, 과거이력 아래로 정렬하여 이력조회 바인딩하는 엔진
          * @param {string|number} uid - 임상공고 고유 식별 번호 또는 타이틀
          * @param {string} typeTitle - 모달창 헤더 타이틀 라벨 분기용
          */
@@ -695,12 +695,10 @@
             document.getElementById('m-crc').innerText = target.crc || '-';
             document.getElementById('m-recDate').innerText = target.recDate || '-';
 
-            // 💡 [핵심 이식 알고리즘] 대상자 관리의 피험자 임상시험 참여 누적 내역 실시간 동기화 역추적 가동
+            // 대상자 관리의 피험자 임상시험 참여 누적 내역 실시간 동기화 역추적 가동
             const scrollZone = document.getElementById("modal-history-scroll-zone");
             scrollZone.innerHTML = ""; // 기존 스크롤 노드 리셋 초기화
 
-            // 현재 과제명과 매핑되는 대상자 데이터셋에서 동명이인 레코드 전체 필터링 추출
-            // 현재 선택한 시험명(target.title)에 참여 중인 사람을 기반으로 연동 역추적
             const targetTitle = (target.title || "").toString().trim();
             const targetTh = (target.th || "").toString().trim();
 
@@ -713,21 +711,33 @@
             // 연동된 피험자들의 성명 풀 추출 (중복 제거)
             const applicantNames = [...new Set(activeApplicants.map(app => (app.name || "").toString().trim()))];
 
-            // 전체 대상자 가상 DB에서 해당 성명을 가진 사람들의 누적 과거/현재 과제 이력을 전수 필터링
-            const historyRecords = applicantDB.filter(item =>
+            // 전체 대상자 가상 DB에서 해당 성명을 가진 사람들의 누적 레코드 1차 추출
+            const rawHistoryRecords = applicantDB.filter(item =>
                 applicantNames.includes((item.name || "").toString().trim()) && (item.name || "").toString().trim() !== ""
             );
 
-            // 상단 소제목 카운트 라벨 업데이트 실시간 연동
-            document.getElementById("m-history-count-title").innerText = `대상자 참여 마스터 이력조회 누적 내역 (${historyRecords.length}건)`;
+            // 💡 [요구사항 완수 : 2트랙 정렬 알고리즘 마운트]
+            // 현재 참여 중인 과제 레코드와 과거 이력 레코드를 칼같이 분리수거함
+            const currentJobArray = rawHistoryRecords.filter(row =>
+                (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
+            );
+            const pastJobArray = rawHistoryRecords.filter(row =>
+                !((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh)
+            );
 
-            // 이력 데이터셋을 루프 돌며 미니 카드로 가공하여 스크롤 존에 사출
-            if (historyRecords.length === 0) {
+            // 💡 분리된 두 배열을 병합하여 [최근/현재 참여중] 데이터가 무조건 인덱스 0번(최상단)에 오도록 우선순위 락인
+            const sortedHistoryRecords = currentJobArray.concat(pastJobArray);
+
+            // 상단 소제목 카운트 라벨 업데이트 실시간 연동
+            document.getElementById("m-history-count-title").innerText = `대상자 참여 마스터 이력조회 누적 내역 (${sortedHistoryRecords.length}건)`;
+
+            // 정렬이 완료된 데이터셋을 루프 돌며 미니 카드로 가공하여 스크롤 존에 사출
+            if (sortedHistoryRecords.length === 0) {
                 scrollZone.innerHTML = `<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>`;
             } else {
-                historyRecords.forEach(row => {
-                    // 현재 실행 중인 과제와 동일 레코드인지 불변 조건 정밀 대조 판정
-                    const isCurrentJob = (row.title === targetTitle && row.th === targetTh);
+                sortedHistoryRecords.forEach(row => {
+                    // 현재 실행 중인 과제와 동일 레코드인지 다시 한번 조건 판정
+                    const isCurrentJob = ((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh);
 
                     const miniCard = document.createElement("div");
                     miniCard.className = isCurrentJob ? "history-mini-card current-job" : "history-mini-card";
@@ -775,7 +785,7 @@
         };
 
         /**
-         * 8. [소집일 필터 락인] 오직 소집일자만 추적 매핑하는 정밀 달력 격자 사출 렌더러 함수
+         * 8. 오직 소집일자만 추적 매핑하는 정밀 달력 격자 사출 렌더러 함수
          */
         function renderCalendar() {
             const board = document.getElementById('calendarBoard');
@@ -804,7 +814,6 @@
                 cell.className = 'day-cell';
                 cell.innerHTML = `<div class="day-num">${d}</div>`;
 
-                // 자릿수 보정형 표준 YYYY-MM-DD 비교 문자열 결합 (예: 2026-09-04)
                 const targetYearStr = year.toString();
                 const targetMonthStr = (month + 1).toString().padStart(2, '0');
                 const targetDayStr = d.toString().padStart(2, '0');
@@ -817,7 +826,6 @@
 
                     const dynamicColorClass = `th-color-${thText}`;
 
-                    // 오직 공고 등록 시의 '소집일자(recDate)' 데이터가 당일 날짜와 일치할 때만 배지 렌더링
                     if (item.recDate && item.recDate.trim() === thisDateStr) {
                         const badge = document.createElement('div');
                         badge.className = `event-badge ${dynamicColorClass}`;

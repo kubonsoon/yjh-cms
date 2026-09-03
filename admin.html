@@ -1074,123 +1074,121 @@
                         <i class="fa-solid fa-square-plus"></i> [신규 모집공고 등록]
                     </h3>
 
-                    <div style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+                    <div style="display: flex; flex-wrap: nowrap; gap: 6px; align-items: flex-end; width: 100%;">
 
-                        <!-- 💡 [UI 혁신] 완전 단일 행(Single Row) 통합 및 고대비 순백색 라벨 반영 레이어 -->
-                        <div style="display: flex; flex-wrap: nowrap; gap: 8px; align-items: flex-end; width: 100%;">
+                        <!-- 1. 시험명 (텍스트 길이에 맞춰 대폭 늘림) -->
+                        <div class="form-group" style="flex: 2.8; min-width: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">시험명</label>
+                            <input type="text" id="form-rec-title" placeholder="예: [임상] 경동제약"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                        </div>
 
-                            <!-- 1. 시험명 -->
-                            <div class="form-group" style="flex: 2.2; min-width: 0;">
-                                <label
-                                    style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">시험명</label>
-                                <input type="text" id="form-rec-title" placeholder="예: [임상] 경동제약"
-                                    style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
-                                    onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
-                                    onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                            </div>
+                        <!-- 2. 기수 선택 (데이터 양에 맞춰 대폭 줄임) -->
+                        <div class="form-group" style="flex: 0.6; min-width: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">기수</label>
+                            <select id="form-rec-th"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 8px; font-size: 14px; font-weight: 500; outline: none; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                                <option value="1기">1기</option>
+                                <option value="2기">2기</option>
+                                <option value="3기">3기</option>
+                                <option value="4기">4기</option>
+                            </select>
+                        </div>
 
-                            <!-- 2. 기수 선택 -->
-                            <div class="form-group" style="flex: 1; min-width: 0;">
-                                <label
-                                    style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">기수</label>
-                                <select id="form-rec-th"
-                                    style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 14px; font-weight: 500; outline: none; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;"
-                                    onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
-                                    onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                                    <option value="1기">1기</option>
-                                    <option value="2기">2기</option>
-                                    <option value="3기">3기</option>
-                                    <option value="4기">4기</option>
-                                </select>
-                            </div>
+                        <!-- 3. 배정 인원수 (슬림화) -->
+                        <div class="form-group" style="flex: 0.6; min-width: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">인원수</label>
+                            <input type="text" id="form-rec-count" placeholder="예: 60"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 6px; text-align: center; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                        </div>
 
-                            <!-- 3. 배정 인원수 -->
-                            <div class="form-group" style="flex: 0.8; min-width: 0;">
-                                <label
-                                    style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">
-                                    인원수(N수)</label>
-                                <input type="text" id="form-rec-count" placeholder="예: 60"
-                                    style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; text-align: center; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
-                                    onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
-                                    onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                            </div>
+                        <!-- 4. 임상 기간(시간) (슬림화) -->
+                        <div class="form-group" style="flex: 0.6; min-width: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">기간(h)</label>
+                            <input type="text" id="form-rec-period" placeholder="예: 72"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 6px; text-align: center; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                        </div>
 
-                            <!-- 4. 임상 기간(시간) -->
-                            <div class="form-group" style="flex: 0.8; min-width: 0;">
-                                <label
-                                    style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">기간(시간)</label>
-                                <input type="text" id="form-rec-period" placeholder="예: 72"
-                                    style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; text-align: center; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
-                                    onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
-                                    onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                            </div>
+                        <!-- 5. 담당 CRC (슬림화) -->
+                        <div class="form-group" style="flex: 0.7; min-width: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">CRC</label>
+                            <input type="text" id="form-rec-crc" placeholder="예: 최미현"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 8px; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                        </div>
 
-                            <!-- 5. 담당 CRC -->
-                            <div class="form-group" style="flex: 0.9; min-width: 0;">
-                                <label
-                                    style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">담당
-                                    CRC</label>
-                                <input type="text" id="form-rec-crc" placeholder="예: 최미현"
-                                    style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
-                                    onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
-                                    onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                            </div>
+                        <!-- 6. 소집일자 (약간 줄임) -->
+                        <div class="form-group" style="flex: 1.1; min-width: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">소집일자</label>
+                            <input type="date" id="form-rec-date"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 8px; cursor: pointer; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                        </div>
 
-                            <!-- 6. 소집일자 -->
-                            <div class="form-group" style="flex: 1.2; min-width: 0;">
-                                <label
-                                    style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">소집일자</label>
-                                <input type="date" id="form-rec-date"
-                                    style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; cursor: pointer; font-size: 14px; font-weight: 500; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
-                                    onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
-                                    onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                            </div>
+                        <!-- 7. 참여비 1차 지급일 (약간 줄임) -->
+                        <div class="form-group" style="flex: 1.1; min-width: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">참여비
+                                1차</label>
+                            <input type="date" id="form-rec-pay1"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 8px; cursor: pointer; outline: none; font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                        </div>
 
-                            <!-- 7. 참여비 1차 지급일 -->
-                            <div class="form-group" style="flex: 1.2; min-width: 0;">
-                                <label
-                                    style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">참여비
-                                    1차 지급일</label>
-                                <input type="date" id="form-rec-pay1"
-                                    style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; cursor: pointer; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
-                                    onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
-                                    onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                            </div>
+                        <!-- 8. 참여비 2차 지급일 (약간 줄임) -->
+                        <div class="form-group" style="flex: 1.1; min-width: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">참여비
+                                2차</label>
+                            <input type="date" id="form-rec-pay2"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 8px; cursor: pointer; outline: none; font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                        </div>
 
-                            <!-- 8. 참여비 2차 지급일 -->
-                            <div class="form-group" style="flex: 1.2; min-width: 0;">
-                                <label
-                                    style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">참여비
-                                    2차 지급일</label>
-                                <input type="date" id="form-rec-pay2"
-                                    style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; cursor: pointer; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
-                                    onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
-                                    onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                            </div>
+                        <!-- 9. 참여비 3차 지급일 (약간 줄이고 우측에 20px 안전 여백 확보) -->
+                        <div class="form-group" style="flex: 1.1; min-width: 0; margin-right: 20px;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">참여비
+                                3차</label>
+                            <input type="date" id="form-rec-pay3"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; cursor: pointer; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                        </div>
 
-                            <!-- 9. 참여비 3차 지급일 -->
-                            <div class="form-group" style="flex: 1.2; min-width: 0;">
-                                <label
-                                    style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">참여비
-                                    3차 지급일</label>
-                                <input type="date" id="form-rec-pay3"
-                                    style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; cursor: pointer; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
-                                    onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
-                                    onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                            </div>
-                            <!-- 캘린더 보기 팝업 트리거 버튼 -->
+                        <!-- 10. 최종 버튼 그룹 (크기 동일화 및 10px 세로 간격 조율) -->
+                        <div style="display: flex; flex-direction: column; gap: 10px; min-width: 105px;">
+                            <!-- 캘린더 보기 버튼 (공고 등록과 동일한 height: 38px 부여) -->
                             <button type="button"
                                 onclick="window.open('calendar.html', 'CalendarPopup', 'width=640,height=750,scrollbars=yes,resizable=yes')"
-                                style="width: 100%; padding: 0 12px; color: #ffffff; border: 1px solid var(--secondary-color); border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 12px; height: 26px; background: rgba(14, 165, 233, 0.15); white-space: nowrap; transition: all 0.2s;"
-                                onmouseover="this.style.background='var(--secondary-color)'; this.style.color='#000';">
+                                style="width: 100%; height: 38px; padding: 0 12px; color: #ffffff; border: 2px solid var(--secondary-color); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; background: rgba(14, 165, 233, 0.15); white-space: nowrap; transition: all 0.2s;"
+                                onmouseover="this.style.background='var(--secondary-color)'; this.style.color='#000';"
+                                onmouseout="this.style.background='rgba(14, 165, 233, 0.15)'; this.style.color='#ffffff';">
                                 📅 캘린더 보기
                             </button>
-                            <!-- 10. 최종 공고 등록 버튼 (기존 규격에 맞춰 우측 정렬 결합) -->
+                            <!-- 공고 등록 버튼 (height: 38px 동일 규격 락인) -->
                             <button class="action-btn" onclick="insertRecruitmentRecord()"
-                                style="padding: 0 24px; color: #070a12; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; height: 38px; background: var(--success-color); box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2); white-space: nowrap;">
+                                style="width: 100%; height: 38px; padding: 0 12px; color: #070a12; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; background: var(--success-color); box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2); white-space: nowrap;">
                                 공고 등록
                             </button>
-
                         </div>
                     </div>
 

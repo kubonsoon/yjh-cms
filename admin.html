@@ -1178,18 +1178,20 @@
                                     onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(14, 165, 233, 0.2)';"
                                     onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
                             </div>
-                            <!-- 캘린더 보기 팝업 트리거 버튼 -->
-                            <button type="button"
-                                onclick="window.open('calendar.html', 'CalendarPopup', 'width=640,height=750,scrollbars=yes,resizable=yes')"
-                                style="width: 100%; padding: 0 12px; color: #ffffff; border: 1px solid var(--secondary-color); border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 12px; height: 26px; background: rgba(14, 165, 233, 0.15); white-space: nowrap; transition: all 0.2s;"
-                                onmouseover="this.style.background='var(--secondary-color)'; this.style.color='#000';">
-                                📅 캘린더 보기
-                            </button>
-                            <!-- 10. 최종 공고 등록 버튼 (기존 규격에 맞춰 우측 정렬 결합) -->
-                            <button class="action-btn" onclick="insertRecruitmentRecord()"
-                                style="padding: 0 24px; color: #070a12; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; height: 38px; background: var(--success-color); box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2); white-space: nowrap;">
-                                공고 등록
-                            </button>
+                            <div style="display: flex; flex-direction: column; gap: 4px; min-width: 100px;">
+                                <!-- 캘린더 보기 팝업 트리거 버튼 -->
+                                <button type="button"
+                                    onclick="window.open('calendar.html', 'CalendarPopup', 'width=640,height=750,scrollbars=yes,resizable=yes')"
+                                    style="width: 100%; padding: 0 12px; color: #ffffff; border: 1px solid var(--secondary-color); border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 12px; height: 26px; background: rgba(14, 165, 233, 0.15); white-space: nowrap; transition: all 0.2s;"
+                                    onmouseover="this.style.background='var(--secondary-color)'; this.style.color='#000';">
+                                    📅 캘린더 보기
+                                </button>
+                                <!-- 기존 공고 등록 버튼 -->
+                                <button class="action-btn" onclick="insertRecruitmentRecord()"
+                                    style="width: 100%; padding: 0 12px; color: #070a12; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 13px; height: 32px; background: var(--success-color); box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2); white-space: nowrap;">
+                                    공고 등록
+                                </button>
+                            </div>
 
                         </div>
                     </div>

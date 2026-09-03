@@ -751,7 +751,7 @@
 
             const currentSessionName = loggedInUser.name.toString().trim();
 
-            // 💡 현재 로그인한 사용자의 고유한 가상 티켓 또는 정식 신청건을 찾아 추적
+            // 현재 로그인한 사용자의 고유한 가상 티켓 또는 정식 신청건을 찾아 추적
             let myTicket = applicantDB.find(app => (app.name || "").toString().trim() === currentSessionName);
 
             if (!myTicket) {
@@ -784,7 +784,7 @@
             const scrollZone = document.getElementById("modal-history-scroll-zone");
             scrollZone.innerHTML = "";
 
-            // 💡 [버그 교정 핵심] 타인의 데이터가 섞이지 않도록 오직 현재 로그인된 대상자 성명 정보만 단독 정밀 추출
+            // [버그 교정 핵심] 타인의 데이터가 섞이지 않도록 오직 현재 로그인된 대상자 성명 정보만 단독 정밀 추출
             const rawHistoryRecords = applicantDB.filter(item =>
                 (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== ""
             );
@@ -822,18 +822,18 @@
                     else if (currentPayStatus === "대기") statusColor = "var(--danger-color)";
 
                     miniCard.innerHTML = `
-                    <div style="text-align:left;">
-                        <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
-                            ${prefixTag}${row.name || '대상자'} - ${rowTitleDisplay}
-                        </div>
-                        <div style="font-size:11.5px; color:var(--text-muted);">
-                            진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span>
-                        </div>
+                <div style="text-align:left;">
+                    <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
+                        ${prefixTag}${row.name || '대상자'} - ${rowTitleDisplay}
                     </div>
-                    <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
-                        지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>
+                    <div style="font-size:11.5px; color:var(--text-muted);">
+                        진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span>
                     </div>
-                `;
+                </div>
+                <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
+                    지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>
+                </div>
+            `;
                     scrollZone.appendChild(miniCard);
                 });
             }
@@ -848,22 +848,18 @@
                         e.preventDefault();
                         let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                        // 💡 이름뿐만 아니라 모달창 진입 시 락인해 둔 고유 UID 속성을 완벽하게 추적 매핑하여 다른 사람의 인덱스가 침범하는 현상 원천 차단
+                        // 고유 UID 속성을 추적하여 정확한 행 포인터 락인
                         const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
 
                         if (myTargetIdx !== -1) {
-                            let targetObject = { ...appDB[myTargetIdx] };
+                            // 💡 [버그 종결 핵심 설계]: 기존 배열 메모리 주소를 요동치게 하던 splice, unshift를 전면 파기하고 원래 자리를 100% 현상 보존!
+                            delete appDB[myTargetIdx].isVirtualGhost;
+                            delete appDB[myTargetIdx].isNewUserGhost;
 
-                            delete targetObject.isVirtualGhost;
-                            delete targetObject.isNewUserGhost;
-                            targetObject.title = targetTitle;
-                            targetObject.th = targetTh;
-                            targetObject.period = currentActiveModalJob.period || "0";
-                            targetObject.payStatus = "대기";
-
-                            // 기존 가상 위치에서 삭제 후 unshift를 통해 0번 인덱스(최상단)로 강제 정렬 전환
-                            appDB.splice(myTargetIdx, 1);
-                            appDB.unshift(targetObject);
+                            appDB[myTargetIdx].title = targetTitle;
+                            appDB[myTargetIdx].th = targetTh;
+                            appDB[myTargetIdx].period = currentActiveModalJob.period || "0";
+                            appDB[myTargetIdx].payStatus = "대기"; // 대기 상태로 정식 도약
 
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
                         }
@@ -890,6 +886,7 @@
         };
 
         window.onload = renderCalendar;
+
     </script>
 </body>
 

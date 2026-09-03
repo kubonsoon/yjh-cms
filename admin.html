@@ -2975,7 +2975,7 @@
                 <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
-                     <button type="button" class="btn-inline save" onclick="(function(btn){ let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || []; let masterIdx = typeof masterIndex !== 'undefined' ? masterIndex : (typeof index !== 'undefined' ? index : -1); let targetRow = db[masterIdx]; if(targetRow && targetRow.uid) { openIndividualHistoryModal(targetRow.uid); } else if(targetRow) { openIndividualHistoryModal(targetRow.name); } else { openIndividualHistoryModal(btn.parentElement.parentElement.cells[0].innerText.trim()); } })(this)" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
+                 <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal(${masterIndex})" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
                         <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">수정</button>
                         <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
                     </div>
@@ -6268,35 +6268,20 @@
         // =========================================================================
         // 이력조회 부분
         // =========================================================================
-        function openIndividualHistoryModal(targetUid) {
+
+
+
+
+        function openIndividualHistoryModal(index) {
             // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
                 db = dataStoreApplicant;
             }
 
-            // 💡 [순정 보존 가공 함수 이식] 성명/생년월일/전화번호 알맹이 추출용 정형화 함수
-            const getPurePhone = (p) => (p || "").toString().replace(/[^0-9]/g, "").trim();
-            const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9 가-힣]/g, "").trim();
-            const getSsnSixDigit = (s) => getPureString(s).substring(0, 6);
-
-            // 💡 [핵심 교정 패치] UID 매칭을 시도하되, 기존 유저(UID 없음)인 경우 던겨진 텍스트 토큰 조합 분할 역추적 가동
-            let row = null;
-
-            if (targetUid && !targetUid.includes('_')) {
-                // A. UID가 완벽히 존재하는 신규 대상자 추적
-                row = db.find(app => app.uid && String(app.uid) === String(targetUid));
-            }
-
-            if (!row) {
-                // B. UID가 없는 기존 대상자용 백업 토큰 역추적 가동 (인덱스 밀림 현상 완전 방어)
-                // 버튼에서 백업용으로 던진 "이름_인덱스" 또는 이름 매칭 문자열 분할 가공
-                const fallbackName = targetUid.split('_')[0];
-                row = db.find(app => getPureString(app.name) === getPureString(fallbackName));
-            }
-
-            // 최종 방어선: 그럼에도 데이터를 찾을 수 없는 경우 예외 차단
-            if (!row) return alert("시스템 알림: 해당 대상자의 이력 데이터를 정밀 추적할 수 없습니다.");
+            // 💡 원래 사용하시던 구조 그대로 순정 줄번호 index 객체 로딩 락인
+            const row = db[index];
+            if (!row) return alert("시스템 알림: 해당 대상자의 이력 데이터를 추적할 수 없습니다.");
 
             // 2. 형님께서 지정하신 진짜 원본 HTML 모달 레이어 프레임 돔 요소 스캔
             const mainOverlay = document.getElementById('applicantHistoryModal');
@@ -6325,11 +6310,15 @@
             const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(validSsn, row.name) : "미정";
             const genderColor = genderSign === '남' ? '#38bdf8' : '#fb7185';
 
+            const getPurePhone = (p) => (p || "").toString().replace(/[^0-9]/g, "").trim();
+            const getPureString = (s) => (s || "").toString().replace(/[^a-zA-Z0-9 가-힣]/g, "").trim();
+            const getSsnSixDigit = (s) => getPureString(s).substring(0, 6);
+
             const targetNameToken = getPureString(row.name);
             const targetSsnToken = getSsnSixDigit(row.ssn);
             const targetPhoneToken = getPurePhone(row.phone);
 
-            // 전역 대장에서 이름/전화번호/생년월일 앞 6자리가 100% 일치하는 모든 내역 병합 (순정 필터)
+            // 전역 대장에서 이름/전화번호/생년월일 앞 6자리가 100% 일치하는 모든 내역 병합 (원본 검색 필터 완벽 보존)
             const historyRecords = db.filter(item => {
                 return getPureString(item.name) === targetNameToken &&
                     getSsnSixDigit(item.ssn) === targetSsnToken &&
@@ -6351,7 +6340,7 @@
                 return `<span class="lvl-badge" style="${style} padding:2px 8px; font-size:11px; font-weight:700; border-radius:4px; display:inline-block;">${s}</span>`;
             };
 
-            // 현재 참여중인 임상 과제가 무조건 이력 박스 최상단에 뜨도록 교정
+            // 💡 [2트랙 소팅 정렬 탑재]: 모바일 달력 명세와 일치하도록 현재 참여중인 임상 과제가 무조건 최상단에 뜨도록 교정
             const currentActiveTitle = (row.title || "").toString().trim();
             const currentActiveTh = (row.th || "").toString().trim();
 
@@ -6362,8 +6351,10 @@
                 !((hist.uid && row.uid && hist.uid === row.uid) || (hist.title === currentActiveTitle && hist.th === currentActiveTh))
             );
 
+            // 두 데이터 세트를 고속 상단 고정식 레이아웃으로 결합 병합
             const sortedAdminHistoryRecords = currentJobArray.concat(pastJobArray);
 
+            // [실시간 과거 이력 스크롤 스케줄러 뼈대 조립]
             let historyRowsHTML = "";
             sortedAdminHistoryRecords.forEach((hist, hIdx) => {
                 const isCurrentJob = (hist.uid && row.uid && hist.uid === row.uid) ||
@@ -6372,13 +6363,9 @@
                 let hStatus = (hist.result || hist.payStatus || '대기').toString().trim();
 
                 let hBadgeColor = "#94a3b8";
-                if (hStatus === '접수') {
-                    hBadgeColor = "#38bdf8";
-                } else if (hStatus === '처리중') {
-                    hBadgeColor = "#fbbf24";
-                } else if (hStatus === '완료') {
-                    hBadgeColor = "#34d399";
-                }
+                if (hStatus === '접수') hBadgeColor = "#38bdf8";
+                else if (hStatus === '처리중') hBadgeColor = "#fbbf24";
+                else if (hStatus === '완료') hBadgeColor = "#34d399";
 
                 const prefixTag = isCurrentJob
                     ? `<span style="color:#0ea5e9; font-weight:800; margin-right:6px;">[현재시험]</span>`
@@ -6402,7 +6389,9 @@
                 historyRowsHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:15px 0;">과거 임상 참여 내역이 존재하지 않습니다.</div>`;
             }
 
+            // 4. 진짜 순정 원본 HTML 인젝션 레이아웃 그리드 복구 슬롯 투사
             contentSlot.innerHTML = `
+        <!-- 상단: 기본 인적 신상 정보리스트 그리드 -->
         <div class="history-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top:15px; margin-bottom: 20px; text-align:left;">
             <div style="border-bottom:1px solid #1e293b; padding-bottom:6px;">
                 <span style="color:var(--text-muted); font-size:12px; font-weight:700;">대상자 성명:</span>
@@ -6430,15 +6419,19 @@
             </div>
         </div>
 
+        <!-- 💡 요구사항 결합: 동일 대상자 과거 임상시험 참여 누적 내역 구역 -->
         <div style="margin-bottom: 20px; text-align:left;">
             <span style="display: block; font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom: 8px;">
                 동일 대상자 과거 임상시험 참여 누적 내역 (${sortedAdminHistoryRecords.length}건)
             </span>
+            
+            <!-- 🎯 가변형 컴포넌트 래퍼: 최대 높이 240px 제한, 초과 시 다크 스크롤바 작동 보장 -->
             <div id="modal-history-scroll-zone" style="max-height: 240px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px; box-sizing:border-box; width:100%;">
                 ${historyRowsHTML}
             </div>
         </div>
 
+        <!-- 5. [현재 참여비 진행률 현황판]: 라이브 정산 배지 엔진 연동 인젝션 -->
         <div style="background:#0b0f19; border:1px solid var(--border-color); padding:14px 18px; border-radius:8px; margin-bottom:5px; text-align:left;">
             <div style="font-size:13px; font-weight:700; color:var(--secondary-color); margin-bottom:10px;"><i class="fa-solid fa-money-bill-transfer"></i> 현재 참여 과제 참여비 차수별 지급 정산 진행률</div>
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -6449,15 +6442,16 @@
         </div>
     `;
 
+            // 6. 원본 스타일 유지 닫기 단추 결합 바인딩
             actionSlot.innerHTML = `
         <div style="display: flex; justify-content: flex-end; width: 100%;">
             <button type="button" onclick="closeIndividualHistoryModal()" style="background: #475569; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13.5px; transition: opacity 0.2s;">이력 닫기</button>
         </div>
     `;
 
+            // 최종 오버레이 패널 시각화 사출 작동
             mainOverlay.style.display = 'flex';
         }
-
 
         /**
          * 개인 이력 종합 마스터 대장 모달 팝업 오버레이 제거 함수 (원본 명칭 100% 보존)

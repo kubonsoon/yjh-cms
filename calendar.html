@@ -729,8 +729,8 @@
         }
 
         /**
-         * 7. m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진 + 원본 버튼 하이재킹 모듈 결합
-         */
+          * 7. m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진 + 원본 버튼 하이재킹 모듈 결합
+          */
         window.openClinicalDetailModal = function (uid, typeTitle) {
             const records = getMasterData();
             let applicantDB = getApplicantData();
@@ -816,7 +816,7 @@
                     miniCard.innerHTML = `
                     <div style="text-align:left;">
                         <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
-                            ${prefixTag}${row.name || '피험자'} - ${rowTitleDisplay}
+                            ${prefixTag}${row.name || '대상자'} - ${rowTitleDisplay}
                         </div>
                         <div style="font-size:11.5px; color:var(--text-muted);">
                             진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span>
@@ -830,7 +830,7 @@
                 });
             }
 
-            // 💡 [핵심 인터셉터 기술] 원본 HTML의 버튼을 그대로 둔 상태에서 클릭 이벤트를 하이재킹하여 동적 전산 갱신 연동
+            // 💡 원본 HTML 소스를 100% 보존하기 위해 타겟 엘리먼트 내부의 온클릭 핸들러 가로채기(인터셉트) 기믹 가동
             setTimeout(() => {
                 const btnJoin = document.querySelector('.btn-join');
                 const btnReject = document.querySelector('.btn-reject');
@@ -842,12 +842,20 @@
                         const myTargetIdx = appDB.findIndex(app => (app.name || "").toString().trim() === currentSessionName && (app.isVirtualGhost === true || app.isNewUserGhost === true));
 
                         if (myTargetIdx !== -1) {
-                            delete appDB[myTargetIdx].isVirtualGhost;
-                            delete appDB[myTargetIdx].isNewUserGhost;
-                            appDB[myTargetIdx].title = targetTitle;
-                            appDB[myTargetIdx].th = targetTh;
-                            appDB[myTargetIdx].period = currentActiveModalJob.period || "0";
-                            appDB[myTargetIdx].payStatus = "대기";
+                            // 💡 [정렬 요구사항 완수] 임시 데이터를 복사 가공한 뒤 unshift 처리
+                            let targetObject = { ...appDB[myTargetIdx] };
+
+                            delete targetObject.isVirtualGhost;
+                            delete targetObject.isNewUserGhost;
+                            targetObject.title = targetTitle;
+                            targetObject.th = targetTh;
+                            targetObject.period = currentActiveModalJob.period || "0";
+                            targetObject.payStatus = "대기";
+
+                            // 기존 가상 배열 내 원래 위치에서 지우고 unshift를 통해 0번 인덱스(최상단)로 강제 정렬 전환
+                            appDB.splice(myTargetIdx, 1);
+                            appDB.unshift(targetObject);
+
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
                         }
                         alert('참여 신청 접수되었습니다.');

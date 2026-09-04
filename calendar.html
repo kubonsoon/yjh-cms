@@ -917,6 +917,7 @@
                 const btnMainAction = document.getElementById('btnModalMainAction');
                 if (!btnMainAction) return;
 
+                // 💡 [최종 기획 반영]: 최초 인증 행을 추적하여 한 줄로 병합 업데이트하는 파이프라인 엔진 가동
                 btnMainAction.onclick = function (e) {
                     e.preventDefault();
                     let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -935,18 +936,46 @@
                         // [참여 클릭 시]: 청정 대상자 첫 일정 참여 터치 시 사전 연쇄 파기 예고용 컨펌 알림창 강제 팝업
                         const confirmSubmit = confirm("[다중 예약 자동 취소 안내]\n\n이 시험의 일정(소집)에 정식으로 참여하시겠습니까?\n\n※ 주의: 본 시험의 대상자로 최종 선정되어 소집을 통과(입원)하게 되면, 현재 달력에 예약해 두신 다른 모든 시험 일정은 임상 규정에 의해 자동으로 참여 불가 처리됩니다.");
 
-                        if (!confirmSubmit) return; // 취소 수락 거부 시 프로세스 즉시 보호 안전 정지
+                        if (!confirmSubmit) return;
 
-                        // 덮어쓰기 전면 영구 파기, 별도의 UID를 장착한 깨끗한 독립 신규 예약 행 객체 생성 push 적재
-                        const newAddTicket = {
-                            uid: currentTemporaryUid,
-                            name: currentSessionName,
-                            title: targetTitle,
-                            th: targetTh,
-                            period: currentActiveModalJob.period || "0",
-                            payStatus: "대기"
-                        };
-                        appDB.push(newAddTicket);
+                        // 🎯 [한 줄 통합 코어 엔진]: 대장에서 내 이름과 일치하면서 아직 시험명(title)이 비어있는 최초 인증 대기 행을 정밀 역추적
+                        const emptyRowIdx = appDB.findIndex(app =>
+                            String(app.name).trim() === String(currentSessionName).trim() &&
+                            (!app.title || app.title.trim() === "")
+                        );
+
+                        if (emptyRowIdx !== -1) {
+                            // 상황 1: m-login에 의해 생성된 최초 인증 행(1번째 줄)을 발견한 경우 그 자리에 데이터 쏙 주입 업데이트
+                            appDB[emptyRowIdx].title = targetTitle;
+                            appDB[emptyRowIdx].th = targetTh;
+                            appDB[emptyRowIdx].period = currentActiveModalJob.period || "0";
+                            appDB[emptyRowIdx].payStatus = "대기";
+
+                            if (currentTemporaryUid && !currentTemporaryUid.startsWith("TEMP_")) {
+                                appDB[emptyRowIdx].uid = currentTemporaryUid;
+                            }
+                        }
+                        else {
+                            // 상황 2: 이미 첫 번째 행은 채워져 있고, 추가로 다른 b시험을 예약하는 다중 예약 트랙인 경우 다음 줄에 push 독립 적재
+                            const originalUserRow = appDB.find(app => String(app.name).trim() === String(currentSessionName).trim() && app.ssn);
+                            const userSsn = originalUserRow ? originalUserRow.ssn : "7211271"; // 시연 디폴트 대비 안전 가드
+                            const userPhone = originalUserRow ? originalUserRow.phone : "010-9793-0691";
+                            const userGender = originalUserRow ? originalUserRow.gender : "남";
+
+                            const newAddTicket = {
+                                uid: currentTemporaryUid.startsWith("TEMP_") ? "TEMP_" + Date.now() : currentTemporaryUid,
+                                name: currentSessionName,
+                                ssn: userSsn,
+                                phone: userPhone,
+                                gender: userGender,
+                                title: targetTitle,
+                                th: targetTh,
+                                period: currentActiveModalJob.period || "0",
+                                payStatus: "대기"
+                            };
+                            appDB.push(newAddTicket);
+                        }
+
                         localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
                         alert('참여 신청 예약 접수되었습니다.');
                     }
@@ -954,6 +983,7 @@
                     document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
                     renderCalendar(); // 동적 전산 변동 내역 달력판 라이브 리렌더링
                 };
+
             }, 50);
 
             const overlay = document.getElementById('detailModalOverlay');

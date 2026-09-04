@@ -3087,9 +3087,9 @@
                 <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
-                 <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal(${masterIndex})" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
-                        <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">수정</button>
-                        <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
+                     <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal('${row.uid}')" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
+                     <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">수정</button>
+                     <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
                     </div>
                 </td>`;
                 }
@@ -6380,20 +6380,28 @@
         // =========================================================================
         // 이력조회 부분
         // =========================================================================
-
-
-
-
-        function openIndividualHistoryModal(index) {
+        function openIndividualHistoryModal(param) {
             // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
                 db = dataStoreApplicant;
             }
 
-            // 💡 원래 사용하시던 구조 그대로 순정 줄번호 index 객체 로딩 락인
-            const row = db[index];
+            // ==========================================================================
+            // ✨ [정밀 수리 완착] 고유 uid 문자열 추적 매칭 시스템 가동 (대표님 오리지널 변수명 row 완벽 상속)
+            // ==========================================================================
+            let row = null;
+
+            // 만약 넘어온 값이 고유 uid 문자열 형태이거나 숫자가 아닌 경우 대장 전체에서 족집게 수색
+            if (typeof param === "string" || isNaN(param)) {
+                row = db.find(item => item.uid.toString() === param.toString());
+            } else {
+                // 혹시 모를 구형 숫자 인덱스 호출 방식이 들어오더라도 원본 대장 번호로 안전하게 2차 방어
+                row = db[param];
+            }
+
             if (!row) return alert("시스템 알림: 해당 대상자의 이력 데이터를 추적할 수 없습니다.");
+            // ==========================================================================
 
             // 2. 형님께서 지정하신 진짜 원본 HTML 모달 레이어 프레임 돔 요소 스캔
             const mainOverlay = document.getElementById('applicantHistoryModal');

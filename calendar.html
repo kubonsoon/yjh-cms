@@ -764,7 +764,11 @@
             const records = getMasterData();
             let applicantDB = getApplicantData();
 
-            const target = records.find(item => item.uid == uid || item.title === uid);
+            // 💡 [버그 종결 고정 가드]: 클릭한 배지의 uid/과제명을 마스터 레코드에서 1순위 타겟 조준 역추적
+            const target = records.find(item =>
+                String(item.uid).trim() === String(uid).trim() ||
+                String(item.title).trim() === String(uid).trim()
+            );
             if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다.");
 
             const targetTitle = (target.title || "").toString().trim();
@@ -772,28 +776,33 @@
 
             currentActiveModalJob = target;
 
+            // 🎯 [핵심 요구사항 전격 완수]: 신규/기존/참여여부 절대 불문! 모달창이 열리는 순간 상부 테이블에 클릭한 현재 시험 데이터 무조건 강제 주입 주서
+            document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 안내]`;
+            document.getElementById('m-title').innerText = target.title || '-';
+            document.getElementById('m-th').innerText = target.th ? target.th : '-';
+            document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-';
+            document.getElementById('m-period').innerText = target.period ? target.period + '시간' : '-';
+            document.getElementById('m-crc').innerText = target.crc || '-';
+            document.getElementById('m-recDate').innerText = target.recDate || '-';
+
+            // 이하 세션 및 가드 검증 파트 엔진 구동 (순치적 유지)
             let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
             if (!loggedInUser || !loggedInUser.name) {
-                // 🎯 디폴트 백업 유저의 가상 플래그 속성을 true(신규)로 조율하여 6개월 선제 가드 오작동을 차단
-                loggedInUser = { name: "홍길동", isNew: true };
+                loggedInUser = { name: "홍길동", isNew: false };
                 localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
             }
 
             const currentSessionName = loggedInUser.name.toString().trim();
 
-            // [통합 검증 1단계]: 타인 데이터 혼입 원천 격리, 오직 현재 세션 대상자 성명의 데이터만 단독 필터링
+            // [통합 검증 1단계]: 내 성명의 레코드 단독 필터링
             const rawHistoryRecords = applicantDB.filter(item =>
                 (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== ""
             );
 
-            // [통합 검증 2단계]: 완료 건 대상 최종 소집일자 역추적 6개월(180일) 타임락 연산 감시
+            // [통합 검증 2단계]: 6개월(180일) 타임락 연산 감시
             let isTimeLocked = false;
             let lockDateText = "";
-
-            const completedRecords = rawHistoryRecords.filter(row => {
-                const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
-                return currentPayStatus === "완료";
-            });
+            const completedRecords = rawHistoryRecords.filter(row => (row.payStatus1 || row.payStatus || "대기") === "완료");
 
             if (completedRecords.length > 0) {
                 completedRecords.forEach(cUser => {
@@ -802,8 +811,7 @@
                         const recDateObj = new Date(matRec.recDate.trim());
                         const timeDiff = Math.abs(new Date().getTime() - recDateObj.getTime());
                         const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-
-                        if (dayDiff <= 180) { // 소집일 기준 180일 안전 이내 기산점 통제
+                        if (dayDiff <= 180) {
                             isTimeLocked = true;
                             lockDateText = matRec.recDate.trim();
                         }
@@ -811,7 +819,7 @@
                 });
             }
 
-            // [통합 검증 3단계]: 입원 완료 및 이미 소집 통과하여 시험 진행 중인 다른 과제 유무 검사 (연쇄 락 장치)
+            // [통합 검증 3단계]: 타 과제 입원/진행 중 연쇄 락 장치
             let isSelectionActive = false;
             const ongoingRecords = rawHistoryRecords.filter(row => {
                 const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
@@ -821,12 +829,17 @@
                 isSelectionActive = true;
             }
 
-            // [통합 검증 4단계]: 현재 모달에 열린 과제를 이미 선점 예약해 둔 유저인지 정밀 대조 판정
+            // [통합 검증 4단계]: 이미 선점 예약해 둔 유저인지 판정
             const existingTicket = rawHistoryRecords.find(row =>
                 (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
             );
 
-            // 공통 모달 뷰 포트 엘리먼트 초기화 정렬 사출
+            // 중복 참여 예약 확인 시 사전 경고 사출
+            if (existingTicket) {
+                alert("이미 참가한 시험입니다.");
+            }
+
+            // 하단 제어 장벽 및 동적 버튼 스위칭 레이아웃 구동
             const warningBox = document.getElementById('modalLockWarningBox');
             const mainActBtn = document.getElementById('btnModalMainAction');
             warningBox.style.display = 'none';
@@ -834,30 +847,26 @@
             mainActBtn.innerText = "참여";
             mainActBtn.className = "modal-act-btn btn-join";
 
-            // 💡 [인프라 삼중 동적 분기 컨트롤 장벽 발동]
             if (isSelectionActive && (!existingTicket)) {
-                // 상황 B-2: 소집 통과하여 입원한 뒤 예약해 둔 다른 과제 접근 시 연쇄 파기 및 alert 강제 방어 사출
                 alert("[참여 제한 안내]\n\n이미 소집 통과하여 임상시험에 참여 중인 과제가 존재합니다.\n임상 안전 규정에 따라 예약해 두신 다른 시험 일정은 더 이상 참여가 불가능합니다.");
                 warningBox.innerText = "❌ 참여 불가: 이미 소집 통과(입원 완료)된 다른 임상시험 과제가 존재합니다.";
                 warningBox.style.display = 'block';
                 mainActBtn.disabled = true;
             }
             else if (isTimeLocked) {
-                // 상황 A: 과거 소집일자 기준 180일 정밀 시계열 차단 가드 발동
                 warningBox.innerText = `⚠️ 제한 안내: 과거 임상시험 소집일(${lockDateText})로부터 6개월(180일)이 경과하지 않아 새로운 시험 참여가 불가능합니다.`;
                 warningBox.style.display = 'block';
                 mainActBtn.disabled = true;
             }
             else if (existingTicket) {
-                // 상황 B-1: 자유로운 철회 보장형 [신청 취소] 전격 스위칭 트랙 변환
                 mainActBtn.innerText = "신청 취소";
-                mainActBtn.className = "modal-act-btn btn-reject"; // 취소 전용 레드 컬러 변경
+                mainActBtn.className = "modal-act-btn btn-reject";
                 currentTemporaryUid = existingTicket.uid;
             }
             else {
-                // 상황 C: 청정 유저 다중 예약 다중 적재 가능 프리패스 UID 발행
                 currentTemporaryUid = "TEMP_" + Date.now();
             }
+
 
             // 하단 이력 스크롤 존 사출
             const scrollZone = document.getElementById("modal-history-scroll-zone");

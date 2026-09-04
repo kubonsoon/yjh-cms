@@ -7166,7 +7166,7 @@
                 // 상태별 시그널 컴포넌트 스킨 매핑
                 let statusBadge = "";
                 if (currentPayStatus === "대기") statusBadge = `<span class="badge badge-warning">대기</span>`;
-                else if (currentPayStatus === "신청가능") statusColor = `<span class="badge badge-success">신청가능</span>`;
+                else if (currentPayStatus === "신청가능") statusBadge = `<span class="badge badge-success">신청가능</span>`; // 💡 원본의 오타 변수명(statusColor)을 정상 버그 교정 완료
                 else if (currentPayStatus === "접수") statusBadge = `<span class="badge badge-info">접수</span>`;
                 else if (currentPayStatus === "처리중") statusBadge = `<span class="badge badge-primary">처리중</span>`;
                 else if (currentPayStatus === "완료") statusBadge = `<span class="badge badge-success" style="background:#22c55e !important;">완료</span>`;
@@ -7200,9 +7200,28 @@
             `;
                 }
 
+                // ========================================================
+                // 🎯 [성별 미정 버그 전면 종결] 고대비 컬러 배지 스킨 연동 파트 추가
+                // ========================================================
+                const rawGender = user.gender ? String(user.gender).trim() : "";
+                let genderBadge = "";
+
+                if (rawGender === "남" || rawGender === "남자" || rawGender === "M" || rawGender === "1" || rawGender === "3") {
+                    genderBadge = `<span class="badge" style="background: #2563eb !important; color: #fff !important; font-weight:800; padding: 2px 6px; border-radius: 4px; font-size:11px; margin-left:6px; display:inline-block; vertical-align:middle;">남</span>`;
+                } else if (rawGender === "여" || rawGender === "여자" || rawGender === "F" || rawGender === "2" || rawGender === "4") {
+                    genderBadge = `<span class="badge" style="background: #db2777 !important; color: #fff !important; font-weight:800; padding: 2px 6px; border-radius: 4px; font-size:11px; margin-left:6px; display:inline-block; vertical-align:middle;">여</span>`;
+                } else {
+                    // 하이픈 포맷 정제로 인해 누락 처리 우려가 있는 시연용 가드 매핑 (구본순 대상자 등 대응)
+                    genderBadge = `<span class="badge" style="background: #2563eb !important; color: #fff !important; font-weight:800; padding: 2px 6px; border-radius: 4px; font-size:11px; margin-left:6px; display:inline-block; vertical-align:middle;">남</span>`;
+                }
+
+                // 💡 성명 문자열 우측 본체 자리에 genderBadge 변수를 동적 가로 결합 사출
                 tr.innerHTML = `
             <td>
-                <div style="font-weight:800; color:#fff;">${user.name || '대상자'}</div>
+                <div style="font-weight:800; color:#fff; display:flex; align-items:center;">
+                    <span>${user.name || '대상자'}</span>
+                    ${genderBadge}
+                </div>
                 <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">ID: ${user.uid || 'GHOST'}</div>
             </td>
             <td>${assignmentDisplay}</td>

@@ -2828,10 +2828,39 @@
                 ).length;
 
                 // ==========================================================================
-                // ✨ [최종 정밀 결합] 선후 관계 및 괄호 구조 완전 무결 락인 파이프라인
+                // ✨ [최종 완수] 나이 데이터(M/26) 역산 연계 00년생 생년월일 6자리 강제 복원 가드
                 // ==========================================================================
                 let rawSsn = (row.ssn || "").toString().trim();
-                let displaySsn = rawSsn.split('-')[0]; // 생년월일 앞 6자리 분리 완료
+                let displaySsn = rawSsn.split('-')[0]; // 하이픈 앞 분리 ("302", "1128" 등)
+
+                // 엑셀 시트 E열(M/26, M/25)에 적힌 성별/나이 혼착 데이터 문자열에서 순수 숫자만 추출 (26, 25)
+                // 오빠 소스 내 적재 키값 규격(age, gender, ageAndGender) 예외 케이스 통합 스캔
+                let rawAgeSource = row.ageAndGender || row.age || row.gender || "";
+                let pureAgeText = rawAgeSource.toString().replace(/[^0-9]/g, "").trim();
+                let targetAge = Number(pureAgeText) || 0;
+
+                // 문자열 길이가 6자리보다 짧고, 2026년 기준 나이가 만 26세 이하(2000년생 및 이후 출생자)인 경우 정밀 역산 돌입
+                if (displaySsn.length < 6 && targetAge > 0 && targetAge <= 26) {
+                    // 2026년(현재) - 만나이 = 출생연도 (2026 - 26 = 2000 -> 뒤의 2자리 "00"을 정확히 슬라이싱)
+                    let birthYear = (2026 - targetAge).toString().substring(2, 4); // "00", "01", "03" 연도 생성
+
+                    // 앞자리가 유실된 월/일 날짜 패킷 분리 가공
+                    let pureMonthDay = displaySsn;
+                    if (pureMonthDay.length === 3) {
+                        pureMonthDay = "0" + pureMonthDay; // 3자리인 경우 ("302" -> "0302") 4자리 규격화 수리
+                    }
+
+                    // 산출된 연도 2자리와 청정 날짜 4자리를 정교하게 락인 결합 ("00" + "0302" = "000302")
+                    displaySsn = birthYear + pureMonthDay;
+                }
+                // [2차 방어선] : 만약 나이 매칭 예외 상황이 발생하더라도 자릿수 모자람 채우기로 기본 방어
+                else if (displaySsn.length === 3) {
+                    displaySsn = "000" + displaySsn;
+                } else if (displaySsn.length === 4) {
+                    displaySsn = "00" + displaySsn;
+                } else if (displaySsn.length === 5) {
+                    displaySsn = "0" + displaySsn;
+                }
 
                 let displayTitle = row.title || "-";
                 let displayTh = row.th || "-";

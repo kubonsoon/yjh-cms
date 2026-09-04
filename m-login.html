@@ -554,8 +554,6 @@
             width: 100%;
             height: 100%;
             z-index: 999999;
-            display: none;
-            /* 스크립트 제어용 기본 숨김 */
             justify-content: center;
             align-items: center;
             pointer-events: none;
@@ -620,7 +618,7 @@
             <p id="system-subtitle">대상자 모바일 인증 프로세스</p>
         </div>
 
-        <!-- [0단계 PANEL] QR코드 스캔 연동 시뮬레이터 -->
+        <!-- [0단계 PANEL] QR코드 스캔 연동 시뮬레이터 (교정 완료된 qr-code.png 자산 매핑) -->
         <div class="step-panel active" id="layer0">
             <div class="panel-header-title">
                 <i class="fa-solid fa-qrcode"></i> 시연 시작 단계 : 스마트 링커 QR 스캔
@@ -706,7 +704,7 @@
             </div>
         </div>
 
-        <!-- 🎯 [원본 보존 트랙 A] 자동으로 인증서 통과한 기존 등록 대상자 전용 정산 청구서 페이지 -->
+        <!-- [4단계 PANEL] 자동으로 인증서 통과한 기존 등록 대상자 전용 정산 청구서 페이지 -->
         <div class="step-panel" id="layer4">
             <div class="panel-header-title"><i class="fa-solid fa-money-check-dollar"></i> 4 단계: 정산 정보 등록 및 사례비 신청</div>
             <div id="ui_trial_card" class="trial-list-card">
@@ -730,8 +728,7 @@
                 <div class="settlement-title">참여비 지급 신청 서식</div>
                 <div class="progress-status" id="ui_stage_text">
                     ⏳ <b>전산 검증 단계</b><br>
-                    <span style="font-size:11px;color:#94A3B8;">* 관리자가 [신청가능] 상태를 승인해 주시면 아래 입력 양식 잠금이 자동
-                        해제됩니다.</span>
+                    <span style="font-size:11px;color:#94A3B8;">* 관리자가 [신청가능] 상태를 승인해 주시면 아래 입력 양식 잠금이 자동 해제됩니다.</span>
                 </div>
                 <div class="form-grid">
                     <select class="form-select" id="ui_bank_select" disabled>
@@ -760,19 +757,18 @@
             </div>
         </div>
 
-        <!-- [5단계 PANEL] 참여이력이 전혀 없는 신규 방문 대상자 전용 캘린더 다이렉트 임베드 패널 -->
+        <!-- [5단계 PANEL] 참여이력이 전혀 없는 신규 방문 대상자 전용 캘린더 다이렉트 임베드 패널 (m-calendar.html 라우팅 락인) -->
         <div class="step-panel" id="layer5"
             style="padding: 12px 10px; display: none; height: 100%; flex-direction: column;">
             <div class="panel-header-title" style="margin-bottom: 8px;">
-                <i class="fa-solid fa-calendar-days" style="color:#06B6D4;"></i> 인증 완료: 나의 임상시험 일정(신규)
+                <i class="fa-solid fa-calendar-days" style="color:#06B6D4;"></i> 인증 완료: 나의 임상시험 스케줄러 (신규)
             </div>
             <div
                 style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.2); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; color: #e2e8f0;">
-                🔒 <strong id="lblSetTargetNew" style="color:#06B6D4;">-</strong> 최초 인증 대상자 일정 연동 완료
+                🔒 <strong id="lblSetTargetNew" style="color:#06B6D4;">-</strong> 최초 인증 대상자 가상 스케줄러 연동 완료
             </div>
             <div
                 style="flex: 1; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; background: #0b0f19;">
-                <!-- 🎯 src 주소를 PC용 calendar.html에서 모바일 주간용 m-calendar.html로 분기 라우팅 교체 완료 -->
                 <iframe src="m-calendar.html" id="mobileCalendarFrame"
                     style="width: 100%; height: 100%; border: none; background: #0b0f19;"
                     sandbox="allow-scripts allow-same-origin allow-modals">
@@ -780,7 +776,7 @@
             </div>
         </div>
 
-
+        <!-- [협의 완수 반영] 모바일 프레임 내부용 커스텀 내장 알림창 레이어 (배경 차단 제거) -->
         <div id="customAlertOverlay">
             <div>
                 <p id="customAlertMessage"></p>
@@ -792,7 +788,7 @@
 
     <script>
         // ========================================================
-        // 1. 비동기 전산 트래킹 및 데이터 보존 마스터 전역 변수
+        // 3-A. 비동기 전산 트래킹 및 데이터 보존 마스터 전역 변수
         // ========================================================
         let currentChannel = "";
         let currentChannelName = "";
@@ -812,17 +808,12 @@
             }
         }
 
-        // ========================================================
-        // [신규 마운트] 커스텀 알림창 오디오 및 시각 인터랙션 제어 엔진
-        // ========================================================
+        // [협의 완수 이식] 커스텀 내장 알림창 제어 유틸리티 함수
         function showCustomAlert(msg) {
-            // 1. 전달받은 개행문자(\n) 텍스트를 커스텀 기획 문단 플롯에 주입
             const alertMsgElement = document.getElementById('customAlertMessage');
             if (alertMsgElement) {
                 alertMsgElement.innerText = msg;
             }
-
-            // 2. 투명도를 유지한 채 알림 엘리먼트를 flex 레이아웃으로 전면 사출
             const overlay = document.getElementById('customAlertOverlay');
             if (overlay) {
                 overlay.style.display = 'flex';
@@ -830,17 +821,14 @@
         }
 
         function closeCustomAlert() {
-            // 1. 전면에 노출된 커스텀 알림 레이어를 즉시 숨김 처리
             const overlay = document.getElementById('customAlertOverlay');
             if (overlay) {
                 overlay.style.display = 'none';
             }
-
-            // 2. 알림 확인 터치 완료 후, 자연스럽게 1단계 간편인증 선택 패널로 라우팅
-            navigateToStep(1);
+            navigateToStep(1); // 알림 확인 후 1단계 간편인증 선택 패널로 라우팅
         }
 
-        // 💥 0단: QR코드 터치 스캔 시뮬레이션 처리 (기존 alert 파기 ➡️ 커스텀 내장 팝업 및 \n 개행 이식)
+        // 💥 0단: QR코드 터치 스캔 시뮬레이션 처리 (내장 커스텀 팝업 오버레이 사출)
         function executeStep0QRScan() {
             showCustomAlert("[QR 인식 성공] H+양지병원 임상시험 서버와 연동되었습니다.\n본인 인증 단계로 진입합니다.");
         }
@@ -858,7 +846,7 @@
             navigateToStep(2);
         }
 
-        // 💥 2단: [하이브리드 이중 분기 패치] 마스터 DB 대조 및 신규 유저 대상 가상 계정 즉석 발급 엔진
+        // 💥 2단: [최종 기획안 연동 규격 고도화] 다중 예약 대장 필터링 및 분기 라우터 엔진 패치
         function executeStep2Submit() {
             const name = document.getElementById('txtUserName').value.trim();
             const birth = document.getElementById('txtUserBirth').value.trim().replace(/[^0-9]/g, '');
@@ -873,8 +861,8 @@
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             const cleanInputBirth6 = birth.length === 8 ? birth.substring(2) : birth;
 
-            // 마스터 대장과 실시간 교차 대조 검증
-            matchedPatientData = adminApplicantDB.find(user => {
+            // 💡 [정밀 교차 필터 패치]: 다중 예약 대상자 분기를 방어하기 위해 인적사항 매칭 리스트 전수 추출
+            const userMatchedRows = adminApplicantDB.filter(user => {
                 const dbBirth = (user.ssn || '').toString().replace(/[^0-9]/g, '');
                 const cleanDbBirth6 = dbBirth.length === 8 ? dbBirth.substring(2) : dbBirth;
                 const cleanDbPhone = (user.phone || '').toString().replace(/[^0-9]/g, '');
@@ -883,8 +871,18 @@
 
             const popup = document.getElementById('popupEmbedded3');
 
-            if (matchedPatientData) {
-                // 💡 [트랙 A: 기존 등록 대상자] 세션 바인딩 및 정산안내 모달 알림 컨텍스트 구성
+            if (userMatchedRows.length > 0) {
+                // 💡 [1순위 타겟 조준]: 다중 레코드 중 단순 대기(예약) 상태가 아닌 정식 진행 중(`접수`/`처리중`)이거나 `완료`된 과제 레코드를 최선순위 매핑
+                let finalSelectedRow = userMatchedRows.find(row => row.payStatus === "접수" || row.payStatus === "처리중" || row.payStatus === "완료");
+
+                // 정식 참여 과제가 없다면 다중 예약 건 중 가장 최신 예약 행 노드를 포인터로 락인
+                if (!finalSelectedRow) {
+                    finalSelectedRow = userMatchedRows[userMatchedRows.length - 1];
+                }
+
+                matchedPatientData = finalSelectedRow;
+
+                // 글로벌 세션 크로스 동기화 바인딩
                 sessionStorage.setItem('certifiedUserName', name);
                 localStorage.setItem('loggedInUser', JSON.stringify({ name: name, isNew: false }));
 
@@ -897,11 +895,20 @@
                 const payScheduleText = (matchedRec && matchedRec.payDate) ? matchedRec.payDate.trim() : "추후 공지 예정";
 
                 popup.parentElement.className = "popup-display-zone pop-theme-pass";
-                if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
+                if (document.getElementById('icoPop'))
+                    document.getElementById('icoPop').className = "fa-solid fa-circle-check";
+
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
-                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}\n\n📢 [사례비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
+
+                // 💡 [하이브리드 안내 텍스트 가드 이식]: 대상자의 현재 지급 스펙 상태를 스캔하여 팝업 멘트 분기 사출
+                const currentPayStatus = matchedPatientData.payStatus || "대기";
+                if (currentPayStatus === "대기") {
+                    document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}님\n\n현재 [대기/예약] 상태인 과제가 존재합니다.\n\n확인 버튼을 선택하시면 사례비 청구서 작성 패널 대신, 실시간 임상시험 스케줄러(캘린더) 허브 화면으로 다이렉트 안전 랜딩됩니다.`;
+                } else {
+                    document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}님\n\n📢 [사례비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
+                }
             } else {
-                // 💡 [트랙 B: 최초 방문 신규 대상자] 가상 패스권 즉석 발급 가동
+                // [트랙 B: 최초 방문 신규 대상자] 새 통합 기획에 맞춘 청정 유저 가상 패스권 적재 가동
                 const ghostPassTicket = {
                     uid: "VIRTUAL_" + Date.now(),
                     name: name,
@@ -910,17 +917,17 @@
                     title: "",
                     th: "",
                     payStatus: "대기",
-                    isNewUserGhost: true // 신규방문 플래그 강력 고정
+                    isNewUserGhost: true // 신규방문 플래그 강력 락인
                 };
                 adminApplicantDB.push(ghostPassTicket);
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
                 matchedPatientData = ghostPassTicket;
 
-                // 글로벌 세션 크로스 연동 잠금
                 localStorage.setItem('loggedInUser', JSON.stringify({ name: name, isNew: true }));
 
                 popup.parentElement.className = "popup-display-zone pop-theme-pass";
-                if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
+                if (document.getElementById('icoPop'))
+                    document.getElementById('icoPop').className = "fa-solid fa-circle-check";
                 document.getElementById('txtPopTitle').innerText = "신규 대상자 본인인증 완료";
                 document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}님\n\n양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.\n\n확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
             }
@@ -931,18 +938,19 @@
         // 💥 3단: [하이브리드 라우팅 라우터] 처리 결과 확인 시 유저 속성별 페이지 고속 스위칭 공정
         function executeStep3ConfirmNext() {
             if (matchedPatientData) {
-                // 💡 객체 내 신규방문 플래그 유무 속성을 역추적하여 전산망 분기
-                if (matchedPatientData.isNewUserGhost) {
-                    // [분기 트랙 B] 참여 적 없는 신규 대상자는 5단계 캘린더 컴포넌트로 리디렉션!
+                const currentPayStatus = matchedPatientData.payStatus || "대기";
+
+                // 객체 내 신규 유저 고스트 플래그가 있거나, 기존 유저 중 순수 대기(예약) 상태인 경우 주간 캘린더 허브로 유연 리디렉션 분기
+                if (matchedPatientData.isNewUserGhost || currentPayStatus === "대기") {
                     navigateToStep(5);
-                    document.getElementById('lblSetTargetNew').innerText = `${matchedPatientData.name} 대상자님 (최초인증)`;
+                    document.getElementById('lblSetTargetNew').innerText = `${matchedPatientData.name} 대상자님 (인증 완료)`;
 
                     const iframe = document.getElementById('mobileCalendarFrame');
                     if (iframe && iframe.contentWindow && typeof iframe.contentWindow.renderCalendar === "function") {
                         iframe.contentWindow.renderCalendar();
                     }
                 } else {
-                    // [분기 트랙 A] 기존 연동 완료 대상자는 원본 기획서 그대로 4단계 정산서 양식 랜딩!
+                    // 정식 참여 및 정산 단주 승인이 떨어진 기존 대상자는 정산서 양식으로 랜딩
                     navigateToStep(4);
                     document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
                     const userBirthInput = document.getElementById('txtUserBirth').value.trim();
@@ -964,8 +972,10 @@
         // 🎯 4단 스마트 폼 비동기 장벽 원격 해제 스위치 (원본보존)
         function setMobileFormActive(isActive) {
             const isDisable = !isActive;
-            if (document.getElementById('ui_bank_select')) document.getElementById('ui_bank_select').disabled = isDisable;
-            if (document.getElementById('ui_bank_input')) document.getElementById('ui_bank_input').disabled = isDisable;
+            if (document.getElementById('ui_bank_select'))
+                document.getElementById('ui_bank_select').disabled = isDisable;
+            if (document.getElementById('ui_bank_input'))
+                document.getElementById('ui_bank_input').disabled = isDisable;
 
             const submitBtn = document.getElementById('ui_submit_btn');
             if (submitBtn) {

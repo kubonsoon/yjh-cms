@@ -969,6 +969,36 @@
                 box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.4) !important;
             }
         }
+
+        /* ========================================================
+[신규 추가] 다중 예약 및 6개월 연쇄 차단 상태 표기용 관리자 전용 UI 서식
+======================================================== */
+        /* 1. 다중 예약 대기 상태를 나타내는 컴팩트 엠블럼 배지 */
+        .status-badge-ghost-wait {
+            background: rgba(148, 163, 184, 0.1) !important;
+            border: 1px solid rgba(148, 163, 184, 0.4) !important;
+            color: #cbd5e1 !important;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* 2. 타 과제 확정 및 소집 통과로 인해 예약 자동 파기/차단된 행 표시 레이아웃 */
+        .row-disabled-by-lock {
+            opacity: 0.45;
+            background: rgba(248, 113, 113, 0.02) !important;
+        }
+
+        .status-badge-locked-guard {
+            background: rgba(248, 113, 113, 0.15) !important;
+            border: 1px solid rgba(248, 113, 113, 0.5) !important;
+            color: #f87171 !important;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
     </style>
 
 <body>
@@ -1251,10 +1281,27 @@
                             onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#0e66e9'">
                             <span>📱</span> 대상자 참여비 신청
                         </button>
-
                     </div>
                 </div>
 
+                <div class="table-responsive-wrapper">
+                    <table class="ctms-master-table">
+                        <thead>
+                            <tr>
+                                <th>성명(UID)</th>
+                                <th>신청 임상과제 / 기수</th>
+                                <th>식별 정보 (생년월일/연락처)</th>
+                                <th>실시간 전산 지급 단계</th>
+                                <th>증빙 인프라 (신분증/통장)</th>
+                                <th>중앙 관리자 통제 제어 락</th>
+                            </tr>
+                        </thead>
+                        <!-- 💡 자바스크립트 엔진이 다중 예약 행 리스트를 실시간으로 드로우하여 적재할 타겟 조준점 -->
+                        <tbody id="applicantTableBody">
+                            <!-- 이 내부는 비워두시면 자바스크립트 showTab 엔진이 실시간으로 행을 사출합니다 -->
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- ==========================================================================
                     📊 [대상자 관리 상단 통합 패널]: 통계 현황판과 파일 업로드를 가로 수평 배치
@@ -7074,6 +7121,164 @@
             });
         }
 
+
+        /**
+         * 💡 [다중 예약 및 취소 삭제 대응] 대상자 대장 데이터 스트림 실시간 추적 드로우 엔진
+         */
+        function renderApplicants() {
+            const tbody = document.getElementById('applicantTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            // 로컬스토리지 대상자 마스터 전산 대장 스트림 수신
+            const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            if (applicantDB.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:30px 0;">현재 전산망에 접수된 대상자 데이터 패킷이 존재하지 않습니다.</td></tr>`;
+                return;
+            }
+
+            // 6개월 가드 및 삭제 동기화 조건이 반영된 마스터 루프 가동
+            applicantDB.forEach((user, index) => {
+                const tr = document.createElement('tr');
+
+                // 지급 상태 및 특수 차단 플래그 스캔
+                const currentPayStatus = user.payStatus || "대기";
+
+                // 연쇄 차단으로 잠금이 걸린 대상자 행은 시각적 감쇄 처리 및 클래스 주입
+                if (currentPayStatus === "6개월 제한 잠금" || currentPayStatus === "참여 불가") {
+                    tr.className = "row-disabled-by-lock";
+                }
+
+                // 과제명 및 기수 공백 가인식 필터 매핑 기획 반영
+                let assignmentDisplay = "";
+                if (!user.title && !user.th) {
+                    assignmentDisplay = `<span class="status-badge-ghost-wait">🌐 최초 인증 대기 (미지정 과제)</span>`;
+                } else {
+                    const taskTitle = user.title || "미지정 과제";
+                    const taskTh = user.th ? ` [${user.th}]` : " [-기]";
+                    assignmentDisplay = `<strong style="color:var(--secondary-color);">${taskTitle}</strong>${taskTh}`;
+                }
+
+                // 계좌 정보 출력 예외 핸들링
+                const financialPacket = user.accountInfo || "<span style='color:var(--text-muted);'>미등록</span>";
+
+                // 상태별 시그널 컴포넌트 스킨 매핑
+                let statusBadge = "";
+                if (currentPayStatus === "대기") statusBadge = `<span class="badge badge-warning">대기</span>`;
+                else if (currentPayStatus === "신청가능") statusColor = `<span class="badge badge-success">신청가능</span>`;
+                else if (currentPayStatus === "접수") statusBadge = `<span class="badge badge-info">접수</span>`;
+                else if (currentPayStatus === "처리중") statusBadge = `<span class="badge badge-primary">처리중</span>`;
+                else if (currentPayStatus === "완료") statusBadge = `<span class="badge badge-success" style="background:#22c55e !important;">완료</span>`;
+                else if (currentPayStatus === "6개월 제한 잠금" || currentPayStatus === "참여 불가") {
+                    statusBadge = `<span class="status-badge-locked-guard">❌ 6개월 제한</span>`;
+                } else statusBadge = `<span class="badge badge-secondary">${currentPayStatus}</span>`;
+
+                // 증빙 인프라 서식 데이터 바인딩
+                const doc1 = (currentPayStatus === "접수" || currentPayStatus === "처리중" || currentPayStatus === "완료")
+                    ? `<span style="color:var(--success-color); font-weight:700;">✅ 연동</span>`
+                    : `<span style="color:var(--danger-color);">❌ 미첨</span>`;
+                const doc2 = (currentPayStatus === "접수" || currentPayStatus === "처리중" || currentPayStatus === "완료")
+                    ? `<span style="color:var(--success-color); font-weight:700;">✅ 연동</span>`
+                    : `<span style="color:var(--danger-color);">❌ 미첨</span>`;
+
+                // 중앙 제어 통제 장치 드롭다운 단추 레이어 동적 사출
+                let controlInterface = "";
+                if (currentPayStatus === "6개월 제한 잠금" || currentPayStatus === "참여 불가") {
+                    controlInterface = `<span style="font-size:11.5px; color:var(--text-muted); font-style:italic;">타 과제 확정 자동 차단됨</span>`;
+                } else {
+                    controlInterface = `
+                <select class="table-row-select-engine" onchange="executeAdminStatusTransaction('${user.uid}', this.value)">
+                    <option value="대기" ${currentPayStatus === '대기' ? 'selected' : ''}>대기 (예약)</option>
+                    <option value="신청가능" ${currentPayStatus === '신청가능' ? 'selected' : ''}>신청가능</option>
+                    <option value="접수" ${currentPayStatus === '접수' ? 'selected' : ''}>접수(입원)</option>
+                    <option value="처리중" ${currentPayStatus === '처리중' ? 'selected' : ''}>처리중</option>
+                    <option value="완료" ${currentPayStatus === '완료' ? 'selected' : ''}>완료(지급)</option>
+                    <option value="예비자" ${currentPayStatus === '예비자' ? 'selected' : ''}>예비자</option>
+                    <option value="중도탈락" ${currentPayStatus === '중도탈락' ? 'selected' : ''}>중도탈락</option>
+                </select>
+            `;
+                }
+
+                tr.innerHTML = `
+            <td>
+                <div style="font-weight:800; color:#fff;">${user.name || '대상자'}</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">ID: ${user.uid || 'GHOST'}</div>
+            </td>
+            <td>${assignmentDisplay}</td>
+            <td>
+                <div style="font-size:12.5px;">🎂 ${user.ssn || '-'}</div>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:1px;">📱 ${user.phone || '-'}</div>
+            </td>
+            <td>
+                <div style="margin-bottom:4px;">${statusBadge}</div>
+                <div style="font-size:11px; color:var(--text-muted); font-family:monospace;">💳 ${financialPacket}</div>
+            </td>
+            <td>
+                <div style="font-size:11.5px; line-height:1.4;">📄 신분증: ${doc1}</div>
+                <div style="font-size:11.5px; line-height:1.4; margin-top:1px;">통장사본: ${doc2}</div>
+            </td>
+            <td>${controlInterface}</td>
+        `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        /**
+         * 💡 [선정 완료 시 6개월 차단 인프라 핵심 트리거] 관리자 통제 패킷 트랜잭션 제어 함수
+         */
+        function executeAdminStatusTransaction(userUid, nextStatus) {
+            let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 1. 고유 UID 기반의 행 노드 포인터 정밀 조준 타겟 매칭
+            const targetIndex = applicantDB.findIndex(app => String(app.uid) === String(userUid));
+            if (targetIndex === -1) {
+                alert("전산 오류: 선택한 대상자 레코드 고유 식별 주소를 시스템망에서 추적할 수 없습니다.");
+                return;
+            }
+
+            const targetUserObject = applicantDB[targetIndex];
+            const targetName = String(targetUserObject.name).trim();
+
+            // 2. 해당 단일 타겟 행의 상태 변경 패킷 주입
+            applicantDB[targetIndex].payStatus = nextStatus;
+
+            // 특수 필드 원본 보존 규격 동기화
+            if (nextStatus === "완료") {
+                applicantDB[targetIndex].payStatus1 = "완료";
+            }
+
+            // 💡 [연쇄 차단 마스터 트랙 연동]: 상태가 정식 진행 중(`접수`/`처리중`)이거나 `완료(소집통과/지급)` 상태로 격상 도장 찍히는 시점 감지
+            if (nextStatus === "접수" || nextStatus === "처리중" || nextStatus === "완료") {
+                let chainLockCount = 0;
+
+                // 데이터 대장 전체를 전수 조사하여 성명은 일치하되, 아직 `[대기]` 상태인 다른 다중 예약 행들의 포인터를 일제히 차단 락(Lock) 변환
+                applicantDB = applicantDB.map(row => {
+                    if (String(row.name).trim() === targetName && String(row.uid) !== String(userUid)) {
+                        const rowStatus = row.payStatus || "대기";
+                        if (rowStatus === "대기") {
+                            row.payStatus = "66개월 제한 잠금"; // 모바일 및 PC 캘린더에서 즉시 연쇄 참여 차단 락 강제 발동
+                            chainLockCount++;
+                        }
+                    }
+                    return row;
+                });
+
+                if (chainLockCount > 0) {
+                    console.log(`[중앙 대시보드] 대상자 [${targetName}] 선정 통과 승인에 의거, 다중 예약 선점 상태였던 다른 임상시험 과제 일정 ${chainLockCount}건을 전산망에서 연쇄 참여 제한 잠금 처리 완료했습니다.`);
+                }
+            }
+
+            // 3. 변환 완료된 전산 패킷 데이터 영구 저장 및 화면 새로고침 리드로우
+            localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
+
+            // 만약 모바일 창이 열려 승인 신호를 대기하고 있을 경우 글로벌 컨텍스트 메모리 갱신 바인딩 공유
+            if (window.currentCertifiedUser && String(window.currentCertifiedUser.uid) === String(userUid)) {
+                window.currentCertifiedUser.payStatus = nextStatus;
+            }
+
+            renderApplicants(); // 실시간 관리 대장 스케줄 리포트 드로우 갱신
+        }
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

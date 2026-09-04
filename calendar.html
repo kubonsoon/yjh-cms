@@ -524,14 +524,39 @@
                 min-height: 100px;
             }
         }
+
+        /* =========================================================
+[신규 추가] 6개월 참여 제한 및 다중예약 차단용 긴급 경고 라벨 서식
+========================================================== */
+        .modal-lock-warning-box {
+            display: none;
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.4);
+            color: var(--danger-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 11.5px;
+            font-weight: bold;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        /* 동적 버튼 제어용 비활성화(disabled) 디자인 추가 */
+        .modal-act-btn.btn-join:disabled {
+            background: #475569 !important;
+            color: #94a3b8 !important;
+            cursor: not-allowed !important;
+            filter: none !important;
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- 1. 상단 타이틀 및 툴바 구역 (요구사항 반영: 참여/미참여 필터 버튼 제거) -->
+    <!-- 1. 상단 타이틀 및 툴바 구역 (원본 스펙 100% 현상 유지) -->
     <div class="header-container">
-        <div class="calendar-title"><i class="fa-solid fa-calendar-days"></i> 임상시험 일정관리</div>
+        <div class="calendar-title"><i class="fa-solid fa-calendar-days"></i> 임상시험 일정 관리</div>
         <div class="toolbar-group">
             <button class="tool-btn active" id="btnFilterAll">전체 일정</button>
             <button class="tool-btn" onclick="executeDownload()"><i class="fa-solid fa-file-arrow-down"></i>
@@ -547,7 +572,7 @@
         <button class="month-btn" onclick="moveMonth(1)">▶</button>
     </div>
 
-    <!-- 3. 메인 달력 복합 판넬 (상단 요일바 압축 고정 및 하단 일자별 격자 분리 구조) -->
+    <!-- 3. 메인 달력 복합 판넬 (상단 요일바 압축 고정 및 하단 일자별 격자 분리 구조 현상 보존) -->
     <div class="calendar-wrapper">
         <div class="weekday-bar">
             <div class="day-header">일</div>
@@ -563,7 +588,7 @@
         </div>
     </div>
 
-    <!-- 4. 하단 고정 가이드라인 패널 -->
+    <!-- 4. 하단 고정 가이드라인 패널 (대상자 관리 표준 용어 일원화 반영 완료) -->
     <div class="bottom-guide-panel">
         <div class="white-dictionary-box">
             <i class="fa-solid fa-book-medical"></i> CTMS 임상 용어 사전 가이드 가동중
@@ -575,7 +600,7 @@
         </ol>
     </div>
 
-    <!-- 5. [대수술 완수] 시험명 클릭 시 동적으로 작동하는 상세보기 + 대상자 마스터 이력조회 결합 모달 프레임 구역 -->
+    <!-- 5. 시험명 클릭 시 동적으로 작동하는 상세보기 + 대상자 마스터 이력조회 결합 모달 프레임 구역 -->
     <div class="calendar-modal-overlay" id="detailModalOverlay" onclick="closeDetailModal(event)">
         <div class="calendar-modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -584,7 +609,7 @@
                     onclick="document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">✕</button>
             </div>
 
-            <!-- 기본 시험 등록 정보 테이블 구역 -->
+            <!-- 기본 시험 등록 정보 테이블 구역 (최신 규격 동기화 포맷 반영) -->
             <table class="modal-table">
                 <tr>
                     <th>시험명</th>
@@ -612,9 +637,12 @@
                 </tr>
             </table>
 
-            <!-- 💡 [대수술 핵심 이식] 대상자 관리의 대상자 과거 임상시험 누적 내역이 실시간 바인딩 사출되는 스크롤 존 -->
+            <!-- 💡 [신규 마운트] 6개월 참여 금지 가드 및 예약 파기 알림 문구 동적 사출 박스 -->
+            <div id="modalLockWarningBox" class="modal-lock-warning-box"></div>
+
+            <!-- 대상자 관리의 대상자 과거 임상시험 누적 내역이 실시간 바인딩 사출되는 스크롤 존 -->
             <div class="modal-history-title">
-                <i class="fa-solid fa-clock-history"></i> <span id="m-history-count-title">대상자 참여 이력 내역
+                <i class="fa-solid fa-clock-history"></i> <span id="m-history-count-title">대상자 참여 이력 조회 누적 내역
                     (0건)</span>
             </div>
             <div class="modal-history-scroll-zone" id="modal-history-scroll-zone">
@@ -622,7 +650,8 @@
             </div>
 
             <div class="modal-btn-group-row">
-                <button type="button" class="modal-act-btn btn-join" onclick="executeModalJoinAction()">참여</button>
+                <!-- 💡 id 포인터를 마운트하여 참여 신청 / 신청 취소 / 비활성화 삼중 인터셉트 흐름 완비 -->
+                <button type="button" id="btnModalMainAction" class="modal-act-btn btn-join">참여</button>
                 <button type="button" class="modal-act-btn btn-reject" onclick="executeModalRejectAction()">미참여</button>
                 <button type="button" class="modal-act-btn btn-close" onclick="closeDetailModal()">닫기</button>
             </div>
@@ -636,30 +665,30 @@
         let currentFilter = 'ALL';
 
         /**
-         * 2. 메인 대시보드(admin.html)의 로컬스토리지 임상시험 마스터 레코드 스트림 연동
-         */
+        * 2. 메인 대시보드(admin.html)의 로컬스토리지 임상시험 마스터 레코드 스트림 연동
+        */
         function getMasterData() {
             return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
         }
 
         /**
-         * 3. 대상자 관리 탭(applicantView)의 가상 데이터베이스 동기화 스트림 로드
-         */
+        * 3. 대상자 관리 탭(applicantView)의 가상 데이터베이스 동기화 스트림 로드
+        */
         function getApplicantData() {
             return JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
         }
 
         /**
-         * 4. 월 선택 컨트롤러 네비게이터 작동기
-         */
+        * 4. 월 선택 컨트롤러 네비게이터 작동기
+        */
         function moveMonth(v) {
             currentDate.setMonth(currentDate.getMonth() + v);
             renderCalendar();
         }
 
         /**
-         * 5. 전체 스케줄링 백업 데이터 JSON 파일 사출 다운로드 함수
-         */
+        * 5. 전체 스케줄링 백업 데이터 JSON 파일 사출 다운로드 함수
+        */
         function executeDownload() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getMasterData(), null, 2));
             const downloadAnchor = document.createElement('a');
@@ -672,11 +701,11 @@
 
         // 글로벌 스코프에 현재 활성화된 모달 과제 컨텍스트 데이터 보존
         let currentActiveModalJob = null;
-        let currentTemporaryUid = ""; // 💡 [인덱스 버그 해결] 실시간 배열 순서 변동에 대응할 고유 UID 락 보존 변수
+        let currentTemporaryUid = ""; // 실시간 배열 순서 변동 대응 고유 UID 락 변수
 
         /**
-         * 6. 오직 소집일자만 추적 매핑하는 정밀 달력 격자 사출 렌더러 함수
-         */
+        * 6. [무결성 복구 보존] 오직 소집일자만 추적 매핑하는 오리지널 월별 달력 격자 사출 렌더러 함수
+        */
         function renderCalendar() {
             const board = document.getElementById('calendarBoard');
             const label = document.getElementById('currentMonthLabel');
@@ -713,7 +742,6 @@
                     const thText = (item.th || "1기").trim();
                     const thLabel = item.th ? ` [${item.th}]` : '';
                     const clickUid = item.uid ? item.uid : item.title;
-
                     const dynamicColorClass = `th-color-${thText}`;
 
                     if (item.recDate && item.recDate.trim() === thisDateStr) {
@@ -728,9 +756,10 @@
                 board.appendChild(cell);
             }
         }
+
         /**
-           * 7. m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진 + 원본 버튼 하이재킹 모듈 결합
-           */
+         * 7. [최종 통합 사양 이식] 삼중 선제 가드 검증, 동적 버튼 스위칭 및 신청 취소(삭제) 트랙 엔진
+         */
         window.openClinicalDetailModal = function (uid, typeTitle) {
             const records = getMasterData();
             let applicantDB = getApplicantData();
@@ -751,43 +780,87 @@
 
             const currentSessionName = loggedInUser.name.toString().trim();
 
-            // 현재 로그인한 사용자의 고유한 가상 티켓 또는 정식 신청건을 찾아 추적
-            let myTicket = applicantDB.find(app => (app.name || "").toString().trim() === currentSessionName);
-
-            if (!myTicket) {
-                // 전연 참여 적 없는 완전 신규 방문 대상자인 경우 즉석 가상 티켓 발행
-                currentTemporaryUid = "TEMP_" + Date.now();
-                myTicket = {
-                    uid: currentTemporaryUid,
-                    name: currentSessionName,
-                    title: targetTitle,
-                    th: targetTh,
-                    period: target.period || "0",
-                    payStatus: "대기",
-                    isVirtualGhost: true
-                };
-                applicantDB.push(myTicket);
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
-            } else {
-                // 이미 등록되어 있던 계정이라면 해당 객체의 불변 고유 uid를 시스템 추적 키로 락인
-                currentTemporaryUid = myTicket.uid;
-            }
-
-            document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 상세 안내]`;
-            document.getElementById('m-title').innerText = target.title || '-';
-            document.getElementById('m-th').innerText = target.th || '-';
-            document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-';
-            document.getElementById('m-period').innerText = target.period ? target.period + '시간' : '-';
-            document.getElementById('m-crc').innerText = target.crc || '-';
-            document.getElementById('m-recDate').innerText = target.recDate || '-';
-
-            const scrollZone = document.getElementById("modal-history-scroll-zone");
-            scrollZone.innerHTML = "";
-
-            // [버그 교정 핵심] 타인의 데이터가 섞이지 않도록 오직 현재 로그인된 대상자 성명 정보만 단독 정밀 추출
+            // [통합 검증 1단계]: 타인 데이터 혼입 원천 격리, 오직 현재 세션 대상자 성명의 데이터만 단독 필터링
             const rawHistoryRecords = applicantDB.filter(item =>
                 (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== ""
             );
+
+            // [통합 검증 2단계]: 완료 건 대상 최종 소집일자 역추적 6개월(180일) 타임락 연산 감시
+            let isTimeLocked = false;
+            let lockDateText = "";
+
+            const completedRecords = rawHistoryRecords.filter(row => {
+                const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
+                return currentPayStatus === "완료";
+            });
+
+            if (completedRecords.length > 0) {
+                completedRecords.forEach(cUser => {
+                    const matRec = records.find(rec => rec.title === cUser.title && String(rec.th) === String(cUser.th));
+                    if (matRec && matRec.recDate) {
+                        const recDateObj = new Date(matRec.recDate.trim());
+                        const timeDiff = Math.abs(new Date().getTime() - recDateObj.getTime());
+                        const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+                        if (dayDiff <= 180) { // 소집일 기준 180일 안전 이내 기산점 통제
+                            isTimeLocked = true;
+                            lockDateText = matRec.recDate.trim();
+                        }
+                    }
+                });
+            }
+
+            // [통합 검증 3단계]: 입원 완료 및 이미 소집 통과하여 시험 진행 중인 다른 과제 유무 검사 (연쇄 락 장치)
+            let isSelectionActive = false;
+            const ongoingRecords = rawHistoryRecords.filter(row => {
+                const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
+                return currentPayStatus === "접수" || currentPayStatus === "처리중";
+            });
+            if (ongoingRecords.length > 0) {
+                isSelectionActive = true;
+            }
+
+            // [통합 검증 4단계]: 현재 모달에 열린 과제를 이미 선점 예약해 둔 유저인지 정밀 대조 판정
+            const existingTicket = rawHistoryRecords.find(row =>
+                (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
+            );
+
+            // 공통 모달 뷰 포트 엘리먼트 초기화 정렬 사출
+            const warningBox = document.getElementById('modalLockWarningBox');
+            const mainActBtn = document.getElementById('btnModalMainAction');
+            warningBox.style.display = 'none';
+            mainActBtn.disabled = false;
+            mainActBtn.innerText = "참여";
+            mainActBtn.className = "modal-act-btn btn-join";
+
+            // 💡 [인프라 삼중 동적 분기 컨트롤 장벽 발동]
+            if (isSelectionActive && (!existingTicket)) {
+                // 상황 B-2: 소집 통과하여 입원한 뒤 예약해 둔 다른 과제 접근 시 연쇄 파기 및 alert 강제 방어 사출
+                alert("[참여 제한 안내]\n\n이미 소집 통과하여 임상시험에 참여 중인 과제가 존재합니다.\n임상 안전 규정에 따라 예약해 두신 다른 시험 일정은 더 이상 참여가 불가능합니다.");
+                warningBox.innerText = "❌ 참여 불가: 이미 소집 통과(입원 완료)된 다른 임상시험 과제가 존재합니다.";
+                warningBox.style.display = 'block';
+                mainActBtn.disabled = true;
+            }
+            else if (isTimeLocked) {
+                // 상황 A: 과거 소집일자 기준 180일 정밀 시계열 차단 가드 발동
+                warningBox.innerText = `⚠️ 제한 안내: 과거 임상시험 소집일(${lockDateText})로부터 6개월(180일)이 경과하지 않아 새로운 시험 참여가 불가능합니다.`;
+                warningBox.style.display = 'block';
+                mainActBtn.disabled = true;
+            }
+            else if (existingTicket) {
+                // 상황 B-1: 자유로운 철회 보장형 [신청 취소] 전격 스위칭 트랙 변환
+                mainActBtn.innerText = "신청 취소";
+                mainActBtn.className = "modal-act-btn btn-reject"; // 취소 전용 레드 컬러 변경
+                currentTemporaryUid = existingTicket.uid;
+            }
+            else {
+                // 상황 C: 청정 유저 다중 예약 다중 적재 가능 프리패스 UID 발행
+                currentTemporaryUid = "TEMP_" + Date.now();
+            }
+
+            // 하단 이력 스크롤 존 사출
+            const scrollZone = document.getElementById("modal-history-scroll-zone");
+            scrollZone.innerHTML = "";
 
             const currentJobArray = rawHistoryRecords.filter(row =>
                 (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
@@ -797,7 +870,7 @@
             );
 
             const sortedHistoryRecords = currentJobArray.concat(pastJobArray);
-            document.getElementById("m-history-count-title").innerText = `대상자 참여 이력조회 누적 내역 (${sortedHistoryRecords.length}건)`;
+            document.getElementById("m-history-count-title").innerText = `대상자 참여 이력 조회 누적 내역 (${sortedHistoryRecords.length}건)`;
 
             if (sortedHistoryRecords.length === 0) {
                 scrollZone.innerHTML = `<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>`;
@@ -823,14 +896,14 @@
 
                     miniCard.innerHTML = `
                 <div style="text-align:left;">
-                    <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
+                    <div style="font-size:12.5px; font-weight:700; color:#ffffff; margin-bottom:2px;">
                         ${prefixTag}${row.name || '대상자'} - ${rowTitleDisplay}
                     </div>
-                    <div style="font-size:11.5px; color:var(--text-muted);">
+                    <div style="font-size:11px; color:var(--text-muted);">
                         진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정시간: <span style="color:#fff;">${row.period || '0'}시간</span>
                     </div>
                 </div>
-                <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
+                <div style="font-size:11.5px; color:var(--text-muted); white-space:nowrap;">
                     지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>
                 </div>
             `;
@@ -838,43 +911,48 @@
                 });
             }
 
-            // 💡 원본 HTML 소스를 100% 보존하기 위해 타겟 엘리먼트 내부의 온클릭 핸들러 가로채기(인터셉트) 기믹 가동
+            // 💡 [최종 트랜잭션 전산 클렌징 및 패킷 적재 구조]: 온클릭 기믹 원본 파괴 방어 결합
             setTimeout(() => {
-                const btnJoin = document.querySelector('.btn-join');
-                const btnReject = document.querySelector('.btn-reject');
+                const btnMainAction = document.getElementById('btnModalMainAction');
+                if (!btnMainAction) return;
 
-                if (btnJoin) {
-                    btnJoin.onclick = function (e) {
-                        e.preventDefault();
-                        let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                btnMainAction.onclick = function (e) {
+                    e.preventDefault();
+                    let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                        // 고유 UID 속성을 추적하여 정확한 행 포인터 락인
-                        const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
+                    if (mainActBtn.innerText === "신청 취소") {
+                        // [신청취소 클릭 시]: 대장에서 내 성명과 시험명, 기수 3가지가 완벽 매칭되는 타겟 행 레코드만 완전 도려내어 삭제
+                        appDB = appDB.filter(app => !(
+                            String(app.name).trim() === String(currentSessionName).trim() &&
+                            String(app.title).trim() === String(targetTitle).trim() &&
+                            String(app.th).trim() === String(targetTh).trim()
+                        ));
+                        localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                        alert('참여 신청 취소(삭제) 처리되었습니다.\n다른 임상시험 일정을 자유롭게 재선택하여 예약하실 수 있습니다.');
+                    }
+                    else {
+                        // [참여 클릭 시]: 청정 대상자 첫 일정 참여 터치 시 사전 연쇄 파기 예고용 컨펌 알림창 강제 팝업
+                        const confirmSubmit = confirm("[다중 예약 자동 취소 안내]\n\n이 시험의 일정(소집)에 정식으로 참여하시겠습니까?\n\n※ 주의: 본 시험의 대상자로 최종 선정되어 소집을 통과(입원)하게 되면, 현재 달력에 예약해 두신 다른 모든 시험 일정은 임상 규정에 의해 자동으로 참여 불가 처리됩니다.");
 
-                        if (myTargetIdx !== -1) {
-                            // 💡 [버그 종결 핵심 설계]: 기존 배열 메모리 주소를 요동치게 하던 splice, unshift를 전면 파기하고 원래 자리를 100% 현상 보존!
-                            delete appDB[myTargetIdx].isVirtualGhost;
-                            delete appDB[myTargetIdx].isNewUserGhost;
+                        if (!confirmSubmit) return; // 취소 수락 거부 시 프로세스 즉시 보호 안전 정지
 
-                            appDB[myTargetIdx].title = targetTitle;
-                            appDB[myTargetIdx].th = targetTh;
-                            appDB[myTargetIdx].period = currentActiveModalJob.period || "0";
-                            appDB[myTargetIdx].payStatus = "대기"; // 대기 상태로 정식 도약
+                        // 덮어쓰기 전면 영구 파기, 별도의 UID를 장착한 깨끗한 독립 신규 예약 행 객체 생성 push 적재
+                        const newAddTicket = {
+                            uid: currentTemporaryUid,
+                            name: currentSessionName,
+                            title: targetTitle,
+                            th: targetTh,
+                            period: currentActiveModalJob.period || "0",
+                            payStatus: "대기"
+                        };
+                        appDB.push(newAddTicket);
+                        localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                        alert('참여 신청 예약 접수되었습니다.');
+                    }
 
-                            localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                        }
-                        alert('참여 신청 접수되었습니다.');
-                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
-                    };
-                }
-
-                if (btnReject) {
-                    btnReject.onclick = function (e) {
-                        e.preventDefault();
-                        alert('미참여 신청 되었습니다.');
-                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
-                    };
-                }
+                    document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
+                    renderCalendar(); // 동적 전산 변동 내역 달력판 라이브 리렌더링
+                };
             }, 50);
 
             const overlay = document.getElementById('detailModalOverlay');
@@ -886,7 +964,6 @@
         };
 
         window.onload = renderCalendar;
-
     </script>
 </body>
 

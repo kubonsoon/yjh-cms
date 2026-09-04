@@ -2736,7 +2736,6 @@
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
             // ==========================================================================
-            // ✨ [최종 버그 종결 - 수정/추가] 원본 데이터 추출 즉시 최신 등록순 강제 역전 정렬 가드
             // 하단에서 어떤 필터나 루프 엔진을 가동하든 원본 데이터(db) 자체가 이미 완벽히 정렬된 채 연산이 시작됩니다.
             // ==========================================================================
             db.sort((a, b) => {
@@ -2790,7 +2789,7 @@
             if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL') displayList = db;
 
 
-            // ✨ [최종 수리 완수] 자릿수 충돌 원천 차단 및 순수 생성 시간 13자리 정밀 내림차순 정렬
+            // 자릿수 충돌 원천 차단 및 순수 생성 시간 13자리 정밀 내림차순 정렬
             displayList.sort((a, b) => {
                 const numA = String(a.uid).replace(/[^0-9]/g, '');
                 const numB = String(b.uid).replace(/[^0-9]/g, '');
@@ -2822,12 +2821,34 @@
 
             // 15개 데이터 조각 루프 렌더링 시동
             pagedList.forEach((row, pagedIdx) => {
-                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역
+                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역 (오빠 원본 소스)
                 row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
                     filterIdx >= pagedIdx &&
                     cleanString(item.title) === cleanString(row.title) &&
                     item.th === row.th
                 ).length;
+
+                let rawSsn = (row.ssn || "").toString().trim();
+                let displaySsn = rawSsn.split('-')[0]; // "-" 기호 앞의 순수한 6자리 생년월일만 완벽 격리 분리 -> "721127", "990715"
+
+                let displayTitle = row.title;
+                let displayTh = row.th;
+                let displayCount = typeof formatCount === "function" ? formatCount(row.count) : row.count;
+                let displayPeriod = typeof formatPeriod === "function" ? formatPeriod(row.period) : row.period;
+
+                // 과제명이 아예 비어있거나 모바일 인증서를 통과해 넘어온 가상 유저인 즉시 시험 정보 전체를 하이픈(-)으로 치환
+                if (!row.title || row.title.trim() === "" || row.isVirtualGhost) {
+                    displayTitle = "-";
+                    displayTh = "-";
+                    displayCount = "-";
+                    displayPeriod = "-";
+                }
+
+                // 일반 과제 유저인데 기간이 정의되지 않아 발생하는 undefined시간 노출을 강제 소멸 차단
+                if (row.title && (row.period === undefined || row.period === null)) {
+                    displayPeriod = "0시간";
+                }
+
 
                 const index = displayList.findIndex(item => item.uid === row.uid);
                 const tr = document.createElement('tr');
@@ -2852,10 +2873,10 @@
                 docsHTML += `</div>`;
 
                 const buildCoreMiniStatusBadgeHTML = (label, val) => {
-                    // 🎯 [교정 완수]: 구형 단어(확인, 검토중 등)를 완전히 삭제하고 순정 4대 단어만 다이렉트 매칭
+                    //구형 단어(확인, 검토중 등)를 완전히 삭제하고 순정 4대 단어만 다이렉트 매칭
                     let s = val || '대기';
 
-                    // 🎯 [4단계 색상 표시자 정의]: 디자인 시스템 고대비 컬러 변수 및 시그니처 색상 상호 결합 [index: 0.1.149]
+                    //[4단계 색상 표시자 정의]: 디자인 시스템 고대비 컬러 변수 및 시그니처 색상 상호 결합 [index: 0.1.149]
                     let st = "background: rgba(148, 163, 184, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25);"; // 🔴 대기: 당직/소집동의와 동일한 고해상도 회색 계열로 변경
 
                     if (s === '접수') {

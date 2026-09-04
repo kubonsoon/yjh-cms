@@ -2734,6 +2734,18 @@
             if (paginator) paginator.innerHTML = ''; // 버튼 초기화
 
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // ==========================================================================
+            // ✨ [최종 버그 종결 - 수정/추가] 원본 데이터 추출 즉시 최신 등록순 강제 역전 정렬 가드
+            // 하단에서 어떤 필터나 루프 엔진을 가동하든 원본 데이터(db) 자체가 이미 완벽히 정렬된 채 연산이 시작됩니다.
+            // ==========================================================================
+            db.sort((a, b) => {
+                const timeA = Number(String(a.uid).replace(/[^0-9]/g, '')) || 0;
+                const timeB = Number(String(b.uid).replace(/[^0-9]/g, '')) || 0;
+                return timeB - timeA; // 가장 최근에 생성된 고유 식별 타임스탬프 숫자가 클수록 무조건 최상단 0번 행 배치
+            });
+            // ==========================================================================
+
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
             // [순정 데이터 정화 스캔 기믹] (원본 규칙 100% 보존)
@@ -2776,16 +2788,6 @@
             });
 
             if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL') displayList = db;
-
-            // ==========================================================================
-            // ✨ [수정/추가 완수] 대장 내 원본 적재 인덱스 주소를 추적하여 소집일 무관 무조건 최신 등록 최상단 정렬
-            // 구형 정렬 충돌 블록을 전면 철거하고 단 하나의 무결한 통합 인덱스 역순 소팅 필터로 완벽히 대체 완료했습니다.
-            // ==========================================================================
-            displayList.sort((a, b) => {
-                const idxA = db.findIndex(item => item.uid === a.uid);
-                const idxB = db.findIndex(item => item.uid === b.uid);
-                return idxB - idxA; // 인덱스 주소가 큰 최신 데이터가 무조건 목록 0번 행(최상단)에 고정 사출
-            });
 
 
             // 하단 내비게이션 버튼의 전역 변수인 window.currentApplicantPage 명칭과 100% 일치시켜 단선을 완파합니다.

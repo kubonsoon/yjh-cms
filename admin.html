@@ -2820,7 +2820,7 @@
 
             // 15개 데이터 조각 루프 렌더링 시동
             pagedList.forEach((row, pagedIdx) => {
-                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역 (오빠 원본 소스 보존)
+                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역 (원본 보존)
                 row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
                     filterIdx >= pagedIdx &&
                     cleanString(item.title) === cleanString(row.title) &&
@@ -2828,65 +2828,48 @@
                 ).length;
 
                 // ==========================================================================
-                // ✨ [최종 완수] 나이 데이터(M/26) 역산 연계 00년생 생년월일 6자리 강제 복원 가드
+                // ✨ [최종 완수] 자간 청소 / 00년생 복원 / 정렬 왜곡 차단 직렬화 통합 마스터 파이프라인
                 // ==========================================================================
                 let rawSsn = (row.ssn || "").toString().trim();
-                let displaySsn = rawSsn.split('-')[0]; // 하이픈 앞 분리 ("302", "1128" 등)
+                let displaySsn = rawSsn.split('-')[0]; // 생년월일 앞 6자리 분리
 
-                // 엑셀 시트 E열(M/26, M/25)에 적힌 성별/나이 혼착 데이터 문자열에서 순수 숫자만 추출 (26, 25)
-                // 오빠 소스 내 적재 키값 규격(age, gender, ageAndGender) 예외 케이스 통합 스캔
+                // 🎯 [00년생 생년월일 자릿수 복원 가드] : 만나이 기반 앞자리 00 강제 패딩 매칭
                 let rawAgeSource = row.ageAndGender || row.age || row.gender || "";
                 let pureAgeText = rawAgeSource.toString().replace(/[^0-9]/g, "").trim();
                 let targetAge = Number(pureAgeText) || 0;
 
-                // 문자열 길이가 6자리보다 짧고, 2026년 기준 나이가 만 26세 이하(2000년생 및 이후 출생자)인 경우 정밀 역산 돌입
                 if (displaySsn.length < 6 && targetAge > 0 && targetAge <= 26) {
-                    // 2026년(현재) - 만나이 = 출생연도 (2026 - 26 = 2000 -> 뒤의 2자리 "00"을 정확히 슬라이싱)
-                    let birthYear = (2026 - targetAge).toString().substring(2, 4); // "00", "01", "03" 연도 생성
-
-                    // 앞자리가 유실된 월/일 날짜 패킷 분리 가공
+                    let birthYear = (2026 - targetAge).toString().substring(2, 4); // 2026년 기준 역산
                     let pureMonthDay = displaySsn;
-                    if (pureMonthDay.length === 3) {
-                        pureMonthDay = "0" + pureMonthDay; // 3자리인 경우 ("302" -> "0302") 4자리 규격화 수리
-                    }
-
-                    // 산출된 연도 2자리와 청정 날짜 4자리를 정교하게 락인 결합 ("00" + "0302" = "000302")
+                    if (pureMonthDay.length === 3) pureMonthDay = "0" + pureMonthDay;
                     displaySsn = birthYear + pureMonthDay;
-                }
-                // [2차 방어선] : 만약 나이 매칭 예외 상황이 발생하더라도 자릿수 모자람 채우기로 기본 방어
-                else if (displaySsn.length === 3) {
-                    displaySsn = "000" + displaySsn;
-                } else if (displaySsn.length === 4) {
-                    displaySsn = "00" + displaySsn;
-                } else if (displaySsn.length === 5) {
-                    displaySsn = "0" + displaySsn;
-                }
+                } else if (displaySsn.length === 3) displaySsn = "000" + displaySsn;
+                else if (displaySsn.length === 4) displaySsn = "00" + displaySsn;
+                else if (displaySsn.length === 5) displaySsn = "0" + displaySsn;
 
                 let displayTitle = row.title || "-";
                 let displayTh = row.th || "-";
 
                 // 엑셀 '72시간' 텍스트 혼착 및 수동 입력 규격 불일치 선제 청소
                 let displayPeriod = (row.period || "").toString().replace(/시간/g, "").trim();
-
-                // 🎯 [인원수 정화 기믹] : 엑셀에 '60명' 형태로 문자가 들어와도 '명' 글자를 선제 삭제 청소!
                 let pureCount = (row.count || "").toString().replace(/명/g, "").trim();
 
-                // 🎯 [정원 배정 무결성 락인] : 엑셀 타이틀에 적힌 과제별 진짜 배정 모수(N44 -> 44)를 정밀 역추적!
+                // 엑셀 타이틀 내 (N44) 과제별 진짜 배정 정원 모수 패턴 정밀 자동 추적
                 let matchQuota = displayTitle.match(/\(N(\d+)\)/);
                 let finalQuota = matchQuota ? matchQuota[1] : (pureCount || currentQuota || 44);
-
-                // 🎯 [텍스트 중복 완파] : 상단 가드에서 '31/44명' 형태의 최종 완성형 텍스트를 미리 조립 빌드 완료!
                 let displayQuotaText = `${row.liveMatchOrderNumber}/${finalQuota}명`;
 
-                // 과제명이 누락되었거나 모바일 인증서를 통과해 넘어온 가상 유저인 즉시 하이픈(-) 대체
+                // 🎯 [중복 충돌 전면 박멸] 기존 선언 방을 상속하기 위해 let 기호를 파기하고 직렬 재할당!
+                dutyAgreed = row.isDutyAgreed || "대기";
+                callAgreed = row.isCallAgreed || "대기";
+                currentPayStatus1 = row.payStatus1 || "대기";
+                currentPayStatus2 = row.payStatus2 || "대기";
+                currentPayStatus3 = row.payStatus3 || "대기";
+
                 if (!row.title || row.title.trim() === "" || row.isVirtualGhost) {
-                    displayTitle = "-";
-                    displayTh = "-";
-                    displayPeriod = "-";
-                    displayQuotaText = "-";
+                    displayTitle = "-"; displayTh = "-"; displayPeriod = "-"; displayQuotaText = "-";
                 }
 
-                // 일반 유저인데 기간 데이터가 누락되어 undefined가 뜨는 단선 예방 가드
                 if (row.title && (displayPeriod === undefined || displayPeriod === null || displayPeriod === "")) {
                     displayPeriod = "0";
                 }
@@ -2996,7 +2979,6 @@
         <td style="width: 85px; vertical-align: middle;">
             <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${displaySsn || ''}" style="text-align:center; background: var(--card-color) !important;">
         </td>
-        <td style="text-align: center; width: 85px; min-width: 85px; font-size: 14px; color: #ffffff; font-weight: 500;">${cleanSsnToBirthDate(row.ssn) || '-'}
         </td>
         <td style="width: 65px; vertical-align: middle; text-align: center;">
             <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
@@ -3087,7 +3069,7 @@
                 <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
-                     <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal('${row.uid}')" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
+                       <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal('${row.uid}')" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
                      <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">수정</button>
                      <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
                     </div>

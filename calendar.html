@@ -990,6 +990,20 @@
             document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
         };
 
+        // =========================================================
+        // [신규 마운트] 미참여 신청 단추 전산 작동 엔진 (ReferenceError 완벽 종결)
+        // =========================================================
+        window.executeModalRejectAction = function () {
+            // 1. 대상자 변심에 의한 철회 의사 전달 브라우저 알림 사출
+            alert('미참여 신청 되었습니다.');
+
+            // 2. 전면에 노출되어 있던 대형 임상 시험 상세 안내 모달 레이어 패널 즉시 수동 숨김 처리
+            const overlay = document.getElementById('detailModalOverlay');
+            if (overlay) {
+                overlay.setAttribute('style', 'display: none !important;');
+            }
+        };
+
         window.onload = renderCalendar;
     </script>
 </body>

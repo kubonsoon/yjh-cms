@@ -782,13 +782,17 @@
         }
 
         // =========================================================
-        // 3-C. [최종 통합 인프라] 삼중 선제 제한 검증 및 조건부 실시간 Alert, 신청 취소(삭제) 트랙 엔진
+        // 3-C. [최종 교정본 2호 조각] "이미 참가한 시험입니다" 검증 경고창 및 데이터 유실 복구 엔진
         // =========================================================
         window.openClinicalDetailModal = function (uid, typeTitle) {
             const records = getMasterData();
             let applicantDB = getApplicantData();
 
-            const target = records.find(item => item.uid == uid || item.title === uid);
+            // 💡 [버그 종결 가드]: 공백 및 인덱스 트래킹 오류를 차단하며 원본 과제 객체를 정밀 역추적 조준
+            const target = records.find(item =>
+                String(item.uid).trim() === String(uid).trim() ||
+                String(item.title).trim() === String(uid).trim()
+            );
             if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다.");
 
             const targetTitle = (target.title || "").toString().trim();
@@ -826,7 +830,7 @@
                         const timeDiff = Math.abs(new Date().getTime() - recDateObj.getTime());
                         const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
 
-                        if (dayDiff <= 180) { // 정확히 소집일 기준 180일 안전 이내 기산점 통제
+                        if (dayDiff <= 180) {
                             isTimeLocked = true;
                             lockDateText = matRec.recDate.trim();
                         }
@@ -849,7 +853,20 @@
                 (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
             );
 
-            // 공통 모달 뷰 포트 엘리먼트 초기화 정렬 사출
+            // 💡 [요구사항 반영]: 이미 예약 신청 데이터가 존재하는 동일 과제 재클릭 시 경고 알림 강제 사출
+            if (existingTicket) {
+                alert("이미 참가한 시험입니다.");
+            }
+
+            // 💡 [데이터 복구 핵심]: 하이픈으로 유실되던 상부 테이블 안내 뷰포트에 정밀 데이터 강제 역주입 바인딩
+            document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 안내]`;
+            document.getElementById('m-title').innerText = target.title || '-';
+            document.getElementById('m-th').innerText = target.th ? target.th : '-';
+            document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-';
+            document.getElementById('m-period').innerText = target.period ? target.period + '시간' : '-';
+            document.getElementById('m-crc').innerText = target.crc || '-';
+            document.getElementById('m-recDate').innerText = target.recDate || '-';
+
             const warningBox = document.getElementById('modalLockWarningBox');
             const mainActBtn = document.getElementById('btnModalMainAction');
             warningBox.style.display = 'none';
@@ -857,32 +874,30 @@
             mainActBtn.innerText = "참여";
             mainActBtn.className = "modal-act-btn btn-join";
 
-            // 💡 [최종 기획안 수립 규격: 인터페이스 삼중 동적 분기 컨트롤 장벽 발동]
+            // 인터페이스 삼중 동적 분기 제어 장벽 가동
             if (isSelectionActive && (!existingTicket)) {
-                // 상황 B-2: 소집 통과하여 입원한 뒤 예약해 둔 다른 과제 접근 시 연쇄 파기 및 alert 강제 방어 사출
                 alert("[참여 제한 안내]\n\n이미 소집 통과하여 임상시험에 참여 중인 과제가 존재합니다.\n임상 안전 규정에 따라 예약해 두신 다른 시험 일정은 더 이상 참여가 불가능합니다.");
                 warningBox.innerText = "❌ 참여 불가: 이미 소집 통과(입원 완료)된 다른 임상시험 과제가 존재합니다.";
                 warningBox.style.display = 'block';
                 mainActBtn.disabled = true;
             }
             else if (isTimeLocked) {
-                // 상황 A: 과거 소집일자 기준 180일 정밀 시계열 차단 가드 발동
                 warningBox.innerText = `⚠️ 제한 안내: 과거 임상시험 소집일(${lockDateText})로부터 6개월(180일)이 경과하지 않아 새로운 시험 참여가 불가능합니다.`;
                 warningBox.style.display = 'block';
                 mainActBtn.disabled = true;
             }
             else if (existingTicket) {
-                // 상황 B-1: 자유로운 철회 보장형 [신청 취소] 전격 스위칭 트랙 변환
                 mainActBtn.innerText = "신청 취소";
-                mainActBtn.className = "modal-act-btn btn-reject"; // 취소 전용 레드 컬러 변경
+                mainActBtn.className = "modal-act-btn btn-reject";
                 currentTemporaryUid = existingTicket.uid;
             }
             else {
-                // 상황 C: 청정 유저 다중 예약 다중 적재 가능 프리패스 UID 발행
                 currentTemporaryUid = "TEMP_" + Date.now();
             }
 
-            // 하단 이력 스크롤 존 사출
+            // =========================================================
+            // 3-D. [최종 교정본 3호 조각] 대상자 전용 과거 누적 이력 드로우 및 실시간 한 줄 업데이트 제어부
+            // =========================================================
             const scrollZone = document.getElementById("modal-history-scroll-zone");
             scrollZone.innerHTML = "";
 
@@ -935,7 +950,7 @@
                 });
             }
 
-            // 💡 [최종 트랜잭션 전산 클렌징 및 패킷 적재 구조]: 온클릭 기믹 원본 파괴 방어 결합
+            // 최종 트랜잭션 전산 클렌징 및 패킷 업데이트 가드 결합
             setTimeout(() => {
                 const btnMainAction = document.getElementById('btnModalMainAction');
                 if (!btnMainAction) return;
@@ -945,7 +960,6 @@
                     let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
                     if (mainActBtn.innerText === "신청 취소") {
-                        // [신청취소 클릭 시]: 대장에서 내 성명과 시험명, 기수 3가지가 완벽 매칭되는 타겟 행 레코드만 완전 도려내어 삭제
                         appDB = appDB.filter(app => !(
                             String(app.name).trim() === String(currentSessionName).trim() &&
                             String(app.title).trim() === String(targetTitle).trim() &&
@@ -955,32 +969,29 @@
                         alert('참여 신청 취소(삭제) 처리되었습니다.\n다른 임상시험 일정을 자유롭게 재선택하여 예약하실 수 있습니다.');
                     }
                     else {
-                        // [참여 클릭 시]: 청정 대상자 첫 일정 참여 터치 시 사전 연쇄 파기 예고용 컨펌 알림창 강제 팝업
                         const confirmSubmit = confirm("[다중 예약 자동 취소 안내]\n\n이 시험의 일정(소집)에 정식으로 참여하시겠습니까?\n\n※ 주의: 본 시험의 대상자로 최종 선정되어 소집을 통과(입원)하게 되면, 현재 달력에 예약해 두신 다른 모든 시험 일정은 임상 규정에 의해 자동으로 참여 불가 처리됩니다.");
 
-                        if (!confirmSubmit) return; // 취소 수락 거부 시 프로세스 즉시 보호 안전 정지
+                        if (!confirmSubmit) return;
 
-                        // 🎯 [한 줄 통합 코어 엔진]: 대장에서 내 이름과 일치하면서 아직 시험명(title)이 비어있는 최초 인증 대기 행을 정밀 역추적
+                        // [한 줄 통합 엔진]: 대장에서 내 이름과 일치하면서 아직 시험명(title)이 공백인 최초 인증 행 찾기
                         const emptyRowIdx = appDB.findIndex(app =>
                             String(app.name).trim() === String(currentSessionName).trim() &&
                             (!app.title || app.title.trim() === "")
                         );
 
                         if (emptyRowIdx !== -1) {
-                            // 상황 1: m-login에 의해 생성된 최초 인증 행(1번째 줄)을 발견한 경우 그 자리에 데이터 쏙 주입 업데이트
+                            // 상황 1: 최초 생성된 인증행 빈칸 공간 채우기 업데이트
                             appDB[emptyRowIdx].title = targetTitle;
                             appDB[emptyRowIdx].th = targetTh;
-                            appDB[emptyRowIdx].period = currentActiveModalJob.period || "0";
+                            appDB[emptyRowIdx].period = target.period || "0";
                             appDB[emptyRowIdx].payStatus = "대기";
 
-                            // 만약 m-login 생성 시 uid가 임시였다면 현재 모달의 정식 uid 추적 락 결합
                             if (currentTemporaryUid && !currentTemporaryUid.startsWith("TEMP_")) {
                                 appDB[emptyRowIdx].uid = currentTemporaryUid;
                             }
                         }
                         else {
-                            // 상황 2: 이미 첫 번째 행은 채워져 있고, 추가로 다른 b시험을 예약하는 다중 예약 트랙인 경우 다음 줄에 push 독립 적재
-                            // 최초 인증 행에서 인적사항을 역추적하여 안전하게 상속 바인딩 결합
+                            // 🎯 [정정 완수 공정 이식]: 이미 첫 줄이 채워져 추가로 다른 b과제를 예약 선점하는 다중 예약 독립 누적 적재 트랙
                             const originalUserRow = appDB.find(app => String(app.name).trim() === String(currentSessionName).trim() && app.ssn);
                             const userSsn = originalUserRow ? originalUserRow.ssn : "";
                             const userPhone = originalUserRow ? originalUserRow.phone : "";
@@ -994,10 +1005,10 @@
                                 gender: userGender,
                                 title: targetTitle,
                                 th: targetTh,
-                                period: currentActiveModalJob.period || "0",
+                                period: target.period || "0",
                                 payStatus: "대기"
                             };
-                            appDB.push(newAddTicket);
+                            appDB.push(newAddTicket); // 💡 대장의 다음 줄에 새 행으로 다중 적재 처리하여 전산 유실 방지
                         }
 
                         localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
@@ -1005,9 +1016,8 @@
                     }
 
                     document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
-                    renderCalendar(); // 동적 전산 변동 내역 달력판 라이브 리렌더링
+                    renderCalendar();
                 };
-
             }, 50);
 
             const overlay = document.getElementById('detailModalOverlay');

@@ -579,7 +579,7 @@
     <div class="calendar-modal-overlay" id="detailModalOverlay" onclick="closeDetailModal(event)">
         <div class="calendar-modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <div class="modal-title" id="m-popup-type"><i class="fa-solid fa-circle-info"></i> [소집 일정 상세 안내]</div>
+                <div class="modal-title" id="m-popup-type"><i class="fa-solid fa-circle-info"></i> [임상시험 일정 안내]</div>
                 <button type="button" class="modal-close-x"
                     onclick="document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">✕</button>
             </div>
@@ -587,7 +587,7 @@
             <!-- 기본 시험 등록 정보 테이블 구역 -->
             <table class="modal-table">
                 <tr>
-                    <th>임상 시험명</th>
+                    <th>시험명</th>
                     <td id="m-title" style="color:var(--secondary-color); font-weight:800;">-</td>
                 </tr>
                 <tr>
@@ -595,11 +595,11 @@
                     <td id="m-th">-</td>
                 </tr>
                 <tr>
-                    <th>배정 인원</th>
+                    <th>인원수(N수)</th>
                     <td id="m-count">-</td>
                 </tr>
                 <tr>
-                    <th>임상 기간</th>
+                    <th>기간(시간)</th>
                     <td id="m-period">-</td>
                 </tr>
                 <tr>
@@ -797,7 +797,7 @@
             );
 
             const sortedHistoryRecords = currentJobArray.concat(pastJobArray);
-            document.getElementById("m-history-count-title").innerText = `대상자 참여 마스터 이력조회 누적 내역 (${sortedHistoryRecords.length}건)`;
+            document.getElementById("m-history-count-title").innerText = `대상자 참여 이력조회 누적 내역 (${sortedHistoryRecords.length}건)`;
 
             if (sortedHistoryRecords.length === 0) {
                 scrollZone.innerHTML = `<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>`;

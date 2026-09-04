@@ -849,33 +849,61 @@
         // 💥 2단: [최종 기획안 연동 규격 고도화] 다중 예약 대장 필터링 및 분기 라우터 엔진 패치
         function executeStep2Submit() {
             const name = document.getElementById('txtUserName').value.trim();
-            const birth = document.getElementById('txtUserBirth').value.trim().replace(/[^0-9]/g, '');
+            const rawBirth = document.getElementById('txtUserBirth').value.trim(); // 🎯 하이픈 파싱을 위해 원본 문자열 가로채기
             const phone = document.getElementById('txtUserPhone').value.trim().replace(/[^0-9]/g, '');
             const isAgreed = document.getElementById('chkAgree').checked;
 
-            if (!name || !birth || !phone) return alert('본인 식별을 위한 입력 필드를 빠짐없이 채워주세요.');
+            if (!name || !rawBirth || !phone) return alert('본인 식별을 위한 입력 필드를 빠짐없이 채워주세요.');
             if (!isAgreed) return alert('개인정보 활용 동의 체크박스 수락이 필요합니다.');
 
             temporaryVerifiedName = name;
 
-            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            const cleanInputBirth6 = birth.length === 8 ? birth.substring(2) : birth;
+            // 💡 [성별 판별 및 포맷 클렌징 마스터 엔진 가동]
+            let userGender = "남"; // 성별 기본값 안전 가드 세팅
+            let cleanBirth6 = rawBirth.replace(/[^0-9]/g, ''); // 숫자만 남긴 기본값 예비 가드
 
-            // 💡 [정밀 교차 필터 패치]: 다중 예약 대상자 분기를 방어하기 위해 인적사항 매칭 리스트 전수 추출
+            if (rawBirth.includes('-')) {
+                const birthParts = rawBirth.split('-');
+                const frontPart = birthParts[0].trim().replace(/[^0-9]/g, '');
+                const backPart = birthParts[1] ? birthParts[1].trim() : "";
+
+                // 1. 하이픈 앞 6자리만 칼같이 잘라내어 대장 적재용 생년월일 포맷으로 고정
+                if (frontPart.length === 6) {
+                    cleanBirth6 = frontPart;
+                }
+
+                // 2. 하이픈 바로 뒤 첫 번째 자리를 스캔하여 성별 배지 문자열 분기 가로채기
+                if (backPart.length > 0) {
+                    const genderCode = backPart.charAt(0);
+                    if (genderCode === '1' || genderCode === '3') {
+                        userGender = "남";
+                    } else if (genderCode === '2' || genderCode === '4') {
+                        userGender = "여";
+                    }
+                }
+            } else {
+                // 하이픈 없이 숫자만 입력되었을 때의 반응형 예외 가드 (6자리 초과 시 앞 6자리만 취함)
+                if (cleanBirth6.length > 6) {
+                    cleanBirth6 = cleanBirth6.substring(0, 6);
+                }
+            }
+
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            // 💡 다중 예약 대상자 분기를 방어하기 위해 인적사항 매칭 리스트 전수 추출 (정제된 cleanBirth6 기반 대조)
             const userMatchedRows = adminApplicantDB.filter(user => {
                 const dbBirth = (user.ssn || '').toString().replace(/[^0-9]/g, '');
                 const cleanDbBirth6 = dbBirth.length === 8 ? dbBirth.substring(2) : dbBirth;
                 const cleanDbPhone = (user.phone || '').toString().replace(/[^0-9]/g, '');
-                return user.name === name && cleanDbBirth6 === cleanInputBirth6 && cleanDbPhone === phone;
+                return user.name === name && cleanDbBirth6 === cleanBirth6 && cleanDbPhone === phone;
             });
 
             const popup = document.getElementById('popupEmbedded3');
 
             if (userMatchedRows.length > 0) {
-                // 💡 [1순위 타겟 조준]: 다중 레코드 중 단순 대기(예약) 상태가 아닌 정식 진행 중(`접수`/`처리중`)이거나 `완료`된 과제 레코드를 최선순위 매핑
+                // [1순위 타겟 조준]: 다중 레코드 중 단순 대기(예약) 상태가 아닌 정식 진행 중이거나 완료된 과제 레코드를 최선순위 매핑
                 let finalSelectedRow = userMatchedRows.find(row => row.payStatus === "접수" || row.payStatus === "처리중" || row.payStatus === "완료");
 
-                // 정식 참여 과제가 없다면 다중 예약 건 중 가장 최신 예약 행 노드를 포인터로 락인
                 if (!finalSelectedRow) {
                     finalSelectedRow = userMatchedRows[userMatchedRows.length - 1];
                 }
@@ -900,7 +928,6 @@
 
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
 
-                // 💡 [하이브리드 안내 텍스트 가드 이식]: 대상자의 현재 지급 스펙 상태를 스캔하여 팝업 멘트 분기 사출
                 const currentPayStatus = matchedPatientData.payStatus || "대기";
                 if (currentPayStatus === "대기") {
                     document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}님\n\n현재 [대기/예약] 상태인 과제가 존재합니다.\n\n확인 버튼을 선택하시면 사례비 청구서 작성 패널 대신, 실시간 임상시험 스케줄러(캘린더) 허브 화면으로 다이렉트 안전 랜딩됩니다.`;
@@ -908,16 +935,17 @@
                     document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}님\n\n📢 [사례비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
                 }
             } else {
-                // [트랙 B: 최초 방문 신규 대상자] 새 통합 기획에 맞춘 청정 유저 가상 패스권 적재 가동
+                // [트랙 B: 최초 방문 신규 대상자] 새 통합 기획에 맞춘 청정 유저 가상 패스권 적재 (클렌징된 6자리 생년월일 및 성별 주입)
                 const ghostPassTicket = {
                     uid: "VIRTUAL_" + Date.now(),
                     name: name,
-                    ssn: birth,
+                    ssn: cleanBirth6,   // 🎯 하이픈 뒷자리가 완벽히 버려진 순수 6자리만 대장 저장
+                    gender: userGender, // 🎯 추출된 정확한 성별 문자열("남" 또는 "여") 바인딩
                     phone: phone,
                     title: "",
                     th: "",
                     payStatus: "대기",
-                    isNewUserGhost: true // 신규방문 플래그 강력 락인
+                    isNewUserGhost: true
                 };
                 adminApplicantDB.push(ghostPassTicket);
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));

@@ -2790,6 +2790,21 @@
             if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL') displayList = db;
 
 
+            // ✨ [최종 수리 완수] 자릿수 충돌 원천 차단 및 순수 생성 시간 13자리 정밀 내림차순 정렬
+            displayList.sort((a, b) => {
+                const numA = String(a.uid).replace(/[^0-9]/g, '');
+                const numB = String(b.uid).replace(/[^0-9]/g, '');
+
+                const timeA = Number(numA.substring(0, 13)) || 0;
+                const timeB = Number(numB.substring(0, 13)) || 0;
+
+                if (timeA === timeB) {
+                    return db.findIndex(item => item.uid === b.uid) - db.findIndex(item => item.uid === a.uid);
+                }
+                return timeB - timeA;
+            });
+
+
             // 하단 내비게이션 버튼의 전역 변수인 window.currentApplicantPage 명칭과 100% 일치시켜 단선을 완파합니다.
             const APPLICANT_PAGE_SIZE = 8;
             const totalRecords = displayList.length;

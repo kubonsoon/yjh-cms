@@ -8,7 +8,9 @@
     <!-- 아이콘 팩 연동 (안정적인 구동 방어) -->
     <link rel="stylesheet" href="https://cloudflare.com">
     <style>
-        /* 1-1. 마스터 디자인 시스템 컬러 토큰 규격 유지 */
+        /* =========================================================
+1-A. 글로벌 디자인 시스템 컬러 변수 및 브라우저 주소창 방어 락인
+========================================================== */
         :root {
             --bg-color: #0b0f19;
             --card-color: #1a233a;
@@ -21,7 +23,7 @@
             --text-muted: #94a3b8;
         }
 
-        /* 1-2. 실제 가용 가로/세로 면적을 100% 동기화하여 레이아웃 터짐 방어 */
+        /* 💡 html과 body의 실제 가용 면적을 100% 동기화하여 주소창 밀림 가드 */
         html,
         body {
             height: 100% !important;
@@ -46,7 +48,9 @@
             /* 모바일 프레임 외곽선 전체 스크롤 차단 */
         }
 
-        /* 2-1. 상단 인쇄 및 다운로드 툴바 정렬 */
+        /* =========================================================
+1-B. 상단 타이틀 툴바 및 주간(Week) 네비게이터 컨트롤러 인터페이스
+========================================================== */
         .header-container {
             display: flex;
             justify-content: space-between;
@@ -99,7 +103,6 @@
             border-color: var(--secondary-color);
         }
 
-        /* 2-2. 주간 네비게이터 원형 버튼 및 라벨 디자인 */
         .month-controller {
             display: flex;
             justify-content: center;
@@ -139,7 +142,9 @@
             border-color: var(--secondary-color);
         }
 
-        /* 3-1. 세로 스크롤 가드 구역 설정 */
+        /* =========================================================
+1-C. 세로 스크롤 타임라인 및 밀집 일정 수용형 와이드 배지 서식
+========================================================== */
         .calendar-wrapper {
             flex: 1;
             display: flex;
@@ -152,7 +157,7 @@
         .date-grid-scroll-zone {
             flex: 1;
             overflow-y: auto;
-            /* 일정 과다 밀집 시 개별 세로 스크롤 활성화 */
+            /* 하루 최대 4~5개 일정 집중 시 개별 세로 스크롤 활성화 */
             padding-right: 2px;
             min-height: 0;
         }
@@ -164,7 +169,6 @@
             width: 100%;
         }
 
-        /* 3-2. 일자별 플렉스 컨테이너 (고정 높이 파기형) */
         .day-cell {
             background: var(--card-color);
             border: 1px solid var(--border-color);
@@ -174,7 +178,7 @@
             flex-direction: column;
             gap: 6px;
             min-height: auto;
-            /* 고정 크기를 없애 일정이 많으면 세로로 늘어나도록 기획 유도 */
+            /* 고정 크기를 없애 일정이 밀집되면 세로로 자연스럽게 늘어남 */
             transition: background-color 0.15s;
         }
 
@@ -218,7 +222,6 @@
             width: 100%;
         }
 
-        /* 4-1. 정보 듀얼 스플릿 가로형 배지 서식 */
         .event-badge {
             font-size: 12px !important;
             padding: 8px 12px;
@@ -256,7 +259,7 @@
             border-radius: 4px;
         }
 
-        /* 4-2. 마스터 디자인 시스템 기수 배지 컬러 동기화 */
+        /* 기수 배지 컬러 동기화 토큰 */
         .th-color-1기 {
             background: rgba(148, 163, 184, 0.12) !important;
             border: 1px solid rgba(148, 163, 184, 0.6) !important;
@@ -281,13 +284,15 @@
             color: #fbbf24 !important;
         }
 
-        /* 5-1. 하단 용어 사전 가이드라인 */
+        /* =========================================================
+1-D. 하단 고정 가이드 패널 및 [대상자] 이력조회 모달 스킨 구역
+========================================================== */
         .bottom-guide-panel {
             display: flex;
             flex-direction: column;
             gap: 4px;
             background: #111827;
-            border: 1px solid var(--border-color);
+            border: 1px solid #334155;
             border-radius: 8px;
             padding: 8px 12px;
             height: 95px;
@@ -314,7 +319,6 @@
             padding-left: 12px;
         }
 
-        /* 5-2. 대상자 관리 대형 연동 모달 프레임 스타일 */
         .calendar-modal-overlay {
             display: none;
             position: fixed;
@@ -408,6 +412,21 @@
             font-weight: 500;
         }
 
+        /* 💡 [신규 마운트] 6개월 타임락 및 다중예약 차단 긴급 경고 라벨 */
+        .modal-lock-warning-box {
+            display: none;
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.4);
+            color: var(--danger-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 11.5px;
+            font-weight: bold;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
         .modal-history-title {
             font-size: 13px;
             font-weight: 800;
@@ -476,6 +495,12 @@
             filter: brightness(1.1);
         }
 
+        .modal-act-btn.btn-join:disabled {
+            background: #475569 !important;
+            color: #94a3b8 !important;
+            cursor: not-allowed !important;
+        }
+
         .modal-act-btn.btn-reject {
             background: var(--danger-color);
             color: #ffffff;
@@ -492,17 +517,6 @@
 
         .modal-act-btn.btn-close:hover {
             background: #475569;
-        }
-
-        .date-grid-scroll-zone::-webkit-scrollbar,
-        .modal-history-scroll-zone::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .date-grid-scroll-zone::-webkit-scrollbar-thumb,
-        .modal-history-scroll-zone::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 2px;
         }
 
         @media print {
@@ -529,32 +543,40 @@
 </head>
 
 <body>
-    <!-- 1. 상단 타이틀 및 모바일 연동 툴바 구역 -->
+    <!-- =========================================================
+2-A. 상단 타이틀 및 모바일 통합 인프라 툴바 구역
+========================================================== -->
     <div class="header-container">
         <div class="calendar-title"><i class="fa-solid fa-calendar-days"></i> 임상시험 일정 관리</div>
         <div class="toolbar-group">
             <button class="tool-btn active" id="btnFilterAll">주간 일정</button>
-            <button class="tool-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> 인쇄</button>
             <button class="tool-btn" onclick="executeDownload()"><i class="fa-solid fa-file-arrow-down"></i>
                 다운로드</button>
+            <button class="tool-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> 인쇄</button>
         </div>
     </div>
 
-    <!-- 2. 주간(Week) 이동 제어 내비게이터 컨트롤러 -->
+    <!-- =========================================================
+2-B. 주간(Week) 이동 제어 및 주차 추적 내비게이터
+========================================================== */ -->
     <div class="month-controller">
         <button class="month-btn" onclick="moveWeek(-1)">◀</button>
         <span class="month-label" id="currentMonthLabel">-주차</span>
         <button class="month-btn" onclick="moveWeek(1)">▶</button>
     </div>
 
-    <!-- 3. 메인 주간 세로 스케줄 보드 (동적 자바스크립트 렌더링 코어 구역) -->
+    <!-- =========================================================
+2-C. 메인 주간 세로 스케줄 보드 (동적 스크롤 엔진 마운트 구역)
+========================================================== */ -->
     <div class="calendar-wrapper">
         <div class="date-grid-scroll-zone">
             <div class="date-grid" id="calendarBoard"></div>
         </div>
     </div>
 
-    <!-- 4. 하단 고정 가이드라인 안내 패널 -->
+    <!-- =========================================================
+2-D. 하단 고정 가이드라인 안내 패널 (대상자 표준 용어 일원화 준수)
+========================================================== */ -->
     <div class="bottom-guide-panel">
         <div class="white-dictionary-box">
             <i class="fa-solid fa-book-medical"></i> CTMS 임상 용어 사전 가이드 가동중
@@ -566,7 +588,9 @@
         </ol>
     </div>
 
-    <!-- 5. 과제 카드 클릭 시 동적으로 작동하는 상세보기 + 대상자 마스터 이력조회 결합 모달 프레임 -->
+    <!-- =========================================================
+2-E. [최종 기획 반영] 대상자 마스터 참여 이력 연동 대형 모달 프레임
+========================================================== -->
     <div class="calendar-modal-overlay" id="detailModalOverlay" onclick="closeDetailModal(event)">
         <div class="calendar-modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -575,7 +599,7 @@
                     onclick="document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">✕</button>
             </div>
 
-            <!-- 기본 과제 상세 스펙 테이블 구역 -->
+            <!-- 기본 과제 세부 등록 스펙 테이블 구역 -->
             <table class="modal-table">
                 <tr>
                     <th>시험명</th>
@@ -603,18 +627,21 @@
                 </tr>
             </table>
 
-            <!-- 💡 대상자 전용 동적 스크롤 누적 이력 바인딩 존 -->
+            <!-- 💡 [신규 마운트] 6개월 참여 금지 가드 및 예약 파기 알림 문구 동적 사출 박스 -->
+            <div id="modalLockWarningBox" class="modal-lock-warning-box"></div>
+
+            <!-- 대상자 관리의 대상자 과거 임상시험 누적 내역 실시간 바인딩 존 -->
             <div class="modal-history-title">
                 <i class="fa-solid fa-clock-history"></i> <span id="m-history-count-title">대상자 참여 이력 조회 누적 내역
                     (0건)</span>
             </div>
             <div class="modal-history-scroll-zone" id="modal-history-scroll-zone">
-                <!-- 자바스크립트 엔진에 의해 대상자 관리(localStorage) 내역 카드가 여기에 동적 사출됩니다 -->
+                <!-- 자바스크립트 엔진에 의해 대상자 명의의 내역 카드들이 여기에 동적 분리 사출됩니다 -->
             </div>
 
-            <!-- 최종 참여 여부 접수 3대 액션 행 버튼 구역 -->
+            <!-- 최종 액션 버튼 구역: 참여 신청, 신청 취소, 잠금 비활성화 삼중 스위칭 제어 단추 -->
             <div class="modal-btn-group-row">
-                <button type="button" class="modal-act-btn btn-join" onclick="executeModalJoinAction()">참여</button>
+                <button type="button" id="btnModalMainAction" class="modal-act-btn btn-join">참여</button>
                 <button type="button" class="modal-act-btn btn-reject" onclick="executeModalRejectAction()">미참여</button>
                 <button type="button" class="modal-act-btn btn-close" onclick="closeDetailModal()">닫기</button>
             </div>
@@ -623,27 +650,29 @@
     </div>
 
     <script>
-        // 1-1. 달력 전역 상태 관리 주간 포인터
+        // =========================================================
+        // 3-A. 달력 전역 상태 관리 주간 스케줄러 포인터 및 데이터 로더
+        // =========================================================
         let currentDate = new Date();
         let currentFilter = 'ALL';
 
-        // 1-2. 모집공고 마스터 레코드 스트림 연동
+        // 모집공고 마스터 레코드 스트림 연동
         function getMasterData() {
             return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
         }
 
-        // 1-3. 대상자 마스터 데이터베이스 동기화 스트림 로드
+        // 대상자 마스터 데이터베이스 동기화 스트림 로드
         function getApplicantData() {
             return JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
         }
 
-        // 1-4. 주간 선택 컨트롤러 네비게이터 작동기 (-7일, +7일 연산 공정)
+        // 7일 연산 기반의 주차 선택 컨트롤러 네비게이터 작동기
         function moveWeek(v) {
             currentDate.setDate(currentDate.getDate() + (v * 7));
             renderCalendar();
         }
 
-        // 1-5. 스케줄링 백업 데이터 JSON 파일 강제 다운로드 사출 함수
+        // 전체 스케줄링 백업 데이터 JSON 파일 사출 다운로드 함수
         function executeDownload() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getMasterData(), null, 2));
             const downloadAnchor = document.createElement('a');
@@ -658,9 +687,9 @@
         let currentActiveModalJob = null;
         let currentTemporaryUid = "";
 
-        /**
-         * 2-1. 세로 스크롤형 주간 렌더러 함수
-         */
+        // =========================================================
+        // 3-B. [모바일 대수술] 7일간의 세로형 와이드 일자 카드를 동적 출력하는 코어 모듈
+        // =========================================================
         function renderCalendar() {
             const board = document.getElementById('calendarBoard');
             const label = document.getElementById('currentMonthLabel');
@@ -670,11 +699,11 @@
             const currentMonth = currentDate.getMonth();
             const currentDayOfWeek = currentDate.getDay(); // 일요일(0) ~ 토요일(6)
 
-            // 연산의 기준점이 될 현재 주차의 '일요일' 날짜 락인
+            // 연산의 기준점이 될 현재 주차의 '일요일' 날짜 정밀 계산 락인
             const sundayDate = new Date(currentDate);
             sundayDate.setDate(currentDate.getDate() - currentDayOfWeek);
 
-            // 상단 주차 보정 계산 라벨 출력
+            // 상단 주차 보정 계산 라벨 실시간 출력
             const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
             const datePosition = sundayDate.getDate();
             const weekNum = Math.ceil((datePosition + firstDayOfMonth.getDay()) / 7);
@@ -684,7 +713,7 @@
             const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
             const today = new Date();
 
-            // 일요일부터 토요일까지 7일간의 주간 행 카드 순차 사출
+            // 일요일부터 토요일까지 7일간의 주간 행 카드 순차 사출 루프 시작
             for (let i = 0; i < 7; i++) {
                 const loopDate = new Date(sundayDate);
                 loopDate.setDate(sundayDate.getDate() + i);
@@ -697,7 +726,7 @@
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
 
-                // 오늘 날짜 테두리 하이라이팅 서식 가동
+                // 오늘 날짜 테두리 네온 하이라이팅 발동
                 if (loopDate.toDateString() === today.toDateString()) {
                     cell.classList.add('today-highlight');
                 }
@@ -706,8 +735,8 @@
                 headerLine.className = 'day-cell-header-line';
 
                 let numColor = 'var(--text-color)';
-                if (i === 0) numColor = '#f87171'; // 일요일 레드
-                if (i === 6) numColor = '#60a5fa'; // 토요일 블루
+                if (i === 0) numColor = '#f87171'; // 주말 일요일 레드 스킨
+                if (i === 6) numColor = '#60a5fa'; // 주말 토요일 블루 스킨
 
                 headerLine.innerHTML = `
             <div class="day-num" style="color: ${numColor};">${loopDate.getDate()}일</div>
@@ -720,7 +749,7 @@
 
                 let hasEvent = false;
 
-                // 마스터 데이터 레코드 흐름 파싱 매핑
+                // 마스터 데이터 레코드 파싱 매핑
                 records.forEach(item => {
                     if (item.recDate && item.recDate.trim() === thisDateStr) {
                         hasEvent = true;
@@ -733,7 +762,7 @@
                         badge.className = `event-badge ${dynamicColorClass}`;
                         badge.setAttribute('onclick', `openClinicalDetailModal('${clickUid}', '임상시험 일정')`);
 
-                        // 와이드 슬롯 정보 사출 (인정시간 및 CRC 명시)
+                        // 좁은 격자 해제, 가로 확장형 와이드 정보 레이아웃 전격 사출
                         badge.innerHTML = `
                     <div class="badge-left-title">📑 + ${item.title || '과제'}${thLabel}</div>
                     <div class="badge-right-meta">⏱ ${item.period || '0'}h | 👩‍⚕️ ${item.crc || '미정'}</div>
@@ -742,7 +771,7 @@
                     }
                 });
 
-                // 4~5개 과제 과밀 대비, 스케줄이 비어있는 날의 공백 방어 안내 컴포넌트 사출
+                // 하루에 임상 과제가 단 1건도 겹치지 않는 안전한 날의 공백 방어 안내 배지 사출
                 if (!hasEvent) {
                     eventsContainer.innerHTML = `<div style="color: rgba(255,255,255,0.06); font-size:11.5px; text-align:center; padding: 4px 0; border: 1px dashed rgba(255,255,255,0.03); border-radius:4px;">지정된 임상시험 일정 없음</div>`;
                 }
@@ -752,9 +781,9 @@
             }
         }
 
-        /**
-         * 3-1. 대상자 마스터 누적 이력 단독 추적 및 상세 바인딩 엔진
-         */
+        // =========================================================
+        // 3-C. [최종 통합 인프라] 삼중 선제 제한 검증 및 조건부 실시간 Alert, 신청 취소(삭제) 트랙 엔진
+        // =========================================================
         window.openClinicalDetailModal = function (uid, typeTitle) {
             const records = getMasterData();
             let applicantDB = getApplicantData();
@@ -774,41 +803,88 @@
             }
 
             const currentSessionName = loggedInUser.name.toString().trim();
-            let myTicket = applicantDB.find(app => (app.name || "").toString().trim() === currentSessionName);
 
-            // 완전 신규 방문 대상자 즉석 가상 계정 영구 보존 티켓 발행
-            if (!myTicket) {
-                currentTemporaryUid = "TEMP_" + Date.now();
-                myTicket = {
-                    uid: currentTemporaryUid,
-                    name: currentSessionName,
-                    title: targetTitle,
-                    th: targetTh,
-                    period: target.period || "0",
-                    payStatus: "대기",
-                    isVirtualGhost: true
-                };
-                applicantDB.push(myTicket);
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
-            } else {
-                currentTemporaryUid = myTicket.uid;
-            }
-
-            document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 안내]`;
-            document.getElementById('m-title').innerText = target.title || '-';
-            document.getElementById('m-th').innerText = target.th || '-';
-            document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-';
-            document.getElementById('m-period').innerText = target.period ? target.period + '시간' : '-';
-            document.getElementById('m-crc').innerText = target.crc || '-';
-            document.getElementById('m-recDate').innerText = target.recDate || '-';
-
-            const scrollZone = document.getElementById("modal-history-scroll-zone");
-            scrollZone.innerHTML = "";
-
-            // 💡 [버그 격리 핵심]: 오직 로그인된 대상자 이름 데이터만 정밀 필터 단독 추출
+            // [통합 검증 1단계]: 타인 데이터 혼입 원천 격리, 오직 현재 세션 대상자 성명의 데이터만 단독 필터링
             const rawHistoryRecords = applicantDB.filter(item =>
                 (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== ""
             );
+
+            // [통합 검증 2단계]: 완료 건 대상 최종 소집일자 역추적 6개월(180일) 타임락 연산 감시
+            let isTimeLocked = false;
+            let lockDateText = "";
+
+            const completedRecords = rawHistoryRecords.filter(row => {
+                const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
+                return currentPayStatus === "완료";
+            });
+
+            if (completedRecords.length > 0) {
+                completedRecords.forEach(cUser => {
+                    const matRec = records.find(rec => rec.title === cUser.title && String(rec.th) === String(cUser.th));
+                    if (matRec && matRec.recDate) {
+                        const recDateObj = new Date(matRec.recDate.trim());
+                        const timeDiff = Math.abs(new Date().getTime() - recDateObj.getTime());
+                        const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+                        if (dayDiff <= 180) { // 정확히 소집일 기준 180일 안전 이내 기산점 통제
+                            isTimeLocked = true;
+                            lockDateText = matRec.recDate.trim();
+                        }
+                    }
+                });
+            }
+
+            // [통합 검증 3단계]: 입원 완료 및 이미 소집 통과하여 시험 진행 중인 다른 과제 유무 검사 (연쇄 락 장치)
+            let isSelectionActive = false;
+            const ongoingRecords = rawHistoryRecords.filter(row => {
+                const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
+                return currentPayStatus === "접수" || currentPayStatus === "처리중";
+            });
+            if (ongoingRecords.length > 0) {
+                isSelectionActive = true;
+            }
+
+            // [통합 검증 4단계]: 현재 모달에 열린 과제를 이미 선점 예약해 둔 유저인지 정밀 대조 판정
+            const existingTicket = rawHistoryRecords.find(row =>
+                (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
+            );
+
+            // 공통 모달 뷰 포트 엘리먼트 초기화 정렬 사출
+            const warningBox = document.getElementById('modalLockWarningBox');
+            const mainActBtn = document.getElementById('btnModalMainAction');
+            warningBox.style.display = 'none';
+            mainActBtn.disabled = false;
+            mainActBtn.innerText = "참여";
+            mainActBtn.className = "modal-act-btn btn-join";
+
+            // 💡 [최종 기획안 수립 규격: 인터페이스 삼중 동적 분기 컨트롤 장벽 발동]
+            if (isSelectionActive && (!existingTicket)) {
+                // 상황 B-2: 소집 통과하여 입원한 뒤 예약해 둔 다른 과제 접근 시 연쇄 파기 및 alert 강제 방어 사출
+                alert("[참여 제한 안내]\n\n이미 소집 통과하여 임상시험에 참여 중인 과제가 존재합니다.\n임상 안전 규정에 따라 예약해 두신 다른 시험 일정은 더 이상 참여가 불가능합니다.");
+                warningBox.innerText = "❌ 참여 불가: 이미 소집 통과(입원 완료)된 다른 임상시험 과제가 존재합니다.";
+                warningBox.style.display = 'block';
+                mainActBtn.disabled = true;
+            }
+            else if (isTimeLocked) {
+                // 상황 A: 과거 소집일자 기준 180일 정밀 시계열 차단 가드 발동
+                warningBox.innerText = `⚠️ 제한 안내: 과거 임상시험 소집일(${lockDateText})로부터 6개월(180일)이 경과하지 않아 새로운 시험 참여가 불가능합니다.`;
+                warningBox.style.display = 'block';
+                mainActBtn.disabled = true;
+            }
+            else if (existingTicket) {
+                // 상황 B-1: 자유로운 철회 보장형 [신청 취소] 전격 스위칭 트랙 변환
+                mainActBtn.innerText = "신청 취소";
+                mainActBtn.className = "modal-act-btn btn-reject"; // 취소 전용 레드 컬러 변경
+                currentTemporaryUid = existingTicket.uid;
+            }
+            else {
+                // 상황 C: 청정 유저 다중 예약 다중 적재 가능 프리패스 UID 발행
+                currentTemporaryUid = "TEMP_" + Date.now();
+            }
+
+            // 하단 이력 스크롤 존 사출
+            const scrollZone = document.getElementById("modal-history-scroll-zone");
+            scrollZone.innerHTML = "";
 
             const currentJobArray = rawHistoryRecords.filter(row =>
                 (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
@@ -859,54 +935,58 @@
                 });
             }
 
-            // 💡 [중괄호 안전 락 가드 교정]: openClinicalDetailModal 함수 내부에 종속되는 비동기 온클릭 하이재킹 모듈 구동
+            // 💡 [최종 트랜잭션 전산 클렌징 및 패킷 적재 구조]: 온클릭 기믹 원본 파괴 방어 결합
             setTimeout(() => {
-                const btnJoin = document.querySelector('.btn-join');
-                const btnReject = document.querySelector('.btn-reject');
+                const btnMainAction = document.getElementById('btnModalMainAction');
+                if (!btnMainAction) return;
 
-                if (btnJoin) {
-                    btnJoin.onclick = function (e) {
-                        e.preventDefault();
-                        let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                        const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
+                btnMainAction.onclick = function (e) {
+                    e.preventDefault();
+                    let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                        if (myTargetIdx !== -1) {
-                            // 원래 메모리 저장소 자리를 100% 보존하며 임시 회원 플래그 즉시 폭파 삭제
-                            delete appDB[myTargetIdx].isVirtualGhost;
-                            delete appDB[myTargetIdx].isNewUserGhost;
+                    if (mainActBtn.innerText === "신청 취소") {
+                        // [신청취소 클릭 시]: 대장에서 내 성명과 시험명, 기수 3가지가 완벽 매칭되는 타겟 행 레코드만 완전 도려내어 삭제
+                        appDB = appDB.filter(app => !(
+                            String(app.name).trim() === String(currentSessionName).trim() &&
+                            String(app.title).trim() === String(targetTitle).trim() &&
+                            String(app.th).trim() === String(targetTh).trim()
+                        ));
+                        localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                        alert('참여 신청 취소(삭제) 처리되었습니다.\n다른 임상시험 일정을 자유롭게 재선택하여 예약하실 수 있습니다.');
+                    }
+                    else {
+                        // [참여 클릭 시]: 청정 대상자 첫 일정 참여 터치 시 사전 연쇄 파기 예고용 컨펌 알림창 강제 팝업
+                        const confirmSubmit = confirm("[다중 예약 자동 취소 안내]\n\n이 시험의 일정(소집)에 정식으로 참여하시겠습니까?\n\n※ 주의: 본 시험의 대상자로 최종 선정되어 소집을 통과(입원)하게 되면, 현재 달력에 예약해 두신 다른 모든 시험 일정은 임상 규정에 의해 자동으로 참여 불가 처리됩니다.");
 
-                            appDB[myTargetIdx].title = targetTitle;
-                            appDB[myTargetIdx].th = targetTh;
-                            appDB[myTargetIdx].period = currentActiveModalJob.period || "0";
-                            appDB[myTargetIdx].payStatus = "대기"; // 정식 참여 접수 상태 도약
+                        if (!confirmSubmit) return; // 취소 수락 거부 시 프로세스 즉시 보호 안전 정지
 
-                            localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                        }
-                        alert('참여 신청 접수되었습니다.');
-                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
-                    };
-                }
+                        // 덮어쓰기 전면 영구 파기, 별도의 UID를 장착한 깨끗한 독립 신규 예약 행 객체 생성 push 적재
+                        const newAddTicket = {
+                            uid: currentTemporaryUid,
+                            name: currentSessionName,
+                            title: targetTitle,
+                            th: targetTh,
+                            period: currentActiveModalJob.period || "0",
+                            payStatus: "대기"
+                        };
+                        appDB.push(newAddTicket);
+                        localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                        alert('참여 신청 예약 접수되었습니다.');
+                    }
 
-                if (btnReject) {
-                    btnReject.onclick = function (e) {
-                        e.preventDefault();
-                        alert('미참여 신청 되었습니다.');
-                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
-                    };
-                }
+                    document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
+                    renderCalendar(); // 동적 전산 변동 내역 달력판 라이브 리렌더링
+                };
             }, 50);
 
             const overlay = document.getElementById('detailModalOverlay');
             overlay.setAttribute('style', 'display: flex !important;');
         };
 
-
-        // 4-1. 활성화된 대형 모달 팝업 레이어 수동 숨김 함수
         window.closeDetailModal = function (e) {
             document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
         };
 
-        // 4-2. 윈도우 로드 완료 시 모바일 주간 스케줄러 첫 사이클 구동
         window.onload = renderCalendar;
 
     </script>

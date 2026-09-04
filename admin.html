@@ -2820,7 +2820,7 @@
 
             // 15개 데이터 조각 루프 렌더링 시동
             pagedList.forEach((row, pagedIdx) => {
-                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역 (원본 보존)
+                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역 (오빠 원본 소스 보존)
                 row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
                     filterIdx >= pagedIdx &&
                     cleanString(item.title) === cleanString(row.title) &&
@@ -2828,21 +2828,29 @@
                 ).length;
 
                 // ==========================================================================
-                // 자간 청소 및 생년월일 6자리 분리 파이프라인
+                // ✨ [최종 정밀 결합] 선후 관계 및 괄호 구조 완전 무결 락인 파이프라인
                 // ==========================================================================
                 let rawSsn = (row.ssn || "").toString().trim();
-                let displaySsn = rawSsn.split('-'); // 생년월일 6자리 깔끔 분리 완료
+                let displaySsn = rawSsn.split('-')[0]; // 생년월일 앞 6자리 분리 완료
 
                 let displayTitle = row.title || "-";
                 let displayTh = row.th || "-";
 
+                // 엑셀 '72시간' 텍스트 혼착 및 수동 입력 규격 불일치 선제 청소
                 let displayPeriod = (row.period || "").toString().replace(/시간/g, "").trim();
-                let displayQuotaText = `${row.liveMatchOrderNumber}/${currentQuota}명`;
 
+                // 🎯 변수 선언 시점 충돌 우회를 위해 대표님 순번 분자 알맹이만 안전 상속 토스!
+                let displayQuotaText = row.liveMatchOrderNumber;
+
+                // 과제명이 누락되었거나 모바일 인증서를 통과해 넘어온 가상 유저인 즉시 하이픈(-) 대체
                 if (!row.title || row.title.trim() === "" || row.isVirtualGhost) {
-                    displayTitle = "-"; displayTh = "-"; displayPeriod = "-"; displayQuotaText = "-";
+                    displayTitle = "-";
+                    displayTh = "-";
+                    displayPeriod = "-";
+                    displayQuotaText = "-";
                 }
 
+                // 일반 유저인데 기간 데이터가 누락되어 undefined가 뜨는 단선 예방 가드
                 if (row.title && (displayPeriod === undefined || displayPeriod === null || displayPeriod === "")) {
                     displayPeriod = "0";
                 }
@@ -3021,7 +3029,7 @@
                 <td style="width: 90px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${displayTh}</span>
                 </td>
-                <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">${displayQuotaText}</td>
+                <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">${displayQuotaText === '-' ? '-' : `${displayQuotaText}/${currentQuota}명`}</td>
                 <td style="width: 65px; vertical-align: middle; text-align: center; color: #eeeeee;">${displayPeriod}${displayPeriod === '-' ? '' : '시간'}</td>
                 <td style="width: 80px; vertical-align: middle; text-align: center; color: #ffffff; font-weight: 700;">${row.name}</td>
                 <td style="width: 85px; vertical-align: middle; text-align: center; color: #ffffff;" font-weight: 400;>${displaySsn}</td>

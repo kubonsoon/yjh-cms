@@ -544,6 +544,69 @@
                 top: 8%;
             }
         }
+
+        /* 1. 알림창 전체 오버레이: 배경 어두움 처리를 원천 제거하고 터치 이벤트를 관통시킴 */
+        #customAlertOverlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999999;
+            display: none;
+            /* 스크립트 제어용 기본 숨김 */
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            /* 투명막 뒤쪽의 QR 애니메이션 조작 및 터치 신호 관통 가드 */
+        }
+
+        /* 2. 알림 상자 본체: 모바일 프레임 85% 비례 제한으로 밖으로 탈출하는 현상을 완벽 방어 */
+        #customAlertOverlay>div {
+            background: #1e293a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            width: 85%;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+            /* 배경이 투명하므로 묵직한 그림자로 전면 입체감 부여 */
+            pointer-events: auto;
+            /* 관통되던 터치 신호를 알림창 본체 구역에서 다시 정상 복구 */
+        }
+
+        /* 3. 알림 메시지 텍스트: 줄바꿈 무결성 유지 서식 */
+        #customAlertMessage {
+            font-size: 14px;
+            color: #fff;
+            line-height: 1.5;
+            white-space: pre-line;
+            /* 문자열 내 \n 개행 신호를 브라우저가 화면에 그대로 줄바꿈 사출하도록 강제 */
+            margin-bottom: 18px;
+            font-weight: 500;
+        }
+
+        /* 4. 알림창 내부 전용 확인 단추 디자인 */
+        .btn-custom-alert-confirm {
+            width: 100%;
+            height: 40px;
+            background: #06B6D4;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-custom-alert-confirm:hover {
+            background: #0891b2;
+        }
+
+        .btn-custom-alert-confirm:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
 
@@ -716,6 +779,14 @@
             </div>
         </div>
 
+
+        <div id="customAlertOverlay">
+            <div>
+                <p id="customAlertMessage"></p>
+                <button type="button" class="btn-custom-alert-confirm" onclick="closeCustomAlert()">확인</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -738,6 +809,31 @@
                 targetPanel.style.display = 'flex';
                 targetPanel.classList.add('active');
             }
+        }
+
+        // ========================================================
+        // [신규 추가] 커스텀 알림창 오디오 및 시각 인터랙션 제어 엔진
+        // ========================================================
+        function showCustomAlert(msg) {
+            // 1. 전달받은 개행문자(\n) 텍스트를 커스텀 기획 문단 플롯에 주입
+            document.getElementById('customAlertMessage').innerText = msg;
+
+            // 2. 투명도를 유지한 채 알림 엘리먼트를 flex 레이아웃으로 전면 사출
+            const overlay = document.getElementById('customAlertOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+            }
+        }
+
+        function closeCustomAlert() {
+            // 1. 전면에 노출된 커스텀 알림 레이어를 즉시 숨김 처리
+            const overlay = document.getElementById('customAlertOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+
+            // 2. 알림 확인 터치 완료 후, 자연스럽게 1단계 간편인증 선택 패널로 라우팅
+            navigateToStep(1);
         }
 
         // 💥 0단: QR코드 터치 스캔 시뮬레이션 처리

@@ -2818,35 +2818,34 @@
             // 🔥 에러의 원인이 되던 자르기 변수가 여기서 안전하게 1등으로 초기화 완료됩니다.
             const pagedList = displayList.slice(startIndex, endIndex);
 
-
             // 15개 데이터 조각 루프 렌더링 시동
             pagedList.forEach((row, pagedIdx) => {
-                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역 (오빠 원본 소스)
+                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역 (원본 보존)
                 row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
                     filterIdx >= pagedIdx &&
                     cleanString(item.title) === cleanString(row.title) &&
                     item.th === row.th
                 ).length;
 
+                // ==========================================================================
+                // 자간 청소 및 생년월일 6자리 분리 파이프라인
+                // ==========================================================================
                 let rawSsn = (row.ssn || "").toString().trim();
-                let displaySsn = rawSsn.split('-')[0];
+                let displaySsn = rawSsn.split('-'); // 생년월일 6자리 깔끔 분리 완료
 
-                let displayTitle = row.title;
-                let displayTh = row.th;
-                let displayCount = typeof formatCount === "function" ? formatCount(row.count) : row.count;
-                let displayPeriod = typeof formatPeriod === "function" ? formatPeriod(row.period) : row.period;
+                let displayTitle = row.title || "-";
+                let displayTh = row.th || "-";
+
+                let displayPeriod = (row.period || "").toString().replace(/시간/g, "").trim();
+                let displayQuotaText = `${row.liveMatchOrderNumber}/${currentQuota}명`;
 
                 if (!row.title || row.title.trim() === "" || row.isVirtualGhost) {
-                    displayTitle = "-";
-                    displayTh = "-";
-                    displayCount = "-";
-                    displayPeriod = "-";
+                    displayTitle = "-"; displayTh = "-"; displayPeriod = "-"; displayQuotaText = "-";
                 }
 
-                if (row.title && (row.period === undefined || row.period === null)) {
-                    displayPeriod = "0시간";
+                if (row.title && (displayPeriod === undefined || displayPeriod === null || displayPeriod === "")) {
+                    displayPeriod = "0";
                 }
-
 
                 const index = displayList.findIndex(item => item.uid === row.uid);
                 const tr = document.createElement('tr');
@@ -2942,10 +2941,10 @@
             </select>
         </td>
         <td style="width: 75px; vertical-align: middle;">
-            <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${displayCount || ''}" style="text-align:center; background: var(--card-color) !important;">
+            <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">
         </td>
         <td style="width: 65px; vertical-align: middle;">
-            <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${displayPeriod || ''}" style="text-align:center; background: var(--card-color) !important;">
+            <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">
         </td>
         <td style="width: 80px; vertical-align: middle;">
             <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">

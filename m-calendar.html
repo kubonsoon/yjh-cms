@@ -960,10 +960,20 @@
 
                         if (!confirmSubmit) return; // 취소 수락 거부 시 프로세스 즉시 보호 안전 정지
 
-                        // 덮어쓰기 전면 영구 파기, 별도의 UID를 장착한 깨끗한 독립 신규 예약 행 객체 생성 push 적재
+                        // 🎯 [핵심 패치 구역]: 데이터 대장에서 내 인적사항(생년월일, 연락처, 성별)을 가진 최초 원본 행을 추적 상속
+                        const originalUserRow = appDB.find(app => String(app.name).trim() === String(currentSessionName).trim() && app.ssn);
+
+                        const userSsn = originalUserRow ? originalUserRow.ssn : "";
+                        const userPhone = originalUserRow ? originalUserRow.phone : "";
+                        const userGender = originalUserRow ? originalUserRow.gender : "남"; // 성별 기본값 매핑 안전 가드
+
+                        // 덮어쓰기 전면 영구 파기, 상속받은 인적사항 패킷을 완벽히 포함하여 독립 신규 예약 행 객체 생성 push 적재
                         const newAddTicket = {
                             uid: currentTemporaryUid,
                             name: currentSessionName,
+                            ssn: userSsn,       // 상속된 생년월일 주입
+                            phone: userPhone,   // 상속된 연락처 주입
+                            gender: userGender, // 상속된 성별 주입
                             title: targetTitle,
                             th: targetTh,
                             period: currentActiveModalJob.period || "0",
@@ -977,6 +987,7 @@
                     document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
                     renderCalendar(); // 동적 전산 변동 내역 달력판 라이브 리렌더링
                 };
+
             }, 50);
 
             const overlay = document.getElementById('detailModalOverlay');

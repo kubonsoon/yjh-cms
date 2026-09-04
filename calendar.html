@@ -774,7 +774,8 @@
 
             let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
             if (!loggedInUser || !loggedInUser.name) {
-                loggedInUser = { name: "홍길동", isNew: false };
+                // 🎯 디폴트 백업 유저의 가상 플래그 속성을 true(신규)로 조율하여 6개월 선제 가드 오작동을 차단
+                loggedInUser = { name: "홍길동", isNew: true };
                 localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
             }
 

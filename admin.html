@@ -2839,8 +2839,15 @@
                 // 엑셀 '72시간' 텍스트 혼착 및 수동 입력 규격 불일치 선제 청소
                 let displayPeriod = (row.period || "").toString().replace(/시간/g, "").trim();
 
-                // 🎯 변수 선언 시점 충돌 우회를 위해 대표님 순번 분자 알맹이만 안전 상속 토스!
-                let displayQuotaText = row.liveMatchOrderNumber;
+                // 🎯 [인원수 정화 기믹] : 엑셀에 '60명' 형태로 문자가 들어와도 '명' 글자를 선제 삭제 청소!
+                let pureCount = (row.count || "").toString().replace(/명/g, "").trim();
+
+                // 🎯 [정원 배정 무결성 락인] : 엑셀 타이틀에 적힌 과제별 진짜 배정 모수(N44 -> 44)를 정밀 역추적!
+                let matchQuota = displayTitle.match(/\(N(\d+)\)/);
+                let finalQuota = matchQuota ? matchQuota[1] : (pureCount || currentQuota || 44);
+
+                // 🎯 [텍스트 중복 완파] : 상단 가드에서 '31/44명' 형태의 최종 완성형 텍스트를 미리 조립 빌드 완료!
+                let displayQuotaText = `${row.liveMatchOrderNumber}/${finalQuota}명`;
 
                 // 과제명이 누락되었거나 모바일 인증서를 통과해 넘어온 가상 유저인 즉시 하이픈(-) 대체
                 if (!row.title || row.title.trim() === "" || row.isVirtualGhost) {
@@ -3029,7 +3036,7 @@
                 <td style="width: 90px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${displayTh}</span>
                 </td>
-                 <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">${displayQuotaText === '-' ? '-' : `${row.liveMatchOrderNumber}/${row.count || currentQuota}명`}</td>
+                <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">${displayQuotaText}</td>
                 <td style="width: 65px; vertical-align: middle; text-align: center; color: #eeeeee;">${displayPeriod}${displayPeriod === '-' ? '' : '시간'}</td>
                 <td style="width: 80px; vertical-align: middle; text-align: center; color: #ffffff; font-weight: 700;">${row.name}</td>
                 <td style="width: 85px; vertical-align: middle; text-align: center; color: #ffffff;" font-weight: 400;>${displaySsn}</td>

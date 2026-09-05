@@ -2881,14 +2881,16 @@
                 let rawSsn = (row.ssn || "").toString().trim();
                 let displaySsn = "";
 
-                if (rawSsn.includes('-')) {
+                // A. 하이픈이 이미 있거나, 이미 완벽한 6자리 숫자를 갖춘 청정 데이터(디폴트 8인방/인증서/수동)는 원본 그대로 출력
+                if (rawSsn.includes('-') || rawSsn.replace(/[^0-9]/g, '').length === 6) {
                     displaySsn = rawSsn;
                 } else {
+                    // B. 오직 자릿수가 6자리 미만으로 유실되어 유입된 엑셀 업로드 변칙 데이터만 진입 허용 (예: 302, 1128)
                     let pureNumbers = rawSsn.replace(/[^0-9]/g, '');
-                    if (pureNumbers.length >= 6) {
-                        let frontSsn = pureNumbers.substring(0, 6);
-                        let backSsn = pureNumbers.substring(6) || (genderSign === "여" ? "2" : "1");
-                        displaySsn = frontSsn + "-" + backSsn;
+                    if (pureNumbers.length > 0 && pureNumbers.length < 6) {
+                        let frontSsn = pureNumbers;
+                        let backSsn = (genderSign === "여" ? "2" : "1");
+                        displaySsn = frontSsn + "-" + backSsn; // 엑셀 파서와 싱크를 맞춰 정갈하게 조립 사출
                     } else {
                         displaySsn = pureNumbers || "-";
                     }

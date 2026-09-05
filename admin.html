@@ -2950,23 +2950,6 @@
                     : "-";
 
 
-                // ----------------======================================================
-                // 원본에 누락되어 있던 콤마 분리 및 디폴트 성별 최우선 매핑선
-                // ----------------======================================================
-                let genderSign = "미정";
-                let ssnStrForGender = row.ssn ? row.ssn.toString() : "";
-
-                if (ssnStrForGender.includes(',')) {
-                    let hiddenGender = ssnStrForGender.split(',')[1];
-                    if (hiddenGender && hiddenGender.trim().toUpperCase() === "M") genderSign = "남";
-                    else if (hiddenGender && hiddenGender.trim().toUpperCase() === "F") genderSign = "여";
-                }
-
-                if (genderSign === "미정") {
-                    // 프리셋 데이터에 박아놓은 row.gender를 가장 먼저 보고, 없으면 원본 엔진 호출
-                    genderSign = row.gender || parseGenderFromSsn(row.ssn, row.name);
-                }
-
 
                 // 🔒 A분기 수정 폼 레이아웃 밀림 박멸 매립 기동 (유령 태그 정화 마감)
                 if (isAppEditing) {
@@ -3060,8 +3043,8 @@
                 <td style="width: 80px; vertical-align: middle; text-align: center; color: #ffffff; font-weight: 700;">${row.name}</td>
                 <td style="width: 85px; vertical-align: middle; text-align: center; color: #ffffff;">${displaySsn}</td>
                 <td style="width: 65px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                        ${parseGenderFromSsn(row.ssn, row.name)}
+                       <span class="lvl-badge ${genderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
+                        ${genderSign}
                     </span>
                 </td>
                 <td style="width: 125px; vertical-align: middle; text-align: center; color: #e2e8f0; font-family: monospace;">${fmtPhone}</td>

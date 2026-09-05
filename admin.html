@@ -7791,6 +7791,27 @@
     `;
         }
 
+        // ==============================================================================================
+        // ⭕ [보고서 검색 키보드 연동 완료]: 엔터(Enter)키 입력 시 마스터 원장 실시간 조회 엔진 트리거
+        // ==============================================================================================
+        // 시스템 돔(DOM) 로드가 완료된 시점이나 스크립트 마운트 즉시 이벤트 빗장 개설
+        (function () {
+            const searchInputInputBox = document.getElementById("report-search-keyword");
+            if (searchInputInputBox) {
+                searchInputInputBox.addEventListener("keydown", function (event) {
+                    // 키보드 입력 신호가 'Enter' 정격 신호인지 감지
+                    if (event.key === "Enter") {
+                        event.preventDefault(); // 엔터 키의 브라우저 기본 줄바꿈/새로고침 동작 방지
+
+                        // 상단에서 완비된 마스터 원장 전수 역추적 스캔 함수 즉시 강제 트리거
+                        if (typeof searchApplicantMasterLedger === "function") {
+                            searchApplicantMasterLedger();
+                        }
+                    }
+                });
+            }
+        })();
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

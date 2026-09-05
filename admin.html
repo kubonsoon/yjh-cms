@@ -1511,11 +1511,11 @@
 
 
             <!-- ==========================================================================
-                    ⭕ [보고서 및 통계 인프라 개혁]: 실무용 3대 분할 동적 대시보드 프레임 구축 완수
+                    [보고서 및 통계 인프라 개혁]: 실무용 3대 분할 동적 대시보드 프레임 구축 완수
                     ========================================================================== -->
-            <!-- 📈 [상단 1구역]: 시계열 필터 콘트롤러 & 4대 집계 현황판 및 예산 보고서 스코어보드 -->
-            <div
-                style="display: flex; flex-direction: column; background: #0f172a; border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; margin-bottom: 24px; width: 100%; gap: 20px;">
+            <!-- 시계열 필터 콘트롤러 & 4대 집계 현황판 및 예산 보고서 스코어보드 -->
+            <div id="reportView" class="content-section"
+                style="display: none; flex-direction: column; background: #0f172a; border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; margin-bottom: 24px; width: 100%; gap: 20px;">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                     <span
@@ -2054,7 +2054,14 @@
 
             // 3. 사용자가 선택한 타겟 본문 화면만 즉시 노출
             const targetView = document.getElementById(viewName);
-            if (targetView) targetView.style.display = 'block';
+            if (targetView) {
+                // ★ [정밀 수정 및 보완]: 클래스 및 디자인 영향성을 고려하여 보고서 탭일 경우에만 flex 처리하여 레이아웃 붕괴를 원천 차단합니다.
+                if (viewName === 'reportView') {
+                    targetView.style.display = 'flex';
+                } else {
+                    targetView.style.display = 'block';
+                }
+            }
 
             // 4. 좌측 사이드바 모든 메뉴 항목의 하이라이트(.active) 디자인 해제
             const menuItems = document.querySelectorAll('.menu-item');
@@ -2073,6 +2080,8 @@
             } else if (viewName === 'reportView' && document.getElementById('menuReport')) {
                 document.getElementById('menuReport').classList.add('active');
                 if (typeof refreshApplicantView === "function") refreshApplicantView();
+                // 💡 [추가 보완 연동]: 보고서 활성화 시 상단 통계 스레드 함수 동기화 호출 실행
+                if (typeof calculateReportMasterStats === "function") calculateReportMasterStats();
             } else if (viewName === 'gradeView' && document.getElementById('menuGrade')) {
                 document.getElementById('menuGrade').classList.add('active');
                 if (typeof refreshAdminMemberTableView === "function") refreshAdminMemberTableView();

@@ -2870,6 +2870,10 @@
                 else if (rawPhone.length === 10) fmtPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
                 else if (rawPhone.length > 0) fmtPhone = row.phone;
 
+                // 🔒 [선행 초기화 완수] 마크업 백틱 웅덩이가 열리기 전 최상단에서 정식 변수방 안전 개설!
+                const dutyAgreed = (row.isDutyAgreed || "대기").trim();
+                const callAgreed = (row.isCallAgreed || "대기").trim();
+
                 // 🔒 [2-2파트 완수] 신분증/통장 증빙 인프라 돔 역산 및 차수별 미니 배지 스킨 빌더 시동
                 const hasId = row.idCard === true || row.idCard === "true" || (row.idCardImg && row.idCardImg.length > 20);
                 const hasBank = row.bankbook === true || row.bankbook === "true" || (row.bankBookImg && row.bankBookImg.length > 20);
@@ -2906,8 +2910,6 @@
                     return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
                 };
 
-                const dutyAgreed = (row.isDutyAgreed || "대기").trim(); // 🎯 [2863라인 타격 정화] 선후 시점 우회 원형 안착 완료!
-                const callAgreed = (row.isCallAgreed || "대기").trim();
                 const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
 
                 let thClass = "lvl-1";

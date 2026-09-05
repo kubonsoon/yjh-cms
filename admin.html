@@ -2949,7 +2949,26 @@
                     ? `${row.liveMatchOrderNumber}/${finalQuota}명`
                     : "-";
 
-                // 🔒 [2-4파트 완수] A분기 수정 폼 레이아웃 밀림 박멸 매립 기동 (유령 태그 정화 마감)
+
+                // ----------------======================================================
+                // 원본에 누락되어 있던 콤마 분리 및 디폴트 성별 최우선 매핑선
+                // ----------------======================================================
+                let genderSign = "미정";
+                let ssnStrForGender = row.ssn ? row.ssn.toString() : "";
+
+                if (ssnStrForGender.includes(',')) {
+                    let hiddenGender = ssnStrForGender.split(',')[1];
+                    if (hiddenGender && hiddenGender.trim().toUpperCase() === "M") genderSign = "남";
+                    else if (hiddenGender && hiddenGender.trim().toUpperCase() === "F") genderSign = "여";
+                }
+
+                if (genderSign === "미정") {
+                    // 프리셋 데이터에 박아놓은 row.gender를 가장 먼저 보고, 없으면 원본 엔진 호출
+                    genderSign = row.gender || parseGenderFromSsn(row.ssn, row.name);
+                }
+
+
+                // 🔒 A분기 수정 폼 레이아웃 밀림 박멸 매립 기동 (유령 태그 정화 마감)
                 if (isAppEditing) {
                     tr.className = "editing-row";
                     tr.innerHTML = `
@@ -3029,7 +3048,7 @@
         </td>`;
                 }
 
-                // 🔒 [2-5파트 최종 대종결 완수] 태그 공백 전면 세척, 백틱 마감선 일치, 페이징 엔진 최종 마운트
+                // 🔒 B분기 태그 공백 전면 세척, 백틱 마감선 일치, 페이징 엔진 최종 마운트
                 else {
                     tr.innerHTML = `
                 <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${displayTitle}</td>

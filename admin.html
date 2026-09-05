@@ -1038,6 +1038,9 @@
                 <div class="menu-item" id="menuGrade" onclick="changeMainViewport('gradeView')">
                     <i class="fa-solid fa-id-card-clip"></i> 관리 담당자
                 </div>
+                <div class="menu-item" id="menuReport" onclick="changeMainViewport('reportView')">
+                    <i class="fa-solid fa-chart-pie"></i> 보고서 및 통계
+                </div>
             </div>
         </div>
 
@@ -1284,25 +1287,6 @@
                     </div>
                 </div>
 
-                <div class="table-responsive-wrapper">
-                    <table class="ctms-master-table">
-                        <thead>
-                            <tr>
-                                <th>성명(UID)</th>
-                                <th>신청 임상과제 / 기수</th>
-                                <th>식별 정보 (생년월일/연락처)</th>
-                                <th>실시간 전산 지급 단계</th>
-                                <th>증빙 인프라 (신분증/통장)</th>
-                                <th>중앙 관리자 통제 제어 락</th>
-                            </tr>
-                        </thead>
-                        <!-- 💡 자바스크립트 엔진이 다중 예약 행 리스트를 실시간으로 드로우하여 적재할 타겟 조준점 -->
-                        <tbody id="applicantTableBody">
-                            <!-- 이 내부는 비워두시면 자바스크립트 showTab 엔진이 실시간으로 행을 사출합니다 -->
-                        </tbody>
-                    </table>
-                </div>
-
                 <!-- ==========================================================================
                     📊 [대상자 관리 상단 통합 패널]: 통계 현황판과 파일 업로드를 가로 수평 배치
                     ========================================================================== -->
@@ -1520,6 +1504,38 @@
                         </thead>
                         <tbody id="dom-member-table">
                             <!-- JS 엔진에 의해 실시간 동적 바인딩 및 인라인 폼이 마운트되는 슬롯 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <!-- ==========================================================================
+              SECTION 04. 보고서 및 종합 관제 통계 탭 (데이터 격리 안착 완료)
+                ========================================================================== -->
+            <div id="reportView" class="content-section">
+                <h2
+                    style="margin-bottom: 25px; color: #ffffff; border-bottom: 2px solid var(--border-color); padding-bottom: 14px; font-size: 24px; font-weight: 800;">
+                    <i class="fa-solid fa-chart-line" style="color: var(--secondary-color); margin-right: 6px;"></i> 전산
+                    지급 현황 및 종합 통계 보고서
+                </h2>
+
+                <!-- 대상자 관리 탭에서 이주해 온 구식 통합 관제 모니터링 테이블 인프라 완벽 장착 -->
+                <div class="table-responsive-wrapper" style="margin-top: 15px;">
+                    <table class="ctms-master-table">
+                        <thead>
+                            <tr>
+                                <th>성명(UID)</th>
+                                <th>신청 임상과제 / 기수</th>
+                                <th>식별 정보 (생년월일/연락처)</th>
+                                <th>실시간 전산 지급 단계</th>
+                                <th>증빙 인프라 (신분증/통장)</th>
+                                <th>중앙 관리자 통제 제어 락</th>
+                            </tr>
+                        </thead>
+                        <!-- 기존 자바스크립트 엔진들과 100% 매칭되는 타겟 조준점 원형 보존 유지 -->
+                        <tbody id="applicantTableBody">
+                            <!-- 비워두시면 시스템 엔진이 실시간으로 동적 렌더링 사출합니다 -->
                         </tbody>
                     </table>
                 </div>
@@ -1995,7 +2011,7 @@
             }
         }
         /**
-                 * 💥 [신규 개설 완수] 좌측 메뉴 3개 클릭 및 새로고침 시 화면/스타일 동시 전환 제어 엔진
+                 * 좌측 메뉴 4개 클릭 및 새로고침 시 화면/스타일 동시 전환 제어 엔진
                  * @param {string} viewName - 이동할 뷰포트 ID ('recruitmentView' | 'applicantView' | 'gradeView')
                  */
         function changeMainViewport(viewName) {
@@ -2003,7 +2019,7 @@
             localStorage.setItem('adminActiveViewportId', viewName);
 
             // 2. 우측 패널의 모든 본문 화면 섹션 전체 숨김
-            const views = ['recruitmentView', 'applicantView', 'gradeView'];
+            const views = ['recruitmentView', 'applicantView', 'reportView', 'gradeView'];
             views.forEach(function (v) {
                 const el = document.getElementById(v);
                 if (el) el.style.display = 'none';
@@ -2025,11 +2041,10 @@
                 if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
             } else if (viewName === 'applicantView' && document.getElementById('menuApp')) {
                 document.getElementById('menuApp').classList.add('active');
-
-                // 대상자 관리 탭 화면이 물리적으로 켜지는 시점에 기수 옵션 즉시 빌드
-                if (typeof initThSelectOptions === "function") {
-                    initThSelectOptions();
-                }
+                if (typeof initThSelectOptions === "function") { initThSelectOptions(); }
+                if (typeof refreshApplicantView === "function") refreshApplicantView();
+            } else if (viewName === 'reportView' && document.getElementById('menuReport')) {
+                document.getElementById('menuReport').classList.add('active');
                 if (typeof refreshApplicantView === "function") refreshApplicantView();
             } else if (viewName === 'gradeView' && document.getElementById('menuGrade')) {
                 document.getElementById('menuGrade').classList.add('active');
@@ -5855,7 +5870,7 @@
         // [기존 소스 100% 원형 수호] 대상자 관리 탭 클릭 시 디폴트 통계 즉시 가동 트리거
         // =========================================================================
         (function () {
-            // 1. 대표님이 설계해두신 기존 뷰포트 전환 함수(changeMainViewport)를 원본 그대로 백업
+            // 1. 기존 뷰포트 전환 함수(changeMainViewport)를 원본 그대로 백업
             const originalChangeMainViewport = window.changeMainViewport;
 
             if (typeof originalChangeMainViewport === "function") {

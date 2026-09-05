@@ -2134,7 +2134,7 @@
             }
 
             const selectedUser = applicantDB[index];
-            if (!selectedUser) return alert("오류: 피험자 정보를 역추적할 수 없습니다.");
+            if (!selectedUser) return alert("오류: 대상자 정보를 역추적할 수 없습니다.");
 
             // 2. 기본 인적 사양 락인 바인딩 [index: 0.1.30]
             document.getElementById("modal-app-name").innerText = selectedUser.name || "-";
@@ -2145,7 +2145,12 @@
             const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : (selectedUser.gender || "미정");
 
             // 주민번호 가공 및 성별 추출 통합 락인 (기존 원본 가독성 배지 마크업 및 네온 테마 스타일 100% 보존)
-            document.getElementById("modal-app-ssn-gender").innerHTML = `${selectedUser.ssn || "-"} <span style="color: ${genderSign === '남' ? '#38bdf8' : '#fb7185'}; font-weight:800;">(${genderSign})</span>`;
+            let modalRawSsn = (selectedUser.ssn || "").toString().trim();
+            let modalCleanNumbers = modalRawSsn.replace(/[^0-9]/g, ''); // 기호 문자 전면 파쇄
+            let modalDisplaySsn = modalCleanNumbers.length >= 6 ? modalCleanNumbers.substring(0, 6) : modalCleanNumbers.padStart(6, '0');
+
+            // 기존 원본 가독성 배지 마크업 및 네온 테마 시그니처 스타일 100% 완벽 보존 적용
+            document.getElementById("modal-app-ssn-gender").innerHTML = `${modalDisplaySsn} <span style="color: ${genderSign === '남' ? '#38bdf8' : '#fb7185'}; font-weight:800;">(${genderSign})</span>`;
 
             // 동의 현황 텍스트 가독성 배지 스타일 매칭
             document.getElementById("modal-app-duty").innerHTML = selectedUser.isDutyAgreed === "동의"

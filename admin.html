@@ -7621,8 +7621,11 @@
                 return;
             }
 
-            // 대표 대상자 타겟 레코드 (가장 최신 레코드 기준 매핑 상속)
-            const targetUser = foundList[0];
+            // 검색 리스트 중 ssn 속성방이 실제로 실존하는 정식 레코드를 최우선 1순위로 조준 낚아채기
+            const targetUser = foundList.find(u => u && u.ssn && u.ssn.toString().trim().length > 0) || foundList[0] || {};
+
+            // 만약 극한의 상황에서 모든 데이터가 불량일 경우를 대비한 최후방 빈 객체({}) 안전 폴백 락인
+            const targetCleanSsnRaw = targetUser.ssn ? targetUser.ssn.toString().trim() : "000000";
             const targetCleanName = (targetUser.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
 
             // 3. [증빙 인프라 사진방 가로채기 연동]: 신분증 이미지가 등록되어 있다면 가져오고 없으면 기본 실루엣 처리

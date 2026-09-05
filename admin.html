@@ -2881,19 +2881,15 @@
                 let rawSsn = (row.ssn || "").toString().trim();
                 let displaySsn = "";
 
-                // A. 하이픈이 이미 있거나, 이미 완벽한 6자리 숫자를 갖춘 청정 데이터(디폴트 8인방/인증서/수동)는 원본 그대로 출력
-                if (rawSsn.includes('-') || rawSsn.replace(/[^0-9]/g, '').length === 6) {
-                    displaySsn = rawSsn;
+                // 1. 문자열 내부에 포함된 하이픈(-), 쉼표(,), 알파벳 등 모든 기호 문자를 원천 차단하고 순수 숫자만 추출
+                let cleanNumbers = rawSsn.replace(/[^0-9]/g, '');
+
+                // 2. 추출된 순수 숫자 데이터 스트링에서 오직 앞쪽 6자리 생년월일 포맷만 칼같이 슬라이스하여 최종 사출
+                if (cleanNumbers.length >= 6) {
+                    displaySsn = cleanNumbers.substring(0, frontSsnLength = 6);
                 } else {
-                    // B. 오직 자릿수가 6자리 미만으로 유실되어 유입된 엑셀 업로드 변칙 데이터만 진입 허용 (예: 302, 1128)
-                    let pureNumbers = rawSsn.replace(/[^0-9]/g, '');
-                    if (pureNumbers.length > 0 && pureNumbers.length < 6) {
-                        let frontSsn = pureNumbers;
-                        let backSsn = (genderSign === "여" ? "2" : "1");
-                        displaySsn = frontSsn + "-" + backSsn; // 엑셀 파서와 싱크를 맞춰 정갈하게 조립 사출
-                    } else {
-                        displaySsn = pureNumbers || "-";
-                    }
+                    // 야생의 엑셀 데이터 중 미처 연도 역산이 끝나지 않은 극한의 유실본을 위한 최후의 가드 안전망
+                    displaySsn = cleanNumbers.padStart(6, '0');
                 }
 
                 let displayTitle = row.title || "-";

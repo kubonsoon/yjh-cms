@@ -4061,39 +4061,70 @@
                     if (idxSsn === -1) idxSsn = 5; // 이미지상 6번째 열(인덱스 5)이 확실한 생년월일 칸입니다.
                     if (idxPhone === -1) idxPhone = 6;
 
-                    // 3. 대상자 명단 데이터 루프 적재 구역
+                    // 3. [대상자 명단 데이터 루프 적재 구역] - 서양식 만 나이(생일도래 여부 대조) 연도 역산 가드 탑재 완료
                     for (let i = headerRowIndex + 1; i < rows.length; i++) {
                         const rowText = rows[i].trim();
                         if (!rowText) continue;
 
                         const cells = rowText.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
-                        if (cells.length < idxSsn) continue;
+                        if (cells.length <= idxSsn) continue;
 
                         let extractedName = cells[idxName] ? cells[idxName].replace(/\(F\)|\(M\)/gi, '').trim() : "미정";
+                        if (extractedName === "미정" || extractedName === "" || extractedName.includes("성명")) continue;
 
-                        // 🎯 [정정 완수]: 코드(260268~ 등)를 완전히 거부하고, 생년월일 칸(990329, 1128 등)에 적혀있는 데이터만 원본 문자열 그대로 정확하게 추출합니다!
-                        let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().trim() : "";
-                        if (!ssnRaw || ssnRaw === "undefined" || ssnRaw === "") continue;
+                        // 성별/나이 열(M/25, F/39 등) 안전 격리 및 변수화
+                        const genderAgeCell = cells[idxGenderAge] ? cells[idxGenderAge].toString().trim() : "";
+                        let finalGender = "미정";
+                        let currentAge = 0;
 
-                        // 성별/나이 열(M/27 등)에서 첫 글자인 성별 식별자(M, F)를 추출하여 주민번호 뒤에 결합
-                        const genderAgeCell = cells[idxGenderAge] ? cells[idxGenderAge].toString().trim().toUpperCase() : "";
-                        if (genderAgeCell) {
-                            const genChar = genderAgeCell.charAt(0);
-                            if (["M", "F", "1", "2", "3", "4"].includes(genChar)) {
-                                ssnRaw = ssnRaw + "-" + genChar; // 예: 990329-M, 1128-M, 216-M 형태로 완벽 보존 조립
-                            }
+                        if (genderAgeCell && genderAgeCell.includes('/')) {
+                            const parts = genderAgeCell.split('/');
+                            const genLetter = parts[0].trim().toUpperCase();
+                            finalGender = (genLetter === 'M') ? '남' : ((genLetter === 'F') ? '여' : '미정');
+                            currentAge = parseInt(parts[1].replace(/[^0-9]/g, '')) || 0;
                         }
-                        const extractedSsn = ssnRaw.toUpperCase();
-                        const extractedPhone = cells[idxPhone] ? getOnlyNumbers(cells[idxPhone]) : "";
 
-                        if (extractedName === "미정" || !extractedSsn) continue;
+                        // 야생의 생년월일 데이터에서 쉼표나 기호 문자를 완벽히 도려내고 숫자만 추출
+                        let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().replace(/[^0-9]/g, '').trim() : "";
+                        if (!ssnRaw || ssnRaw === "undefined") continue;
+
+                        // [만 나이 생일 체크 기반 출생연도 정밀 복원 알고리즘]
+                        if (currentAge > 0) {
+                            // 1단계: 엑셀 오류로 유실된 월일 자릿수를 뒤에서부터 4자리 규격으로 정렬 ("302" -> "0302")
+                            let formattedMMDD = ssnRaw;
+                            if (formattedMMDD.length < 4) {
+                                formattedMMDD = formattedMMDD.padStart(4, '0');
+                            } else if (formattedMMDD.length > 4) {
+                                formattedMMDD = formattedMMDD.substring(formattedMMDD.length - 4);
+                            }
+
+                            const month = parseInt(formattedMMDD.substring(0, 2)) || 1;
+                            const day = parseInt(formattedMMDD.substring(2, 4)) || 1;
+
+                            // 2단계: 현재 기준 시점(2026년 9월 5일)과 대상자의 엑셀 상 생일 대조
+                            let birthYear4Digit = 2026 - currentAge;
+
+                            // 만약 올해 생일이 아직 지나지 않았다면 (9월 5일보다 뒤에 있다면) 1년을 더 빼서 출생연도 복원
+                            if (month > 9 || (month === 9 && day > 5)) {
+                                birthYear4Digit = birthYear4Digit - 1;
+                            }
+
+                            // 3단계: 복원된 4자리 연도 중 뒤 2자리를 따와 월일과 결합 ("72" + "1127" = "721127")
+                            const birthYear2Digit = birthYear4Digit.toString().substring(2, 4);
+                            ssnRaw = birthYear2Digit + formattedMMDD;
+                        }
+
+                        // 주민번호 및 성별 표준 마스킹 결합 (뒷자리는 가상 표준 1 또는 2로 통일)
+                        const genChar = (finalGender === '남') ? '1' : '2';
+                        const extractedSsn = ssnRaw + "-" + genChar;
+                        const extractedPhone = cells[idxPhone] ? getOnlyNumbers(cells[idxPhone]) : "";
 
                         if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
                             duplicateCount++;
                             continue;
                         }
 
-                        // 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드 (ID, S_ID, 코드, 이니셜 제외 수립 완료)
+                        // 마스터 가상 DB에 기호 찌꺼기 없이 깨끗하게 규격화 안착
                         dataStoreApplicant.unshift({
                             uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                             title: fileExtractedTitle,
@@ -4101,7 +4132,8 @@
                             count: fileExtractedCount,
                             period: fileExtractedPeriod,
                             name: extractedName,
-                            ssn: extractedSsn, // 오직 생년월일 열 데이터만 안전하게 보존 안착
+                            ssn: extractedSsn,
+                            gender: finalGender,
                             phone: extractedPhone,
                             result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                             isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
@@ -4111,16 +4143,18 @@
                         importCount++;
                     }
 
+                    // 가상 DB 영구 메모리 스토리지 동기화 커밋
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                     if (typeof commitToLocalStorage === "function") commitToLocalStorage();
 
+                    // 대시보드 통계 및 대상자 리스트 테이블 일제히 리프레시
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
 
-                    return alert(`📢 지능형 문장 분리 파싱 일괄 등록 성공!\n━━━━━━━━━━━━━━━━━━━━━━\n● 적용 시험명: ${fileExtractedTitle}\n● 적용 기수: ${fileExtractedTh}\n● 모집 인원: ${fileExtractedCount}명\n● 임상 기간: ${fileExtractedPeriod}시간\n━━━━━━━━━━━━━━━━━━━━━━\n- 정상 적재 완료: 총 [${importCount}건]\n- 중복 제외 데이터: 총 [${duplicateCount}건]`);
+                    return alert(`📢 지능형 만 나이 통합 엑셀 파싱 성공!\n━━━━━━━━━━━━━━━━━━━━━━\n● 적용 시험명: ${fileExtractedTitle}\n● 적용 기수: ${fileExtractedTh}\n━━━━━━━━━━━━━━━━━━━━━━\n- 정상 역산 적재: 총 [${importCount}건]\n- 중복 제외 데이터: 총 [${duplicateCount}건]`);
                 } catch (err) {
                     console.error("파일 대량 파싱 에러:", err);
-                    alert("알림: 파일 데이터 구조 해석에 실패했습니다.");
+                    alert("알림: 파일 데이터 구조 해석 과정에서 문법 오류가 발생했습니다.");
                 }
             }
 

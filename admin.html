@@ -4116,7 +4116,7 @@
 
                         // 주민번호 및 성별 표준 마스킹 결합 (뒷자리는 가상 표준 1 또는 2로 통일)
                         const genChar = (finalGender === '남') ? '1' : '2';
-                        const extractedSsn = ssnRaw + "-" + genChar;
+                        const extractedSsn = ssnRaw + "-" + genChar; // 하이픈('-') 결합으로 정밀 정정 완수
                         const extractedPhone = cells[idxPhone] ? getOnlyNumbers(cells[idxPhone]) : "";
 
                         if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {

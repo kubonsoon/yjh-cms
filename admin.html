@@ -2835,6 +2835,26 @@
                     item.th === row.th
                 ).length;
 
+
+                // ----------------======================================================
+                // 🔒 [B분기 추가]: 원본의 무결성을 지키며 pagedList 문맥에 맞춘 성별 정제 변수 정의선
+                // ----------------======================================================
+                let genderSign = "미정";
+                let ssnStrForGender = row.ssn ? row.ssn.toString() : "";
+
+                // 1. 대량 업로드 데이터 특유의 콤마(,M) 잔여물 가로채기 분리 가드
+                if (ssnStrForGender.includes(',')) {
+                    let hiddenGender = ssnStrForGender.split(',')[1];
+                    if (hiddenGender && hiddenGender.trim().toUpperCase() === "M") genderSign = "남";
+                    else if (hiddenGender && hiddenGender.trim().toUpperCase() === "F") genderSign = "여";
+                }
+
+                // 2. 디폴트 8명의 명시적 성별(row.gender) 속성을 최우선 1순위로 락인 바인딩
+                if (genderSign === "미정") {
+                    genderSign = row.gender || parseGenderFromSsn(row.ssn, row.name);
+                }
+
+
                 // ==========================================================================
                 // ✨ [1구역 완수] 엑셀 자간 청소 및 만나이 연계 00년생 생년월일 6자리 강제 복원 영역
                 // ==========================================================================

@@ -1511,33 +1511,60 @@
 
 
             <!-- ==========================================================================
-              SECTION 04. 보고서 및 종합 관제 통계 탭 (데이터 격리 안착 완료)
-                ========================================================================== -->
-            <div id="reportView" class="content-section">
-                <h2
-                    style="margin-bottom: 25px; color: #ffffff; border-bottom: 2px solid var(--border-color); padding-bottom: 14px; font-size: 24px; font-weight: 800;">
-                    <i class="fa-solid fa-chart-line" style="color: var(--secondary-color); margin-right: 6px;"></i>종합
-                    보고서 및 통계 현황 (준비중.......,)
-                </h2>
+                    ⭕ [보고서 및 통계 인프라 개혁]: 실무용 3대 분할 동적 대시보드 프레임 구축 완수
+                    ========================================================================== -->
+            <!-- 📈 [상단 1구역]: 시계열 필터 콘트롤러 & 4대 집계 현황판 및 예산 보고서 스코어보드 -->
+            <div
+                style="display: flex; flex-direction: column; background: #0f172a; border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; margin-bottom: 24px; width: 100%; gap: 20px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <span
+                        style="font-size: 14px; font-weight: 800; color: var(--secondary-color); text-transform: uppercase;">
+                        <i class="fa-solid fa-chart-bar"></i> 시계열 정산 통계 및 재무 집계 필터
+                    </span>
+                    <!-- 년/월/주간 스위칭 제어기 -->
+                    <select id="report-time-filter" onchange="calculateReportMasterStats()"
+                        style="width: 160px; height: 34px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
+                        <option value="YEAR">년 단위 통계</option>
+                        <option value="MONTH">월 단위 통계</option>
+                        <option value="WEEK">주간 단위 통계</option>
+                    </select>
+                </div>
 
-                <!-- 대상자 관리 탭에서 이주해 온 구식 통합 관제 모니터링 테이블 인프라 완벽 장착 -->
-                <div class="table-responsive-wrapper" style="margin-top: 15px;">
-                    <table class="ctms-master-table">
-                        <thead>
-                            <tr>
-                                <th>성명(UID)</th>
-                                <th>신청 임상과제 / 기수</th>
-                                <th>식별 정보 (생년월일/연락처)</th>
-                                <th>실시간 전산 지급 단계</th>
-                                <th>증빙 인프라 (신분증/통장)</th>
-                                <th>중앙 관리자 통제 제어 락</th>
-                            </tr>
-                        </thead>
-                        <!-- 기존 자바스크립트 엔진들과 100% 매칭되는 타겟 조준점 원형 보존 유지 -->
-                        <tbody id="applicantTableBody">
-                            <!-- 비워두시면 시스템 엔진이 실시간으로 동적 렌더링 사출합니다 -->
-                        </tbody>
-                    </table>
+                <!-- 2026년 기준 실시간 연산 카드가 사출되어 안착할 현황판 슬롯 -->
+                <div id="report-scoreboard-cards"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; width: 100%;">
+                    <!-- 실시간 통계 카드가 자바스크립트 엔진에 의해 동적 바인딩됩니다 -->
+                </div>
+            </div>
+
+            <!-- 🪪 [하단 2구역]: 대상자 마스터 생애 주기 원장 카드 및 종합 검색 관제탑 -->
+            <div
+                style="display: flex; flex-direction: column; background: var(--card-color); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; width: 100%; gap: 20px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; gap: 16px;">
+                    <span
+                        style="font-size: 14px; font-weight: 800; color: var(--warning-color); text-transform: uppercase; white-space: nowrap;">
+                        <i class="fa-solid fa-id-card"></i> 대상자별 생애 주기 마스터 통합 원장 조회
+                    </span>
+                    <!-- 동적 검색 연동창 개설 -->
+                    <div style="display: flex; gap: 8px; align-items: center; width: 100%; max-width: 360px;">
+                        <input type="text" id="report-search-keyword" placeholder="성명 또는 생년월일 6자리를 입력하세요"
+                            style="width: 100%; height: 36px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 13px; font-weight: 700; outline: none;">
+                        <button type="button" onclick="searchApplicantMasterLedger()"
+                            style="background: var(--secondary-color); color: #ffffff; padding: 0 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; height: 36px; white-space: nowrap; font-weight: 800;">조회</button>
+                    </div>
+                </div>
+
+                <!-- 🪪 이력서 양식 구조의 개인 마스터 원장 시트가 표출되는 최종 타겟 웅덩이 -->
+                <div id="report-master-ledger-viewport" style="width: 100%;">
+                    <div
+                        style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; font-weight: 700; background: rgba(0,0,0,0.1); border-radius: 8px; border: 1px dashed var(--border-color);">
+                        <i class="fa-solid fa-magnifying-glass"
+                            style="font-size: 20px; margin-bottom: 10px; display: block; color: var(--text-muted);"></i>
+                        상단 검색창에 대상자의 성명 또는 생년월일을 입력하신 뒤 [조회] 단추를 누르면,<br>신분증 사본 기반 이력서 형태의 생애 주기 종합 원장 대장이 실시간 역산되어
+                        표출됩니다.
+                    </div>
                 </div>
             </div>
 

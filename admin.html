@@ -7606,6 +7606,7 @@
 
             // 2. [전수 역추적 스캔]: 입력한 성명 또는 순수 생년월일 6자리가 포함된 타겟 대상자 필터링 추출
             let foundList = applicantDB.filter(item => {
+                if (!item) return false;
                 const itemCleanName = (item.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim().toLowerCase();
                 const itemCleanSsn = (item.ssn || '').toString().replace(/[^0-9]/g, '').substring(0, 6);
                 return itemCleanName.includes(cleanSearch) || itemCleanSsn.includes(cleanSearch);
@@ -7621,24 +7622,29 @@
                 return;
             }
 
-            // 검색 리스트 중 ssn 속성방이 실제로 실존하는 정식 레코드를 최우선 1순위로 조준 낚아채기
+            // 3. [강철 방어막 배정]: ssn 속성이 유실된 파편 데이터를 상단 입구에서 원천 격리 차단 (7738라인 에러 조준 파쇄)
             const targetUser = foundList.find(u => u && u.ssn && u.ssn.toString().trim().length > 0) || foundList[0] || {};
 
-            // 만약 극한의 상황에서 모든 데이터가 불량일 경우를 대비한 최후방 빈 객체({}) 안전 폴백 락인
-            const targetCleanSsnRaw = targetUser.ssn ? targetUser.ssn.toString().trim() : "000000";
-            const targetCleanName = (targetUser.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
+            // 안전 가공 독립 변수방 완전 격리 개설 (객체 속성 직접 참조 파괴 현상을 물리적으로 완전 가드)
+            const targetCleanSsnRaw = targetUser && targetUser.ssn ? targetUser.ssn.toString().trim() : "000000";
+            const targetCleanName = targetUser && targetUser.name ? targetUser.name.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim() : "임시참여가";
+            const targetCleanPhone = targetUser && targetUser.phone ? targetUser.phone.toString().trim() : "-";
+            const targetCleanTh = targetUser && targetUser.th ? targetUser.th.toString().trim() : "-";
+            const targetCleanUid = targetUser && targetUser.uid ? targetUser.uid.toString().trim() : "-";
+            const targetCleanIdCardImg = targetUser && targetUser.idCardImg ? targetUser.idCardImg : "";
 
-            // 3. [증빙 인프라 사진방 가로채기 연동]: 신분증 이미지가 등록되어 있다면 가져오고 없으면 기본 실루엣 처리
-            const hasIdImg = targetUser.idCardImg && targetUser.idCardImg.length > 20;
+            // 4. [증빙 사진 가로채기 연동]: 신분증 이미지가 등록되어 있다면 가져오고 없으면 기본 실루엣 처리
+            const hasIdImg = targetCleanIdCardImg && targetCleanIdCardImg.length > 20;
             const photoSlotHTML = hasIdImg
-                ? `<img src="${targetUser.idCardImg}" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--border-color);"/>`
-                : `<div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#0b0f19; color:var(--text-muted); border-radius:6px; border:1px dashed var(--border-color);"><i class="fa-solid fa-user" style="font-size:32px; margin-bottom:4px;"></i><span style="font-size:10px; font-weight:700;">사진 미제출</span></div>`;
+                ? `<img src="${targetCleanIdCardImg}" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--border-color);"/>`
+                : `<div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#0b0f19; color:var(--text-muted); border-radius:6px; border:1px dashed var(--border-color); text-align:center; padding:5px;"><i class="fa-solid fa-user" style="font-size:28px; margin-bottom:4px; color:var(--border-color);"></i><span style="font-size:10px; font-weight:700; display:block; white-space:nowrap;">사진 미제출</span></div>`;
 
-            // 4. [지능형 가드 ①: 귀책 사유별 블랙리스트 격리 필터 연산]
+            // 5. [지능형 가드 ①: 귀책 사유별 블랙리스트 격리 필터 연산]
             let violationCount = 0;
             let violationReasonText = "";
 
             foundList.forEach(hist => {
+                if (!hist) return;
                 const stage = (hist.stage || "").toString();
                 const cat = (hist.category || "").toString();
                 const res = (hist.result || "").toString();
@@ -7653,20 +7659,21 @@
                 violationReasonText = violationReasonText.substring(0, violationReasonText.length - 3);
             }
 
-            let blacklistBadgeHTML = `<span style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.4); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;"><i class="fa-solid fa-circle-check"></i> 임상 신용등급: 정상 참여자</span>`;
+            let blacklistBadgeHTML = `<span style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.4); padding:5px 12px; border-radius:6px; font-size:11.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> 임상 신용등급: 정상 참여자</span>`;
             if (violationCount >= 2) {
-                blacklistBadgeHTML = `<span style="background:rgba(239,68,68,0.15); color:var(--danger-color); border:1px solid var(--danger-color); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> 블랙리스트 경고: ${violationReasonText} (${violationCount}건 위반)</span>`;
+                blacklistBadgeHTML = `<span style="background:rgba(239,68,68,0.15); color:var(--danger-color); border:1px solid var(--danger-color); padding:5px 12px; border-radius:6px; font-size:11.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-triangle-exclamation"></i> 블랙리스트 경고: ${violationReasonText} (${violationCount}건 위반)</span>`;
             }
 
-            // 5. [지능형 가드 ②: 식약처 규정 복수과제 6개월 연쇄 차단 정밀 역산 엔진]
+            // 6. [지능형 가드 ②: 식약처 규정 복수과제 6개월 연쇄 차단 정밀 역산 엔진]
             const SYSTEM_DATE_2026 = new Date("2026-09-06"); // 현재 2026년 시점 기준일 고정
             let isBlockedBy6Month = false;
             let earliestAvailableDateText = "";
             let matchLogDate = null;
 
             foundList.forEach(hist => {
+                if (!hist) return;
                 if (hist.result === "완료" || hist.payStatus === "완료" || hist.result === "처리중") {
-                    let mockDateStr = "2026-08-10"; // 디폴트 기본값 폴백
+                    let mockDateStr = "2026-08-10";
                     if (hist.title.includes("명인제약")) mockDateStr = "2025-07-22";
                     else if (hist.title.includes("대우제약")) mockDateStr = "2025-08-14";
                     else if (hist.title.includes("삼진제약")) mockDateStr = "2025-10-17";
@@ -7683,7 +7690,6 @@
             });
 
             if (matchLogDate) {
-                // 식약처 가이드라인에 따른 180일(6개월) 차단 연산 후 날짜 문자열 추출
                 let blockExpiryDate = new Date(matchLogDate.getTime() + (180 * 24 * 60 * 60 * 1000));
                 earliestAvailableDateText = blockExpiryDate.toISOString().substring(0, 10);
                 if (blockExpiryDate > SYSTEM_DATE_2026) {
@@ -7691,21 +7697,21 @@
                 }
             }
 
-            let safetyGuardBadgeHTML = `<span style="background:rgba(14,165,233,0.12); color:#38bdf8; border:1px solid rgba(14,165,233,0.4); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;"><i class="fa-solid fa-shield-halved"></i> 식약처 규정: 재참여 가능 가드 통과</span>`;
+            let safetyGuardBadgeHTML = `<span style="background:rgba(14,165,233,0.12); color:#38bdf8; border:1px solid rgba(14,165,233,0.4); padding:5px 12px; border-radius:6px; font-size:11.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-shield-halved"></i> 식약처 규정: 재참여 가능 가드 통과</span>`;
             if (isBlockedBy6Month) {
-                safetyGuardBadgeHTML = `<span style="background:rgba(251,191,36,0.12); color:var(--warning-color); border:1px solid var(--warning-color); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;"><i class="fa-solid fa-lock"></i> 6개월 중복참여 제한: 차단됨 (가능일: ${earliestAvailableDateText})</span>`;
+                safetyGuardBadgeHTML = `<span style="background:rgba(251,191,36,0.12); color:var(--warning-color); border:1px solid var(--warning-color); padding:5px 12px; border-radius:6px; font-size:11.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-lock"></i> 6개월 중복참여 제한: 차단됨 (가능일: ${earliestAvailableDateText})</span>`;
             }
 
             // ==============================================================================================
-            // [보고서 마스터 원장 엔진 - 2파트]: 연도별 이력 타임라인 생성 및 최종 마크업 드로우 완수
+            // ⭕ [최종 종결 복구 - 2파트]: 연도별 이력 타임라인 생성 및 최종 마크업 드로우 완수
             // ==============================================================================================
             let historyTableRowsHTML = "";
             foundList.forEach(hist => {
+                if (!hist) return;
                 let periodText = (hist.period || "72").toString().replace(/[^0-9]/g, '');
                 let calculatedPay = (parseInt(periodText, 10) || 72) * 12500;
                 let finalDisplayPay = calculatedPay.toLocaleString() + "원";
 
-                // 상태별 텍스트 및 배지 색상 동적 매핑
                 let badgeColor = "#4ade80";
                 if (hist.result === "접수") badgeColor = "#38bdf8";
                 else if (hist.result === "처리중") badgeColor = "#fbbf24";
@@ -7713,19 +7719,18 @@
                 const stageStr = (hist.stage || "").toString();
                 if (stageStr.includes("탈락") || stageStr.includes("귀가") || (hist.result && hist.result.includes("탈락"))) {
                     badgeColor = "var(--danger-color)";
-                    finalDisplayPay = "차등 패널티 지급 완료";
+                    finalDisplayPay = "차등 패널티 정산 완료";
                 }
 
-                // 과제명 분기를 통한 정밀 연도 단위 시계열 매칭
                 let currentYearText = "2026년";
                 if (hist.title.includes("명인") || hist.title.includes("대우") || hist.title.includes("삼진") || hist.title.includes("파마")) {
                     currentYearText = "2025년";
                 }
 
                 historyTableRowsHTML += `
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.03); background:transparent;">
                 <td style="padding:12px 8px; text-align:center; font-weight:700; color:var(--text-muted); font-size:12.5px;">${currentYearText}</td>
-                <td style="padding:12px 8px; font-weight:700; color:#ffffff; font-size:12.5px;">${hist.title || '-'}</td>
+                <td style="padding:12px 8px; font-weight:700; color:#ffffff; font-size:12.5px; white-space:normal; word-break:break-all;">${hist.title || '-'}</td>
                 <td style="padding:12px 8px; text-align:center; font-weight:800; color:#38bdf8; font-size:12px;">${hist.th || '-'}</td>
                 <td style="padding:12px 8px; text-align:center; font-size:12.5px;">${periodText}시간</td>
                 <td style="padding:12px 8px; text-align:center; font-weight:800; color:${badgeColor}; font-size:12px;">${hist.result || '대기'}</td>
@@ -7734,40 +7739,34 @@
         `;
             });
 
-            // 검색된 대상자의 무결한 생년월일 앞 6자리 순수 숫자 가공 추출
-            const cleanNumbersForDisplaySsn = (targetUser[0].ssn || "").toString().replace(/[^0-9]/g, '');
-            const final6DigitSsn = cleanNumbersForDisplaySsn.substring(0, 6);
+            const cleanNumbersForDisplaySsn = targetCleanSsnRaw.replace(/[^0-9]/g, '');
+            const final6DigitSsn = cleanNumbersForDisplaySsn.length >= 6 ? cleanNumbersForDisplaySsn.substring(0, 6) : cleanNumbersForDisplaySsn.padStart(6, '0');
 
-            // 인적 사항 구조를 보존하며 최종 와이드 이력서 돔 웅덩이에 물리적 강제 렌더링 주입
+            // 8. [최종 마크업 렌더링 주입]
             viewport.innerHTML = `
-        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 25px; border-radius: 10px; width:100%; display:flex; flex-direction:column; gap:20px; animation: modalFadeIn 0.3s ease-out;">
-            <!-- 상단 2대 보안 안전 가드 배지 출력부 -->
+        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 25px; border-radius: 10px; width:100%; display:flex; flex-direction:column; gap:20px; animation: modalFadeIn 0.25s ease-out;">
             <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:10px; flex-wrap:wrap; border-bottom:1px dashed var(--border-color); padding-bottom:14px;">
-                <div style="display:flex; gap:8px; align-items:center;">
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                     ${blacklistBadgeHTML}
                     ${safetyGuardBadgeHTML}
                 </div>
-                <div style="font-size:11.5px; color:var(--text-muted); font-weight:700;"><i class="fa-solid fa-server"></i> CMS 마스터 데이터베이스 실시간 연동 일치됨</div>
+                <div style="font-size:11.5px; color:var(--text-muted); font-weight:700;"><i class="fa-solid fa-server"></i> CMS 마스터 데이터베이스 통합 동기화 완료</div>
             </div>
 
-            <!-- 중단 복층 구조 이력서 프로필 카드 대장 -->
-            <div style="display:flex; gap:24px; width:100%; align-items:flex-start;">
-                <!-- 좌측 3D 증빙 인프라 사진방 컴포넌트 -->
+            <div style="display:flex; gap:24px; width:100%; align-items:flex-start; flex-wrap:wrap;">
                 <div style="width:125px; height:155px; min-width:125px; background:rgba(0,0,0,0.2); padding:5px; border:1px solid var(--border-color); border-radius:8px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); display:flex; justify-content:center; align-items:center;">
                     ${photoSlotHTML}
                 </div>
 
-                <!-- 우측 기본 실무 인적사항 명부 그리드 -->
-                <div style="flex:1; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:14px; background:rgba(15,23,42,0.4); padding:18px; border-radius:8px; border:1px solid rgba(255,255,255,0.02);">
+                <div style="flex:1; min-width:280px; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:14px; background:rgba(15,23,42,0.4); padding:18px; border-radius:8px; border:1px solid rgba(255,255,255,0.02);">
                     <div style="color:var(--text-muted); font-size:13px; font-weight:700;">피험자 성명: <span style="color:#ffffff; font-size:14px; font-weight:800; margin-left:8px;">${targetCleanName}</span></div>
                     <div style="color:var(--text-muted); font-size:13px; font-weight:700;">생년월일(6자리): <span style="color:#ffffff; font-family:monospace; font-size:14px; font-weight:800; margin-left:8px; letter-spacing:0.5px;">${final6DigitSsn}</span></div>
-                    <div style="color:var(--text-muted); font-size:13px; font-weight:700;">안전 연락처: <span style="color:#eeeeee; font-size:13px; margin-left:8px;">${targetUser[0].phone || '-'}</span></div>
-                    <div style="color:var(--text-muted); font-size:13px; font-weight:700;">현재 소속기수: <span style="color:#38bdf8; font-weight:800; margin-left:8px;">${targetUser[0].th || '-'}</span></div>
-                    <div style="color:var(--text-muted); font-size:13px; font-weight:700; grid-column: span 2; margin-top:2px;">통합 고유식별 UID: <span style="color:var(--warning-color); font-family:monospace; font-size:12px; font-weight:700; margin-left:8px;">${targetUser[0].uid || '-'}</span></div>
+                    <div style="color:var(--text-muted); font-size:13px; font-weight:700;">안전 연락처: <span style="color:#eeeeee; font-size:13px; margin-left:8px;">${targetCleanPhone}</span></div>
+                    <div style="color:var(--text-muted); font-size:13px; font-weight:700;">현재 소속기수: <span style="color:#38bdf8; font-weight:800; margin-left:8px;">${targetCleanTh}</span></div>
+                    <div style="color:var(--text-muted); font-size:13px; font-weight:700; grid-column: span 2; margin-top:2px;">통합 고유식별 UID: <span style="color:var(--warning-color); font-family:monospace; font-size:12px; font-weight:700; margin-left:8px;">${targetCleanUid}</span></div>
                 </div>
             </div>
 
-            <!-- 하단 연도별 임상시험 참여 역사 종합 타임라인 서식 -->
             <div style="width:100%; display:flex; flex-direction:column; gap:10px; margin-top:6px;">
                 <h5 style="font-size:13.5px; color:#ffffff; font-weight:800; margin:0; display:flex; align-items:center; gap:6px;">
                     <i class="fa-solid fa-clock-history" style="color:var(--secondary-color);"></i> 연도별 임상 참여 및 중도탈락 정산 역사 이력 대장
@@ -7784,7 +7783,7 @@
                                 <th style="width:20%; text-align:right; padding:10px 8px; font-size:11.5px; color:var(--secondary-color); padding-right:15px;">최종 지급 정산액</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody style="background:transparent;">
                             ${historyTableRowsHTML}
                         </tbody>
                     </table>
@@ -7826,27 +7825,6 @@
             };
         }
 
-
-        // ==============================================================================================
-        // [보고서 검색 키보드 연동 완료]: 엔터(Enter)키 입력 시 마스터 원장 실시간 조회 엔진 트리거
-        // ==============================================================================================
-        // 시스템 돔(DOM) 로드가 완료된 시점이나 스크립트 마운트 즉시 이벤트 빗장 개설
-        (function () {
-            const searchInputInputBox = document.getElementById("report-search-keyword");
-            if (searchInputInputBox) {
-                searchInputInputBox.addEventListener("keydown", function (event) {
-                    // 키보드 입력 신호가 'Enter' 정격 신호인지 감지
-                    if (event.key === "Enter") {
-                        event.preventDefault(); // 엔터 키의 브라우저 기본 줄바꿈/새로고침 동작 방지
-
-                        // 상단에서 완비된 마스터 원장 전수 역추적 스캔 함수 즉시 강제 트리거
-                        if (typeof searchApplicantMasterLedger === "function") {
-                            searchApplicantMasterLedger();
-                        }
-                    }
-                });
-            }
-        })();
 
     </script>
 

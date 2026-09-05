@@ -4033,23 +4033,49 @@
                             continue;
                         }
 
-                        // 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드 (ID, S_ID, 코드, 이니셜 제외 수립 완료)
-                        dataStoreApplicant.unshift({
-                            uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                            title: fileExtractedTitle,
-                            th: fileExtractedTh,
-                            count: fileExtractedCount,
-                            period: fileExtractedPeriod,
-                            name: extractedName,
-                            ssn: extractedSsn, // 오직 생년월일 열 데이터만 안전하게 보존 안착
-                            phone: extractedPhone,
-                            result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
-                            isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
-                            category: "내분비내과 / 엑셀 레이아웃 파싱",
-                            stage: `${fileExtractedTh} 참여(소집)`, idCard: true, bankbook: true
-                        });
-                        importCount++;
+
+                        // 🔒 [정밀 조립 안착 지점] 앞·뒤 괄호 짝 단선을 완벽하게 세척 정화한 진짜 정답 배치 맵!
+                        if (isDuplicateSecureToken !== true) {
+
+                            // 1. 문자열 상태에서 쉼표(,) 및 M, F 등의 성별 잔여물 노이즈를 먼저 완벽 세척 정화
+                            let rawRowSsn = (extractedSsn || "").toString().trim();
+                            let cleanSsnPart = rawRowSsn.replace(/[^0-9]/g, "").trim();
+
+                            // 2. 엑셀 변환 시 유실된 00년생 맨 앞자리 '0' 또는 '00' 강제 역산 복구 가드 (2026년 현재 기준 역산)
+                            let rawRowAge = (typeof fileExtractedAge !== 'undefined' ? fileExtractedAge : "").toString().replace(/[^0-9]/g, "").trim();
+                            let parsedRowAge = Number(rawRowAge) || 0;
+
+                            if (cleanSsnPart.length < 6 && parsedRowAge > 0 && parsedRowAge <= 26) {
+                                let birthYear = (2026 - parsedRowAge).toString().substring(2, 4);
+                                let pureMonthDay = cleanSsnPart;
+                                if (pureMonthDay.length === 3) pureMonthDay = "0" + pureMonthDay;
+                                cleanSsnPart = birthYear + pureMonthDay;
+                            } else if (cleanSsnPart.length === 3) cleanSsnPart = "000" + cleanSsnPart;
+                            else if (cleanSsnPart.length === 4) cleanSsnPart = "00" + cleanSsnPart;
+                            else if (cleanSsnPart.length === 5) cleanSsnPart = "0" + cleanSsnPart;
+
+                            // 3. 정화 완료된 순정 6자리 생년월일 텍스트를 extractedSsn 변수방에 최종 재할당 마감
+                            extractedSsn = cleanSsnPart;
+
+                            // 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드 (ID, S_ID, 코드, 이니셜 제외 수립 완료)
+                            dataStoreApplicant.unshift({
+                                uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                                title: fileExtractedTitle,
+                                th: fileExtractedTh,
+                                count: fileExtractedCount,
+                                period: fileExtractedPeriod,
+                                name: extractedName,
+                                ssn: extractedSsn, // 오직 생년월일 열 데이터만 안전하게 보존 안착
+                                phone: extractedPhone,
+                                result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
+                                isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
+                                category: "내분비내과 / 엑셀 레이아웃 파싱",
+                                stage: `${fileExtractedTh} 참여(소집)`, idCard: true, bankbook: true
+                            });
+                            importCount++;
+                        }
                     }
+
 
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                     if (typeof commitToLocalStorage === "function") commitToLocalStorage();

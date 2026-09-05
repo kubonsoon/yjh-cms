@@ -5331,21 +5331,21 @@
                 return itemCleanName === cleanName && itemSsn === targetSsn;
             }).reverse();
 
-            // 🌟 [정밀 정제 변환기 장착]: 공백, 하이픈(-), 플러스(+) 등 모든 기호 오차를 원천 무력화하는 핵심 필터
+            // [정밀 정제 변환기 장착]: 공백, 하이픈(-), 플러스(+) 등 모든 기호 오차를 원천 무력화하는 핵심 필터
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
             };
 
-            // 🎯 [지능형 가변 카드 루프]: 참여한 시험 개수만큼 세부 지급일정을 동적 파싱하여 복사 생성
+            // [지능형 가변 카드 루프]: 참여한 시험 개수만큼 세부 지급일정을 동적 파싱하여 복사 생성
             let historyCardsHTML = "";
 
             matchedHistoryList.forEach((historyRow) => {
-                // 🌟 [버그 킬러]: 현재 대상자 이력의 과제명과 기수 텍스트를 알맹이 단위로 정제
+                // 현재 대상자 이력의 과제명과 기수 텍스트를 알맹이 단위로 정제
                 const targetTitleClean = cleanString(historyRow.title);
                 const filterThNum = (historyRow.th || "").toString().replace(/[^0-9]/g, "");
 
-                // 🎯 [크로스 매핑 종결]: 엄격한 === 비교를 폐기하고, 글자 알맹이와 기수 숫자가 상호 일치하는 마스터 공고를 정밀 탐색합니다.
+                // 엄격한 === 비교를 폐기하고, 글자 알맹이와 기수 숫자가 상호 일치하는 마스터 공고를 정밀 탐색합니다.
                 const matchedRec = recDB.find(rec => {
                     const recTitleClean = cleanString(rec.title);
                     const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
@@ -5354,7 +5354,7 @@
                     return (recTitleClean === targetTitleClean || recTitleClean.includes(targetTitleClean) || targetTitleClean.includes(recTitleClean)) && (recThNum === filterThNum);
                 });
 
-                // 🌟 실시간 역추적 결합으로 추출된 모집공고의 소집일 마스터 데이터를 연동 (없으면 미정 폴백)
+                // 실시간 역추적 결합으로 추출된 모집공고의 소집일 마스터 데이터를 연동 (없으면 미정 폴백)
                 const matchedScheduleDate = matchedRec && matchedRec.recDate ? matchedRec.recDate : "미정";
 
                 // 모집공고 등록 시점에 대장에 세이브된 1~3차 통합 지급일정 문자열 확보 (없으면 추후공지 폴백)
@@ -5364,7 +5364,7 @@
 
                 // 오리지널 [임상시험 배정 이력] 내부에 '참여비 세부 지급일정' 행을 정밀 결합 추가
                 historyCardsHTML += `
-            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 12px; background-image: linear-gradient(to right, rgba(30, 41, 59, 0.2), transparent);">
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 12px; background-image: linear-gradient(to right, rgba(30, 41, 59, 0.2), transparent);">
                 <h4 style="font-size: 15px; color: #ffffff; margin-bottom: 15px; display: flex; align-items: center; gap: 6px; margin-top:0;">
                     <i class="fa-solid fa-flask-vial" style="color: var(--warning-color);"></i> 임상시험 배정 및 일정 연동 이력
                 </h4>
@@ -5380,7 +5380,7 @@
                 <div class="history-grid-container" style="margin-bottom: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700;">참여 기수: <span style="color:#38bdf8; margin-left:6px; font-weight:800;">${historyRow.th || '-'}</span></div>
                     
-                    <!-- 🌟 [색상 및 연동 버그 완전 해결]: 텍스트 정제 엔진을 통과하여 매칭된 디폴트 소집일가 흰색(#ffffff)으로 오차 없이 실시간 연동 출력됩니다. -->
+                    <!-- [색상 및 연동 버그 완전 해결]: 텍스트 정제 엔진을 통과하여 매칭된 디폴트 소집일가 흰색(#ffffff)으로 오차 없이 실시간 연동 출력됩니다. -->
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700;">임상 소집일: <span style="color:#ffffff !important; margin-left:6px; font-weight:800;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${matchedScheduleDate}</span></div>
                     
                     <div style="color: var(--text-muted); font-size:13px; font-weight:700;">임상 진행시간: <span style="color:#ffffff; margin-left:6px;">${historyRow.period || '-'}h</span></div>
@@ -5390,6 +5390,10 @@
         `;
             });
 
+            let modalRawSsn = (row.ssn || "").toString().trim();
+            let modalCleanNumbers = modalRawSsn.replace(/[^0-9]/g, ''); // 하이픈, 쉼표 기호 전면 파쇄
+            let modalDisplaySsn = modalCleanNumbers.length >= 6 ? modalCleanNumbers.substring(0, 6) : modalCleanNumbers.padStart(6, '0');
+
             // D. [최종 출력 위임]: contentSlot 내부에 인포그래픽 정형 바인딩 주입 (구조 원형 보존)
             contentSlot.innerHTML = `
         <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 16px;">
@@ -5398,7 +5402,7 @@
             </h4>
             <div class="history-grid-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
                 <div style="color: var(--text-muted); font-size:13px; font-weight:700;">성명: <span style="color:#ffffff; margin-left:6px;">${cleanName}</span></div>
-                <div style="color: var(--text-muted); font-size:13px; font-weight:700;">생년월일: <span style="color:#ffffff; margin-left:6px;">${row.ssn || '-'}</span></div>
+                <div style="color: var(--text-muted); font-size:13px; font-weight:700;">생년월일: <span style="color:#ffffff; margin-left:6px;">${modalDisplaySsn}</span></div>
                 <div style="color: var(--text-muted); font-size:13px; font-weight:700;">연락처: <span style="color:#ffffff; margin-left:6px;">${row.phone || '-'}</span></div>
                 <div style="color: var(--text-muted); font-size:13px; font-weight:700;">고유식별UID: <span style="color: var(--warning-color); font-size:11px; margin-left:6px;">${row.uid || '-'}</span></div>
             </div>
@@ -5448,9 +5452,9 @@
         }
 
         /**
- * [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 대상자의 마스터 상태값을 직접 변경하고
- * 하단 목록 테이블 및 상단 대시보드 4대 지표 카드를 새로고침 없이 즉각 100% 동기화 리프레시합니다.
- */
+        * [5단계 마스터 핵심 함수]: 이력 모달창에서 버튼 클릭 시 대상자의 마스터 상태값을 직접 변경하고
+        * 하단 목록 테이블 및 상단 대시보드 4대 지표 카드를 새로고침 없이 즉각 100% 동기화 리프레시합니다.
+        */
         function updateApplicantStatusViaModal(index, newStatus) {
             // 1. 최신 로컬스토리지 대장 안전 확보
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -5459,10 +5463,10 @@
                 const targetUser = adminApplicantDB[index];
                 const targetName = targetUser.name || "미정";
 
-                // 2. 🌟 [차수별 독립 오버라이드]: 마스터 스키마 상태값과 동시에 1차 참여비 상태 필드(payStatus1)를 즉시 수왑 조율합니다.
+                // 2. 마스터 스키마 상태값과 동시에 1차 참여비 상태 필드(payStatus1)를 즉시 수왑 조율합니다.
                 targetUser.payStatus = newStatus;
                 targetUser.result = newStatus;
-                targetUser.payStatus1 = newStatus; // 🎯 이 부분이 핵심입니다! 1차 정산 상태를 원격으로 강제 동기화시킵니다.
+                targetUser.payStatus1 = newStatus; // 1차 정산 상태를 원격으로 강제 동기화시킵니다.
 
                 // 3. 변경 완료된 최신 배열을 로컬 스토리지에 물리 커밋 세이브
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
@@ -6400,7 +6404,7 @@
             }
 
             // ==========================================================================
-            // ✨ [정밀 수리 완착] 고유 uid 문자열 추적 매칭 시스템 가동 (대표님 오리지널 변수명 row 완벽 상속)
+            // ✨ [정밀 수리 완착] 고유 uid 문자열 추적 매칭 시스템 가동
             // ==========================================================================
             let row = null;
 
@@ -6415,7 +6419,7 @@
             if (!row) return alert("시스템 알림: 해당 대상자의 이력 데이터를 추적할 수 없습니다.");
             // ==========================================================================
 
-            // 2. 형님께서 지정하신 진짜 원본 HTML 모달 레이어 프레임 돔 요소 스캔
+            // 2. 모달 레이어 프레임 돔 요소 스캔
             const mainOverlay = document.getElementById('applicantHistoryModal');
             const contentSlot = document.getElementById('history-modal-content-slot');
             const actionSlot = document.getElementById('history-modal-action-slot');
@@ -6424,7 +6428,7 @@
                 return alert("시스템 오류: 'applicantHistoryModal' 또는 슬롯 엘리먼트를 찾을 수 없습니다.");
             }
 
-            // 3. 성명 및 전화번호 정제 가공 유틸리티 가동 (원본 규격 100% 반영 일치화)
+            // 3. 성명 및 전화번호 정제 가공 유틸리티 가동
             const cleanName = (row.name || '').replace(/[^\w\s ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
             const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
             let fmtPhone = '-';

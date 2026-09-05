@@ -2780,13 +2780,11 @@
                 }
             });
 
-            /* if (isDataCleaned) {
-                 localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
-                 if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = db;
-             }*/
+            if (isDataCleaned) {
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
+                if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = db;
+            }
 
-            // 💡 [수정]: 조건문을 주석 처리하거나 지우고, 무조건 새로고침할 때마다 최신 성별 코드가 저장소에 박히도록 강제 락인 처리합니다.
-            localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
 
             // 상단 필터 값 실시간 정밀 트래킹 연동 구역
             const filterTitleSelect = document.getElementById('dashboard-filter-title');

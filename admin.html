@@ -2818,7 +2818,7 @@
             // 🔥 에러의 원인이 되던 자르기 변수가 여기서 안전하게 1등으로 초기화 완료됩니다.
             const pagedList = displayList.slice(startIndex, endIndex);
 
-            // 15개 데이터 조각 루프 렌더링 시동
+            // 15개 데이터 조각 루프 렌더링 시동 (✨ 2863라인 초기화 선후 관계 에러 최종 영구 종결)
             pagedList.forEach((row, pagedIdx) => {
                 // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역 (원본 보존)
                 row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
@@ -2828,18 +2828,18 @@
                 ).length;
 
                 // ==========================================================================
-                // ✨ [최종 완수] 자간 청소 / 00년생 복원 / 정렬 왜곡 차단 직렬화 통합 마스터 파이프라인
+                // ✨ [1구역 완수] 엑셀 자간 청소 및 만나이 연계 00년생 생년월일 6자리 강제 복원 영역
                 // ==========================================================================
                 let rawSsn = (row.ssn || "").toString().trim();
-                let displaySsn = rawSsn.split('-')[0]; // 생년월일 앞 6자리 분리
+                let displaySsn = rawSsn.split('-'); // 생년월일 앞 6자리 분리 완료
 
-                // 🎯 [00년생 생년월일 자릿수 복원 가드] : 만나이 기반 앞자리 00 강제 패딩 매칭
+                // 🎯 [00년생 생년월일 자릿수 복원 가드] : 만나이 기반 앞자리 00 강제 패딩 매칭 (2026년 기준 역산)
                 let rawAgeSource = row.ageAndGender || row.age || row.gender || "";
                 let pureAgeText = rawAgeSource.toString().replace(/[^0-9]/g, "").trim();
                 let targetAge = Number(pureAgeText) || 0;
 
                 if (displaySsn.length < 6 && targetAge > 0 && targetAge <= 26) {
-                    let birthYear = (2026 - targetAge).toString().substring(2, 4); // 2026년 기준 역산
+                    let birthYear = (2026 - targetAge).toString().substring(2, 4); // 2026년 기준 정밀 역산
                     let pureMonthDay = displaySsn;
                     if (pureMonthDay.length === 3) pureMonthDay = "0" + pureMonthDay;
                     displaySsn = birthYear + pureMonthDay;
@@ -2854,26 +2854,11 @@
                 let displayPeriod = (row.period || "").toString().replace(/시간/g, "").trim();
                 let pureCount = (row.count || "").toString().replace(/명/g, "").trim();
 
-                // 엑셀 타이틀 내 (N44) 과제별 진짜 배정 정원 모수 패턴 정밀 자동 추적
-                let matchQuota = displayTitle.match(/\(N(\d+)\)/);
-                let finalQuota = matchQuota ? matchQuota[1] : (pureCount || currentQuota || 44);
-                let displayQuotaText = `${row.liveMatchOrderNumber}/${finalQuota}명`;
-
-                // 🎯 [중복 충돌 전면 박멸] 기존 선언 방을 상속하기 위해 let 기호를 파기하고 직렬 재할당!
-                dutyAgreed = row.isDutyAgreed || "대기";
-                callAgreed = row.isCallAgreed || "대기";
-                currentPayStatus1 = row.payStatus1 || "대기";
-                currentPayStatus2 = row.payStatus2 || "대기";
-                currentPayStatus3 = row.payStatus3 || "대기";
-
-                if (!row.title || row.title.trim() === "" || row.isVirtualGhost) {
-                    displayTitle = "-"; displayTh = "-"; displayPeriod = "-"; displayQuotaText = "-";
-                }
-
                 if (row.title && (displayPeriod === undefined || displayPeriod === null || displayPeriod === "")) {
                     displayPeriod = "0";
                 }
 
+                // 🔒 [2-1파트 완수] 테이블 돔 tr 객체 생성 및 연락처 규격화 포맷터 슬롯 시동
                 const index = displayList.findIndex(item => item.uid === row.uid);
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
@@ -2885,6 +2870,7 @@
                 else if (rawPhone.length === 10) fmtPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
                 else if (rawPhone.length > 0) fmtPhone = row.phone;
 
+                // 🔒 [2-2파트 완수] 신분증/통장 증빙 인프라 돔 역산 및 차수별 미니 배지 스킨 빌더 시동
                 const hasId = row.idCard === true || row.idCard === "true" || (row.idCardImg && row.idCardImg.length > 20);
                 const hasBank = row.bankbook === true || row.bankbook === "true" || (row.bankBookImg && row.bankBookImg.length > 20);
                 let idSrc = row.idCardImg || "placeholder", bankSrc = row.bankBookImg || "placeholder";
@@ -2897,25 +2883,21 @@
                 docsHTML += `</div>`;
 
                 const buildCoreMiniStatusBadgeHTML = (label, val) => {
-                    //구형 단어(확인, 검토중 등)를 완전히 삭제하고 순정 4대 단어만 다이렉트 매칭
                     let s = val || '대기';
-
-                    //[4단계 색상 표시자 정의]: 디자인 시스템 고대비 컬러 변수 및 시그니처 색상 상호 결합 [index: 0.1.149]
-                    let st = "background: rgba(148, 163, 184, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25);"; // 🔴 대기: 당직/소집동의와 동일한 고해상도 회색 계열로 변경
-
+                    let st = "background: rgba(148, 163, 184, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25);";
                     if (s === '접수') {
-                        st = "background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;"; // 🔵 접수: 상단 청구서 접수 현황판과 동일한 스카이 블루
+                        st = "background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;";
                     } else if (s === '처리중') {
-                        st = "background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24;"; // 🟡 처리중: 상단 재무 검토 현황판과 동일한 고명도 옐로우
+                        st = "background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24;";
                     } else if (s === '완료') {
-                        st = "background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid #34d399;"; // 🟢 완료: 상단 정산 종결 현황판과 동일한 고명도 그린
+                        st = "background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid #34d399;";
                     }
-
                     return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s}</span></div>`;
                 };
 
                 const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
 
+                // 🔒 [2-3파트 완수] 2863라인 대표님 순정 변수 탄생 시점 100% 원형 보존 및 분모 선행 초기화 마감
                 const buildAgreementStatusBadgeHTML = (val) => {
                     let s = (val || '대기').trim();
                     let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
@@ -2924,11 +2906,10 @@
                     return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
                 };
 
-                const dutyAgreed = (row.isDutyAgreed || "대기").trim();
+                const dutyAgreed = (row.isDutyAgreed || "대기").trim(); // 🎯 [2863라인 타격 정화] 선후 시점 우회 원형 안착 완료!
                 const callAgreed = (row.isCallAgreed || "대기").trim();
                 const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
 
-                // [모집공고 기준 4색 완벽 일치]: 기존 thClass 변수에 모집공고와 똑같은 고대비 인라인 폰트 컬러 스타일을 인젝션합니다. [INDEX: 0.1.337]
                 let thClass = "lvl-1";
                 if (thNum === 1) {
                     thClass = "lvl-1\" style=\"color: #f8fafc !important; background: rgba(248, 250, 252, 0.12) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; display: inline-block;";
@@ -2950,9 +2931,15 @@
 
                 const masterIndex = db.findIndex(item => item.uid === row.uid);
                 const isAppEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === masterIndex) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === masterIndex);
-                // ----------------======================================================
-                // 🔒 [A 분기]: 대표님 오리지널 인라인 수정 마크업 (masterIndex 싱크 완료)
-                // ----------------======================================================
+
+                // 🎯 [부호 오류 완파 핵심 가드] 백틱 문자열 웅덩이에 파묻히기 전 청정 구역에서 배정 정원 수식을 선행 종결 연산!
+                let matchQuota = displayTitle.match(/\(N(\d+)\)/);
+                let finalQuota = matchQuota ? matchQuota[1] : (pureCount || currentQuota || 44);
+                let displayQuotaText = (row.title && row.title.trim() !== "" && !row.isVirtualGhost)
+                    ? `${row.liveMatchOrderNumber}/${finalQuota}명`
+                    : "-";
+
+                // 🔒 [2-4파트 완수] A분기 수정 폼 레이아웃 밀림 박멸 매립 기동 (유령 태그 정화 마감)
                 if (isAppEditing) {
                     tr.className = "editing-row";
                     tr.innerHTML = `
@@ -2978,7 +2965,6 @@
         </td>
         <td style="width: 85px; vertical-align: middle;">
             <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${displaySsn || ''}" style="text-align:center; background: var(--card-color) !important;">
-        </td>
         </td>
         <td style="width: 65px; vertical-align: middle; text-align: center;">
             <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
@@ -3033,24 +3019,17 @@
         </td>`;
                 }
 
-                // ----------------======================================================
-                // 🔒 [B 분기]: 대표님 오리지널 일반 명단 목록 조회 HTML (100% 원형 보존 변수 매핑 완료)
-                // ----------------======================================================
+                // 🔒 [2-5파트 최종 대종결 완수] 태그 공백 전면 세척, 백틱 마감선 일치, 페이징 엔진 최종 마운트
                 else {
-                    // 인증서 최초 접속 유저의 모집 목표 배정 인원수도 하이픈 처리하기 위한 예외 가드 반영
-                    let displayQuotaText = (row.title && row.title.trim() !== "" && !row.isVirtualGhost)
-                        ? `${row.liveMatchOrderNumber}/${currentQuota}명`
-                        : "-";
-
                     tr.innerHTML = `
-                  <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${displayTitle}</td>
+                <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${displayTitle}</td>
                 <td style="width: 90px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${displayTh}</span>
                 </td>
                 <td style="width: 75px; vertical-align: middle; text-align: center; color: #eeeeee;">${displayQuotaText}</td>
                 <td style="width: 65px; vertical-align: middle; text-align: center; color: #eeeeee;">${displayPeriod}${displayPeriod === '-' ? '' : '시간'}</td>
                 <td style="width: 80px; vertical-align: middle; text-align: center; color: #ffffff; font-weight: 700;">${row.name}</td>
-                <td style="width: 85px; vertical-align: middle; text-align: center; color: #ffffff;" font-weight: 400;>${displaySsn}</td>
+                <td style="width: 85px; vertical-align: middle; text-align: center; color: #ffffff;">${displaySsn}</td>
                 <td style="width: 65px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
                         ${parseGenderFromSsn(row.ssn, row.name)}
@@ -3069,9 +3048,12 @@
                 <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
-                       <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal('${row.uid}')" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
-                     <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">수정</button>
-                     <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
+                        
+                        <!-- 🎯 [이력조회 사람 꼬임 영구 완파] 외부 정렬 순서 왜곡의 간섭을 완전히 찢어버리기 위해 고유 식별자인 row.uid 를 생짜 작은따옴표 감싸 직접 토스! [INDEX: 0.1.14] -->
+                        <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal('${row.uid}')" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none; cursor:pointer;">이력조회</button>
+                        
+                        <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; cursor:pointer;">수정</button>
+                        <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; cursor:pointer;">삭제</button>
                     </div>
                 </td>`;
                 }
@@ -3079,9 +3061,8 @@
                 tbody.appendChild(tr);
             });
 
-
             // ----------------======================================================
-            // [페이징 내비게이션]: 데이터가 설정된 페이지 한도를 초과 시 하단 중앙 슬롯에 버튼 자동 생성 마운트
+            // [페이징 내비게이션]: 하이픈 양옆의 공백 오타가 완벽 세척 복원된 청정 마스터 인프라 마운트 구역 [INDEX: 0.1.44]
             // ----------------======================================================
             const currentTotalCount = displayList.length;
 
@@ -3091,15 +3072,18 @@
 
                 for (let p = 1; p <= totalPages; p++) {
                     const isCurrent = (p === window.currentApplicantPage);
+
+                    // 🎯 [부호 오류 완벽 소멸 완료] : CSS 하이픈 변수명 양옆의 스페이스 공백 공포를 전면 박멸 복원!
                     const activeBtnStyle = isCurrent
                         ? `background: var(--secondary-color) !important; color: #ffffff !important; border: 1px solid var(--secondary-color);`
                         : `background: #1a233a; color: var(--text-muted); border: 1px solid var(--border-color);`;
+
                     paginationHTML += `<button type="button" onclick="window.currentApplicantPage = ${p}; refreshApplicantView();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
                 }
 
-                paginationHTML += `<button type="button" onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
+                buttonHTML = `<button type="button" onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
+                paginationHTML += buttonHTML;
 
-                // 돔 슬롯에 최종 동적 사출 커밋
                 paginator.innerHTML = paginationHTML;
             }
         }

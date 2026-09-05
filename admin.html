@@ -3368,7 +3368,7 @@
 
             // 2. 성별 배지 분석(parseGenderFromSsn)용으로는 기호가 살아있는 원본 문자열(s)을 매칭시키고,
             // 데이터베이스 대장(ssn)에 안착시킬 때는 성별 기호와 서식이 완벽하게 증발한 순수 생년월일 날짜만 강제 격리 락인 처리합니다.
-            const finalizedSsn = getOnlyNumbers(s);
+            const finalizedSsn = getOnlyNumbers(s).slice(0, 6);
 
             // [오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
             const payload = {

@@ -1587,28 +1587,6 @@
             "시스템 관리자": { level: 10, textType: "system" }
         };
 
-        /**
-         * [추가] 콤마(,) 분리 안전 제어 및 나이 기반 생년월일 6자리 자동 복원 엔지니어링
-         */
-        function getCleanSixDigitSsn(ssnField, ageField) {
-            if (!ssnField) return "-";
-            let ssnStr = ssnField.toString().trim();
-            let pureNum = ssnStr.split(',')[0].replace(/[^0-9]/g, '');
-
-            if (ageField && pureNum.length < 6 && pureNum.length > 0) {
-                let ageMatch = ageField.toString().match(/\d+/);
-                if (ageMatch) {
-                    let age = parseInt(ageMatch, 10);
-                    let currentYear = new Date().getFullYear();
-                    let birthYear = (currentYear - age + 1).toString().slice(-2);
-                    pureNum = birthYear + pureNum.padStart(4, '0');
-                }
-            } else if (pureNum.length < 6 && pureNum.length > 0) {
-                pureNum = pureNum.padStart(6, '0');
-            }
-            return pureNum;
-        }
-
         //기존 소스의 무결성을 지키며 성별 엔진 결합
         function parseGenderFromSsn(ssnVal, nameVal) {
             if (nameVal === "홍길동") return "남";

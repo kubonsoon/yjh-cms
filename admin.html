@@ -2125,7 +2125,7 @@
             document.getElementById("modal-app-th").innerText = typeof formatTh === "function" ? formatTh(selectedUser.th || "-") : (selectedUser.th || "-");
 
             // 주민번호 가공 및 성별 추출 통합 락인 (예: 950505 (남)) [index: 0.1.29]
-            const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
+            const genderSign = selectedUser.gender || (typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정");
             document.getElementById("modal-app-ssn-gender").innerHTML = `${selectedUser.ssn || "-"} <span style="color: ${genderSign === '남' ? '#38bdf8' : '#fb7185'}; font-weight:800;">(${genderSign})</span>`;
 
             // 동의 현황 텍스트 가독성 배지 스타일 매칭

@@ -3975,6 +3975,7 @@
                         if (cleanTitle.includes("담당")) cleanTitle = cleanTitle.split("담당")[0];
                         fileExtractedTitle = cleanTitle.replace(/[:➔=]/g, '').trim();
                     }
+
                     if (!fileExtractedTitle) fileExtractedTitle = "대화 로수+에제";
 
                     // 2. [데이터 헤더 위치 및 생년월일 열 정밀 탐색 구역]
@@ -4034,19 +4035,19 @@
                         }
 
 
-                        // 🔒 [정밀 조립 안착 지점] 앞·뒤 괄호 짝 단선을 완벽하게 세척 정화한 진짜 정답 배치 맵!
-                        if (isDuplicateSecureToken !== true) {
+                        // 🎯 [정조준 일치] : 오빠 파일 원래 소스의 진짜 중복 검증 변수방 이름인 isDuplicate 로 완벽하게 복원 리포지셔닝!
+                        if (isDuplicate !== true) {
 
                             // 1. 문자열 상태에서 쉼표(,) 및 M, F 등의 성별 잔여물 노이즈를 먼저 완벽 세척 정화
                             let rawRowSsn = (extractedSsn || "").toString().trim();
                             let cleanSsnPart = rawRowSsn.replace(/[^0-9]/g, "").trim();
 
-                            // 2. 엑셀 변환 시 유실된 00년생 맨 앞자리 '0' 또는 '00' 강제 역산 복구 가드 (2026년 현재 기준 역산)
+                            // 2. 엑셀 변환 시 유실된 00년생 맨 앞자리 '0' 또는 '00' 강제 역산 복구 가드 (2026년 현재 기준 역산) [INDEX: 9, 37]
                             let rawRowAge = (typeof fileExtractedAge !== 'undefined' ? fileExtractedAge : "").toString().replace(/[^0-9]/g, "").trim();
                             let parsedRowAge = Number(rawRowAge) || 0;
 
                             if (cleanSsnPart.length < 6 && parsedRowAge > 0 && parsedRowAge <= 26) {
-                                let birthYear = (2026 - parsedRowAge).toString().substring(2, 4);
+                                let birthYear = (2026 - parsedRowAge).toString().substring(2, 4); // 2026년 기준 정밀 나이 역산 [INDEX: 37]
                                 let pureMonthDay = cleanSsnPart;
                                 if (pureMonthDay.length === 3) pureMonthDay = "0" + pureMonthDay;
                                 cleanSsnPart = birthYear + pureMonthDay;
@@ -4054,10 +4055,10 @@
                             else if (cleanSsnPart.length === 4) cleanSsnPart = "00" + cleanSsnPart;
                             else if (cleanSsnPart.length === 5) cleanSsnPart = "0" + cleanSsnPart;
 
-                            // 3. 정화 완료된 순정 6자리 생년월일 텍스트를 extractedSsn 변수방에 최종 재할당 마감
+                            // 3. 정화 완료된 순정 6자리 생년월일 텍스트를 extractedSsn 변수방에 최종 재할당 마감 [INDEX: 37]
                             extractedSsn = cleanSsnPart;
 
-                            // 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드 (ID, S_ID, 코드, 이니셜 제외 수립 완료)
+                            // 4. 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드 (순정 뼈대 100% 완벽 보존) [INDEX: 37]
                             dataStoreApplicant.unshift({
                                 uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                                 title: fileExtractedTitle,
@@ -4065,7 +4066,7 @@
                                 count: fileExtractedCount,
                                 period: fileExtractedPeriod,
                                 name: extractedName,
-                                ssn: extractedSsn, // 오직 생년월일 열 데이터만 안전하게 보존 안착
+                                ssn: extractedSsn, // 🎯 오직 생년월일 열 데이터만 안전하게 보존 안착 원형 보존!
                                 phone: extractedPhone,
                                 result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                                 isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
@@ -4074,13 +4075,7 @@
                             });
                             importCount++;
                         }
-
-                        // 🎯 [정산 리프레시 엔진 연동] : 업로드가 끝나면 화면 대시보드 리스트와 실시간 라이브 통계를 오차 없이 즉시 리로드!
-                        if (typeof commitToLocalStorage === "function") commitToLocalStorage();
-                        if (typeof refreshApplicantView === "function") refreshApplicantView();
-
-                        alert(`총 ${importCount}건의 대상자 임상 대장 데이터가 무결성 정착 수입 완료되었습니다.`);
-                    };
+                    }
 
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                     if (typeof commitToLocalStorage === "function") commitToLocalStorage();

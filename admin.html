@@ -4075,13 +4075,12 @@
                             importCount++;
                         }
 
-
                         // 🎯 [정산 리프레시 엔진 연동] : 업로드가 끝나면 화면 대시보드 리스트와 실시간 라이브 통계를 오차 없이 즉시 리로드!
                         if (typeof commitToLocalStorage === "function") commitToLocalStorage();
                         if (typeof refreshApplicantView === "function") refreshApplicantView();
 
                         alert(`총 ${importCount}건의 대상자 임상 대장 데이터가 무결성 정착 수입 완료되었습니다.`);
-                    }
+                    };
 
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                     if (typeof commitToLocalStorage === "function") commitToLocalStorage();

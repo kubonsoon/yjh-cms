@@ -999,6 +999,50 @@
             font-size: 11px;
             font-weight: 700;
         }
+
+        /* 🎯 [신규 추가]: 전체 통계 vs 개인 원장 독립 인쇄를 위한 고해상도 미디어 쿼리 방어 체인 */
+        @media print {
+
+            /* 1. 화면상의 모든 액션 버튼, 네비게이션 사이드바, 탑바는 인쇄에서 제외 */
+            .sidebar,
+            .dashboard-top-bar,
+            button,
+            select,
+            input,
+            .admin-top-btn-group {
+                display: none !important;
+            }
+
+            .main-content {
+                padding: 0 !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+
+            /* 2. 상단 통계만 인쇄할 때 (하단 원장 구역 숨김) */
+            body.print-summary-mode #reportView>div:nth-child(2) {
+                display: none !important;
+            }
+
+            /* 3. 하단 원장만 인쇄할 때 (상단 통계판 구역 숨김) */
+            body.print-ledger-mode #reportView>div:nth-child(1) {
+                display: none !important;
+            }
+
+            /* 4. 인쇄 시 다크모드 배경을 강제로 화이트로 반전시켜 토너 절약 및 가독성 확보 */
+            .content-section {
+                background: #ffffff !important;
+                border: none !important;
+                box-shadow: none !important;
+                color: #000000 !important;
+            }
+
+            #report-master-ledger-viewport div {
+                background: #ffffff !important;
+                color: #000000 !important;
+                border-color: #cbd5e1 !important;
+            }
+        }
     </style>
 
 <body>
@@ -1528,6 +1572,18 @@
                         <option value="MONTH">월 단위 통계</option>
                         <option value="WEEK">주간 단위 통계</option>
                     </select>
+
+                    <!-- 🎯 [신규 추가]: 상단 전체 통계 전용 인쇄 및 PDF 버튼 그룹 (gap: 6px 적용) -->
+                    <div style="display: flex; gap: 6px;">
+                        <button onclick="executeReportPrint('summary')" type="button"
+                            style="background: rgba(14, 165, 233, 0.15); color: var(--secondary-color); border: 1px solid var(--secondary-color); padding: 0 12px; border-radius: 6px; font-weight: 700; font-size: 12.5px; height: 34px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                            <i class="fa-solid fa-print"></i> 통합 보고서 인쇄
+                        </button>
+                        <button onclick="executeReportPDF('summary')" type="button"
+                            style="background: #1e293b; color: var(--text-color); border: 1px solid var(--border-color); padding: 0 12px; border-radius: 6px; font-weight: 700; font-size: 12.5px; height: 34px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                            <i class="fa-solid fa-file-pdf"></i> PDF 저장
+                        </button>
+                    </div>
                 </div>
 
                 <!-- 2026년 기준 실시간 연산 카드가 사출되어 안착할 현황판 슬롯 -->
@@ -1552,6 +1608,17 @@
                                 style="width: 100%; height: 36px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 13px; font-weight: 700; outline: none;">
                             <button type="button" onclick="searchApplicantMasterLedger()"
                                 style="background: var(--secondary-color); color: #ffffff; padding: 0 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; height: 36px; white-space: nowrap; font-weight: 800;">조회</button>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="executeReportPrint('ledger')" type="button"
+                                    style="background: rgba(74, 222, 128, 0.15); color: var(--success-color); border: 1px solid var(--success-color); padding: 0 14px; border-radius: 6px; font-weight: 700; font-size: 13px; height: 36px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                                    <i class="fa-solid fa-print"></i> 개인 원장 인쇄
+                                </button>
+                                <button onclick="executeReportPDF('ledger')" type="button"
+                                    style="background: #1e293b; color: var(--text-color); border: 1px solid var(--border-color); padding: 0 14px; border-radius: 6px; font-weight: 700; font-size: 13px; height: 36px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                                    <i class="fa-solid fa-file-pdf"></i> PDF 저장
+                                </button>
+                            </div>
+
                         </div>
                     </div>
 
@@ -7806,11 +7873,6 @@
         }
 
 
-        // ==============================================================================================
-        // 💡 대표님 확인 사항: 이 중괄호(}) 아래쪽에 옛날 구버전 ssn 가동 수식이 중복으로 또 남아있다면 
-        // 아래의 엔터키 연동 구문 직전까지 통째로 다 지워버리셔야 7738라인 에러가 영구 종결됩니다.
-        // ==============================================================================================
-
         // 1. [보고서 검색 키보드 엔터키 연동 레이어]
         (function () {
             const searchInputInputBox = document.getElementById("report-search-keyword");
@@ -7835,6 +7897,52 @@
                     if (typeof calculateReportMasterStats === "function") calculateReportMasterStats();
                 }
             };
+        }
+
+
+        // =========================================================================
+        // [SCRIPT] 추가 위치: 스크립트 구역 내부, 기존 보고서 관련 함수 정의 부근
+        // =========================================================================
+
+        /**
+         * 🎯 [독립형 보고서 인쇄 제어 엔진]
+         * @param {string} mode - 'summary' (전체 통계) 또는 'ledger' (개인별 원장)
+         */
+        function executeReportPrint(mode) {
+            if (mode === 'ledger') {
+                // 개인 원장의 경우 현재 대상자가 조회되어 있는지 확인 예외처리 방어
+                const viewport = document.getElementById('report-master-ledger-viewport');
+                if (!viewport || viewport.innerText.includes('상단 검색창에')) {
+                    alert('인쇄할 대상자를 먼저 조회해 주시기 바랍니다.');
+                    return;
+                }
+                document.body.classList.add('print-ledger-mode');
+            } else {
+                document.body.classList.add('print-summary-mode');
+            }
+
+            // 브라우저 고해상도 인쇄 스트림 실행
+            window.print();
+
+            // 인쇄창 종료 후 백그라운드 클래스 청소하여 마스터 무결성 상태 복구
+            document.body.classList.remove('print-summary-mode', 'print-ledger-mode');
+        }
+
+        /**
+         * 🎯 [호환성 최적화형 PDF 내장 스트림 유도 엔진]
+         * @param {string} mode - 'summary' (전체 통계) 또는 'ledger' (개인별 원장)
+         */
+        function executeReportPDF(mode) {
+            if (mode === 'ledger') {
+                const viewport = document.getElementById('report-master-ledger-viewport');
+                if (!viewport || viewport.innerText.includes('상단 검색창에')) {
+                    alert('PDF로 저장할 대상자를 먼저 조회해 주시기 바랍니다.');
+                    return;
+                }
+            }
+
+            alert('인쇄 창이 열리면 [대상 대상]을 "PDF로 저장(Save as PDF)"으로 선택하신 후 저장 단추를 눌러주십시오.');
+            executeReportPrint(mode);
         }
 
 

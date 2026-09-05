@@ -1576,27 +1576,30 @@
 
         //기존 소스의 무결성을 지키며 성별 엔진 결합
         function parseGenderFromSsn(ssnVal, nameVal) {
-            if (nameVal === "홍길동") return "남";
-            if (nameVal === "강남구") return "남";
-            if (nameVal === "진재영" || nameVal === "진재영") return "여";
-
             if (!ssnVal) return "미정";
+
+            // 문자열 공백 제거 및 대문자화
             const cleanSsn = ssnVal.toString().trim().toUpperCase();
 
-            // 생년월일 자리수와 상관없이 문자열에 M, F, 숫자가 포함되어 있는지 끝자리 기준으로 정밀 추적
-            if (cleanSsn.includes("-M") || cleanSsn.endsWith("M") || cleanSsn.endsWith("1") || cleanSsn.endsWith("3")) {
-                return "남";
-            }
-            if (cleanSsn.includes("-F") || cleanSsn.endsWith("F") || cleanSsn.endsWith("2") || cleanSsn.endsWith("4")) {
-                return "여";
+            // 1. 하이픈(-) 기준으로 뒷자리가 입력되었는지 확인 후 판별
+            if (cleanSsn.includes("-")) {
+                const afterHyphen = cleanSsn.split("-")[1];
+                if (afterHyphen && afterHyphen.length > 0) {
+                    const genderChar = afterHyphen.charAt(0); // 하이픈 바로 뒷글자 추출
+                    if (["1", "3", "M"].includes(genderChar)) return "남";
+                    if (["2", "4", "F"].includes(genderChar)) return "여";
+                }
             }
 
-            // 하이픈 제거 후 일반 주민번호 패턴 포맷 체크 (폴백)
-            const pureData = cleanSsn.replace(/[^0-9AFM]/g, '');
-            if (pureData.length >= 7) {
-                const targetChar = pureData.charAt(pureData.length - 1); // 맨 끝 성별 식별 기호 추출
-                if (targetChar === "1" || targetChar === "3" || targetChar === "M") return "남";
-                if (targetChar === "2" || targetChar === "4" || targetChar === "F") return "여";
+            // 2. 하이픈이 없거나 단일 문자로 끝나는 패턴 방어 (기존 폴백 유지)
+            if (cleanSsn.endsWith("M") || cleanSsn.endsWith("1") || cleanSsn.endsWith("3")) return "남";
+            if (cleanSsn.endsWith("F") || cleanSsn.endsWith("2") || cleanSsn.endsWith("4")) return "여";
+
+            // 3. 만약 8명 초기 프리셋처럼 성별 코드가 없는 6자리 생년월일만 있다면, 
+            // 기존 가상 DB에 세팅된 디폴트 성별 속성을 역추적하기 위해 이름 매칭 (최후의 보루)
+            if (cleanSsn.replace(/[^0-9]/g, '').length === 6) {
+                if (["홍길동", "강남구", "김정환", "이정용"].includes(nameVal)) return "남";
+                if (["진재영", "정은영", "김태희", "김수지"].includes(nameVal)) return "여";
             }
 
             return "미정";

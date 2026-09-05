@@ -2123,25 +2123,43 @@
 
 
         /**
- * 피험자 개인 이력 마스터 대장 오픈 및 데이터 실시간 바인딩 함수
- * @param {number} index - 현재 선택한 데이터스토어 인덱스 번호
- */
+        * 피험자 개인 이력 마스터 대장 오픈 및 데이터 실시간 바인딩 함수
+        * @param {number} index - 현재 선택한 데이터스토어 인덱스 번호
+        */
         function openAppHistoryDetailModal(index) {
-            // 1. 메모리 컨텍스트 최신 데이터 동기화 락인 [index: 0.1.30]
+            // 1. 메모리 컨텍스트 최신 데이터 동기화 락인
             let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
                 applicantDB = dataStoreApplicant;
             }
 
-            const selectedUser = applicantDB[index];
-            if (!selectedUser) return alert("오류: 대상자 정보를 역추적할 수 없습니다.");
+            // ==============================================================================================
+            // [호출 단선 완전 정화]: 가변 인덱스 마찰을 원천 차단하고 고유 절대 키값 정밀 매칭 방식으로 정정
+            // ==============================================================================================
+            let selectedUser = null;
 
-            // 2. 기본 인적 사양 락인 바인딩 [index: 0.1.30]
+            // 넘어온 인자값이 고유 식별자 키(UID) 패턴이거나 가변 정렬 컨텍스트인 경우 전수 검증 스캔 수행
+            if (index !== undefined && index !== null && (typeof index === "string" || index > 500)) {
+                selectedUser = applicantDB.find(u => u.uid.toString() === index.toString());
+            } else {
+                selectedUser = applicantDB[index];
+            }
+
+            if (!selectedUser) {
+                // 인라인 수정 모드 활성화 시점의 백업 참조 구제 장치 가동
+                if (typeof currentAppEditingIndex !== 'undefined' && applicantDB[currentAppEditingIndex]) {
+                    selectedUser = applicantDB[currentAppEditingIndex];
+                } else {
+                    return alert("오류: 대상자 정보를 역추적할 수 없습니다.");
+                }
+            }
+
+            // 2. 기본 인적 사양 락인 바인딩
             document.getElementById("modal-app-name").innerText = selectedUser.name || "-";
             document.getElementById("modal-app-phone").innerText = typeof formatPhone === "function" ? formatPhone(selectedUser.phone || "-") : (selectedUser.phone || "-");
             document.getElementById("modal-app-th").innerText = typeof formatTh === "function" ? formatTh(selectedUser.th || "-") : (selectedUser.th || "-");
 
-            // 주민번호 가공 및 성별 추출 통합 락인 (예: 950505 (남)) [index: 0.1.29]
+            // 주민번호 가공 및 성별 추출 통합 락인
             const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : (selectedUser.gender || "미정");
 
             // 주민번호 가공 및 성별 추출 통합 락인 (기존 원본 가독성 배지 마크업 및 네온 테마 스타일 100% 보존)

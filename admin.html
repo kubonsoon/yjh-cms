@@ -999,6 +999,19 @@
             font-size: 11px;
             font-weight: 700;
         }
+
+        /* 대상자 마스터 테이블 내 생년월일 및 성별 열 정밀 고대비 가독성 부여 */
+        .ctms-master-table td.ssn-cell {
+            font-weight: 700;
+            color: #ffffff !important;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .ctms-master-table td.gender-cell {
+            font-weight: 800;
+            text-align: center;
+        }
     </style>
 
 <body>
@@ -1573,6 +1586,28 @@
             "연구원장": { level: 8, textType: "normal" },
             "시스템 관리자": { level: 10, textType: "system" }
         };
+
+        /**
+         * [추가] 콤마(,) 분리 안전 제어 및 나이 기반 생년월일 6자리 자동 복원 엔지니어링
+         */
+        function getCleanSixDigitSsn(ssnField, ageField) {
+            if (!ssnField) return "-";
+            let ssnStr = ssnField.toString().trim();
+            let pureNum = ssnStr.split(',')[0].replace(/[^0-9]/g, '');
+
+            if (ageField && pureNum.length < 6 && pureNum.length > 0) {
+                let ageMatch = ageField.toString().match(/\d+/);
+                if (ageMatch) {
+                    let age = parseInt(ageMatch, 10);
+                    let currentYear = new Date().getFullYear();
+                    let birthYear = (currentYear - age + 1).toString().slice(-2);
+                    pureNum = birthYear + pureNum.padStart(4, '0');
+                }
+            } else if (pureNum.length < 6 && pureNum.length > 0) {
+                pureNum = pureNum.padStart(6, '0');
+            }
+            return pureNum;
+        }
 
         //기존 소스의 무결성을 지키며 성별 엔진 결합
         function parseGenderFromSsn(ssnVal, nameVal) {
@@ -2976,13 +3011,14 @@
         <td style="width: 80px; vertical-align: middle;">
             <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
         </td>
-        <td style="width: 85px; vertical-align: middle;">
+       <td style="width: 85px; vertical-align: middle;">
             <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${displaySsn || ''}" style="text-align:center; background: var(--card-color) !important;">
         </td>
         </td>
         <td style="width: 65px; vertical-align: middle; text-align: center;">
-            <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                ${parseGenderFromSsn(row.ssn, row.name)}
+            <!-- 💡 [수정] 무거운 함수 재호출 대신, 콤마 정제가 끝난 genderSign 변수로 2곳만 치환 -->
+            <span class="lvl-badge ${genderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
+                ${genderSign}
             </span>
         </td>
         <td style="width: 125px; vertical-align: middle;">

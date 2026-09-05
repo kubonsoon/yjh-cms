@@ -1708,57 +1708,57 @@
                 // 🌟 [캐시 킬러 가드]: 브라우저 기억장치에 과거 흔적이 이미 저장되어 있어도 
                 // 접속하는 즉시 강제로 대표님이 명하신 차수별 정산 상태로 완벽히 덮어써서 교정합니다. (원본 100% 보존)
                 dataStoreApplicant.forEach(row => {
-                    // 1. 홍길동 (애드파마) -> 디폴트: 접수
-                    if (row.name === "홍길동" && row.title.includes("애드파마")) {
+                    // 1. 홍길동 (애드파마 로잘탄+로수+에제) -> 디폴트: 접수
+                    if (row.name === "홍길동" && row.title === "애드파마 로잘탄+로수+에제") {
                         if (row.result !== "접수" || row.payStatus1 !== "접수" || row.payStatus2 !== "대기" || !row.gender) {
-                            row.gender = "남"; // 💡 [수정]: if문 안쪽으로 이동하고, 성별이 없을 때도 갱신되도록 조건 추가
+                            row.gender = "남";
                             row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-                    // 2. 강남구 (신일제약) -> 디폴트: 처리중
-                    else if (row.name === "강남구" && row.title.includes("신일제약")) {
+                    // 2. 강남구 (신일제약 사쿠+발사) -> 디폴트: 처리중
+                    else if (row.name === "강남구" && row.title === "신일제약 사쿠+발사") {
                         if (row.result !== "처리중" || row.payStatus1 !== "처리중" || row.payStatus2 !== "대기" || !row.gender) {
-                            row.gender = "남"; // 💡 [수정]
+                            row.gender = "남";
                             row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-                    // 3. 진재영 (경동제약) -> 디폴트: 완료
-                    else if (row.name === "진재영" && row.title.includes("경동제약")) {
+                    // 3. 진재영 (경동제약 식후 임상시험) -> 디폴트: 완료
+                    else if (row.name === "진재영" && row.title === "경동제약 식후 임상시험") {
                         if (row.result !== "완료" || row.payStatus1 !== "완료" || row.payStatus2 !== "대기" || !row.gender) {
-                            row.gender = "여"; // 💡 [수정]
+                            row.gender = "여";
                             row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-                    // 4. [수정]: 김정환 (명인제약 -> [생동] 명인제약 아고멜라틴 전체 글자 매칭 보정)
-                    else if (row.name === "김정환" && (row.title.includes("명인제약") || row.title.includes("아고멜라틴"))) {
+                    // 4. 김정환 ([생동] 명인제약 아고멜라틴) -> 디폴트: 접수
+                    else if (row.name === "김정환" && row.title === "[생동] 명인제약 아고멜라틴") {
                         if (row.result !== "접수" || row.payStatus1 !== "접수" || !row.gender) {
                             row.gender = "남";
                             row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-                    // 5. [수정]: 정은영 (대우제약 -> 대우제약 피타+에제 전체 글자 매칭 보정)
-                    else if (row.name === "정은영" && (row.title.includes("대우제약") || row.title.includes("피타"))) {
+                    // 5. 정은영 (대우제약 피타+에제) -> 디폴트: 처리중
+                    else if (row.name === "정은영" && row.title === "대우제약 피타+에제") {
                         if (row.result !== "처리중" || row.payStatus1 !== "처리중" || !row.gender) {
                             row.gender = "여";
                             row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-                    // 6. [수정]: 이정용 (삼진제약 -> 삼진제약 팔보시클립 전체 글자 매칭 보정)
-                    else if (row.name === "이정용" && (row.title.includes("삼진제약") || row.title.includes("팔보시클립"))) {
+                    // 6. 이정용 (삼진제약 팔보시클립) -> 디폴트: 완료
+                    else if (row.name === "이정용" && row.title === "삼진제약 팔보시클립") {
                         if (row.result !== "완료" || row.payStatus1 !== "완료" || !row.gender) {
                             row.gender = "남";
                             row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-                    // 7. [수정]: 김태희 (파마사이언스 -> [임상] 파마사이언스 룩소리틴 전체 글자 매칭 보정)
-                    else if (row.name === "김태희" && (row.title.includes("파마사이언스") || row.title.includes("룩소리틴"))) {
+                    // 7. 김태희 ([임상] 파마사이언스 룩소리틴) -> 디폴트: 처리중
+                    else if (row.name === "김태희" && row.title === "[임상] 파마사이언스 룩소리틴") {
                         if (row.result !== "처리중" || row.payStatus1 !== "처리중" || !row.gender) {
                             row.gender = "여";
                             row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                         }
                     }
-                    // 8. [수정]: 김수지 (하나제약 -> [생동] 하나제약 로수+에제 전체 글자 매칭 보정)
-                    else if (row.name === "김수지" && (row.title.includes("하나제약") || row.title.includes("로수"))) {
+                    // 8. 김수지 ([생동] 하나제약 로수+에제) -> 디폴트: 접수
+                    else if (row.name === "김수지" && row.title === "[생동] 하나제약 로수+에제") {
                         if (row.result !== "접수" || row.payStatus1 !== "접수" || !row.gender) {
                             row.gender = "여";
                             row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;

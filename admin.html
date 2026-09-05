@@ -1288,12 +1288,12 @@
                 </div>
 
                 <!-- ==========================================================================
-                    📊 [대상자 관리 상단 통합 패널]: 통계 현황판과 파일 업로드를 가로 수평 배치
+                    [대상자 관리 상단 통합 패널]: 통계 현황판과 파일 업로드를 가로 수평 배치
                     ========================================================================== -->
                 <div class="dashboard-filter-stats-container"
                     style="width: 100%; margin-top: 20px; margin-bottom: 25px;">
 
-                    <!-- 🎯 [1층] 필터 컨트롤러 + 파일 업로드 버튼 수평 통합 라인 -->
+                    <!-- [1층] 필터 컨트롤러 + 파일 업로드 버튼 수평 통합 라인 -->
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; background: var(--card-color); border: 1px solid var(--border-color); padding: 12px 20px; border-radius: 10px; margin-bottom: 16px; width: 100%; gap: 20px;">
 
@@ -1314,7 +1314,7 @@
                             </select>
                         </div>
 
-                        <!-- 🌟 우측 구역: 셀렉트 박스 옆으로 바짝 붙여 우측 정렬한 [대상자 파일 업로드 버튼] -->
+                        <!-- 우측 구역: 셀렉트 박스 옆으로 바짝 붙여 우측 정렬한 [대상자 파일 업로드 버튼] -->
                         <div class="upload-zone" onclick="document.getElementById('fileParser').click()"
                             style="border: 1px dashed #10b981; padding: 6px 16px; text-align: center; background-color: rgba(16, 185, 129, 0.04); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 10px; margin-top: 0; height: 36px; white-space: nowrap;">
                             <strong
@@ -1333,7 +1333,7 @@
                         </div>
                     </div>
 
-                    <!-- 🎯 [2층] 4단계 라이브 정산 통계 스코어보드 현황판 (기존 ID 스펙 100% 보존하며 시원하게 가로 100% 확장) -->
+                    <!-- [2층] 4단계 라이브 정산 통계 스코어보드 현황판 (기존 ID 스펙 100% 보존하며 시원하게 가로 100% 확장) -->
                     <div class="dashboard-stats-row" style="display: flex; gap: 14px; width: 100%;">
                         <div class="stat-card"
                             style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px;">
@@ -1536,37 +1536,40 @@
                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; width: 100%;">
                     <!-- 실시간 통계 카드가 자바스크립트 엔진에 의해 동적 바인딩됩니다 -->
                 </div>
-            </div>
 
-            <!-- 🪪 [하단 2구역]: 대상자 마스터 생애 주기 원장 카드 및 종합 검색 관제탑 -->
-            <div
-                style="display: flex; flex-direction: column; background: var(--card-color); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; width: 100%; gap: 20px;">
+
+                <!-- 🪪 [하단 2구역]: 대상자 마스터 생애 주기 원장 카드 및 종합 검색 관제탑 -->
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; gap: 16px;">
-                    <span
-                        style="font-size: 14px; font-weight: 800; color: var(--warning-color); text-transform: uppercase; white-space: nowrap;">
-                        <i class="fa-solid fa-id-card"></i> 대상자별 생애 주기 마스터 통합 원장 조회
-                    </span>
-                    <!-- 동적 검색 연동창 개설 -->
-                    <div style="display: flex; gap: 8px; align-items: center; width: 100%; max-width: 360px;">
-                        <input type="text" id="report-search-keyword" placeholder="성명 또는 생년월일 6자리를 입력하세요"
-                            style="width: 100%; height: 36px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 13px; font-weight: 700; outline: none;">
-                        <button type="button" onclick="searchApplicantMasterLedger()"
-                            style="background: var(--secondary-color); color: #ffffff; padding: 0 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; height: 36px; white-space: nowrap; font-weight: 800;">조회</button>
+                    style="display: flex; flex-direction: column; background: var(--card-color); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; width: 100%; gap: 20px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; gap: 16px;">
+                        <span
+                            style="font-size: 14px; font-weight: 800; color: var(--warning-color); text-transform: uppercase; white-space: nowrap;">
+                            <i class="fa-solid fa-id-card"></i> 대상자별 생애 주기 마스터 통합 원장 조회
+                        </span>
+                        <!-- 동적 검색 연동창 개설 -->
+                        <div style="display: flex; gap: 8px; align-items: center; width: 100%; max-width: 360px;">
+                            <input type="text" id="report-search-keyword" placeholder="성명 또는 생년월일 6자리를 입력하세요"
+                                style="width: 100%; height: 36px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 13px; font-weight: 700; outline: none;">
+                            <button type="button" onclick="searchApplicantMasterLedger()"
+                                style="background: var(--secondary-color); color: #ffffff; padding: 0 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; height: 36px; white-space: nowrap; font-weight: 800;">조회</button>
+                        </div>
+                    </div>
+
+                    <!-- 🪪 이력서 양식 구조의 개인 마스터 원장 시트가 표출되는 최종 타겟 웅덩이 -->
+                    <div id="report-master-ledger-viewport" style="width: 100%;">
+                        <div
+                            style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; font-weight: 700; background: rgba(0,0,0,0.1); border-radius: 8px; border: 1px dashed var(--border-color);">
+                            <i class="fa-solid fa-magnifying-glass"
+                                style="font-size: 20px; margin-bottom: 10px; display: block; color: var(--text-muted);"></i>
+                            상단 검색창에 대상자의 성명 또는 생년월일을 입력하신 뒤 [조회] 단추를 누르면,<br>신분증 사본 기반 이력서 형태의 생애 주기 종합 원장 대장이 실시간 역산되어
+                            표출됩니다.
+                        </div>
                     </div>
                 </div>
 
-                <!-- 🪪 이력서 양식 구조의 개인 마스터 원장 시트가 표출되는 최종 타겟 웅덩이 -->
-                <div id="report-master-ledger-viewport" style="width: 100%;">
-                    <div
-                        style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; font-weight: 700; background: rgba(0,0,0,0.1); border-radius: 8px; border: 1px dashed var(--border-color);">
-                        <i class="fa-solid fa-magnifying-glass"
-                            style="font-size: 20px; margin-bottom: 10px; display: block; color: var(--text-muted);"></i>
-                        상단 검색창에 대상자의 성명 또는 생년월일을 입력하신 뒤 [조회] 단추를 누르면,<br>신분증 사본 기반 이력서 형태의 생애 주기 종합 원장 대장이 실시간 역산되어
-                        표출됩니다.
-                    </div>
-                </div>
             </div>
+
 
         </div>
     </div>

@@ -5324,11 +5324,14 @@
                 return;
             }
 
-            // 🎯 [전수 역추적 스캔]: 성명과 생년월일이 일치하는 모든 참여 레코드를 필터링 추출
+            // [전수 역추적 스캔]: 성명과 생년월일이 일치하는 모든 참여 레코드를 필터링 추출
+            let cleanTargetSsn = targetSsn.replace(/[^0-9]/g, '').substring(0, 6);
+
+            // 성명과 순수 6자리 생년월일이 완벽히 일치하는 동일인의 이력만 정밀 스캔
             let matchedHistoryList = adminApplicantDB.filter(item => {
                 const itemCleanName = (item.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
-                const itemSsn = item.ssn ? item.ssn.trim() : "";
-                return itemCleanName === cleanName && itemSsn === targetSsn;
+                const itemCleanSsn = (item.ssn || '').toString().replace(/[^0-9]/g, '').substring(0, 6);
+                return itemCleanName === cleanName && itemCleanSsn === cleanTargetSsn;
             }).reverse();
 
             // [정밀 정제 변환기 장착]: 공백, 하이픈(-), 플러스(+) 등 모든 기호 오차를 원천 무력화하는 핵심 필터

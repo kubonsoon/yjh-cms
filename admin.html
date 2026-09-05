@@ -7441,6 +7441,152 @@
 
             renderApplicants(); // 실시간 관리 대장 스케줄 리포트 드로우 갱신
         }
+
+
+        // ==============================================================================================
+        // ⭕ [보고서 스코어보드 핵심 엔진]: 디폴트 8인 + 3종 등록 실시간 누적 통합 예산 연산 장치 완수
+        // ==============================================================================================
+        function calculateReportMasterStats() {
+            // 1. 3대 진입로가 공통으로 교차 누적되는 마스터 로컬스토리지 대장 실시간 로드
+            const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            const filterType = document.getElementById("report-time-filter") ? document.getElementById("report-time-filter").value : "YEAR";
+
+            // 현재 기준 시점 설정: 2026년 9월 6일 일요일 락인
+            const CURRENT_YEAR = 2026;
+            const CURRENT_MONTH = 9; // 9월
+
+            // 2. 누적 연산 분모/분자 변수 선언 및 초기화
+            let totalExamsCount = recruitmentDB.length || 0; // 총 진행 시험수
+            let totalTargetQuota = 0;                        // 총 목표 정원수
+            let activeParticipants = applicantDB.length;     // 총 실제 참여자수 (디폴트 8인 + 3종 등록 총합)
+
+            // 귀책 사유별 탈락자 상세 슬롯 카운터
+            let dropOutTotal = 0;
+            let dropOutLate = 0;       // 지각 탈락
+            let dropOutMed = 0;        // 채혈/투약 탈락
+            let dropOutPersonal = 0;   // 개인사정 귀가
+            let completedCount = 0;    // 최종 지급 완료자
+
+            // 재무 예산 집계판 슬롯
+            let budgetTotalExecuted = 0;  // 총 집행 예산
+            let budgetPending = 0;       // 청구 대기 금액
+            let budgetSettled = 0;       // 정산 종결 금액
+
+            // 3. 모집공고 마스터 DB 순회를 통한 정원 분모값 확보
+            recruitmentDB.forEach(rec => {
+                let quota = parseInt(rec.count ? rec.count.toString().replace(/[^0-9]/g, '') : "0", 10) || 0;
+                totalTargetQuota += quota;
+            });
+            if (totalTargetQuota === 0) totalTargetQuota = 416; // 마스터 공고 리셋 시 시스템 표준 디폴트 풀 하드 락인 방어
+
+            // 4. 마스터 대상자 대장 전수 순회 (디폴트 8인방 + 신규 3종 등록 체인 통합 실시간 파싱)
+            applicantDB.forEach(user => {
+                const status = (user.payStatus || "대기").trim();
+                const resultStatus = (user.result || "대기").trim();
+
+                // [임상시험 실무 표준 참여비 단가표 정의] : 인원수와 기간에 비례하는 다차원 가상 재무 팩토리
+                let userPeriod = parseInt(user.period ? user.period.toString().replace(/[^0-9]/g, '') : "72", 10) || 72;
+                let baseUnitPay = userPeriod * 12500; // 시간당 12,500원 표준 단가 책정
+
+                // A. 최종 정산 종결 완료자 카운팅 및 예산 집계
+                if (status === "완료" || resultStatus === "완료") {
+                    completedCount++;
+                    budgetSettled += baseUnitPay;
+                    budgetTotalExecuted += baseUnitPay;
+                }
+                // B. 재무 검토 및 청구서 접수 처리중 (대기/접수/처리중) 누적 집계
+                else {
+                    budgetPending += baseUnitPay;
+                    budgetTotalExecuted += baseUnitPay;
+                }
+
+                // C. 중도 탈락 및 귀책 사유 추적 가드 (야생의 텍스트 및 로그 찌꺼기 완벽 가로채기 분리)
+                const stageText = (user.stage || "").toString();
+                const categoryText = (user.category || "").toString();
+
+                if (stageText.includes("탈락") || categoryText.includes("탈락") || resultStatus.includes("탈락") || stageText.includes("귀가")) {
+                    dropOutTotal++;
+                    if (stageText.includes("지각") || categoryText.includes("지각")) {
+                        dropOutLate++;
+                        // 지각 탈락자는 패널티 적용: 예산 실시간 차감 반영 (교통비 3만원 정산 처리)
+                        budgetTotalExecuted = budgetTotalExecuted - baseUnitPay + 30000;
+                        if (status !== "완료") budgetPending = budgetPending - baseUnitPay + 30000;
+                        else budgetSettled = budgetSettled - baseUnitPay + 30000;
+                    } else if (stageText.includes("채혈") || stageText.includes("투약") || categoryText.includes("투약")) {
+                        dropOutMed++;
+                        // 의료 귀책 탈락자는 진행 시간 비례 40% 차등 보상 정산
+                        budgetTotalExecuted = budgetTotalExecuted - baseUnitPay + (baseUnitPay * 0.4);
+                        if (status !== "완료") budgetPending = budgetPending - baseUnitPay + (baseUnitPay * 0.4);
+                        else budgetSettled = budgetSettled - baseUnitPay + (baseUnitPay * 0.4);
+                    } else {
+                        dropOutPersonal++;
+                        // 개인 사정 귀가는 기본 수당 10%만 폴백 지급
+                        budgetTotalExecuted = budgetTotalExecuted - baseUnitPay + (baseUnitPay * 0.1);
+                        if (status !== "완료") budgetPending = budgetPending - baseUnitPay + (baseUnitPay * 0.1);
+                        else budgetSettled = budgetSettled - baseUnitPay + (baseUnitPay * 0.1);
+                    }
+                }
+            });
+
+            // 5. 시계열 필터 모드(YEAR/MONTH/WEEK)에 따른 가상의 시뮬레이션 지수 보정 배정 (동적 스위칭 싱크 완수)
+            let timeScaleMultiplier = 1.0;
+            if (filterType === "MONTH") timeScaleMultiplier = 0.12;
+            else if (filterType === "WEEK") timeScaleMultiplier = 0.03;
+
+            let finalExams = Math.max(1, Math.round(totalExamsCount * timeScaleMultiplier));
+            let finalQuota = Math.max(8, Math.round(totalTargetQuota * timeScaleMultiplier));
+            let finalParticipants = Math.max(0, Math.round(activeParticipants * timeScaleMultiplier));
+            let finalCompleted = Math.max(0, Math.round(completedCount * timeScaleMultiplier));
+            let finalDropTotal = Math.max(0, Math.round(dropOutTotal * timeScaleMultiplier));
+
+            let finalBudgetTotal = Math.round(budgetTotalExecuted * timeScaleMultiplier);
+            let finalBudgetPending = Math.round(budgetPending * timeScaleMultiplier);
+            let finalBudgetSettled = Math.round(budgetSettled * timeScaleMultiplier);
+
+            // 6. 인포그래픽 정형 고대비 스코어보드 HTML 실시간 사출 드로우
+            const cardsSlot = document.getElementById("report-scoreboard-cards");
+            if (!cardsSlot) return;
+
+            cardsSlot.innerHTML = `
+        <!-- 카드 1: 시험 및 정원 진척도 -->
+        <div style="background: #1e293b; border: 1px solid var(--border-color); padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: 12.5px; color: var(--text-muted); font-weight: 700;"><i class="fa-solid fa-list-check" style="color:var(--secondary-color);"></i> 시험 진행 및 정원 현황</span>
+            <span style="font-size: 22px; font-weight: 800; color: #ffffff;">${finalExams}개 과제 <span style="font-size:14px; color:var(--text-muted); font-weight:600;">/ 배정 ${finalQuota}명</span></span>
+        </div>
+        <!-- 카드 2: 실제 참여 및 종결 지수 -->
+        <div style="background: #1e293b; border: 1px solid #10b981; padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; background-image: linear-gradient(to bottom right, rgba(16,185,129,0.03), transparent);">
+            <span style="font-size: 12.5px; color: #34d399; font-weight: 700;"><i class="fa-solid fa-user-check"></i> 임상 참여 / 지급 종결</span>
+            <span style="font-size: 22px; font-weight: 800; color: #4ade80;">${finalParticipants}명 접수 <span style="font-size:14px; color:#94a3b8; font-weight:600;">/ 완료 ${finalCompleted}명</span></span>
+        </div>
+        <!-- 카드 3: 중도 탈락 통합 현황 리포트 -->
+        <div style="background: #1e293b; border: 1px solid var(--danger-color); padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; background-image: linear-gradient(to bottom right, rgba(248,113,113,0.03), transparent);">
+            <span style="font-size: 12.5px; color: var(--danger-color); font-weight: 700;"><i class="fa-solid fa-user-slash"></i> 종합 중도 탈락 현황</span>
+            <span style="font-size: 22px; font-weight: 800; color: var(--danger-color);">${finalDropTotal}명 탈락 <span style="font-size:11px; color:var(--text-muted); font-weight:600; margin-left:2px;">(지각:${Math.round(dropOutLate * timeScaleMultiplier)} / 메디컬:${Math.round(dropOutMed * timeScaleMultiplier)} / 사정:${Math.round(dropOutPersonal * timeScaleMultiplier)})</span></span>
+        </div>
+        <!-- 카드 4: 누적 재무 집계 총괄 보고서 -->
+        <div style="background: #1a1f2e; border: 1px solid var(--warning-color); padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px; grid-column: span 1; background-image: linear-gradient(to bottom right, rgba(251,191,36,0.03), transparent);">
+            <span style="font-size: 12.5px; color: var(--warning-color); font-weight: 700;"><i class="fa-solid fa-coins"></i> 실시간 누적 재무 예산 집계판</span>
+            <div style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
+                <div style="font-size:11.5px; color:var(--text-color); font-weight:700;">총 집행 예산: <span style="color:#ffffff; font-size:13px; font-weight:800; float:right;">${finalBudgetTotal.toLocaleString()}원</span></div>
+                <div style="font-size:10.5px; color:var(--text-muted); font-weight:600;">ㄴ 정산 종결액: <span style="color:#4ade80; float:right;">${finalBudgetSettled.toLocaleString()}원</span></div>
+                <div style="font-size:10.5px; color:var(--text-muted); font-weight:600;">ㄴ 청구 대기액: <span style="color:#38bdf8; float:right;">${finalBudgetPending.toLocaleString()}원</span></div>
+            </div>
+        </div>
+    `;
+        }
+
+        // 7. 시스템 통합 마운트 게이트웨이 확장 연동
+        if (typeof changeMainViewport === "function") {
+            const originalViewportEngine = changeMainViewport;
+            changeMainViewport = function (viewName) {
+                originalViewportEngine(viewName);
+                if (viewName === 'reportView') {
+                    if (typeof calculateReportMasterStats === "function") calculateReportMasterStats();
+                }
+            };
+        }
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

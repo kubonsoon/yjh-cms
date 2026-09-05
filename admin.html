@@ -1576,6 +1576,10 @@
 
         //기존 소스의 무결성을 지키며 성별 엔진 결합
         function parseGenderFromSsn(ssnVal, nameVal) {
+            // 가상 DB 마스터 스토리지에 세팅된 정적 성별 속성이 있다면 이름 대조를 생략하고 즉시 1순위 반환
+            const currentDbUser = dataStoreApplicant.find(u => u.name === nameVal);
+            if (currentDbUser && (currentDbUser.gender === "남" || currentDbUser.gender === "여")) return currentDbUser.gender;
+
             if (!ssnVal) return "미정";
 
             // 문자열 공백 제거 및 대문자화

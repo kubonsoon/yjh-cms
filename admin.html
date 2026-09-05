@@ -3011,12 +3011,11 @@
         <td style="width: 80px; vertical-align: middle;">
             <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
         </td>
-       <td style="width: 85px; vertical-align: middle;">
+              <td style="width: 85px; vertical-align: middle;">
             <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${displaySsn || ''}" style="text-align:center; background: var(--card-color) !important;">
         </td>
         </td>
         <td style="width: 65px; vertical-align: middle; text-align: center;">
-            <!-- 💡 [수정] 무거운 함수 재호출 대신, 콤마 정제가 끝난 genderSign 변수로 2곳만 치환 -->
             <span class="lvl-badge ${genderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
                 ${genderSign}
             </span>

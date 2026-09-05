@@ -3011,13 +3011,13 @@
         <td style="width: 80px; vertical-align: middle;">
             <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
         </td>
-              <td style="width: 85px; vertical-align: middle;">
+        <td style="width: 85px; vertical-align: middle;">
             <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${displaySsn || ''}" style="text-align:center; background: var(--card-color) !important;">
         </td>
         </td>
         <td style="width: 65px; vertical-align: middle; text-align: center;">
-            <span class="lvl-badge ${genderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                ${genderSign}
+            <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
+                ${parseGenderFromSsn(row.ssn, row.name)}
             </span>
         </td>
         <td style="width: 125px; vertical-align: middle;">
@@ -3047,16 +3047,16 @@
         </td>
         <td style="width: 75px; vertical-align: middle;">
             <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                <option value="대기" ${(row.isDutyAgreed || '대기') === '대기' ? 'selected' : ''}>대기</option>
-                <option value="동의" ${(row.isDutyAgreed || '대기') === '동의' ? 'selected' : ''}>동의</option>
-                <option value="미동의" ${(row.isDutyAgreed || '대기') === '미동의' ? 'selected' : ''}>미동의</option>
+                <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
+                <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+                <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
             </select>
         </td>
         <td style="width: 75px; vertical-align: middle;">
             <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                <option value="대기" ${(row.isCallAgreed || '대기') === '대기' ? 'selected' : ''}>대기</option>
-                <option value="동의" ${(row.isCallAgreed || '대기') === '동의' ? 'selected' : ''}>동의</option>
-                <option value="미동의" ${(row.isCallAgreed || '대기') === '미동의' ? 'selected' : ''}>미동의</option>
+                <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
+                <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
+                <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
             </select>
         </td>
         <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px;">교재 중 변경불가</td>

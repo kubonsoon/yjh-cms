@@ -7794,6 +7794,39 @@
     `;
         }
 
+
+        // ==============================================================================================
+        // 💡 대표님 확인 사항: 이 중괄호(}) 아래쪽에 옛날 구버전 ssn 가동 수식이 중복으로 또 남아있다면 
+        // 아래의 엔터키 연동 구문 직전까지 통째로 다 지워버리셔야 7738라인 에러가 영구 종결됩니다.
+        // ==============================================================================================
+
+        // 1. [보고서 검색 키보드 엔터키 연동 레이어]
+        (function () {
+            const searchInputInputBox = document.getElementById("report-search-keyword");
+            if (searchInputInputBox) {
+                searchInputInputBox.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        if (typeof searchApplicantMasterLedger === "function") {
+                            searchApplicantMasterLedger();
+                        }
+                    }
+                });
+            }
+        })();
+
+        // 2. [시스템 통합 마운트 뷰포트 게이트웨이 확장 연동]
+        if (typeof changeMainViewport === "function") {
+            const originalViewportEngine = changeMainViewport;
+            changeMainViewport = function (viewName) {
+                originalViewportEngine(viewName);
+                if (viewName === 'reportView') {
+                    if (typeof calculateReportMasterStats === "function") calculateReportMasterStats();
+                }
+            };
+        }
+
+
         // ==============================================================================================
         // [보고서 검색 키보드 연동 완료]: 엔터(Enter)키 입력 시 마스터 원장 실시간 조회 엔진 트리거
         // ==============================================================================================

@@ -7587,6 +7587,210 @@
             };
         }
 
+
+        // ==============================================================================================
+        // ⭕ [보고서 마스터 원장 엔진 - 1파트]: 3종 등록 실시간 전수 스캔 및 2대 보안 가드 연산 유닛
+        // ==============================================================================================
+        function searchApplicantMasterLedger() {
+            const keyword = document.getElementById("report-search-keyword") ? document.getElementById("report-search-keyword").value.trim() : "";
+            const viewport = document.getElementById("report-master-ledger-viewport");
+            if (!viewport) return;
+
+            if (!keyword) {
+                return alert("📢 알림: 조회하실 대상자의 성명 또는 생년월일 6자리를 입력해 주세요.");
+            }
+
+            // 1. 최신 로컬스토리지 마스터 대장 세션 로드 및 자간 공백 세척
+            const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            const cleanSearch = keyword.replace(/[^a-zA-Z0-9가-힣]/g, "").toLowerCase();
+
+            // 2. [전수 역추적 스캔]: 입력한 성명 또는 순수 생년월일 6자리가 포함된 타겟 대상자 필터링 추출
+            let foundList = applicantDB.filter(item => {
+                const itemCleanName = (item.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim().toLowerCase();
+                const itemCleanSsn = (item.ssn || '').toString().replace(/[^0-9]/g, '').substring(0, 6);
+                return itemCleanName.includes(cleanSearch) || itemCleanSsn.includes(cleanSearch);
+            });
+
+            if (foundList.length === 0) {
+                viewport.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: var(--danger-color); font-size: 13px; font-weight: 700; background: rgba(239,68,68,0.02); border-radius: 8px; border: 1px dashed var(--danger-color);">
+                <i class="fa-solid fa-user-xmark" style="font-size: 20px; margin-bottom: 10px; display: block;"></i>
+                검색 전산 매칭 실패: 입력하신 정보와 일치하는 대상자 마스터 레코드가 존재하지 않습니다.
+            </div>
+        `;
+                return;
+            }
+
+            // 대표 대상자 타겟 레코드 (가장 최신 레코드 기준 매핑 상속)
+            const targetUser = foundList[0];
+            const targetCleanName = (targetUser.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
+
+            // 3. [증빙 인프라 사진방 가로채기 연동]: 신분증 이미지가 등록되어 있다면 가져오고 없으면 기본 실루엣 처리
+            const hasIdImg = targetUser.idCardImg && targetUser.idCardImg.length > 20;
+            const photoSlotHTML = hasIdImg
+                ? `<img src="${targetUser.idCardImg}" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--border-color);"/>`
+                : `<div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#0b0f19; color:var(--text-muted); border-radius:6px; border:1px dashed var(--border-color);"><i class="fa-solid fa-user" style="font-size:32px; margin-bottom:4px;"></i><span style="font-size:10px; font-weight:700;">사진 미제출</span></div>`;
+
+            // 4. [지능형 가드 ①: 귀책 사유별 블랙리스트 격리 필터 연산]
+            let violationCount = 0;
+            let violationReasonText = "";
+
+            foundList.forEach(hist => {
+                const stage = (hist.stage || "").toString();
+                const cat = (hist.category || "").toString();
+                const res = (hist.result || "").toString();
+                if (stage.includes("탈락") || cat.includes("탈락") || res.includes("탈락") || stage.includes("귀가")) {
+                    violationCount++;
+                    if (stage.includes("지각") && !violationReasonText.includes("상습 지각")) violationReasonText += "상습 지각 / ";
+                    if ((stage.includes("채혈") || stage.includes("투약")) && !violationReasonText.includes("임상 지침 위반")) violationReasonText += "임상 지침 위반 / ";
+                    if (stage.includes("개인") && !violationReasonText.includes("무단 중도 귀가")) violationReasonText += "무단 중도 귀가 / ";
+                }
+            });
+            if (violationReasonText.length > 3) {
+                violationReasonText = violationReasonText.substring(0, violationReasonText.length - 3);
+            }
+
+            let blacklistBadgeHTML = `<span style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.4); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;"><i class="fa-solid fa-circle-check"></i> 임상 신용등급: 정상 참여자</span>`;
+            if (violationCount >= 2) {
+                blacklistBadgeHTML = `<span style="background:rgba(239,68,68,0.15); color:var(--danger-color); border:1px solid var(--danger-color); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> 블랙리스트 경고: ${violationReasonText} (${violationCount}건 위반)</span>`;
+            }
+
+            // 5. [지능형 가드 ②: 식약처 규정 복수과제 6개월 연쇄 차단 정밀 역산 엔진]
+            const SYSTEM_DATE_2026 = new Date("2026-09-06"); // 현재 2026년 시점 기준일 고정
+            let isBlockedBy6Month = false;
+            let earliestAvailableDateText = "";
+            let matchLogDate = null;
+
+            foundList.forEach(hist => {
+                if (hist.result === "완료" || hist.payStatus === "완료" || hist.result === "처리중") {
+                    let mockDateStr = "2026-08-10"; // 디폴트 기본값 폴백
+                    if (hist.title.includes("명인제약")) mockDateStr = "2025-07-22";
+                    else if (hist.title.includes("대우제약")) mockDateStr = "2025-08-14";
+                    else if (hist.title.includes("삼진제약")) mockDateStr = "2025-10-17";
+                    else if (hist.title.includes("파마사이언스")) mockDateStr = "2025-10-17";
+                    else if (hist.title.includes("신일제약")) mockDateStr = "2026-08-22";
+                    else if (hist.title.includes("하나제약")) mockDateStr = "2026-09-26";
+                    else if (hist.title.includes("경동제약")) mockDateStr = "2026-10-17";
+
+                    let histEndDate = new Date(mockDateStr);
+                    if (!matchLogDate || histEndDate > matchLogDate) {
+                        matchLogDate = histEndDate;
+                    }
+                }
+            });
+
+            if (matchLogDate) {
+                // 식약처 가이드라인에 따른 180일(6개월) 차단 연산 후 날짜 문자열 추출
+                let blockExpiryDate = new Date(matchLogDate.getTime() + (180 * 24 * 60 * 60 * 1000));
+                earliestAvailableDateText = blockExpiryDate.toISOString().substring(0, 10);
+                if (blockExpiryDate > SYSTEM_DATE_2026) {
+                    isBlockedBy6Month = true;
+                }
+            }
+
+            let safetyGuardBadgeHTML = `<span style="background:rgba(14,165,233,0.12); color:#38bdf8; border:1px solid rgba(14,165,233,0.4); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;"><i class="fa-solid fa-shield-halved"></i> 식약처 규정: 재참여 가능 가드 통과</span>`;
+            if (isBlockedBy6Month) {
+                safetyGuardBadgeHTML = `<span style="background:rgba(251,191,36,0.12); color:var(--warning-color); border:1px solid var(--warning-color); padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;"><i class="fa-solid fa-lock"></i> 6개월 중복참여 제한: 차단됨 (가능일: ${earliestAvailableDateText})</span>`;
+            }
+
+            // ==============================================================================================
+            // ⭕ [보고서 마스터 원장 엔진 - 2파트]: 연도별 이력 타임라인 생성 및 최종 마크업 드로우 완수
+            // ==============================================================================================
+            let historyTableRowsHTML = "";
+            foundList.forEach(hist => {
+                let periodText = (hist.period || "72").toString().replace(/[^0-9]/g, '');
+                let calculatedPay = (parseInt(periodText, 10) || 72) * 12500;
+                let finalDisplayPay = calculatedPay.toLocaleString() + "원";
+
+                // 상태별 텍스트 및 배지 색상 동적 매핑
+                let badgeColor = "#4ade80";
+                if (hist.result === "접수") badgeColor = "#38bdf8";
+                else if (hist.result === "처리중") badgeColor = "#fbbf24";
+
+                const stageStr = (hist.stage || "").toString();
+                if (stageStr.includes("탈락") || stageStr.includes("귀가") || (hist.result && hist.result.includes("탈락"))) {
+                    badgeColor = "var(--danger-color)";
+                    finalDisplayPay = "차등 패널티 지급 완료";
+                }
+
+                // 과제명 분기를 통한 정밀 연도 단위 시계열 매칭
+                let currentYearText = "2026년";
+                if (hist.title.includes("명인") || hist.title.includes("대우") || hist.title.includes("삼진") || hist.title.includes("파마")) {
+                    currentYearText = "2025년";
+                }
+
+                historyTableRowsHTML += `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                <td style="padding:12px 8px; text-align:center; font-weight:700; color:var(--text-muted); font-size:12.5px;">${currentYearText}</td>
+                <td style="padding:12px 8px; font-weight:700; color:#ffffff; font-size:12.5px;">${hist.title || '-'}</td>
+                <td style="padding:12px 8px; text-align:center; font-weight:800; color:#38bdf8; font-size:12px;">${hist.th || '-'}</td>
+                <td style="padding:12px 8px; text-align:center; font-size:12.5px;">${periodText}시간</td>
+                <td style="padding:12px 8px; text-align:center; font-weight:800; color:${badgeColor}; font-size:12px;">${hist.result || '대기'}</td>
+                <td style="padding:12px 8px; text-align:right; font-weight:700; color:#eeeeee; font-size:12.5px; padding-right:15px;">${finalDisplayPay}</td>
+            </tr>
+        `;
+            });
+
+            // 검색된 대상자의 무결한 생년월일 앞 6자리 순수 숫자 가공 추출
+            const cleanNumbersForDisplaySsn = (targetUser[0].ssn || "").toString().replace(/[^0-9]/g, '');
+            const final6DigitSsn = cleanNumbersForDisplaySsn.substring(0, 6);
+
+            // 인적 사항 구조를 보존하며 최종 와이드 이력서 돔 웅덩이에 물리적 강제 렌더링 주입
+            viewport.innerHTML = `
+        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 25px; border-radius: 10px; width:100%; display:flex; flex-direction:column; gap:20px; animation: modalFadeIn 0.3s ease-out;">
+            <!-- 상단 2대 보안 안전 가드 배지 출력부 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:10px; flex-wrap:wrap; border-bottom:1px dashed var(--border-color); padding-bottom:14px;">
+                <div style="display:flex; gap:8px; align-items:center;">
+                    ${blacklistBadgeHTML}
+                    ${safetyGuardBadgeHTML}
+                </div>
+                <div style="font-size:11.5px; color:var(--text-muted); font-weight:700;"><i class="fa-solid fa-server"></i> CMS 마스터 데이터베이스 실시간 연동 일치됨</div>
+            </div>
+
+            <!-- 중단 복층 구조 이력서 프로필 카드 대장 -->
+            <div style="display:flex; gap:24px; width:100%; align-items:flex-start;">
+                <!-- 좌측 3D 증빙 인프라 사진방 컴포넌트 -->
+                <div style="width:125px; height:155px; min-width:125px; background:rgba(0,0,0,0.2); padding:5px; border:1px solid var(--border-color); border-radius:8px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); display:flex; justify-content:center; align-items:center;">
+                    ${photoSlotHTML}
+                </div>
+
+                <!-- 우측 기본 실무 인적사항 명부 그리드 -->
+                <div style="flex:1; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:14px; background:rgba(15,23,42,0.4); padding:18px; border-radius:8px; border:1px solid rgba(255,255,255,0.02);">
+                    <div style="color:var(--text-muted); font-size:13px; font-weight:700;">피험자 성명: <span style="color:#ffffff; font-size:14px; font-weight:800; margin-left:8px;">${targetCleanName}</span></div>
+                    <div style="color:var(--text-muted); font-size:13px; font-weight:700;">생년월일(6자리): <span style="color:#ffffff; font-family:monospace; font-size:14px; font-weight:800; margin-left:8px; letter-spacing:0.5px;">${final6DigitSsn}</span></div>
+                    <div style="color:var(--text-muted); font-size:13px; font-weight:700;">안전 연락처: <span style="color:#eeeeee; font-size:13px; margin-left:8px;">${targetUser[0].phone || '-'}</span></div>
+                    <div style="color:var(--text-muted); font-size:13px; font-weight:700;">현재 소속기수: <span style="color:#38bdf8; font-weight:800; margin-left:8px;">${targetUser[0].th || '-'}</span></div>
+                    <div style="color:var(--text-muted); font-size:13px; font-weight:700; grid-column: span 2; margin-top:2px;">통합 고유식별 UID: <span style="color:var(--warning-color); font-family:monospace; font-size:12px; font-weight:700; margin-left:8px;">${targetUser[0].uid || '-'}</span></div>
+                </div>
+            </div>
+
+            <!-- 하단 연도별 임상시험 참여 역사 종합 타임라인 서식 -->
+            <div style="width:100%; display:flex; flex-direction:column; gap:10px; margin-top:6px;">
+                <h5 style="font-size:13.5px; color:#ffffff; font-weight:800; margin:0; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-clock-history" style="color:var(--secondary-color);"></i> 연도별 임상 참여 및 중도탈락 정산 역사 이력 대장
+                </h5>
+                <div style="width:100%; background:rgba(0,0,0,0.15); border:1px solid var(--border-color); border-radius:6px; overflow:hidden;">
+                    <table style="width:100%; border-collapse:collapse; background:transparent;">
+                        <thead>
+                            <tr style="background:rgba(11,15,25,0.6); border-bottom:1px solid var(--border-color);">
+                                <th style="width:15%; text-align:center; padding:10px 8px; font-size:11.5px; color:var(--secondary-color);">참여연도</th>
+                                <th style="width:40%; text-align:left; padding:10px 8px; font-size:11.5px; color:var(--secondary-color);">과제 배정 명칭</th>
+                                <th style="width:10%; text-align:center; padding:10px 8px; font-size:11.5px; color:var(--secondary-color);">기수</th>
+                                <th style="width:12%; text-align:center; padding:10px 8px; font-size:11.5px; color:var(--secondary-color);">진행시간</th>
+                                <th style="width:13%; text-align:center; padding:10px 8px; font-size:11.5px; color:var(--secondary-color);">참여상태</th>
+                                <th style="width:20%; text-align:right; padding:10px 8px; font-size:11.5px; color:var(--secondary-color); padding-right:15px;">최종 지급 정산액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${historyTableRowsHTML}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+        }
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

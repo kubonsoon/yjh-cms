@@ -1190,6 +1190,83 @@
                 border-color: #cbd5e1 !important;
             }
         }
+
+
+        /* 🎯 [인쇄 전용 미디어 쿼리 전면 개편]: 상하 영역 완전 격리 및 관공서 표준 괘선 서식 락인 */
+        @media print {
+
+            /* 1. 공통 숨김 처리: 사이드바, 탑바, 화면상 버튼, 입력창은 무조건 종이에서 제외 */
+            .sidebar,
+            .dashboard-top-bar,
+            button,
+            select,
+            input,
+            .admin-top-btn-group,
+            .report-action-btn-set {
+                display: none !important;
+            }
+
+            /* 2. 용지 여백 최적화 및 강제 배경 화이트 반전 (토너 절약 및 표준 문서화) */
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+
+            .main-content,
+            .content-section {
+                background: #ffffff !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+
+            /* -------------------------------------------------------------------------
+       A. 상단 통합 보고서 인쇄 모드 (하단 개인 원장 조회 구역을 흔적도 없이 숨김)
+       ------------------------------------------------------------------------- */
+            body.print-summary-mode #reportView>div:last-child {
+                display: none !important;
+            }
+
+            body.print-summary-mode .report-chart-container {
+                display: grid !important;
+                /* 화면과 동일하게 차트 2종 가로 나란히 유지 */
+            }
+
+            /* -------------------------------------------------------------------------
+       B. 하단 개인 원장 인쇄 모드 (상단 통계판, 그래프 차트 전체를 흔적도 없이 숨김)
+       ------------------------------------------------------------------------- */
+            body.print-ledger-mode #reportView>div:not(:last-child),
+            body.print-ledger-mode .report-chart-container {
+                display: none !important;
+            }
+
+            /* 📝 [정식 괘선 고도화]: 개인 원장 테이블 인쇄 시 관공서 스타일 격자 테두리 강제 부여 */
+            body.print-ledger-mode #report-master-ledger-viewport table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 15px !important;
+                background: #ffffff !important;
+            }
+
+            body.print-ledger-mode #report-master-ledger-viewport th,
+            body.print-ledger-mode #report-master-ledger-viewport td {
+                border: 1px solid #000000 !important;
+                /* 선명한 검은색 괘선 */
+                color: #000000 !important;
+                padding: 10px 8px !important;
+                font-size: 13px !important;
+                background: #ffffff !important;
+                text-align: center !important;
+            }
+
+            body.print-ledger-mode #report-master-ledger-viewport th {
+                background: #f1f5f9 !important;
+                /* 헤더 영역 부드러운 회색 음영 */
+                font-weight: 700 !important;
+            }
+        }
     </style>
 
 <body>
@@ -7846,17 +7923,24 @@
                 if (totalCount === 0) {
                     donutContainer.innerHTML = `<div style="font-size:13px; color:var(--text-muted); padding:30px 0;">표출할 참여 데이터가 없습니다.</div>`;
                 } else {
+                    // 실제 보정 수치 기반 백분율 산출
                     let pctComplete = (finalCompleted / totalCount) * 100;
                     let pctRegister = (finalParticipants / totalCount) * 100;
 
                     donutContainer.innerHTML = `
-                <svg width="140" height="140" viewBox="0 0 42 42" style="transform: rotate(-90deg); stroke-linecap: round;">
+                <svg width="140" height="140" viewBox="0 0 42 42" style="transform: rotate(-90deg);">
                     <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#0b0f19" stroke-width="4.5"></circle>
-                    <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--success-color)" stroke-width="4.5" stroke-dasharray="${pctComplete} ${100 - pctComplete}" stroke-dashoffset="25"></circle>
-                    <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--secondary-color)" stroke-width="4.5" stroke-dasharray="${pctRegister} ${100 - pctRegister}" stroke-dashoffset="${25 - pctComplete}"></circle>
+                    
+                    <!-- 완료 세그먼트 (그린 휠 드로우) -->
+                    <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--success-color)" stroke-width="4.5" 
+                            stroke-dasharray="${pctComplete} ${100 - pctComplete}" stroke-dashoffset="25"></circle>
+                    
+                    <!-- 접수 세그먼트 (스카이블루 휠 드로우) -->
+                    <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--secondary-color)" stroke-width="4.5" 
+                            stroke-dasharray="${pctRegister} ${100 - pctRegister}" stroke-dashoffset="${25 - pctComplete}"></circle>
                 </svg>
                 
-                <div class="chart-legend">
+                <div class="chart-legend" style="margin-top: 15px;">
                     <div class="legend-item"><span class="legend-color" style="background: var(--success-color);"></span>완료(${finalCompleted}명)</div>
                     <div class="legend-item"><span class="legend-color" style="background: var(--secondary-color);"></span>접수(${finalParticipants}명)</div>
                     ${finalDropTotal > 0 ? `<div class="legend-item"><span class="legend-color" style="background: var(--danger-color);"></span>탈락(${finalDropTotal}명)</div>` : ''}

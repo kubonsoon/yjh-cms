@@ -7667,9 +7667,11 @@
         }
 
 
-        // ==============================================================================================
-        // [보고서 스코어보드 핵심 엔진]: 디폴트 8인 + 3종 등록 실시간 누적 통합 예산 연산 장치 완수
-        // ==============================================================================================
+
+
+        // =========================================================================
+        // [SCRIPT 1/3] calculateReportMasterStats 초기 실행 및 데이터 가공 역산부
+        // =========================================================================
         function calculateReportMasterStats() {
             // 1. 3대 진입로가 공통으로 교차 누적되는 마스터 로컬스토리지 대장 실시간 로드
             const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -7683,7 +7685,7 @@
             // 2. 누적 연산 분모/분자 변수 선언 및 초기화
             let totalExamsCount = recruitmentDB.length || 0; // 총 진행 시험수
             let totalTargetQuota = 0;                        // 총 목표 정원수
-            let activeParticipants = applicantDB.length;     // 총 실제 참여자수 (디폴트 8인 + 3종 등록 총합)
+            let activeParticipants = applicantDB.length;     // 총 실제 참여자수
 
             // 귀책 사유별 탈락자 상세 슬롯 카운터
             let dropOutTotal = 0;
@@ -7702,14 +7704,13 @@
                 let quota = parseInt(rec.count ? rec.count.toString().replace(/[^0-9]/g, '') : "0", 10) || 0;
                 totalTargetQuota += quota;
             });
-            if (totalTargetQuota === 0) totalTargetQuota = 416; // 마스터 공고 리셋 시 시스템 표준 디폴트 풀 하드 락인 방어
+            if (totalTargetQuota === 0) totalTargetQuota = 416; // 디폴트 풀 방어
 
-            // 4. 마스터 대상자 대장 전수 순회 (디폴트 8인방 + 신규 3종 등록 체인 통합 실시간 파싱)
+            // 4. 마스터 대상자 대장 전수 순회
             applicantDB.forEach(user => {
                 const status = (user.payStatus || "대기").trim();
                 const resultStatus = (user.result || "대기").trim();
 
-                // [임상시험 실무 표준 참여비 단가표 정의] : 인원수와 기간에 비례하는 다차원 가상 재무 팩토리
                 let userPeriod = parseInt(user.period ? user.period.toString().replace(/[^0-9]/g, '') : "72", 10) || 72;
                 let baseUnitPay = userPeriod * 12500; // 시간당 12,500원 표준 단가 책정
 
@@ -7719,13 +7720,13 @@
                     budgetSettled += baseUnitPay;
                     budgetTotalExecuted += baseUnitPay;
                 }
-                // B. 재무 검토 및 청구서 접수 처리중 (대기/접수/처리중) 누적 집계
+                // B. 재무 검토 및 청구서 접수 처리중 누적 집계
                 else {
                     budgetPending += baseUnitPay;
                     budgetTotalExecuted += baseUnitPay;
                 }
 
-                // C. 중도 탈락 및 귀책 사유 추적 가드 (야생의 텍스트 및 로그 찌꺼기 완벽 가로채기 분리)
+                // C. 중도 탈락 및 귀책 사유 추적 가드
                 const stageText = (user.stage || "").toString();
                 const categoryText = (user.category || "").toString();
 
@@ -7733,19 +7734,16 @@
                     dropOutTotal++;
                     if (stageText.includes("지각") || categoryText.includes("지각")) {
                         dropOutLate++;
-                        // 지각 탈락자는 패널티 적용: 예산 실시간 차감 반영 (교통비 3만원 정산 처리)
                         budgetTotalExecuted = budgetTotalExecuted - baseUnitPay + 30000;
                         if (status !== "완료") budgetPending = budgetPending - baseUnitPay + 30000;
                         else budgetSettled = budgetSettled - baseUnitPay + 30000;
                     } else if (stageText.includes("채혈") || stageText.includes("투약") || categoryText.includes("투약")) {
                         dropOutMed++;
-                        // 의료 귀책 탈락자는 진행 시간 비례 40% 차등 보상 정산
                         budgetTotalExecuted = budgetTotalExecuted - baseUnitPay + (baseUnitPay * 0.4);
                         if (status !== "완료") budgetPending = budgetPending - baseUnitPay + (baseUnitPay * 0.4);
                         else budgetSettled = budgetSettled - baseUnitPay + (baseUnitPay * 0.4);
                     } else {
                         dropOutPersonal++;
-                        // 개인 사정 귀가는 기본 수당 10%만 폴백 지급
                         budgetTotalExecuted = budgetTotalExecuted - baseUnitPay + (baseUnitPay * 0.1);
                         if (status !== "완료") budgetPending = budgetPending - baseUnitPay + (baseUnitPay * 0.1);
                         else budgetSettled = budgetSettled - baseUnitPay + (baseUnitPay * 0.1);
@@ -7753,7 +7751,7 @@
                 }
             });
 
-            // 5. 시계열 필터 모드(YEAR/MONTH/WEEK)에 따른 가상의 시뮬레이션 지수 보정 배정 (동적 스위칭 싱크 완수)
+            // 5. 시계열 필터 모드(YEAR/MONTH/WEEK)에 따른 상용 보정 지수 계산
             let timeScaleMultiplier = 1.0;
             if (filterType === "MONTH") timeScaleMultiplier = 0.12;
             else if (filterType === "WEEK") timeScaleMultiplier = 0.03;
@@ -7768,61 +7766,54 @@
             let finalBudgetPending = Math.round(budgetPending * timeScaleMultiplier);
             let finalBudgetSettled = Math.round(budgetSettled * timeScaleMultiplier);
 
+            // =========================================================================
+            // [SCRIPT 2/3] report-scoreboard-cards 4대 상단 요약 현황판 주입부
+            // =========================================================================
             // 6. 인포그래픽 정형 고대비 스코어보드 HTML 실시간 사출 드로우
             const cardsSlot = document.getElementById("report-scoreboard-cards");
-            if (!cardsSlot) return;
-
-            cardsSlot.innerHTML = `
-        <!-- 카드 1: 시험 및 정원 진척도 -->
-        <div style="background: #1e293b; border: 1px solid var(--border-color); padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">
-            <span style="font-size: 12.5px; color: var(--text-muted); font-weight: 700;"><i class="fa-solid fa-list-check" style="color:var(--secondary-color);"></i> 시험 진행 및 정원 현황</span>
-            <span style="font-size: 22px; font-weight: 800; color: #ffffff;">${finalExams}개 과제 <span style="font-size:14px; color:var(--text-muted); font-weight:600;">/ 배정 ${finalQuota}명</span></span>
-        </div>
-        <!-- 카드 2: 실제 참여 및 종결 지수 -->
-        <div style="background: #1e293b; border: 1px solid #10b981; padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; background-image: linear-gradient(to bottom right, rgba(16,185,129,0.03), transparent);">
-            <span style="font-size: 12.5px; color: #34d399; font-weight: 700;"><i class="fa-solid fa-user-check"></i> 임상 참여 / 지급 종결</span>
-            <span style="font-size: 22px; font-weight: 800; color: #4ade80;">${finalParticipants}명 접수 <span style="font-size:14px; color:#94a3b8; font-weight:600;">/ 완료 ${finalCompleted}명</span></span>
-        </div>
-        <!-- 카드 3: 중도 탈락 통합 현황 리포트 -->
-        <div style="background: #1e293b; border: 1px solid var(--danger-color); padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; background-image: linear-gradient(to bottom right, rgba(248,113,113,0.03), transparent);">
-            <span style="font-size: 12.5px; color: var(--danger-color); font-weight: 700;"><i class="fa-solid fa-user-slash"></i> 종합 중도 탈락 현황</span>
-            <span style="font-size: 22px; font-weight: 800; color: var(--danger-color);">${finalDropTotal}명 탈락 <span style="font-size:11px; color:var(--text-muted); font-weight:600; margin-left:2px;">(지각:${Math.round(dropOutLate * timeScaleMultiplier)} / 메디컬:${Math.round(dropOutMed * timeScaleMultiplier)} / 사정:${Math.round(dropOutPersonal * timeScaleMultiplier)})</span></span>
-        </div>
-        <!-- 카드 4: 누적 재무 집계 총괄 보고서 -->
-        <div style="background: #1a1f2e; border: 1px solid var(--warning-color); padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px; grid-column: span 1; background-image: linear-gradient(to bottom right, rgba(251,191,36,0.03), transparent);">
-            <span style="font-size: 12.5px; color: var(--warning-color); font-weight: 700;"><i class="fa-solid fa-coins"></i> 실시간 누적 재무 예산 집계판</span>
-            <div style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
-                <div style="font-size:11.5px; color:var(--text-color); font-weight:700;">총 집행 예산: <span style="color:#ffffff; font-size:13px; font-weight:800; float:right;">${finalBudgetTotal.toLocaleString()}원</span></div>
-                <div style="font-size:10.5px; color:var(--text-muted); font-weight:600;">ㄴ 정산 종결액: <span style="color:#4ade80; float:right;">${finalBudgetSettled.toLocaleString()}원</span></div>
-                <div style="font-size:10.5px; color:var(--text-muted); font-weight:600;">ㄴ 청구 대기액: <span style="color:#38bdf8; float:right;">${finalBudgetPending.toLocaleString()}원</span></div>
+            if (cardsSlot) {
+                cardsSlot.innerHTML = `
+            <!-- 카드 1: 시험 및 정원 진척도 -->
+            <div style="background: #1e293b; border: 1px solid var(--border-color); padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">
+                <span style="font-size: 12.5px; color: var(--text-muted); font-weight: 700;"><i class="fa-solid fa-list-check" style="color:var(--secondary-color);"></i> 시험 진행 및 정원 현황</span>
+                <span style="font-size: 22px; font-weight: 800; color: #ffffff;">${finalExams}개 과제 <span style="font-size:14px; color:var(--text-muted); font-weight:600;">/ 배정 ${finalQuota}명</span></span>
             </div>
-        </div>
-    `;
-        }
+            <!-- 카드 2: 실제 참여 및 종결 지수 -->
+            <div style="background: #1e293b; border: 1px solid #10b981; padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; background-image: linear-gradient(to bottom right, rgba(16,185,129,0.03), transparent);">
+                <span style="font-size: 12.5px; color: #34d399; font-weight: 700;"><i class="fa-solid fa-user-check"></i> 임상 참여 / 지급 종결</span>
+                <span style="font-size: 22px; font-weight: 800; color: #4ade80;">${finalParticipants}명 접수 <span style="font-size:14px; color:#94a3b8; font-weight:600;">/ 완료 ${finalCompleted}명</span></span>
+            </div>
+            <!-- 카드 3: 중도 탈락 통합 현황 리포트 -->
+            <div style="background: #1e293b; border: 1px solid var(--danger-color); padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; background-image: linear-gradient(to bottom right, rgba(248,113,113,0.03), transparent);">
+                <span style="font-size: 12.5px; color: var(--danger-color); font-weight: 700;"><i class="fa-solid fa-user-slash"></i> 종합 중도 탈락 현황</span>
+                <span style="font-size: 22px; font-weight: 800; color: var(--danger-color);">${finalDropTotal}명 탈락 <span style="font-size:11px; color:var(--text-muted); font-weight:600; margin-left:2px;">(지각:${Math.round(dropOutLate * timeScaleMultiplier)} / 메디컬:${Math.round(dropOutMed * timeScaleMultiplier)} / 사정:${Math.round(dropOutPersonal * timeScaleMultiplier)})</span></span>
+            </div>
+            <!-- 카드 4: 누적 재무 집계 총괄 보고서 -->
+            <div style="background: #1a1f2e; border: 1px solid var(--warning-color); padding: 18px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px; grid-column: span 1; background-image: linear-gradient(to bottom right, rgba(251,191,36,0.03), transparent);">
+                <span style="font-size: 12.5px; color: var(--warning-color); font-weight: 700;"><i class="fa-solid fa-coins"></i> 실시간 누적 재무 예산 집계판</span>
+                <div style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
+                    <div style="font-size:11.5px; color:var(--text-color); font-weight:700;">총 집행 예산: <span style="color:#ffffff; font-size:13px; font-weight:800; float:right;">${finalBudgetTotal.toLocaleString()}원</span></div>
+                    <div style="font-size:10.5px; color:var(--text-muted); font-weight:600;">ㄴ 정산 종결액: <span style="color:#4ade80; float:right;">${finalBudgetSettled.toLocaleString()}원</span></div>
+                    <div style="font-size:10.5px; color:var(--text-muted); font-weight:600;">ㄴ 청구 대기액: <span style="color:#38bdf8; float:right;">${finalBudgetPending.toLocaleString()}원</span></div>
+                </div>
+            </div>
+        `;
+            }
 
-        // 7. 시스템 통합 마운트 게이트웨이 확장 연동
-        if (typeof changeMainViewport === "function") {
-            const originalViewportEngine = changeMainViewport;
-            changeMainViewport = function (viewName) {
-                originalViewportEngine(viewName);
-                if (viewName === 'reportView') {
-                    if (typeof calculateReportMasterStats === "function") calculateReportMasterStats();
-                }
-            };
-        }
+            // =========================================================================
+            // [SCRIPT 3/3] 그래픽 시각화 차트(막대/원형) 실시간 매핑 드로우 및 함수 마감
+            // =========================================================================
+            // 1. 세로 적층형 예산 집행 막대 차트 동적 렌더링 (보정 변수명 체계 반영)
+            const barContainer = document.getElementById('dom-bar-chart');
+            if (barContainer) {
+                let completePercent = finalBudgetTotal > 0 ? ((finalBudgetSettled / finalBudgetTotal) * 100).toFixed(1) : "0.0";
+                let processingPercent = finalBudgetTotal > 0 ? ((finalBudgetPending / finalBudgetTotal) * 100).toFixed(1) : "0.0";
 
-
-        // 1. 세로 적층형 예산 집행 막대 차트 동적 렌더링
-        const barContainer = document.getElementById('dom-bar-chart');
-        if (barContainer) {
-            let completePercent = ((completePay / totalBudget) * 100).toFixed(1);
-            let processingPercent = ((processingPay / totalBudget) * 100).toFixed(1);
-
-            barContainer.innerHTML = `
+                barContainer.innerHTML = `
             <div class="bar-row">
                 <div class="bar-label-group">
                     <span style="color: var(--success-color);">■ 정산 종결 (지급완료)</span>
-                    <span>${completePay.toLocaleString()}원 (${completePercent}%)</span>
+                    <span>${finalBudgetSettled.toLocaleString()}원 (${completePercent}%)</span>
                 </div>
                 <div class="bar-bg">
                     <div class="bar-fill" style="width: ${completePercent}%; background: var(--success-color);"></div>
@@ -7831,52 +7822,42 @@
             <div class="bar-row">
                 <div class="bar-label-group">
                     <span style="color: var(--warning-color);">■ 재무 검토 (처리중)</span>
-                    <span>${processingPay.toLocaleString()}원 (${processingPercent}%)</span>
+                    <span>${finalBudgetPending.toLocaleString()}원 (${processingPercent}%)</span>
                 </div>
                 <div class="bar-bg">
                     <div class="bar-fill" style="width: ${processingPercent}%; background: var(--warning-color);"></div>
                 </div>
             </div>
         `;
-        }
+            }
 
-        // 2. 고해상도 SVG 벡터 기반 도넛 차트 실시간 원형 기하학 드로우
-        const donutContainer = document.getElementById('dom-donut-chart');
-        if (donutContainer) {
-            let totalCount = cntRegister + cntComplete + cntDrop;
+            // 2. 고해상도 SVG 벡터 기반 도넛 차트 실시간 원형 기하학 드로우 (보정 변수명 체계 반영)
+            const donutContainer = document.getElementById('dom-donut-chart');
+            if (donutContainer) {
+                let totalCount = finalParticipants + finalCompleted + finalDropTotal;
 
-            if (totalCount === 0) {
-                donutContainer.innerHTML = `<div style="font-size:13px; color:var(--text-muted);">표출할 참여 데이터가 없습니다.</div>`;
-            } else {
-                // 원주 계산률 기반 기하 백분율 포지셔닝 정밀 산출
-                let pctComplete = (cntComplete / totalCount) * 100;
-                let pctRegister = (cntRegister / totalCount) * 100;
+                if (totalCount === 0) {
+                    donutContainer.innerHTML = `<div style="font-size:13px; color:var(--text-muted); padding:30px 0;">표출할 참여 데이터가 없습니다.</div>`;
+                } else {
+                    let pctComplete = (finalCompleted / totalCount) * 100;
+                    let pctRegister = (finalParticipants / totalCount) * 100;
 
-                // SVG 도넛 세그먼트 스트림 생성
-                donutContainer.innerHTML = `
-                <svg width="180" height="180" viewBox="0 0 42 42" class="donut-main-svg">
-                    <circle class="donut-hole" cx="21" cy="21" r="15.915" fill="transparent"></circle>
-                    <circle class="donut-ring" cx="21" cy="21" r="15.915" fill="transparent" stroke="#0b0f19" stroke-width="4.5"></circle>
-                    
-                    <!-- 완료 세그먼트 (그린) -->
-                    <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--success-color)" stroke-width="4.5" 
-                            stroke-dasharray="${pctComplete} ${100 - pctComplete}" stroke-dashoffset="25"></circle>
-                    
-                    <!-- 접수 세그먼트 (스카이블루) -->
-                    <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--secondary-color)" stroke-width="4.5" 
-                            stroke-dasharray="${pctRegister} ${100 - pctRegister}" stroke-dashoffset="${25 - pctComplete}"></circle>
+                    donutContainer.innerHTML = `
+                <svg width="140" height="140" viewBox="0 0 42 42" style="transform: rotate(-90deg); stroke-linecap: round;">
+                    <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#0b0f19" stroke-width="4.5"></circle>
+                    <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--success-color)" stroke-width="4.5" stroke-dasharray="${pctComplete} ${100 - pctComplete}" stroke-dashoffset="25"></circle>
+                    <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--secondary-color)" stroke-width="4.5" stroke-dasharray="${pctRegister} ${100 - pctRegister}" stroke-dashoffset="${25 - pctComplete}"></circle>
                 </svg>
                 
-                <!-- 하단 차트 인포 범례 바인딩 -->
-                <div class="chart-legend" style="position: absolute; bottom: -10px; width: 100%;">
-                    <div class="legend-item"><span class="legend-color" style="background: var(--success-color);"></span>완료(${cntComplete}명)</div>
-                    <div class="legend-item"><span class="legend-color" style="background: var(--secondary-color);"></span>접수(${cntRegister}명)</div>
-                    <div class="legend-item"><span class="legend-color" style="background: var(--danger-color);"></span>탈락(${cntDrop}명)</div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-color" style="background: var(--success-color);"></span>완료(${finalCompleted}명)</div>
+                    <div class="legend-item"><span class="legend-color" style="background: var(--secondary-color);"></span>접수(${finalParticipants}명)</div>
+                    ${finalDropTotal > 0 ? `<div class="legend-item"><span class="legend-color" style="background: var(--danger-color);"></span>탈락(${finalDropTotal}명)</div>` : ''}
                 </div>
             `;
+                }
             }
         }
-
 
 
         // ==============================================================================================
@@ -8099,17 +8080,6 @@
                 });
             }
         })();
-
-        // 2. [시스템 통합 마운트 뷰포트 게이트웨이 확장 연동]
-        if (typeof changeMainViewport === "function") {
-            const originalViewportEngine = changeMainViewport;
-            changeMainViewport = function (viewName) {
-                originalViewportEngine(viewName);
-                if (viewName === 'reportView') {
-                    if (typeof calculateReportMasterStats === "function") calculateReportMasterStats();
-                }
-            };
-        }
 
 
         // =========================================================================

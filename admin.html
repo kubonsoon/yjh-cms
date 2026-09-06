@@ -969,6 +969,27 @@
                 box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.4) !important;
             }
         }
+
+        /* ==========================================================================
+         [4파트 관련 신규 추가] 보고서 및 통계 탭: 통합 원장 제어 요소 비활성화(Disabled) 서식
+         ========================================================================== */
+        #reportView #integration-ledger-panel input:disabled,
+        #reportView #integration-ledger-panel button:disabled {
+            background-color: #334155 !important;
+            /* 배경을 조밀한 회색조로 락다운 */
+            color: #94a3b8 !important;
+            /* 텍스트 명도를 낮춰 비활성 명시 */
+            border-color: #475569 !important;
+            /* 테두리 가시성 흐리게 처리 */
+            cursor: not-allowed !important;
+            /* 마우스 커서를 진입 금지 마크로 변환 */
+            opacity: 0.6 !important;
+            /* 반투명 처리로 시각적 제어 효과 확보 */
+            pointer-events: none !important;
+            /* 웹 브라우저 상의 마우스 클릭 이벤트 원천 차단 */
+            box-shadow: none !important;
+            /* 버튼 고유의 입체감 광원 효과 상쇄 */
+        }
     </style>
 
 <body>
@@ -1923,7 +1944,7 @@
             }
         }
         /**
-                 * 💥 [신규 개설 완수] 좌측 메뉴 3개 클릭 및 새로고침 시 화면/스타일 동시 전환 제어 엔진
+                 * 좌측 메뉴 3개 클릭 및 새로고침 시 화면/스타일 동시 전환 제어 엔진
                  * @param {string} viewName - 이동할 뷰포트 ID ('recruitmentView' | 'applicantView' | 'gradeView')
                  */
         function changeMainViewport(viewName) {
@@ -1931,7 +1952,7 @@
             localStorage.setItem('adminActiveViewportId', viewName);
 
             // 2. 우측 패널의 모든 본문 화면 섹션 전체 숨김
-            const views = ['recruitmentView', 'applicantView', 'gradeView'];
+            const views = ['recruitmentView', 'applicantView', 'gradeView', 'reportView'];
             views.forEach(function (v) {
                 const el = document.getElementById(v);
                 if (el) el.style.display = 'none';
@@ -1953,8 +1974,6 @@
                 if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
             } else if (viewName === 'applicantView' && document.getElementById('menuApp')) {
                 document.getElementById('menuApp').classList.add('active');
-
-                // 대상자 관리 탭 화면이 물리적으로 켜지는 시점에 기수 옵션 즉시 빌드
                 if (typeof initThSelectOptions === "function") {
                     initThSelectOptions();
                 }
@@ -1962,11 +1981,63 @@
             } else if (viewName === 'gradeView' && document.getElementById('menuGrade')) {
                 document.getElementById('menuGrade').classList.add('active');
                 if (typeof refreshAdminMemberTableView === "function") refreshAdminMemberTableView();
+
+            } else if (viewName === 'reportView' && document.getElementById('menuReport')) {
+                document.getElementById('menuReport').classList.add('active');
+                var currentSabun = sessionStorage.getItem('adminLoginSabun');
+                applyReportLedgerPermissionGate(currentSabun);
+
             } else {
                 // 폴백 구조 유지
                 const activeMenu = document.querySelector(`[onclick*="${viewName}"]`);
                 if (activeMenu) activeMenu.classList.add('active');
             }
+
+            // =========================================================================
+            // 🔒 [신규 추가] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진
+            // =========================================================================
+            function applyReportLedgerPermissionGate(currentSabun) {
+                const searchInput = document.getElementById('ledger-search-input');
+                const btnSearch = document.getElementById('btn-ledger-search');
+                const btnPrint = document.getElementById('btn-ledger-print');
+                const btnSave = document.getElementById('btn-ledger-save');
+
+                // 요소 존재 여부 방어 검증
+                if (!searchInput || !btnSearch || !btnPrint || !btnSave) return;
+
+                if (currentSabun === 'admin') {
+                    // A. 최고 관리자(admin) 계정: 모든 입력 및 클릭 권한 정상 개방
+                    searchInput.disabled = false;
+                    btnSearch.disabled = false;
+                    btnPrint.disabled = false;
+                    btnSave.disabled = false;
+                    console.log('[보안 체인] admin 계정 확인 - 통합 원장 편집 및 액션 권한 완벽 승인.');
+                } else {
+                    // B. 비관리자 일반 계정: 입력창 락다운 및 버튼 3종 회색 처리 + 클릭 원천 봉쇄
+                    searchInput.disabled = true;
+                    btnSearch.disabled = true;
+                    btnPrint.disabled = true;
+                    btnSave.disabled = true;
+
+                    // 메모리 상의 이벤트 리스너 우회 방지를 위한 2중 안전 장치
+                    btnSearch.onclick = null;
+                    btnPrint.onclick = null;
+                    btnSave.onclick = null;
+                    console.log('[보안 체인] 일반 사원 계정 감지 - 통합 원장 조회/인쇄/저장 제어 요소 완전 잠금 완료.');
+                }
+            }
+
+            // 3. [세션 검증 결합] 로그인 완료 및 새로고침 세션 복구 시점에 상시 감시 구동
+            const _original_checkActiveLoginSession = checkActiveLoginSession;
+            checkActiveLoginSession = function () {
+                _original_checkActiveLoginSession(); // 원본 세션 로직 실행
+
+                var token = sessionStorage.getItem('adminLoginSession');
+                var currentSabun = sessionStorage.getItem('adminLoginSabun');
+                if (token === 'isAuthorizedSecureToken' && currentSabun) {
+                    applyReportLedgerPermissionGate(currentSabun);
+                }
+            };
         }
 
         // =========================================================================

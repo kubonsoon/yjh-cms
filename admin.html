@@ -2026,19 +2026,19 @@
                     console.log('[보안 체인] 일반 사원 계정 감지 - 통합 원장 조회/인쇄/저장 제어 요소 완전 잠금 완료.');
                 }
             }
-
-            // 3. [세션 검증 결합] 로그인 완료 및 새로고침 세션 복구 시점에 상시 감시 구동
-            const _original_checkActiveLoginSession = checkActiveLoginSession;
-            checkActiveLoginSession = function () {
-                _original_checkActiveLoginSession(); // 원본 세션 로직 실행
-
-                var token = sessionStorage.getItem('adminLoginSession');
-                var currentSabun = sessionStorage.getItem('adminLoginSabun');
-                if (token === 'isAuthorizedSecureToken' && currentSabun) {
-                    applyReportLedgerPermissionGate(currentSabun);
-                }
-            };
         }
+
+        // 3. [세션 검증 결합] 로그인 완료 및 새로고침 세션 복구 시점에 상시 감시 구동
+        const _original_checkActiveLoginSession = checkActiveLoginSession;
+        checkActiveLoginSession = function () {
+            _original_checkActiveLoginSession(); // 원본 세션 로직 실행
+
+            var token = sessionStorage.getItem('adminLoginSession');
+            var currentSabun = sessionStorage.getItem('adminLoginSabun');
+            if (token === 'isAuthorizedSecureToken' && currentSabun) {
+                applyReportLedgerPermissionGate(currentSabun);
+            }
+        };
 
         // =========================================================================
         // [3파트] 대시보드 인터페이스 제어 및 데이터 규격화 포맷터 유틸리티

@@ -2067,7 +2067,13 @@
             var token = sessionStorage.getItem('adminLoginSession');
             var currentSabun = sessionStorage.getItem('adminLoginSabun');
             if (token === 'isAuthorizedSecureToken' && currentSabun) {
-                applyReportLedgerPermissionGate(currentSabun);
+                // 💡 최종 처방: 외부 report-view.js 파일이 완전히 로드되어 
+                // 해당 함수가 메모리에 존재할 때만 안전하게 실행하도록 조건부 방어벽을 주입합니다.
+                if (typeof applyReportLedgerPermissionGate === "function") {
+                    applyReportLedgerPermissionGate(currentSabun);
+                } else {
+                    console.log('[보안 체인] 외부 보고서 모듈 로딩 대기 중 - 예외 방어 작동');
+                }
             }
         };
 

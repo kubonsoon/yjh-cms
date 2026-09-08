@@ -269,16 +269,15 @@
             text-transform: uppercase;
         }
 
-
-        /* ⚡ [여기서부터 인풋/셀렉트 박스 세로 높낮이 높이 일치 및 수평 정렬 교정 구간] */
+        /* ⚡ [여기서부터 인풋/셀렉트 박스 초긴축 flex 배율 및 수평 정렬 교정 구간] */
         .register-form {
             display: flex;
             flex-wrap: nowrap !important;
-            /* 📱 한 줄에 다 나오도록 가로 횡확장 강제 락인 */
+            /* 📱 한 줄 패킹 마감을 위해 가로 횡확장 강제 락인 */
             align-items: flex-end !important;
-            /* 라벨 하단 정렬선 일치 */
-            gap: 6px !important;
-            /* 필드 간 조밀한 여백 편성 */
+            /* 라벨 하단 수평 정렬선 일치 */
+            gap: 5px !important;
+            /* 필드 간 조밀한 슬림 여백 편성 */
             width: 100%;
         }
 
@@ -289,12 +288,12 @@
             margin: 0 !important;
         }
 
-        /* 모든 인풋과 셀렉트의 높이를 36px 단일 규격으로 완전히 정형화 */
+        /* 모든 인풋과 셀렉트의 높이를 36px 단일 규격으로 정형화 및 세로 처짐 박멸 */
         .register-form input,
         .register-form select {
             width: 100%;
             height: 36px !important;
-            padding: 0 10px !important;
+            padding: 0 8px !important;
             font-size: 13px !important;
             color: #ffffff !important;
             background: #1e293b !important;
@@ -302,9 +301,8 @@
             border-radius: 6px !important;
             box-sizing: border-box !important;
             vertical-align: middle !important;
-            /* 혼자 아래로 처지던 기수 위상 정밀 수평 교정 */
+            /* 기수 및 신설 박스 미세 처짐 정밀 수평 교정 */
         }
-
 
         /* ==========================================================
 5. [공통 액션 단추 및 인라인 편집 텍스트 박스]
@@ -1472,7 +1470,7 @@
                                 <th style="text-align: center; width: 65px; min-width: 65px;">성별</th>
                                 <th style="text-align: center; width: 125px; min-width: 125px;">전화번호</th>
 
-                                <!-- 🎯 [테이블 헤더 동기화 매칭 추가선]: 신설 2대 필드 항목 열 정밀 개설 -->
+                                <!-- [테이블 헤더 동기화 매칭 추가선]: 신설 2대 필드 항목 열 정밀 개설 -->
                                 <th style="text-align: center; width: 100px; min-width: 100px;">참여경로</th>
                                 <th style="text-align: center; width: 110px; min-width: 110px;">참여상태</th>
 

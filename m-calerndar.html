@@ -385,10 +385,10 @@ body {
 </head>
 
 <body>
-  <!-- 1. 상단 모바일 타이틀 및 유연한 3대 압축 툴바 구역 -->
+    <!-- 1. 상단 모바일 기수 타이틀 및 유연한 3대 압축 툴바 구역 -->
     <div class="header-container">
         <div class="calendar-title">
-            <i class="fa-solid fa-calendar-days"></i> 임상시험 스케줄러 (모바일)
+            <i class="fa-solid fa-calendar-days"></i> 임상시험 스케줄러 (주간 관제)
         </div>
         <div class="toolbar-group">
             <button type="button" class="tool-btn active" id="btnFilterAll">전체 일정</button>
@@ -397,95 +397,57 @@ body {
         </div>
     </div>
 
-    <!-- 2. 월 선택 컨트롤러 네비게이터 (모바일 양 끝단 배치 구조) -->
+    <!-- 2. 월 및 연도 가이드 바 컨트롤러 (모바일 양 끝단 배치 구조) -->
     <div class="month-controller">
         <button type="button" class="month-btn" onclick="moveMonth(-1)">◀</button>
         <span class="month-label" id="currentMonthLabel">2026년 09월</span>
         <button type="button" class="month-btn" onclick="moveMonth(1)">▶</button>
     </div>
 
-    <!-- 3. 메인 모바일 달력 격자판 (상단 요일바 압축 및 가속 터치 스크롤 스케일 격자 구조) -->
-    <div class="calendar-wrapper">
-        <div class="weekday-bar">
-            <div class="day-header">일</div>
-            <div class="day-header">월</div>
-            <div class="day-header">화</div>
-            <div class="day-header">수</div>
-            <div class="day-header">목</div>
-            <div class="day-header">금</div>
-            <div class="day-header">토</div>
-        </div>
-        <div class="date-grid-scroll-zone">
-            <div class="date-grid" id="calendarBoard"></div>
-        </div>
-    </div>
+    <!-- 3. [대개혁 핵심] 상단 1행 고정형 주간(7일) 단일 날짜 선택 타임라인 레일 바 -->
+    <!-- 자바스크립트 엔진에 의해 일요일부터 토요일까지 7일간의 날짜 조각이 주입됩니다 -->
+    <div class="weekly-timeline-bar" id="weeklyTimelineBoard"></div>
 
-    <!-- 4. 하단 고정 가이드라인 패널 (모바일 10px 슬림 텍스트 패킹) -->
+    <!-- 4. [대개혁 핵심] 하루 최대 5개 이상의 복잡 과제가 겹쳐도 완벽히 분사하는 세로 스크롤 카드 레일 랙 -->
+    <!-- 상단 주간 바에서 선택한 날짜와 실시간 매칭되는 당일 시험 공고 카드들이 세로로 대형 사출됩니다 -->
+    <div class="daily-card-scroll-zone" id="dailyCardBoard"></div>
+
+    <!-- 5. 하단 고정 가이드라인 패널 (모바일 10px 슬림 가이드 패킹) -->
     <div class="bottom-guide-panel">
         <div class="white-dictionary-box">
-            <i class="fa-solid fa-book-medical"></i> CTMS 임상 안내 센터 가동중
+            <i class="fa-solid fa-book-medical"></i> CTMS 주간 모바일 안내 센터
         </div>
         <ol class="notice-list-wrapper">
-            <li>과제 배지 터치 시 참여 신청 상세 모달 팝업이 전격 연동 사출됩니다.</li>
-            <li>이미 참여 신청이 완료된 시험 과제는 중복 선택이 원천 가드 차단됩니다.</li>
+            <li>상단 7일 주간 바에서 날짜를 선택하시면 당일 진행 과제 카드가 아래에 정밀 정렬됩니다.</li>
+            <li>[과거 참여 이력] 배지 선택 시 대상자의 참여 마스터 누적 내역이 실시간 자동 추적 사출됩니다.</li>
         </ol>
     </div>
 
-    <!-- 5. [모바일 대수술 완수] 시험명 클릭 시 동적으로 작동하는 풀와이드 상세 모달 프레임 구역 -->
+    <!-- 6. [대수술 완수] 과거 참여 이력조회 대형 누적 모달 프레임 구역 (원본 스펙 100% 무결성 결합) -->
     <div class="calendar-modal-overlay" id="detailModalOverlay" onclick="closeDetailModal(event)">
         <div class="calendar-modal-box" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <div class="modal-title" id="m-popup-type">
-                    <i class="fa-solid fa-circle-info"></i> [소집 일정 상세 안내]
+                    <i class="fa-solid fa-clock-history"></i> 대상자 마스터 참여 이력 관제탑
                 </div>
                 <button type="button" class="modal-close-x" onclick="document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;')">✕</button>
             </div>
 
-            <!-- 모바일 반응형 상세 정보 테이블 배정 -->
-            <table class="modal-table">
-                <tr>
-                    <th>임상 시험명</th>
-                    <td id="m-title" style="color:var(--secondary-color); font-weight:800;">-</td>
-                </tr>
-                <tr>
-                    <th>진행 기수</th>
-                    <td id="m-th">-</td>
-                </tr>
-                <tr>
-                    <th>배정 인원</th>
-                    <td id="m-count">-</td>
-                </tr>
-                <tr>
-                    <th>임상 기간</th>
-                    <td id="m-period">-</td>
-                </tr>
-                <tr>
-                    <th>담당 CRC</th>
-                    <td id="m-crc">-</td>
-                </tr>
-                <tr>
-                    <th>소집 일자</th>
-                    <td id="m-recDate">-</td>
-                </tr>
-            </table>
-
             <!-- 대상자 과거 참여 이력 누적 카드 사출 스크롤 존 -->
             <div class="modal-history-title">
-                <i class="fa-solid fa-clock-history"></i> <span id="m-history-count-title">참여 누적 내역 (0건)</span>
+                <i class="fa-solid fa-folder-tree"></i> <span id="m-history-count-title">참여 누적 내역 (0건)</span>
             </div>
             <div class="modal-history-scroll-zone" id="modal-history-scroll-zone">
-                <!-- 자바스크립트에 의해 대상자 관리 내역 카드가 모바일 전용 세로형으로 사출됩니다 -->
+                <!-- 자바스크립트 팩토리에 의해 대상자 관리 내역 카드가 모바일 전용 세로형으로 단독 사출됩니다 -->
             </div>
 
-            <!-- 모바일 손가락 반경을 최적화한 균등 분할 3대 대형 터치 액션 버튼 레이어 -->
-            <div class="modal-btn-group-row">
-                <button type="button" class="modal-act-btn btn-join">참여</button>
-                <button type="button" class="modal-act-btn btn-reject">미참여</button>
-                <button type="button" class="modal-act-btn btn-close" onclick="closeDetailModal()">닫기</button>
+            <!-- 모바일 손가락 반경 최적화 닫기 단추 레일 -->
+            <div class="modal-btn-group-row" style="grid-template-columns: 1fr;">
+                <button type="button" class="modal-act-btn btn-close" onclick="closeDetailModal()" style="background: #334155; color: #ffffff; width: 100%;">이력 화면 닫기</button>
             </div>
         </div>
     </div>
-    
+   
 
     <script>
 // 1. 달력 전역 상태 관리 포인터 스케줄러

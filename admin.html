@@ -1867,7 +1867,7 @@
                 }
                 if (typeof refreshApplicantView === "function") refreshApplicantView();
 
-                // ⚡ [신규 주입]: 대상자 관리 화면 첫 로드 시 상단 4단 라이브 정산 현황판을 강제 즉시 계산
+                // 대상자 관리 화면 첫 로드 시 상단 4단 라이브 정산 현황판 강제 즉시 계산
                 if (typeof calculateLiveDashboardStats === "function") {
                     calculateLiveDashboardStats();
                 }
@@ -1891,7 +1891,7 @@
                     switchReportSubTab('summary');
                 }
 
-                // ⚡ [신규 주입 - 규칙 6 최소화 주입 엄수]: 1번 탭 개방 직후 외부 모듈의 거시 통계 연산 엔진을 강제 호출하여 0명 누락 현상 박멸
+                // 1번 탭 개방 직후 외부 모듈의 거시 통계 연산 엔진을 강제 호출하여 0명 누락 현상 박멸
                 if (typeof calculateReportMasterStats === "function") {
                     calculateReportMasterStats();
                 }
@@ -1901,11 +1901,10 @@
                 const activeMenu = document.querySelector(`[onclick*="${viewName}"]`);
                 if (activeMenu) activeMenu.classList.add('active');
             }
-        }
-
+        } // 💡 changeMainViewport 함수가 정확히 닫히고 다음 함수와 깨끗하게 결합됩니다.
 
         // =========================================================================
-        // 🔒 [신규 추가] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진
+        // 🔒 [순정 완전 보존] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진
         // =========================================================================
         function applyReportLedgerPermissionGate(currentSabun) {
             const searchInput = document.getElementById('ledger-search-input');
@@ -1937,7 +1936,6 @@
                 console.log('[보안 체인] 일반 사원 계정 감지 - 통합 원장 조회/인쇄/저장 제어 요소 완전 잠금 완료.');
             }
         }
-
 
         // 3. [세션 검증 결합] 로그인 완료 및 새로고침 세션 복구 시점에 상시 감시 구동
         const _original_checkActiveLoginSession = checkActiveLoginSession;

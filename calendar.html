@@ -839,7 +839,7 @@
             }
 
             // 💡 원본 HTML 소스를 100% 보존하기 위해 타겟 엘리먼트 내부의 온클릭 핸들러 가로채기(인터셉트) 기믹 가동
-            setTimeout(() => {
+             setTimeout(() => {
                 const btnJoin = document.querySelector('.btn-join');
                 const btnReject = document.querySelector('.btn-reject');
 
@@ -848,18 +848,31 @@
                         e.preventDefault();
                         let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                        // 고유 UID 속성을 추적하여 정확한 행 포인터 락인
+                        // 원본 소스 상단에 이미 정의되어 있는 currentSessionName 포인터와 실시간 싱크 [index: 0.1.34]
+                        const isAlreadyJoined = appDB.some(app => 
+                            (app.name || '').toString().trim() === currentSessionName &&
+                            (app.title || '').toString().trim() === targetTitle &&
+                            (app.th || '').toString().trim() === targetTh &&
+                            !app.isVirtualGhost
+                        );
+
+                        if (isAlreadyJoined) {
+                            alert("알림: 이미 참가한 시험입니다.\n기존에 신청 완료된 일정 및 과제를 확인해 주세요.");
+                            document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
+                            return; 
+                        }
+
+                        // 고유 UID 속성을 추적하여 정확한 행 포인터 락인 [index: 0.1.32]
                         const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
 
                         if (myTargetIdx !== -1) {
-                            // 💡 [버그 종결 핵심 설계]: 기존 배열 메모리 주소를 요동치게 하던 splice, unshift를 전면 파기하고 원래 자리를 100% 현상 보존!
                             delete appDB[myTargetIdx].isVirtualGhost;
                             delete appDB[myTargetIdx].isNewUserGhost;
 
                             appDB[myTargetIdx].title = targetTitle;
                             appDB[myTargetIdx].th = targetTh;
                             appDB[myTargetIdx].period = currentActiveModalJob.period || "0";
-                            appDB[myTargetIdx].payStatus = "대기"; // 대기 상태로 정식 도약
+                            appDB[myTargetIdx].payStatus = "대기"; 
 
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
                         }
@@ -875,7 +888,7 @@
                         document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
                     };
                 }
-            }, 50);
+            }, 50); 
 
             const overlay = document.getElementById('detailModalOverlay');
             overlay.setAttribute('style', 'display: flex !important;');

@@ -1615,91 +1615,77 @@
             if (dataStoreApplicant.length === 0) {
                 dataStoreApplicant = [
                     {
-                        uid: 301, name: "김정환", ssn: "900102-1", phone: "010-9182-6414",
+                        uid: 301, name: "김정환", ssn: "900102-1", phone: "010-9182-6414", isDefault: true, recDate: "2025-07-22",
                         title: "[생동] 명인제약 아고멜라틴", th: "1기", count: "46", period: "10",
                         result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 302, name: "정은영", ssn: "950405-2", phone: "010-6543-1234",
+                        uid: 302, name: "정은영", ssn: "950405-2", phone: "010-6543-1234", isDefault: true, recDate: "2025-08-14",
                         title: "대우제약 피타+에제", th: "2기", count: "60", period: "72",
                         result: "처리중", payStatus: "처리중", payStatus1: "처리중", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 303, name: "이정용", ssn: "821208-1", phone: "010-7896-9522",
+                        uid: 303, name: "이정용", ssn: "821208-1", phone: "010-7896-9522", isDefault: true, recDate: "2025-10-17",
                         title: "삼진제약 팔보시클립", th: "3기", count: "30", period: "96",
                         result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 304, name: "김태희", ssn: "851023-2", phone: "010-3574-7476",
+                        uid: 304, name: "김태희", ssn: "851023-2", phone: "010-3574-7476", isDefault: true, recDate: "2025-10-17",
                         title: "[임상] 파마사이언스 룩소리틴", th: "4기", count: "48", period: "24",
                         result: "처리중", payStatus: "처리중", payStatus1: "처리중", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 201, name: "홍길동", ssn: "950505-1", phone: "010-1234-5678",
+                        uid: 201, name: "홍길동", ssn: "950505-1", phone: "010-1234-5678", isDefault: true, recDate: "2026-08-10",
                         title: "애드파마 로잘탄+로수+에제", th: "2기", count: "44", period: "72",
                         result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 202, name: "강남구", ssn: "980101-1", phone: "010-9095-6763",
+                        uid: 202, name: "강남구", ssn: "980101-1", phone: "010-9095-6763", isDefault: true, recDate: "2026-08-22",
                         title: "신일제약 사쿠+발사", th: "4기", count: "46", period: "96",
                         result: "처리중", payStatus: "처리중", payStatus1: "처리중", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 305, name: "김수지", ssn: "780406-2", phone: "010-8520-7878",
+                        uid: 305, name: "김수지", ssn: "780406-2", phone: "010-8520-7878", isDefault: true, recDate: "2026-09-26",
                         title: "[생동] 하나제약 로수+에제", th: "3기", count: "60", period: "72",
                         result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 203, name: "진재영", ssn: "050607-4", phone: "010-2346-9876",
+                        uid: 203, name: "진재영", ssn: "050607-4", phone: "010-2346-9876", isDefault: true, recDate: "2026-10-17",
                         title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96",
                         result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     }
                 ];
                 isUpdated = true;
-                console.log("8개 시험 공고 대상자 마스터 가상 DB 8인 프리셋 초기 정합성 구축 완료");
             } else {
-                // 🌟 [과거 기억 파괴 가드]: 브라우저 캐시에 흔적이 남아있어도 접속 즉시 대표 지시 상태로 완벽 교정
                 dataStoreApplicant.forEach(row => {
-                    if (row.name === "김정환" && row.title.includes("명인제약")) {
-                        row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
+                    // 기존 캐시 데이터 보정 시에도 식별자 속성 강제 주입
+                    if (["김정환", "정은영", "이정용", "김태희", "홍길동", "강남구", "김수지", "진재영"].includes(row.name)) {
+                        row.isDefault = true;
+                        if (!row.recDate) {
+                            if (row.name === "김정환") row.recDate = "2025-07-22";
+                            if (row.name === "정은영") row.recDate = "2025-08-14";
+                            if (row.name === "이정용") row.recDate = "2025-10-17";
+                            if (row.name === "김태희") row.recDate = "2025-10-17";
+                            if (row.name === "홍길동") row.recDate = "2026-08-10";
+                            if (row.name === "강남구") row.recDate = "2026-08-22";
+                            if (row.name === "김수지") row.recDate = "2026-09-26";
+                            if (row.name === "진재영") row.recDate = "2026-10-17";
+                        }
+                        isUpdated = true;
                     }
-                    else if (row.name === "정은영" && row.title.includes("대우제약")) {
-                        row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                    }
-                    else if (row.name === "이정용" && row.title.includes("삼진제약")) {
-                        row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                    }
-                    else if (row.name === "김태희" && row.title.includes("파마사이언스")) {
-                        row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                    }
-                    else if (row.name === "홍길동" && row.title.includes("애드파마")) {
-                        row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                    }
-                    else if (row.name === "강남구" && row.title.includes("신일제약")) {
-                        row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                    }
-                    else if (row.name === "김수지" && row.title.includes("하나제약")) {
-                        row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                    }
-                    else if (row.name === "진재영" && row.title.includes("경동제약")) {
-                        row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                    }
-
-                    // 초기값 동의여부 누락 방어 강제 대기화
                     if (row.isDutyAgreed === undefined || row.isDutyAgreed === null || row.isDutyAgreed === "") row.isDutyAgreed = "대기";
                     if (row.isCallAgreed === undefined || row.isCallAgreed === null || row.isCallAgreed === "") row.isCallAgreed = "대기";
-                }); // 💡 이 지점에서 forEach 반복문의 중괄호와 소괄호가 안전하게 마감됩니다.
+                });
             }
 
-            // 2. 변경 사항이 있을 때만 로컬스토리지 영구 커밋 연동
             if (isUpdated) {
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             }
@@ -2666,6 +2652,19 @@
         /**
          * 🎯 [대장 화면 렌더러 엔진 - 5파트 완전 분할 무결성 조립본]
          */
+
+
+
+
+
+
+
+
+
+
+
+
+
         function refreshApplicantView() {
             const tbody = document.getElementById('dom-applicant-table');
             const paginator = document.getElementById('applicant-pagination'); // 페이징 버튼이 그려질 하단 슬롯 돔
@@ -2716,11 +2715,34 @@
 
             if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL') displayList = db;
 
-            //리스트 정렬중 최근 등록 대상자를 최상단으로 보여지기 위한 임시
+            // ⚡ [하이브리드 투트랙 정렬 체인 마스터 락인]
             displayList.sort((a, b) => {
-                // 💡 [신규 대상자 최상단 가드]: 모바일에서 방금 넘어와 과제명(title)이 없는 신규 대상자를 1순위로 최상단 배치
-                if (!a.title && b.title) return -1;
-                if (a.title && !b.title) return 1;
+                // [트랙 A]: 모바일인증, 수동등록, 파일등록을 통해 들어온 신규 유입 건(isDefault 속성이 없는 건) 판별
+                // 신규 유입 건은 소집일자와 무관하게 최근 등록된 최신 데이터가 무조건 리스트 최상단 정렬
+                const isNewA = !a.isDefault;
+                const isNewB = !b.isDefault;
+
+                if (isNewA !== isNewB) {
+                    return isNewA ? -1 : 1; // 신규 유입 피험자를 강제로 최상단 배치
+                }
+
+                // 둘 다 신규 유입 건인 경우, 원본 인덱스 비교 정렬로 최신 등록 글을 더 위로 배치
+                if (isNewA && isNewB) {
+                    const idxA = db.findIndex(item => item.uid === a.uid);
+                    const idxB = db.findIndex(item => item.uid === b.uid);
+                    return idxB - idxA;
+                }
+
+                // [트랙 B]: 순정 디폴트 8인 간의 대조 스케줄러 (모집공고 DB와 연동하여 소집일자 내림차순: 최근 과제일 상단)
+                const targetRecA = recruitmentDB.find(r => cleanString(r.title) === cleanString(a.title) && r.th === a.th);
+                const targetRecB = recruitmentDB.find(r => cleanString(r.title) === cleanString(b.title) && r.th === b.th);
+
+                const dateA = targetRecA && targetRecA.recDate ? targetRecA.recDate.replace(/-/g, '') : (a.recDate ? a.recDate.replace(/-/g, '') : '00000000');
+                const dateB = targetRecB && targetRecB.recDate ? targetRecB.recDate.replace(/-/g, '') : (b.recDate ? b.recDate.replace(/-/g, '') : '00000000');
+
+                if (dateA !== dateB) {
+                    return dateB.localeCompare(dateA); // 소집일자 날짜 역순 정렬
+                }
 
                 const keyA = `${cleanString(a.title)}_${a.th}_${a.count}_${a.period}`;
                 const keyB = `${cleanString(b.title)}_${b.th}_${b.count}_${b.period}`;
@@ -2728,19 +2750,18 @@
                 if (keyA === keyB) {
                     const idxA = db.findIndex(item => item.uid === a.uid);
                     const idxB = db.findIndex(item => item.uid === b.uid);
-
-                    // 🎯 [순서 역전 정정]: 새롭게 적재되는 신규 대상자일수록 인덱스 숫자가 크므로, 
-                    // idxB - idxA 형태로 주소를 뒤집어 최신글이 무조건 최상단(0번 행)에 꽂히도록 수리
                     return idxB - idxA;
                 }
 
-                // 💡 [기존 유저 간 최신순 정렬 가드]: 나머지 데이터들도 최근 등록순으로 상단 배치 유도
                 const idxA_all = db.findIndex(item => item.uid === a.uid);
                 const idxB_all = db.findIndex(item => item.uid === b.uid);
                 return idxB_all - idxA_all;
             });
 
-
+            /* =========================================================================
+               [2 단원] refreshApplicantView() 페이지네이션 처리 ~ 루프 내부 연산부
+               - 내용: 8개 단위 슬라이스, liveMatchOrderNumber 역산 및 기수별 4색 고대비 인라인 배지 빌드 구역
+            ========================================================================= */
             // 하단 내비게이션 버튼의 전역 변수인 window.currentApplicantPage 명칭과 100% 일치시켜 단선을 완파합니다.
             const APPLICANT_PAGE_SIZE = 8;
             const totalRecords = displayList.length;
@@ -2755,7 +2776,6 @@
             // 🔥 에러의 원인이 되던 자르기 변수가 여기서 안전하게 1등으로 초기화 완료됩니다.
             const pagedList = displayList.slice(startIndex, endIndex);
 
-
             // 15개 데이터 조각 루프 렌더링 시동
             pagedList.forEach((row, pagedIdx) => {
                 // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역
@@ -2768,6 +2788,11 @@
                 const index = displayList.findIndex(item => item.uid === row.uid);
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
+
+                // 인라인 수정 모드 활성화 시 가변 행 강조 인디케이터 장착
+                if (currentEditingUid === row.uid) {
+                    tr.className = 'editing-row';
+                }
 
                 const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
                 const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
@@ -2787,39 +2812,8 @@
                 else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
                 docsHTML += `</div>`;
 
-                const buildCoreMiniStatusBadgeHTML = (label, val) => {
-                    // 🎯 [교정 완수]: 구형 단어(확인, 검토중 등)를 완전히 삭제하고 순정 4대 단어만 다이렉트 매칭
-                    let s = val || '대기';
-
-                    // 🎯 [4단계 색상 표시자 정의]: 디자인 시스템 고대비 컬러 변수 및 시그니처 색상 상호 결합 [index: 0.1.149]
-                    let st = "background: rgba(148, 163, 184, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25);"; // 🔴 대기: 당직/소집동의와 동일한 고해상도 회색 계열로 변경
-
-                    if (s === '접수') {
-                        st = "background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;"; // 🔵 접수: 상단 청구서 접수 현황판과 동일한 스카이 블루
-                    } else if (s === '처리중') {
-                        st = "background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24;"; // 🟡 처리중: 상단 재무 검토 현황판과 동일한 고명도 옐로우
-                    } else if (s === '완료') {
-                        st = "background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid #34d399;"; // 🟢 완료: 상단 정산 종결 현황판과 동일한 고명도 그린
-                    }
-
-                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s}</span></div>`;
-                };
-
-                const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
-
-                const buildAgreementStatusBadgeHTML = (val) => {
-                    let s = (val || '대기').trim();
-                    let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
-                    if (s === '동의') st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
-                    else if (s === '미동의') st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
-                    return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
-                };
-
-                const dutyAgreed = (row.isDutyAgreed || "대기").trim();
-                const callAgreed = (row.isCallAgreed || "대기").trim();
+                // [모집공고 기준 4색 완벽 일치]: 기존 thClass 변수에 모집공고와 똑같은 고대비 인라인 폰트 컬러 스타일을 인젝션합니다.
                 const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
-
-                // [모집공고 기준 4색 완벽 일치]: 기존 thClass 변수에 모집공고와 똑같은 고대비 인라인 폰트 컬러 스타일을 인젝션합니다. [INDEX: 0.1.337]
                 let thClass = "lvl-1";
                 if (thNum === 1) {
                     thClass = "lvl-1\" style=\"color: #f8fafc !important; background: rgba(248, 250, 252, 0.12) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; display: inline-block;";
@@ -2841,101 +2835,117 @@
 
                 const masterIndex = db.findIndex(item => item.uid === row.uid);
                 const isAppEditing = (typeof window.currentAppEditingIndex !== 'undefined' && window.currentAppEditingIndex === masterIndex) || (typeof currentAppEditingIndex !== 'undefined' && currentAppEditingIndex === masterIndex);
+
+                // 4단계 내부 서브 배지 공통 렌더링 헬퍼 함수
+                const buildCoreMiniStatusBadgeHTML = (label, val) => {
+                    let s = val || '대기';
+                    let st = "background: rgba(148, 163, 184, 0.08); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25);";
+                    if (s === '접수') {
+                        st = "background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;";
+                    } else if (s === '처리중') {
+                        st = "background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24;";
+                    } else if (s === '완료') {
+                        st = "background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid #34d399;";
+                    }
+                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s}</span></div>`;
+                };
+
+                const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
+
+                const buildAgreementStatusBadgeHTML = (val) => {
+                    let s = (val || '대기').trim();
+                    let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
+                    if (s === '동의') st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
+                    else if (s === '미동의') st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
+                    return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
+                };
+
+                const dutyAgreed = (row.isDutyAgreed || "대기").trim();
+                const callAgreed = (row.isCallAgreed || "대기").trim();
+
                 // ----------------======================================================
                 // 🔒 [A 분기]: 대표님 오리지널 인라인 수정 마크업 (masterIndex 싱크 완료)
                 // ----------------======================================================
                 if (isAppEditing) {
                     tr.className = "editing-row";
                     tr.innerHTML = `
-        <td style="vertical-align: middle; padding-left: 15px;">
-            <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
-        </td>
-        <td style="width: 90px; vertical-align: middle;">
-             <select id="inline-app-th-${masterIndex}" class="inline-input" style="height:32px; padding:2px; text-align:center; text-align-last:center; background: #1e293b !important; cursor: pointer !important;">
-                <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
-                <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
-                <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
-                <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
-            </select>
-        </td>
-        <td style="width: 75px; vertical-align: middle;">
-            <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">
-        </td>
-        <td style="width: 65px; vertical-align: middle;">
-            <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">
-        </td>
-        <td style="width: 80px; vertical-align: middle;">
-            <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
-        </td>
-        <td style="width: 85px; vertical-align: middle;">
-            <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; background: var(--card-color) !important;">
-        </td>
-        <td style="text-align: center; width: 85px; min-width: 85px; font-size: 14px; color: #ffffff; font-weight: 500;">${cleanSsnToBirthDate(row.ssn) || '-'}
-        </td>
-        <td style="width: 65px; vertical-align: middle; text-align: center;">
-            <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                ${parseGenderFromSsn(row.ssn, row.name)}
-            </span>
-        </td>
-        <td style="width: 125px; vertical-align: middle;">
-            <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
-        </td>
-        
-      <!-- 💡 [교정 및 흰색 글자 고정 완료]: 참여비 1차, 2차, 3차 수정을 위한 3단 멀티 셀렉트 박스 인프라 구축 -->
-        <td style="width: 85px; vertical-align: middle; text-align: center;">
-            <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
-                
-                <!-- 1차 참여비 상태 제어 (순백색 글자 고정) -->
-                <select id="inline-app-pay1-${masterIndex}" class="inline-input" 
-                    style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
-                    <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대기</option>
-                    <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>1차: 접수</option>
-                    <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>1차: 처리중</option>
-                    <option value="완료" ${row.payStatus1 === '완료' ? 'selected' : ''}>1차: 완료</option>
-                </select>
-                
-                <!-- 2차 참여비 상태 제어 (순백색 글자 고정) -->
-                <select id="inline-app-pay2-${masterIndex}" class="inline-input" 
-                    style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
-                    <option value="대기" ${row.payStatus2 === '대기' ? 'selected' : ''}>2차: 대기</option>
-                    <option value="접수" ${row.payStatus2 === '접수' ? 'selected' : ''}>2차: 접수</option>
-                    <option value="처리중" ${row.payStatus2 === '처리중' ? 'selected' : ''}>2차: 처리중</option>
-                    <option value="완료" ${row.payStatus2 === '완료' ? 'selected' : ''}>2차: 완료</option>
-                </select>
-                
-                <!-- 3차 참여비 상태 제어 (순백색 글자 고정) -->
-                <select id="inline-app-pay3-${masterIndex}" class="inline-input" 
-                    style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
-                    <option value="대기" ${row.payStatus3 === '대기' ? 'selected' : ''}>3차: 대기</option>
-                    <option value="접수" ${row.payStatus3 === '접수' ? 'selected' : ''}>3차: 접수</option>
-                    <option value="처리중" ${row.payStatus3 === '처리중' ? 'selected' : ''}>3차: 처리중</option>
-                    <option value="완료" ${row.payStatus3 === '완료' ? 'selected' : ''}>3차: 완료</option>
-                </select>
-                
-            </div>
-        </td>
-        
-        <td style="width: 75px; vertical-align: middle;">
-            <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
-                <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
-                <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-            </select>
-        </td>
-        <td style="width: 75px; vertical-align: middle;">
-            <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
-                <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
-                <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
-                <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-            </select>
-        </td>
-        <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px;">교재 중 변경불가</td>
-        <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
-            <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-                <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
-                <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
-            </div>
-        </td>`;
+                <td style="vertical-align: middle; padding-left: 15px;">
+                    <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 90px; vertical-align: middle;">
+                     <select id="inline-app-th-${masterIndex}" class="inline-input" style="height:32px; padding:2px; text-align:center; text-align-last:center; background: #1e293b !important; cursor: pointer !important;">
+                        <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
+                        <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
+                        <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
+                        <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
+                    </select>
+                </td>
+                <td style="width: 75px; vertical-align: middle;">
+                    <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 65px; vertical-align: middle;">
+                    <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 80px; vertical-align: middle;">
+                    <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 85px; vertical-align: middle;">
+                    <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${row.ssn || ''}" style="text-align:center; background: var(--card-color) !important;">
+                </td>
+                <td style="text-align: center; width: 85px; min-width: 85px; font-size: 14px; color: #ffffff; font-weight: 500;">
+                    ${(typeof cleanSsnToBirthDate === 'function' ? cleanSsnToBirthDate(row.ssn) : row.ssn) || '-'}
+                </td>
+                <td style="width: 65px; vertical-align: middle; text-align: center;">
+                    <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
+                        ${parseGenderFromSsn(row.ssn, row.name)}
+                    </span>
+                </td>
+                <td style="width: 125px; vertical-align: middle;">
+                    <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
+                </td>
+                <td style="width: 85px; vertical-align: middle; text-align: center;">
+                    <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
+                        <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
+                            <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대기</option>
+                            <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>1차: 접수</option>
+                            <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>1차: 처리중</option>
+                            <option value="완료" ${row.payStatus1 === '완료' ? 'selected' : ''}>1차: 완료</option>
+                        </select>
+                        <select id="inline-app-pay2-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
+                            <option value="대기" ${row.payStatus2 === '대기' ? 'selected' : ''}>2차: 대기</option>
+                            <option value="접수" ${row.payStatus2 === '접수' ? 'selected' : ''}>2차: 접수</option>
+                            <option value="처리중" ${row.payStatus2 === '처리중' ? 'selected' : ''}>2차: 처리중</option>
+                            <option value="완료" ${row.payStatus2 === '완료' ? 'selected' : ''}>2차: 완료</option>
+                        </select>
+                        <select id="inline-app-pay3-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
+                            <option value="대기" ${row.payStatus3 === '대기' ? 'selected' : ''}>3차: 대기</option>
+                            <option value="접수" ${row.payStatus3 === '접수' ? 'selected' : ''}>3차: 접수</option>
+                            <option value="처리중" ${row.payStatus3 === '처리중' ? 'selected' : ''}>3차: 처리중</option>
+                            <option value="완료" ${row.payStatus3 === '완료' ? 'selected' : ''}>3차: 완료</option>
+                        </select>
+                    </div>
+                </td>
+                <td style="width: 75px; vertical-align: middle;">
+                    <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important; cursor:pointer;">
+                        <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
+                        <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+                        <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                    </select>
+                </td>
+                <td style="width: 75px; vertical-align: middle;">
+                    <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important; cursor:pointer;">
+                        <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
+                        <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
+                        <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+                    </select>
+                </td>
+                <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px;">교재 중 변경불가</td>
+                <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
+                    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+                        <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
+                        <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
+                    </div>
+                </td>`;
                 }
 
                 // ----------------======================================================
@@ -2943,7 +2953,7 @@
                 // ----------------======================================================
                 else {
                     tr.innerHTML = `
-                  <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
+                <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
                 <td style="width: 90px; vertical-align: middle; text-align: center;">
                     <span class="lvl-badge ${thClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
                 </td>
@@ -2969,7 +2979,7 @@
                 <td style="width: 140px; vertical-align: middle; text-align: center;">${docsHTML}</td>
                 <td style="width: 180px; vertical-align: middle; text-align: center; padding-right: 15px;">
                     <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
-                 <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal(${masterIndex})" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
+                        <button type="button" class="btn-inline save" onclick="openIndividualHistoryModal(${masterIndex})" style="background: #0284c7; color: #fff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px; border:none;">이력조회</button>
                         <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="background: #334155; border: none; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">수정</button>
                         <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 8px; border-radius: 4px; font-weight: 700; font-size: 12.5px;">삭제</button>
                     </div>
@@ -2978,7 +2988,6 @@
 
                 tbody.appendChild(tr);
             }); // pagedList.forEach 루프 마감 지점
-
 
             // ----------------======================================================
             // [페이징 내비게이션]: 데이터가 설정된 페이지 한도를 초과 시 하단 중앙 슬롯에 버튼 자동 생성 마운트
@@ -3003,6 +3012,7 @@
                 paginator.innerHTML = paginationHTML;
             }
         }
+
 
 
         /**

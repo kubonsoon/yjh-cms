@@ -1613,130 +1613,92 @@
 
             // 1. 🎯 데이터가 아예 비어있는 완전 최초 접속 시 프리셋 적재 (원본의 순수 push 매커니즘 1:1 완벽 복원)
             if (dataStoreApplicant.length === 0) {
-                dataStoreApplicant.push(
+                dataStoreApplicant = [
                     {
-                        uid: 201, name: "홍길동", ssn: "950505", phone: "01012345678",
-                        title: "애드파마 로잘탄+로수+에제", th: "2기", count: "44", period: "72",
-                        category: "내분비내과 / 2 기 모집", stage: "🎁 2 기 1 차 일정 완료 (분할 허용)",
-                        result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
-                        isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
-                    },
-                    {
-                        uid: 202, name: "강남구", ssn: "980101", phone: "01090956763",
-                        title: "신일제약 사쿠+발사", th: "4기", count: "46", period: "96",
-                        category: "비뇨의학과 / 4 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
-                        result: "처리중", payStatus: "처리중", payStatus1: "처리중", payStatus2: "대기", payStatus3: "대기",
-                        isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
-                    },
-                    {
-                        uid: 203, name: "진재영", ssn: "050607", phone: "01023469876",
-                        title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96",
-                        category: "비뇨의학과 / 4 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
-                        result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기",
-                        isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
-                    },
-                    {
-                        uid: 301, name: "김정환", ssn: "900102", phone: "010-9182-6414",
+                        uid: 301, name: "김정환", ssn: "900102-1", phone: "010-9182-6414",
                         title: "[생동] 명인제약 아고멜라틴", th: "1기", count: "46", period: "10",
-                        category: "정신건강의학과 / 1 기 모집", stage: "🎁 1 기 1 차 일정 완료 (분할 허용)",
                         result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 302, name: "정은영", ssn: "950405", phone: "010-6543-1234",
+                        uid: 302, name: "정은영", ssn: "950405-2", phone: "010-6543-1234",
                         title: "대우제약 피타+에제", th: "2기", count: "60", period: "72",
-                        category: "순환기내과 / 2 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
                         result: "처리중", payStatus: "처리중", payStatus1: "처리중", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 303, name: "이정용", ssn: "821208", phone: "010-7896-9522",
+                        uid: 303, name: "이정용", ssn: "821208-1", phone: "010-7896-9522",
                         title: "삼진제약 팔보시클립", th: "3기", count: "30", period: "96",
-                        category: "혈액종양내과 / 3 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
                         result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 304, name: "김태희", ssn: "851023", phone: "010-3574-7476",
+                        uid: 304, name: "김태희", ssn: "851023-2", phone: "010-3574-7476",
                         title: "[임상] 파마사이언스 룩소리틴", th: "4기", count: "48", period: "24",
-                        category: "혈액내과 / 4 기 모집", stage: "🎁 과제 심사 완료 (종합 정산 가능)",
                         result: "처리중", payStatus: "처리중", payStatus1: "처리중", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     },
                     {
-                        uid: 305, name: "김수지", ssn: "780406", phone: "010-8520-7878",
-                        title: "[생동] 하나제약 로수+에제", th: "3기", count: "60", period: "72",
-                        category: "순환기내과 / 3 기 모집", stage: "🎁 신규 접수 활성화 단계",
+                        uid: 201, name: "홍길동", ssn: "950505-1", phone: "010-1234-5678",
+                        title: "애드파마 로잘탄+로수+에제", th: "2기", count: "44", period: "72",
                         result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
+                    },
+                    {
+                        uid: 202, name: "강남구", ssn: "980101-1", phone: "010-9095-6763",
+                        title: "신일제약 사쿠+발사", th: "4기", count: "46", period: "96",
+                        result: "처리중", payStatus: "처리중", payStatus1: "처리중", payStatus2: "대기", payStatus3: "대기",
+                        isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
+                    },
+                    {
+                        uid: 305, name: "김수지", ssn: "780406-2", phone: "010-8520-7878",
+                        title: "[생동] 하나제약 로수+에제", th: "3기", count: "60", period: "72",
+                        result: "접수", payStatus: "접수", payStatus1: "접수", payStatus2: "대기", payStatus3: "대기",
+                        isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
+                    },
+                    {
+                        uid: 203, name: "진재영", ssn: "050607-4", phone: "010-2346-9876",
+                        title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96",
+                        result: "완료", payStatus: "완료", payStatus1: "완료", payStatus2: "대기", payStatus3: "대기",
+                        isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true
                     }
-                );
+                ];
                 isUpdated = true;
-                console.log("대상자 가상 DB 최초 생성 및 정산 초기 상태 락인 완료");
+                console.log("8개 시험 공고 대상자 마스터 가상 DB 8인 프리셋 초기 정합성 구축 완료");
             } else {
-                // 🌟 [캐시 킬러 가드]: 브라우저 기억장치에 과거 흔적이 이미 저장되어 있어도 
-                // 접속하는 즉시 강제로 대표님이 명하신 차수별 정산 상태로 완벽히 덮어써서 교정합니다. (원본 100% 보존)
+                // 🌟 [과거 기억 파괴 가드]: 브라우저 캐시에 흔적이 남아있어도 접속 즉시 대표 지시 상태로 완벽 교정
                 dataStoreApplicant.forEach(row => {
-                    // 1. 홍길동 (애드파마) -> 디폴트: 접수 [index: 0.1.33]
-                    if (row.name === "홍길동" && row.title.includes("애드파마")) {
-                        if (row.result !== "접수" || row.payStatus1 !== "접수" || row.payStatus2 !== "대기") {
-                            row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                        }
+                    if (row.name === "김정환" && row.title.includes("명인제약")) {
+                        row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                     }
-                    // 2. 강남구 (신일제약) -> 디폴트: 처리중 [index: 0.1.33]
-                    else if (row.name === "강남구" && row.title.includes("신일제약")) {
-                        if (row.result !== "처리중" || row.payStatus1 !== "처리중" || row.payStatus2 !== "대기") {
-                            row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                        }
-                    }
-                    // 3. 진재영 (경동제약) -> 디폴트: 완료 [index: 0.1.33]
-                    else if (row.name === "진재영" && row.title.includes("경동제약")) {
-                        if (row.result !== "완료" || row.payStatus1 !== "완료" || row.payStatus2 !== "대기") {
-                            row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                        }
-                    }
-                    // 4. 김정환 (명인제약) -> 디폴트: 접수 [index: 0.1.32]
-                    else if (row.name === "김정환" && row.title.includes("명인제약")) {
-                        if (row.result !== "접수" || row.payStatus1 !== "접수") {
-                            row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                        }
-                    }
-                    // 5. 정은영 (대우제약) -> 디폴트: 처리중 [index: 0.1.32]
                     else if (row.name === "정은영" && row.title.includes("대우제약")) {
-                        if (row.result !== "처리중" || row.payStatus1 !== "처리중") {
-                            row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                        }
+                        row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                     }
-                    // 6. 이정용 (삼진제약) -> 디폴트: 완료 [index: 0.1.32]
                     else if (row.name === "이정용" && row.title.includes("삼진제약")) {
-                        if (row.result !== "완료" || row.payStatus1 !== "완료") {
-                            row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                        }
+                        row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                     }
-                    // 7. 김태희 (파마사이언스) -> 디폴트: 처리중 [index: 0.1.33]
                     else if (row.name === "김태희" && row.title.includes("파마사이언스")) {
-                        if (row.result !== "처리중" || row.payStatus1 !== "처리중") {
-                            row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                        }
+                        row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                     }
-                    // 8. 김수지 (하나제약) -> 디폴트: 접수 [index: 0.1.33]
+                    else if (row.name === "홍길동" && row.title.includes("애드파마")) {
+                        row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
+                    }
+                    else if (row.name === "강남구" && row.title.includes("신일제약")) {
+                        row.result = "처리중"; row.payStatus = "처리중"; row.payStatus1 = "처리중"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
+                    }
                     else if (row.name === "김수지" && row.title.includes("하나제약")) {
-                        if (row.result !== "접수" || row.payStatus1 !== "접수") {
-                            row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
-                        }
+                        row.result = "접수"; row.payStatus = "접수"; row.payStatus1 = "접수"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
+                    }
+                    else if (row.name === "진재영" && row.title.includes("경동제약")) {
+                        row.result = "완료"; row.payStatus = "완료"; row.payStatus1 = "완료"; row.payStatus2 = "대기"; row.payStatus3 = "대기"; isUpdated = true;
                     }
 
-                    // 🎯 [초기값 대기 강제 락인 원안 유지]: 동의 여부 예외 방어 [index: 0.1.33]
-                    if (row.isDutyAgreed === undefined || row.isDutyAgreed === null || row.isDutyAgreed === "" || row.isDutyAgreed === "동의") {
-                        row.isDutyAgreed = "대기"; isUpdated = true;
-                    }
-                    if (row.isCallAgreed === undefined || row.isCallAgreed === null || row.isCallAgreed === "" || row.isCallAgreed === "동의") {
-                        row.isCallAgreed = "대기"; isUpdated = true;
-                    }
+                    // 초기값 동의여부 누락 방어 강제 대기화
+                    if (row.isDutyAgreed === undefined || row.isDutyAgreed === null || row.isDutyAgreed === "") row.isDutyAgreed = "대기";
+                    if (row.isCallAgreed === undefined || row.isCallAgreed === null || row.isCallAgreed === "") row.isCallAgreed = "대기";
                 });
             }
 
-            // 2. 변경 사항이 있을 때만 로컬스토리지 영구 커밋 연동
             if (isUpdated) {
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             }
@@ -1983,6 +1945,11 @@
                     initThSelectOptions();
                 }
                 if (typeof refreshApplicantView === "function") refreshApplicantView();
+
+                // ⚡ [신규 주입]: 대상자 관리 화면 첫 로드 시 상단 4단 라이브 정산 현황판을 강제 즉시 계산
+                if (typeof calculateLiveDashboardStats === "function") {
+                    calculateLiveDashboardStats();
+                }
             } else if (viewName === 'gradeView' && document.getElementById('menuGrade')) {
                 document.getElementById('menuGrade').classList.add('active');
                 if (typeof refreshAdminMemberTableView === "function") refreshAdminMemberTableView();
@@ -2003,46 +1970,52 @@
                     switchReportSubTab('summary');
                 }
 
+                // ⚡ [신규 주입 - 규칙 6 최소화 주입 엄수]: 1번 탭 개방 직후 외부 모듈의 거시 통계 연산 엔진을 강제 호출하여 0명 누락 현상 박멸
+                if (typeof calculateReportMasterStats === "function") {
+                    calculateReportMasterStats();
+                }
+
             } else {
                 // 폴백 구조 유지
                 const activeMenu = document.querySelector(`[onclick*="${viewName}"]`);
                 if (activeMenu) activeMenu.classList.add('active');
             }
+        }
 
 
-            // =========================================================================
-            // 🔒 [신규 추가] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진
-            // =========================================================================
-            function applyReportLedgerPermissionGate(currentSabun) {
-                const searchInput = document.getElementById('ledger-search-input');
-                const btnSearch = document.getElementById('btn-ledger-search');
-                const btnPrint = document.getElementById('btn-ledger-print');
-                const btnSave = document.getElementById('btn-ledger-save');
+        // =========================================================================
+        // 🔒 [신규 추가] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진
+        // =========================================================================
+        function applyReportLedgerPermissionGate(currentSabun) {
+            const searchInput = document.getElementById('ledger-search-input');
+            const btnSearch = document.getElementById('btn-ledger-search');
+            const btnPrint = document.getElementById('btn-ledger-print');
+            const btnSave = document.getElementById('btn-ledger-save');
 
-                // 요소 존재 여부 방어 검증
-                if (!searchInput || !btnSearch || !btnPrint || !btnSave) return;
+            // 요소 존재 여부 방어 검증
+            if (!searchInput || !btnSearch || !btnPrint || !btnSave) return;
 
-                if (currentSabun === 'admin') {
-                    // A. 최고 관리자(admin) 계정: 모든 입력 및 클릭 권한 정상 개방
-                    searchInput.disabled = false;
-                    btnSearch.disabled = false;
-                    btnPrint.disabled = false;
-                    btnSave.disabled = false;
-                    console.log('[보안 체인] admin 계정 확인 - 통합 원장 편집 및 액션 권한 완벽 승인.');
-                } else {
-                    // B. 비관리자 일반 계정: 입력창 락다운 및 버튼 3종 회색 처리 + 클릭 원천 봉쇄
-                    searchInput.disabled = true;
-                    btnSearch.disabled = true;
-                    btnPrint.disabled = true;
-                    btnSave.disabled = true;
+            if (currentSabun === 'admin') {
+                // A. 최고 관리자(admin) 계정: 모든 입력 및 클릭 권한 정상 개방
+                searchInput.disabled = false;
+                btnSearch.disabled = false;
+                btnPrint.disabled = false;
+                btnSave.disabled = false;
+                console.log('[보안 체인] admin 계정 확인 - 통합 원장 편집 및 액션 권한 완벽 승인.');
+            } else {
+                // B. 비관리자 일반 계정: 입력창 락다운 및 버튼 3종 회색 처리 + 클릭 원천 봉쇄
+                searchInput.disabled = true;
+                btnSearch.disabled = true;
+                btnPrint.disabled = true;
+                btnSave.disabled = true;
 
-                    // 메모리 상의 이벤트 리스너 우회 방지를 위한 2중 안전 장치
-                    btnSearch.onclick = null;
-                    btnPrint.onclick = null;
-                    btnSave.onclick = null;
-                    console.log('[보안 체인] 일반 사원 계정 감지 - 통합 원장 조회/인쇄/저장 제어 요소 완전 잠금 완료.');
-                }
+                // 메모리 상의 이벤트 리스너 우회 방지를 위한 2중 안전 장치
+                btnSearch.onclick = null;
+                btnPrint.onclick = null;
+                btnSave.onclick = null;
+                console.log('[보안 체인] 일반 사원 계정 감지 - 통합 원장 조회/인쇄/저장 제어 요소 완전 잠금 완료.');
             }
+        }
         }
 
         // 3. [세션 검증 결합] 로그인 완료 및 새로고침 세션 복구 시점에 상시 감시 구동

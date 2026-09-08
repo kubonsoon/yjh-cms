@@ -1,0 +1,194 @@
+/* ----------------==================================---------------- */
+/* 1. 종합 통계 관제탑 레이아웃 컴포넌트 그리드 서식 (1, 2, 3탭 공통) */
+/* ----------------==================================---------------- */
+
+/* 4대 요약 카드 스코어보드 가로 4열 그리드 배치 */
+#report-scoreboard-cards {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 14px !important;
+  width: 100% !important;
+  margin-bottom: 12px !important;
+}
+
+/* 둘째 줄 미니 차트 게이지바 레이어 가로 4열 배치 */
+.report-mini-charts-layer {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 14px !important;
+  width: 100% !important;
+  margin-bottom: 29px !important;
+}
+
+/* 통계 그래픽 카드 상자 기본 프레임 */
+.mini-chart-box {
+  background: #1a233a !important; /* var(--card-color) 동등 스킨 명시 */
+  border: 1px solid #334155 !important; /* var(--border-color) 레일 매핑 */
+  border-radius: 8px !important;
+  padding: 16px 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 145px !important;
+}
+
+/* 미니 수평 게이지 바 정밀 기하 레일 */
+.mini-bar-bg {
+  background: #0b0f19 !important;
+  height: 18px !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  margin-top: 6px !important;
+}
+
+.mini-bar-fill {
+  height: 100% !important;
+  border-radius: 4px !important;
+  transition: width 0.6s ease-in-out !important;
+}
+
+/* 대형 분석 카드 박스 */
+.chart-card {
+  background: #1a233a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+.chart-card h4 {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #f8fafc !important; /* var(--text-color) */
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-bottom: 1px solid #334155 !important;
+  padding-bottom: 10px !important;
+  margin: 0 !important;
+}
+
+/* 수평 막대 게이지 그래프 팩 */
+.bar-chart-wrap {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding-top: 10px !important;
+}
+
+.bar-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.bar-label-group {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.bar-bg {
+  background: #0b0f19 !important;
+  height: 16px !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  width: 100% !important;
+}
+
+.bar-fill {
+  height: 100% !important;
+  border-radius: 4px !important;
+  transition: width 0.6s ease-in-out !important;
+}
+
+/* ----------------==================================---------------- */
+/* 2. 상단 가로형 6대 서브 탭 메뉴 바 및 패널 제어 시스템 스킨        */
+/* ----------------==================================---------------- */
+
+/* 서브 메뉴 레일 바 */
+.report-sub-tab-bar {
+  display: flex !important;
+  gap: 8px !important;
+  border-bottom: 2px solid #334155 !important;
+  padding-bottom: 10px !important;
+  margin-bottom: 24px !important;
+  width: 100% !important;
+}
+
+/* 개별 하위 탭 버튼 기본 스킨 */
+.report-sub-tab-btn {
+  padding: 10px 18px !important;
+  background: #1e293b !important;
+  color: #94a3b8 !important; /* var(--text-muted) */
+  border: 1px solid #334155 !important;
+  border-radius: 6px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+}
+
+.report-sub-tab-btn:hover {
+  background: rgba(14, 165, 233, 0.1) !important;
+  color: #ffffff !important;
+  border-color: #0ea5e9 !important;
+}
+
+/* 활성화 정렬 포커싱 스카이 블루 하이라이트 */
+.report-sub-tab-btn.active {
+  background: #0ea5e9 !important; /* var(--secondary-color) */
+  color: #ffffff !important;
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3) !important;
+}
+
+/* 서브 탭 내부 뷰포트 패널 온오프 스위처 */
+.report-tab-content-panel {
+  display: none !important; /* 기본 숨김 격리 */
+  width: 100% !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+/* 스위칭 오픈 시 실시간 강제 개방 */
+.report-tab-content-panel.active {
+  display: flex !important;
+}
+
+/* 5, 6번 미개발 단원 대기용 다크 스크린 가드 */
+.report-preparing-box {
+  text-align: center !important;
+  padding: 80px 20px !important;
+  color: #94a3b8 !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  background: rgba(0, 0, 0, 0.15) !important;
+  border-radius: 10px !important;
+  border: 1px dashed #334155 !important;
+  width: 100% !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* ----------------==================================---------------- */
+/* 3. [비관리자 계정 진입 시] 보고서 탭 종합 락다운(Disabled) 제어 스킨 */
+/* ----------------==================================---------------- */
+#reportView #integration-ledger-panel input:disabled,
+#reportView #integration-ledger-panel button:disabled {
+  background-color: #334155 !important;
+  color: #94a3b8 !important;
+  border-color: #475569 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+}

@@ -10,10 +10,11 @@
         href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
     <script src="https://cloudflare.com"></script>
     <script src="report-view.js"></script>
+    <link rel="stylesheet" href="report-view.css">
     <style>
         /* =========================================================
-        1. 글로벌 디자인 시스템 컬러 변수 정의 (고대비 및 가독성 업그레이드)
-        ========================================================== */
+1. 글로벌 디자인 시스템 컬러 변수 정의 (고대비 및 가독성 업그레이드)
+========================================================== */
         :root {
             --primary-color: #1e293b;
             --secondary-color: #0ea5e9;
@@ -57,8 +58,8 @@
         }
 
         /* ==========================================================
-   2. [로그인 레이어] 폼 요소 테두리 및 폰트 고해상도 튜닝
-   ========================================================== */
+2. [로그인 레이어] 폼 요소 테두리 및 폰트 고해상도 튜닝
+========================================================== */
         .login-wrapper {
             display: flex;
             justify-content: center;
@@ -145,8 +146,8 @@
         }
 
         /* ==========================================================
-   3. [대시보드 메인 레이아웃 및 내비게이션 사이드바]
-   ========================================================== */
+3. [대시보드 메인 레이아웃 및 내비게이션 사이드바]
+========================================================== */
         .dashboard-container {
             display: none;
             width: 100%;
@@ -216,8 +217,8 @@
         }
 
         /* ==========================================================
-   4. [우측 콘텐츠 섹션 및 정보 등록 카드]
-   ========================================================== */
+4. [우측 콘텐츠 섹션 및 정보 등록 카드]
+========================================================== */
         .main-content {
             flex: 1;
             padding: 35px;
@@ -267,7 +268,7 @@
             text-transform: uppercase;
         }
 
-        /* [교정 완료] 입력 필드 밀림 방지 및 한 줄(Row) 일렬 배치 정렬 스타일 */
+        /* 입력 필드 밀림 방지 및 한 줄(Row) 일렬 배치 정렬 스타일 */
         .register-form {
             display: flex;
             /* 플렉스 박스로 가로 배치 강제 */
@@ -290,7 +291,9 @@
             /* 하단 마진 상쇄 */
         }
 
-        /* 5. [공통 액션 단추 및 인라인 편집 텍스트 박스] */
+        /* ==========================================================
+5. [공통 액션 단추 및 인라인 편집 텍스트 박스]
+========================================================== */
         .action-btn {
             padding: 12px 20px;
             color: #070a12;
@@ -407,7 +410,6 @@
             font-size: 14px;
         }
 
-
         /* 1. 상단 신규 공고 등록용 달력 상자 아이콘 흰색 처리 */
         #form-rec-date::-webkit-calendar-picker-indicator,
         /* 2. 모집공고 관리 목록 인라인 수정 모드용 달력 상자 아이콘 흰색 처리 */
@@ -422,7 +424,6 @@
             /* 마우스 호버 시 안정적인 손가락 포인터 마크 유지 */
         }
 
-
         /* 상단 스타일 시트 내 기존 처리 구역에 ID 선택자 3종을 추가 매칭 바인딩 하세요 */
         #form-rec-date::-webkit-calendar-picker-indicator,
         #form-rec-pay1::-webkit-calendar-picker-indicator,
@@ -434,10 +435,9 @@
             cursor: pointer !important;
         }
 
-
         /* ==========================================================
-   6. [데이터 명단 테이블 표 및 가변 배지 가독성 최적화]
-   ========================================================== */
+6. [데이터 명단 테이블 표 및 가변 배지 가독성 최적화]
+========================================================== */
         /* A. 모든 화면(모집공고, 관리담당자 등) 공통 규칙: 원래 원하셨던 시원한 가로 개방형 구조 복원 */
         .table-responsive {
             width: 100%;
@@ -461,9 +461,8 @@
             text-align: center;
             border-bottom: 1px solid var(--border-color);
             vertical-align: middle;
-
-            /* 기본 자동 줄바꿈 성질 유지 */
             white-space: normal !important;
+            /* 기본 자동 줄바꿈 성질 유지 */
             word-break: break-all !important;
         }
 
@@ -483,7 +482,7 @@
             width: 100% !important;
         }
 
-        /* 3. 내부 인풋 상자 알맹이들이 부모 방 크기를 절대 깨지 못하도록 철통 잠금 (기존 유지) */
+        /* 3. 내부 인풋 상자 알맹이들이 부모 방 크기를 절대 깨지 못하도록 철통 잠금 */
         #applicantView #dom-applicant-table input,
         #applicantView #dom-applicant-table select {
             max-width: 100% !important;
@@ -576,24 +575,8 @@
         }
 
         /* ==========================================================
-   [신규 추가] 관리 담당자 인라인 수정 모드 전용 하이라이트 및 배지
-   ========================================================== */
-        .editing-row {
-            background-color: rgba(251, 191, 36, 0.04) !important;
-            border-left: 4px solid var(--warning-color);
-        }
-
-        .lvl-badge {
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 12px;
-            display: inline-block;
-        }
-
-        /* ==========================================================
-   [신규 추가] 암호 변경 전용 팝업 모달창 및 탑바 정렬 CSS
-   ========================================================== */
+[신규 추가] 암호 변경 전용 팝업 모달창 및 탑바 정렬 CSS
+========================================================== */
         .top-bar-user-zone {
             display: flex;
             align-items: center;
@@ -630,8 +613,6 @@
             /* Safari 브라우저 대응 */
             z-index: 99999 !important;
             /* 대시보드 탑바나 사이드바 위로 강제 인상 */
-
-            /* 화면 정중앙에 자식을 배치하는 Flexbox 정렬 */
             justify-content: center;
             align-items: center;
         }
@@ -664,16 +645,13 @@
             margin-top: 15px;
         }
 
-        /* ==========================================================================
-   모집공고 관리: 시험 관련 파일 업로드 및 에디터 팝업 전용 스타일
-   ========================================================================== */
-
-        /* 1. 세로 간격 10px 확보를 위한 박스 스타일 */
+        /* ==========================================================
+모집공고 관리: 시험 관련 파일 업로드 및 에디터 팝업 전용 스타일
+========================================================== */
         .register-box-margin {
             margin-top: 20px !important;
         }
 
-        /* 2. 목록 테이블 내 제목 링크 스타일 */
         .exam-title-link {
             cursor: pointer;
             font-weight: 700;
@@ -685,7 +663,6 @@
             color: #1d4ed8;
         }
 
-        /* 3. 주의사항 말줄임 처리 (테이블 깨짐 방지) */
         .exam-notice-cell {
             max-width: 180px;
             overflow: hidden;
@@ -695,7 +672,6 @@
             font-size: 13px;
         }
 
-        /* 4. 에디터 모달 팝업 전체 배경 레이어 */
         .editor-modal-overlay {
             display: none;
             position: fixed;
@@ -709,7 +685,6 @@
             justify-content: center;
         }
 
-        /* 5. 에디터 모달 본문 창 */
         .editor-modal-content {
             background-color: #ffffff;
             padding: 25px;
@@ -726,7 +701,6 @@
             color: #1e293b;
         }
 
-        /* 6. 에디터 폼 요소 그룹 */
         .editor-form-group {
             margin-top: 15px;
         }
@@ -744,7 +718,6 @@
             color: #475569;
         }
 
-        /* 7. 에디터 입력 필드 (텍스트, 텍스트에어리어) */
         .editor-input {
             width: 100%;
             border: 1px solid #cbd5e1;
@@ -763,7 +736,6 @@
             resize: none;
         }
 
-        /* 8. 모달 하단 버튼 컴포넌트 */
         .editor-btn-group {
             text-align: right;
             display: flex;
@@ -801,7 +773,6 @@
             background-color: #ea580c;
         }
 
-        /* 목록 테이블 내 [수정] 버튼 전용 스타일 */
         .btn-edit {
             background-color: #3b82f6;
             /* 파란색 계열 테마 */
@@ -820,7 +791,6 @@
             /* 마우스 호버 시 진한 파란색 */
         }
 
-        /* 과제명 셀이 텍스트 길이에 맞춰 유연하게 반응하도록 제어 */
         #dom-recruitment-table td:first-child {
             white-space: normal !important;
             /* 자동 줄바꿈 허용 */
@@ -829,7 +799,6 @@
             line-height: 1.4;
         }
 
-        /* 작업 열 내부의 버튼들이 3개까지 깔끔하게 한 줄 가로 정렬되도록 세팅 */
         #dom-recruitment-table td:last-child {
             display: flex;
             justify-content: center;
@@ -838,7 +807,6 @@
             white-space: nowrap !important;
         }
 
-        /* 테이블 내부의 모든 링크와 글자 스타일 강제 제어 */
         #dom-recruitment-table,
         #dom-recruitment-table td,
         #dom-recruitment-table a {
@@ -848,17 +816,15 @@
             transition: color 0.2s ease;
         }
 
-        /* 마우스 오버 시 색상 변환 (포인터 커서 추가) */
         #dom-recruitment-table tr:hover td,
         #dom-recruitment-table a:hover {
             text-decoration: none !important;
             color: #57a7fd !important;
-            /* 원하시는 호버 색상 */
+            /* 호버 색상 */
             cursor: pointer;
             /* 마우스 올렸을 때 손가락 모양 표시 */
         }
 
-        /* 증빙 서류 배지 공통 고대비 기본 서식 */
         .doc-badge {
             display: inline-flex;
             align-items: center;
@@ -871,7 +837,6 @@
             transition: all 0.2s ease;
         }
 
-        /* 초기 미제출 비활성 회색 배지 */
         .doc-badge.status-none {
             background: rgba(148, 163, 184, 0.1);
             border: 1px solid rgba(148, 163, 184, 0.3);
@@ -879,14 +844,12 @@
             cursor: not-allowed;
         }
 
-        /* 통장 배지 정식 인가 서식 */
         .doc-badge.status-bank {
             background: rgba(14, 165, 233, 0.15);
             border: 1px solid #0ea5e9;
             color: #38bdf8;
         }
 
-        /* 신분증 배지 정식 인가 서식 */
         .doc-badge.status-id {
             background: rgba(74, 222, 128, 0.15);
             border: 1px solid #4ade80;
@@ -899,11 +862,6 @@
             filter: brightness(1.2);
         }
 
-
-        /* ==========================================================
-   [3단계 신규 추가] 개인 이력 마스터 통제 모달 전용 와이드 CSS 스타일
-   ========================================================== */
-        /* 모달 전체 배경 오버레이 (화면 잠금 및 블러 처리) */
         .history-modal-overlay {
             display: none;
             /* 초기에는 숨김 처리 */
@@ -917,7 +875,7 @@
             background: rgba(7, 10, 18, 0.8);
             /* 묵직하고 깊은 어둠 배경 */
             backdrop-filter: blur(6px);
-            /* 고급스러운 뒷배경 블러 효과 */
+            /* 고급스러운 뒷배경 blur 효과 */
             -webkit-backdrop-filter: blur(6px);
             z-index: 999999 !important;
             /* 최고 존엄 인덱스로 대시보드 위로 인상 */
@@ -925,7 +883,6 @@
             align-items: center;
         }
 
-        /* 모달 실제 콘텐츠 박스 프레임 (와이드 규격) */
         .history-modal-box {
             background: var(--card-color);
             border: 1px solid var(--border-color);
@@ -941,7 +898,6 @@
             /* 등장 시 부드러운 애니메이션 효과 */
         }
 
-        /* 모달 타이틀 구역 */
         .history-modal-box h3 {
             margin-bottom: 25px;
             font-size: 20px;
@@ -955,7 +911,6 @@
             gap: 8px;
         }
 
-        /* 모달 내부 라벨/데이터 그리드 레이아웃 전용 서식 */
         .history-grid-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -964,7 +919,6 @@
             margin-bottom: 25px;
         }
 
-        /* 모달 팝업 애니메이션 정의 */
         @keyframes modalFadeIn {
             from {
                 opacity: 0;
@@ -977,8 +931,6 @@
             }
         }
 
-
-        /* 긴급 당직/소집 공지 모달창 웹푸시알림(서비스 워커) */
         .blink-orange-neon {
             animation: neon-blink-loop 0.4s infinite alternate ease-in-out !important;
             border: 3px solid #ff5722 !important;
@@ -988,7 +940,6 @@
         @keyframes neon-blink-loop {
             0% {
                 border-color: #ff5722 !important;
-                /* 주황색 */
                 box-shadow: 0 0 15px #ff5722, inset 0 0 10px rgba(255, 87, 34, 0.3) !important;
             }
 
@@ -997,27 +948,6 @@
                 /* 강렬한 네온 형광색 (Lime Green) */
                 box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.4) !important;
             }
-        }
-
-        /* ==========================================================================
-         [4파트 관련 신규 추가] 보고서 및 통계 탭: 통합 원장 제어 요소 비활성화(Disabled) 서식
-         ========================================================================== */
-        #reportView #integration-ledger-panel input:disabled,
-        #reportView #integration-ledger-panel button:disabled {
-            background-color: #334155 !important;
-            /* 배경을 조밀한 회색조로 락다운 */
-            color: #94a3b8 !important;
-            /* 텍스트 명도를 낮춰 비활성 명시 */
-            border-color: #475569 !important;
-            /* 테두리 가시성 흐리게 처리 */
-            cursor: not-allowed !important;
-            /* 마우스 커서를 진입 금지 마크로 변환 */
-            opacity: 0.6 !important;
-            /* 반투명 처리로 시각적 제어 효과 확보 */
-            pointer-events: none !important;
-            /* 웹 브라우저 상의 마우스 클릭 이벤트 원천 차단 */
-            box-shadow: none !important;
-            /* 버튼 고유의 입체감 광원 효과 상쇄 */
         }
     </style>
 

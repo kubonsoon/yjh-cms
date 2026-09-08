@@ -1611,7 +1611,7 @@
         function initializeCMSDatabase() {
             let isUpdated = false;
 
-            // 1. 🎯 데이터가 아예 비어있는 완전 최초 접속 시 프리셋 적재 (원본의 순수 push 매커니즘 1:1 완벽 복원)
+            // 1. 데이터가 완전히 비어있는 최초 접속 시 프리셋 적재 (8인 마스터 체제 전면 전환)
             if (dataStoreApplicant.length === 0) {
                 dataStoreApplicant = [
                     {
@@ -1696,9 +1696,10 @@
                     // 초기값 동의여부 누락 방어 강제 대기화
                     if (row.isDutyAgreed === undefined || row.isDutyAgreed === null || row.isDutyAgreed === "") row.isDutyAgreed = "대기";
                     if (row.isCallAgreed === undefined || row.isCallAgreed === null || row.isCallAgreed === "") row.isCallAgreed = "대기";
-                });
+                }); // 💡 이 지점에서 forEach 반복문의 중괄호와 소괄호가 안전하게 마감됩니다.
             }
 
+            // 2. 변경 사항이 있을 때만 로컬스토리지 영구 커밋 연동
             if (isUpdated) {
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             }
@@ -1719,129 +1720,49 @@
             if (dataStoreRecruitment.length === 0) {
                 dataStoreRecruitment = [
                     {
-                        uid: 101,
-                        title: "[생동] 명인제약 아고멜라틴",
-                        th: "1기",
-                        count: "46",
-                        period: "10",
-                        crc: "이선경",
-                        notice: "지정식 이외 취식 금지 및 지각 시 입소 불가",
-                        examSchedule: "2025-07-22",
-                        paySchedule: "1차: 2025-08-02",
-                        payDate1: "2025-08-02",
-                        payDate2: "",
-                        payDate3: "",
-                        recDate: "2025-07-22"
+                        uid: 101, title: "[생동] 명인제약 아고멜라틴", th: "1기", count: "46", period: "10", crc: "이선경",
+                        notice: "지정식 이외 취식 금지 및 지각 시 입소 불가", examSchedule: "2025-07-22",
+                        paySchedule: "1차: 2025-08-02", payDate1: "2025-08-02", payDate2: "", payDate3: "", recDate: "2025-07-22"
                     },
                     {
-                        uid: 102,
-                        title: "대우제약 피타+에제",
-                        th: "2기",
-                        count: "60",
-                        period: "72",
-                        crc: "유성은",
-                        notice: "공복 유지 필수 및 소집 10분 전 대기",
-                        examSchedule: "2025-08-14",
-                        paySchedule: "1차: 2025-09-10",
-                        payDate1: "2025-09-10",
-                        payDate2: "",
-                        payDate3: "",
-                        recDate: "2025-08-14"
+                        uid: 102, title: "대우제약 피타+에제", th: "2기", count: "60", period: "72", crc: "유성은",
+                        notice: "공복 유지 필수 및 소집 10분 전 대기", examSchedule: "2025-08-14",
+                        paySchedule: "1차: 2025-09-10", payDate1: "2025-09-10", payDate2: "", payDate3: "", recDate: "2025-08-14"
                     },
                     {
-                        uid: 103,
-                        title: "삼진제약 팔보시클립",
-                        th: "3기",
-                        count: "30",
-                        period: "96",
-                        crc: "최미현",
-                        notice: "지정식 이외 취식 금지 및 격리 규정 준수",
-                        examSchedule: "2025-10-17",
-                        paySchedule: "1차: 2025-11-23",
-                        payDate1: "2025-11-23",
-                        payDate2: "",
-                        payDate3: "",
-                        recDate: "2025-10-17"
+                        uid: 103, title: "삼진제약 팔보시클립", th: "3기", count: "30", period: "96", crc: "최미현",
+                        notice: "지정식 이외 취식 금지 및 격리 규정 준수", examSchedule: "2025-10-17",
+                        paySchedule: "1차: 2025-11-23", payDate1: "2025-11-23", payDate2: "", payDate3: "", recDate: "2025-10-17"
                     },
                     {
-                        uid: 104,
-                        title: "[임상] 파마사이언스 룩소리틴",
-                        th: "4기",
-                        count: "48",
-                        period: "24",
-                        crc: "손해리",
-                        notice: "임상 지침 준수 및 이상 반응 시 즉시 보고",
-                        examSchedule: "2025-10-17",
-                        paySchedule: "1차: 2025-11-23",
-                        payDate1: "2025-11-23",
-                        payDate2: "",
-                        payDate3: "",
-                        recDate: "2025-10-17"
+                        uid: 104, title: "[임상] 파마사이언스 룩소리틴", th: "4기", count: "48", period: "24", crc: "손해리",
+                        notice: "임상 지침 준수 및 이상 반응 시 즉시 보고", examSchedule: "2025-10-17",
+                        paySchedule: "1차: 2025-11-23", payDate1: "2025-11-23", payDate2: "", payDate3: "", recDate: "2025-10-17"
                     },
                     {
-                        uid: 105,
-                        title: "애드파마 로잘탄+로수+에제",
-                        th: "2기",
-                        count: "44",
-                        period: "72",
-                        crc: "석정은",
-                        notice: "공복 유지 필수 및 복용 약물 상시 점검",
-                        examSchedule: "2026-08-10",
-                        paySchedule: "1차: 2026-09-10",
-                        payDate1: "2026-09-10",
-                        payDate2: "",
-                        payDate3: "",
-                        recDate: "2026-08-10"
+                        uid: 105, title: "애드파마 로잘탄+로수+에제", th: "2기", count: "44", period: "72", crc: "석정은",
+                        notice: "공복 유지 필수 및 복용 약물 상시 점검", examSchedule: "2026-08-10",
+                        paySchedule: "1차: 2026-09-10", payDate1: "2026-09-10", payDate2: "", payDate3: "", recDate: "2026-08-10"
                     },
                     {
-                        uid: 106,
-                        title: "신일제약 사쿠+발사",
-                        th: "4기",
-                        count: "46",
-                        period: "96",
-                        crc: "이은정",
-                        notice: "격리 수칙 준수 및 통제 구역 출입 금지",
-                        examSchedule: "2026-08-22",
-                        paySchedule: "1차: 2026-09-24",
-                        payDate1: "2026-09-24",
-                        payDate2: "",
-                        payDate3: "",
-                        recDate: "2026-08-22"
+                        uid: 106, title: "신일제약 사쿠+발사", th: "4기", count: "46", period: "96", crc: "이은정",
+                        notice: "격리 수칙 준수 및 통제 구역 출입 금지", examSchedule: "2026-08-22",
+                        paySchedule: "1차: 2026-09-24", payDate1: "2026-09-24", payDate2: "", payDate3: "", recDate: "2026-08-22"
                     },
                     {
-                        uid: 107,
-                        title: "[생동] 하나제약 로수+에제",
-                        th: "3기",
-                        count: "60",
-                        period: "72",
-                        crc: "이승호",
-                        notice: "카페인 및 금지 식품 섭취 절대 불가",
-                        examSchedule: "2026-09-26",
-                        paySchedule: "1차: 2026-10-15",
-                        payDate1: "2026-10-15",
-                        payDate2: "",
-                        payDate3: "",
-                        recDate: "2026-09-26"
+                        uid: 107, title: "[생동] 하나제약 로수+에제", th: "3기", count: "60", period: "72", crc: "이승호",
+                        notice: "카페인 및 금지 식품 섭취 절대 불가", examSchedule: "2026-09-26",
+                        paySchedule: "1차: 2026-10-15", payDate1: "2026-10-15", payDate2: "", payDate3: "", recDate: "2026-09-26"
                     },
                     {
-                        uid: 108,
-                        title: "경동제약 식후 임상시험",
-                        th: "4기",
-                        count: "46",
-                        period: "96",
-                        crc: "강은애",
-                        notice: "식후 검사 시간 엄수 및 개인 행동 금지",
-                        examSchedule: "2026-10-17",
-                        paySchedule: "1차: 2026-11-26",
-                        payDate1: "2026-11-26",
-                        payDate2: "",
-                        payDate3: "",
-                        recDate: "2026-10-17"
+                        uid: 108, title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96", crc: "강은애",
+                        notice: "식후 검사 시간 엄수 및 개인 행동 금지", examSchedule: "2026-10-17",
+                        paySchedule: "1차: 2026-11-26", payDate1: "2026-11-26", payDate2: "", payDate3: "", recDate: "2026-10-17"
                     }
                 ];
                 isUpdated = true;
             } else {
-                // 브라우저 저장소에 디폴트 값  
+                // 브라우저 저장소 디폴트 날짜 복원 단원 (버그 전면 박멸 구역)
                 dataStoreRecruitment.forEach(row => {
                     if (!row.recDate || row.recDate === "미정" || row.recDate.trim() === "" || row.recDate.includes("년")) {
                         if (row.uid == 101 || row.title.includes("명인제약")) { row.recDate = "2025-07-22"; isUpdated = true; }
@@ -1852,10 +1773,9 @@
                         else if (row.uid == 106 || row.title.includes("신일제약")) { row.recDate = "2026-08-22"; isUpdated = true; }
                         else if (row.uid == 107 || row.title.includes("하나제약")) { row.recDate = "2026-09-26"; isUpdated = true; }
                         else if (row.uid == 108 || row.title.includes("경동제약")) { row.recDate = "2026-10-17"; isUpdated = true; }
-                    }
+                    } // 💡 ⭕ [교정 마감 안전핀]: 유실되었던 외곽 if문의 닫는 중괄호 복구 완료!
                 });
             }
-
 
             // 관리 임직원 프리셋 영역 [원안 보존]
             if (dataStoreAdminMembers.length === 0) {
@@ -1909,6 +1829,7 @@
                 if (document.getElementById('mainDashboard')) document.getElementById('mainDashboard').style.display = 'none';
             }
         }
+
         /**
          * 좌측 메뉴 3개 클릭 및 새로고침 시 화면/스타일 동시 전환 제어 엔진
          * @param {string} viewName - 이동할 뷰포트 ID ('recruitmentView' | 'applicantView' | 'gradeView')
@@ -2016,7 +1937,7 @@
                 console.log('[보안 체인] 일반 사원 계정 감지 - 통합 원장 조회/인쇄/저장 제어 요소 완전 잠금 완료.');
             }
         }
-        }
+
 
         // 3. [세션 검증 결합] 로그인 완료 및 새로고침 세션 복구 시점에 상시 감시 구동
         const _original_checkActiveLoginSession = checkActiveLoginSession;

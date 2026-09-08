@@ -3073,75 +3073,64 @@
                 if (isAppEditing) {
                     tr.className = "editing-row";
                     tr.innerHTML = `
-                   <td style="vertical-align: middle; padding-left: 15px;">
-        <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
-    </td>
-    <td style="width: 90px; vertical-align: middle;">
-         <select id="inline-app-th-${masterIndex}" class="inline-input" style="height:32px; padding:2px; text-align:center; text-align-last:center; background: #1e293b !important; cursor: pointer !important;">
-            <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
-            <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
-            <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
-            <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
-        </select>
-    </td>
-    <td style="width: 75px; vertical-align: middle;">
-        <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">
-    </td>
-    <td style="width: 65px; vertical-align: middle;">
-        <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">
-    </td>
-    <td style="width: 80px; vertical-align: middle;">
-        <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
-    </td>
-    <td style="width: 85px; vertical-align: middle;">
-        <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${row.ssn ? row.ssn.toString().split('-')[0].slice(0, 6) : ''}" style="text-align:center; background: var(--card-color) !important;">
-    </td>
-    <td style="text-align: center; width: 85px; min-width: 85px; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
-        ${row.ssn ? row.ssn.toString().split('-')[0].slice(0, 6) : '-'}
-    </td>
-    <td style="width: 65px; vertical-align: middle; text-align: center;">
-        <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-            ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
-        </span>
-    </td>
-    <td style="width: 125px; vertical-align: middle;">
-        <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
-    </td>
-
-    <!-- 후반부 신설 참여경로, 참여상태, 차수별 정산 및 동의서 셀렉터 구역 -->
-    <td style="width: 100px; vertical-align: middle;">
-      <select id="inline-app-category-${masterIndex}" class="inline-input" style="width: 100%; background: var(--card-color) !important; color: #ffffff; height:30px;">
-        <!-- ... 참여경로 옵션 리스트 생략 ... -->
-      </select>
-    </td>
-    <td style="width: 110px; vertical-align: middle;">
-      <select id="inline-app-stage-${masterIndex}" class="inline-input" style="width: 100%; background: var(--card-color) !important; color: #ffffff; height:30px;">
-        <!-- ... 참여상태 옵션 리스트 생략 ... -->
-      </select>
-    </td>
-    <td style="width: 85px; vertical-align: middle; text-align: center;">
-        <!-- 1, 2, 3차 차수별 정산 선택 상자 3단 스택 -->
-        <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
-            <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; width:75px; color:#fff; background:#0f172a !important;">...</select>
-            <select id="inline-app-pay2-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; width:75px; color:#fff; background:#0f172a !important;">...</select>
-            <select id="inline-app-pay3-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; width:75px; color:#fff; background:#0f172a !important;">...</select>
-        </div>
-    </td>
-    <td style="width: 75px; vertical-align: middle;">
-        <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">...</select>
-    </td>
-    <td style="width: 75px; vertical-align: middle;">
-        <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">...</select>
-    </td>
-    <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px;">첨부서류 변경불가</td>
-    
-    <!-- 평상시 액션 버튼 마감 -->
-    <td style="width: 180px; vertical-align: middle; padding-right: 15px;">
-        <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-            <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; font-weight: 700;">저장</button>
-            <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; color:#fff; font-weight: 700;">취소</button>
-        </div>
-    </td>
+                  <td style="text-align: center;"><input type="text" id="inline-app-title-${i}" value="${row.title || ''}" class="inline-input"></td>
+                        <td style="text-align: center;">
+                            <select id="inline-app-th-${i}" style="background:#0b0f19; color:#fff; border:1px solid var(--warning-color); border-radius:4px; height:28px; font-weight:700;">
+                                <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
+                                <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
+                                <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
+                                <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;"><input type="text" id="inline-app-count-${i}" value="${row.count || ''}" class="inline-input" style="text-align: center;"></td>
+                        <td style="text-align: center;"><input type="text" id="inline-app-period-${i}" value="${row.period || ''}" class="inline-input" style="text-align: center;"></td>
+                        <td style="text-align: center;"><input type="text" id="inline-app-name-${i}" value="${row.name || ''}" class="inline-input" style="text-align: center;"></td>
+                        <td style="text-align: center;"><input type="text" id="inline-app-ssn-${i}" value="${row.ssn || ''}" class="inline-input" style="text-align: center;"></td>
+                        <td style="text-align: center; font-weight: 700;">${genderSign}</td>
+                        <td style="text-align: center;"><input type="text" id="inline-app-phone-${i}" value="${row.phone || ''}" class="inline-input" style="text-align: center;"></td>
+                        <td style="text-align: center;">
+                            <select id="inline-app-inflow-${i}" style="background:#0b0f19; color:#fff; border:1px solid var(--warning-color); border-radius:4px; height:28px; font-weight:700;">
+                                <option value="잡코리아" ${row.inflowPath === '잡코리아' ? 'selected' : ''}>잡코리아</option>
+                                <option value="사람인" ${row.inflowPath === '사람인' ? 'selected' : ''}>사람인</option>
+                                <option value="알바몬" ${row.inflowPath === '알바몬' ? 'selected' : ''}>알바몬</option>
+                                <option value="알바천국" ${row.inflowPath === '알바천국' ? 'selected' : ''}>알바천국</option>
+                                <option value="지인소개" ${row.inflowPath === '지인소개' ? 'selected' : ''}>지인소개</option>
+                                <option value="직원소개" ${row.inflowPath === '직원소개' ? 'selected' : ''}>직원소개</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;">
+                            <select id="inline-app-status-${i}" style="background:#0b0f19; color:#fff; border:1px solid var(--warning-color); border-radius:4px; height:28px; font-weight:700;">
+                                <option value="참여" ${row.appStatusFlag === '참여' ? 'selected' : ''}>참여</option>
+                                <option value="예비귀가" ${row.appStatusFlag === '예비귀가' ? 'selected' : ''}>예비귀가</option>
+                                <option value="지각" ${row.appStatusFlag === '지각' ? 'selected' : ''}>지각탈락</option>
+                                <option value="채혈" ${row.appStatusFlag === '채혈' ? 'selected' : ''}>채혈탈락</option>
+                                <option value="스크리닝" ${row.appStatusFlag === '스크리닝' ? 'selected' : ''}>스크리닝</option>
+                                <option value="신검" ${row.appStatusFlag === '신검' ? 'selected' : ''}>신검탈락</option>
+                                <option value="이상반응" ${row.appStatusFlag === '이상반응' ? 'selected' : ''}>이상반응</option>
+                                <option value="비협조" ${row.appStatusFlag === '비협조' ? 'selected' : ''}>비협조</option>
+                                <option value="임의행동" ${row.appStatusFlag === '임의행동' ? 'selected' : ''}>임의행동</option>
+                                <option value="폭언욕설" ${row.appStatusFlag === '폭언욕설' ? 'selected' : ''}>폭언욕설</option>
+                                <option value="규정위반" ${row.appStatusFlag === '규정위반' ? 'selected' : ''}>규정위반</option>
+                                <option value="개인사정" ${row.appStatusFlag === '개인사정' ? 'selected' : ''}>개인사정</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;">
+                            <div style="display:flex; flex-direction:column; gap:2px; font-size:11px;">
+                                <span>1차: <select id="inline-app-p1-${i}"><option value="대기" ${p1 === '대기' ? 'selected' : ''}>대기</option><option value="완료" ${p1 === '완료' ? 'selected' : ''}>완료</option></select></span>
+                                <span>2차: <select id="inline-app-p2-${i}"><option value="대기" ${p2 === '대기' ? 'selected' : ''}>대기</option><option value="완료" ${p2 === '완료' ? 'selected' : ''}>완료</option></select></span>
+                                <span>3차: <select id="inline-app-p3-${i}"><option value="대기" ${p3 === '대기' ? 'selected' : ''}>대기</option><option value="완료" ${p3 === '완료' ? 'selected' : ''}>완료</option></select></span>
+                            </div>
+                        </td>
+                        <td style="text-align: center;"><select id="inline-app-duty-${i}"><option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option><option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option><option value="거부" ${dutyAgreed === '거부' ? 'selected' : ''}>거부</option></select></td>
+                        <td style="text-align: center;"><select id="inline-app-call-${i}"><option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option><option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option><option value="거부" ${callAgreed === '거부' ? 'selected' : ''}>거부</option></select></td>
+                        <td style="text-align: center;">
+                            <span class="doc-badge ${row.bankBookFile ? 'status-bank' : 'status-none'}" onclick="${row.bankBookFile ? `viewUploadedDoc('bank', '${row.bankBookFile}')` : ''}">통장</span>
+                            <span class="doc-badge ${row.idCardFile ? 'status-id' : 'status-none'}" onclick="${row.idCardFile ? `viewUploadedDoc('id', '${row.idCardFile}')` : ''}">신분증</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${i})">저장</button>
+                            <button type="button" class="btn-inline list" onclick="toggleApplicantInlineEdit(-1)">취소</button>
+                        </td>
 `;
                 }
 
@@ -3150,35 +3139,29 @@
                 // ----------------======================================================
                 else {
                     tr.innerHTML = `
-                <td style="vertical-align: middle; padding-left: 15px; text-align: left;" class="text-bold">${row.title || ''}</td>
-    <td style="vertical-align: middle; text-align: center;">${formatTh(row.th)}</td>
-    <td style="vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
-    <td style="vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
-    <td style="vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
-    <td style="vertical-align: middle; text-align: center;">${row.ssn || ''}</td>
-    <td style="text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
-        ${row.ssn ? row.ssn.toString().split('-')[0].slice(0, 6) : '-'}
-    </td>
-    <td style="vertical-align: middle; text-align: center;">
-        <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
-            ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
-        </span>
-    </td>
-    <td style="vertical-align: middle; text-align: center;">${formatPhone(row.phone)}</td>
-    
-    <!-- 텍스트 배지 노출 구역 -->
-    <td style="vertical-align: middle; text-align: center;"><span class="doc-badge status-bank">${row.category || '수동등록'}</span></td>
-    <td style="vertical-align: middle; text-align: center;"><span class="doc-badge ${row.stage === '참여' ? 'status-id' : 'status-none'}">${row.stage || '참여'}</span></td>
-    <td style="vertical-align: middle; text-align: center;">
-        <div class="badge-container-flex" style="display: flex; flex-direction: row; gap: 3px; justify-content: center;">
-            <span class="doc-badge ${row.payStatus1 === '완료' ? 'status-id' : 'status-bank'}">1차</span>
-            <span class="doc-badge ${row.payStatus2 === '완료' ? 'status-id' : 'status-none'}">2차</span>
-            <span class="doc-badge ${row.payStatus3 === '완료' ? 'status-id' : 'status-none'}">3차</span>
-        </div>
-    </td>
-    <td style="vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isDutyAgreed || '대기'}</span></td>
-    <td style="vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isCallAgreed || '대기'}</span></td>
-    <td style="vertical-align: middle; text-align: center;">
+               <td style="text-align: left; padding-left: 14px; font-weight: 500;">${displayTitle}</td>
+                        <td style="text-align: center;"><span class="lvl-badge ${thClass}">${displayTh}</span></td>
+                        <td style="text-align: center;">${row.count || '-'}명</td>
+                        <td style="text-align: center;">${row.period || '-'}H</td>
+                        <td style="text-align: center; font-weight: 700; color: #ffffff;">${row.name || '-'}</td>
+                        <td style="text-align: center; font-family: monospace;">${displaySsn}</td>
+                        <td style="text-align: center; font-weight: 700;">${genderSign}</td>
+                        <td style="text-align: center; font-family: monospace;">${fmtPhone}</td>
+                        <td style="text-align: center;">${row.inflowPath || '기타'}</td>
+                        <td style="text-align: center; font-weight: 700; color: ${row.appStatusFlag === '참여' ? 'var(--success-color)' : 'var(--danger-color)'};">${row.appStatusFlag || '참여'}</td>
+                        <td style="text-align: center;">
+                            <div style="display:flex; flex-direction:column; gap:1px; font-size:11px; text-align:left; padding-left:5px;">
+                                <span>1차: <b style="color:${p1 === '완료' ? 'var(--success-color)' : 'var(--warning-color)'}">${p1}</b></span>
+                                <span>2차: <b style="color:${p2 === '완료' ? 'var(--success-color)' : 'var(--warning-color)'}">${p2}</b></span>
+                                <span>3차: <b style="color:${p3 === '완료' ? 'var(--success-color)' : 'var(--warning-color)'}">${p3}</b></span>
+                            </div>
+                        </td>
+                        <td style="text-align: center; color:${dutyAgreed === '동의' ? 'var(--success-color)' : dutyAgreed === '거부' ? 'var(--danger-color)' : 'var(--text-muted)'}; font-weight:700;">${dutyAgreed}</td>
+                        <td style="text-align: center; color:${callAgreed === '동의' ? 'var(--success-color)' : callAgreed === '거부' ? 'var(--danger-color)' : 'var(--text-muted)'}; font-weight:700;">${callAgreed}</td>
+                        <td style="text-align: center;">
+                            <span class="doc-badge ${row.bankBookFile ? 'status-bank' : 'status-none'}" onclick="${row.bankBookFile ? `viewUploadedDoc('bank', '${row.bankBookFile}')` : ''}">통장</span>
+                            <span class="doc-badge ${row.idCardFile ? 'status-id' : 'status-none'}" onclick="${row.idCardFile ? `viewUploadedDoc('id', '${row.idCardFile}')` : ''}">신분증</span>
+                        </td>  <td style="vertical-align: middle; text-align: center;">
         <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}">신분</span>
         <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}">통장</span>
     </td>

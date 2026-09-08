@@ -1948,9 +1948,10 @@
             }
         }
         /**
-                 * 좌측 메뉴 3개 클릭 및 새로고침 시 화면/스타일 동시 전환 제어 엔진
-                 * @param {string} viewName - 이동할 뷰포트 ID ('recruitmentView' | 'applicantView' | 'gradeView')
-                 */
+         * 좌측 메뉴 3개 클릭 및 새로고침 시 화면/스타일 동시 전환 제어 엔진
+         * @param {string} viewName - 이동할 뷰포트 ID ('recruitmentView' | 'applicantView' | 'gradeView')
+         */
+
         function changeMainViewport(viewName) {
             // 1. 사용자가 클릭한 메뉴 명칭을 브라우저 저장소에 실시간 영구 기억
             localStorage.setItem('adminActiveViewportId', viewName);
@@ -1989,13 +1990,28 @@
             } else if (viewName === 'reportView' && document.getElementById('menuReport')) {
                 document.getElementById('menuReport').classList.add('active');
                 var currentSabun = sessionStorage.getItem('adminLoginSabun');
-                applyReportLedgerPermissionGate(currentSabun);
+
+                // [보안 게이트웨이 기동]
+                if (typeof applyReportLedgerPermissionGate === "function") {
+                    applyReportLedgerPermissionGate(currentSabun);
+                }
+
+                // 🎯 [전산망 동기화 링크 복구 안전핀]: 메뉴 진입 즉시 독립 모듈의 실시간 데이터 연산 및 차트 주입 엔진 강제 연쇄 트리거
+                if (typeof calculateReportMasterStats === "function") {
+                    calculateReportMasterStats();
+                }
+
+                // 🔄 [초기화 락인]: 첫 보고서 진입 시 6대 서브 탭 바 중 1번 종합 통계 탭을 기본 active 활성화 처리
+                if (typeof switchReportSubTab === "function") {
+                    switchReportSubTab('summary');
+                }
 
             } else {
                 // 폴백 구조 유지
                 const activeMenu = document.querySelector(`[onclick*="${viewName}"]`);
                 if (activeMenu) activeMenu.classList.add('active');
             }
+
 
             // =========================================================================
             // 🔒 [신규 추가] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진

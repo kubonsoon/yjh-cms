@@ -319,6 +319,38 @@
         }
 
 
+        /* 1. [수정] 기본 상태: 노란색 강조 테두리를 걷어내고 신규 등록 폼과 동일하게 딥 블랙 배경 및 다크 그레이 테두리로 교정 */
+        .inline-input,
+        #applicantView #dom-applicant-table input,
+        #applicantView #dom-applicant-table select {
+            width: 100%;
+            padding: 6px 10px !important;
+            background-color: #0b0f19 !important;
+            /* [배경색 수정] 흐릿한 회색 대신 딥 블랙으로 일괄 변경 */
+            color: #ffffff !important;
+            /* 순백색 글자 사수 */
+            border: 1px solid #334155 !important;
+            /* [테두리 수정] 기본 테두리를 차분한 컬러로 단일화 */
+            border-radius: 6px !important;
+            font-size: 13px !important;
+            font-weight: 500;
+            outline: none !important;
+            transition: border-color 0.2s, box-shadow 0.2s !important;
+        }
+
+        .inline-input:focus,
+        #applicantView #dom-applicant-table input:focus,
+        #applicantView #dom-applicant-table select:focus {
+            /* 기존 var(--warning-color) 노란색 테두리를 완전히 지우고 스카이 블루로 교정 */
+            border-color: var(--secondary-color) !important;
+            /* 스카이 블루 #0ea5e9 */
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25) !important;
+            /* 은은한 네온 그림자 글로우 효과 추가 */
+            background-color: #000000 !important;
+            /* 포커스 시 리얼 블랙 전환 */
+        }
+
+
         .action-stack-box .action-btn {
             width: 100% !important;
             height: 34px !important;

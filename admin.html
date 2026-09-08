@@ -1473,7 +1473,7 @@
                         <i class="fa-solid fa-layer-group"></i> 2 탭: 시험별 모집 및 재무 현황
                     </button>
                     <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('dropout')">
-                        <i class="fa-solid fa-user-slash"></i> 3 탭: 🔒 대상자 탈락 사유 통계 대장
+                        <i class="fa-solid fa-user-slash"></i> 3 탭: 대상자 탈락 사유 통계 대장
                     </button>
                     <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('ledger')">
                         <i class="fa-solid fa-address-book"></i> 4 탭: 대상자 개인별 마스터 원장 조회
@@ -1486,10 +1486,28 @@
                     </button>
                 </div>
 
-                <!-- 📥 가변형 6대 패널 데이터 연동 마운트 슬롯 구역 -->
+                <!-- 가변형 6대 패널 데이터 연동 마운트 슬롯 구역 -->
                 <div id="report-dynamic-tab-viewport" style="width: 100%;">
-                    <!-- 1 탭 패널 슬롯 -->
-                    <div id="report-tab-panel-summary" class="report-tab-content-panel active"></div>
+                    <!-- [Body] 1 탭: 종합 통계 관제탑 실물 독립 패널 내 상단 인쇄 버튼 제어부 마운트 -->
+                    <div id="report-tab-panel-summary" class="report-tab-content-panel active"
+                        style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+
+                        <!-- 실무 부서 보고용 종합 관제탑 독립 인쇄 버튼 팩 -->
+                        <div class="report-action-btn-set"
+                            style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 5px;">
+                            <button type="button" onclick="window.printReportSummaryMode()"
+                                style="padding: 0 16px; height: 36px; font-size: 13px; font-weight: 700; background: #f97316; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);">
+                                종합 통계 보고서 인쇄
+                            </button>
+                        </div>
+
+                        <!-- 자바스크립트 집계 엔진에 의해 실시간 통계 수치와 게이지 바가 채워지는 컨테이너 하부 코어 -->
+                        <div id="dom-summary-charts-render-zone"
+                            style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+                            <!-- 스크립트 가동 시 실시간 데이터가 여기에 안착됩니다 -->
+                        </div>
+
+                    </div>
 
                     <!-- 2 탭 패널 슬롯 -->
                     <div id="report-tab-panel-recruitment" class="report-tab-content-panel"></div>

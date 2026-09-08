@@ -180,15 +180,98 @@
 }
 
 /* ----------------==================================---------------- */
-/* 3. [비관리자 계정 진입 시] 보고서 탭 종합 락다운(Disabled) 제어 스킨 */
+/* 3. 🎯 [보고서 전용 프리미엄 2대 분리형 인쇄 미디어 쿼리]           */
 /* ----------------==================================---------------- */
-#reportView #integration-ledger-panel input:disabled,
-#reportView #integration-ledger-panel button:disabled {
-  background-color: #334155 !important;
-  color: #94a3b8 !important;
-  border-color: #475569 !important;
-  cursor: not-allowed !important;
-  opacity: 0.6 !important;
-  pointer-events: none !important;
-  box-shadow: none !important;
+@media print {
+  /* 공통: 인쇄 발동 시 화면 전용 상시 고정 UI 요소 강제 락다운 숨김 */
+  body.print-summary-mode .sidebar,
+  body.print-ledger-mode .sidebar,
+  body.print-summary-mode .dashboard-top-bar,
+  body.print-ledger-mode .dashboard-top-bar,
+  body.print-summary-mode .report-sub-tab-bar,
+  body.print-ledger-mode .report-sub-tab-bar,
+  body.print-summary-mode button,
+  body.print-ledger-mode button,
+  body.print-summary-mode select,
+  body.print-ledger-mode select,
+  body.print-summary-mode input,
+  body.print-ledger-mode input,
+  body.print-summary-mode .admin-top-btn-group,
+  body.print-ledger-mode .admin-top-btn-group,
+  body.print-summary-mode .report-action-btn-set,
+  body.print-ledger-mode .report-action-btn-set,
+  body.print-summary-mode #report-ledger-search-gate,
+  body.print-ledger-mode #report-ledger-search-gate {
+    display: none !important;
+  }
+
+  /* 순백색 도화지 스킨 강제 인화 및 가로축 100% 와이드 개방 */
+  body.print-summary-mode,
+  body.print-ledger-mode {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  body.print-summary-mode .main-content,
+  body.print-ledger-mode .main-content,
+  body.print-summary-mode .content-section,
+  body.print-ledger-mode .content-section {
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* ----------------==================================---------------- */
+  /* 分. [1 탭 분기] 종합 통계 관제탑 전용 프린트 제어 스타일          */
+  /* ----------------==================================---------------- */
+  body.print-summary-mode #report-tab-panel-summary {
+    display: flex !important;
+  }
+  body.print-summary-mode #report-tab-panel-ledger {
+    display: none !important;
+  }
+  body.print-summary-mode .mini-bar-bg {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  /* ----------------==================================---------------- */
+  /* 分. [4 탭 분기] 🔒 관공서 표준 격자 괘선 마스터 원장 인쇄 스타일   */
+  /* ------------------------------------------------==---------------- */
+  body.print-ledger-mode #report-master-ledger-viewport,
+  body.print-ledger-mode #report-master-ledger-viewport table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 15px !important;
+    background: #ffffff !important;
+  }
+
+  body.print-ledger-mode #report-tab-panel-summary {
+    display: none !important;
+  }
+  body.print-ledger-mode #report-tab-panel-ledger {
+    display: flex !important;
+  }
+
+  /* 관공서 표준 격자 괘선 100% 먹박 락인 */
+  body.print-ledger-mode #report-master-ledger-viewport th,
+  body.print-ledger-mode #report-master-ledger-viewport td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    padding: 10px 8px !important;
+    font-size: 13px !important;
+    background: #ffffff !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  /* 원장 상단 th 타이틀 구역 은은한 공공기관 그레이 스킨 주입 */
+  body.print-ledger-mode #report-master-ledger-viewport th {
+    background: #f1f5f9 !important;
+    font-weight: 700 !important;
+  }
 }

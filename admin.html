@@ -3246,6 +3246,11 @@
             // [오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
             const payload = {
                 uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
+                // 신규 등록 시 리스트 최상단 배치를 유발하는 타임스탬프 속성을 정밀 주입
+                regTimestamp: editIndex === "" ? Date.now() : (dataStoreApplicant[editIndex].regTimestamp || 0),
+                // 기존 프리셋 유저(isDefault)들과 명확히 격리하기 위해 false 값 락인
+                isDefault: editIndex === "" ? false : (dataStoreApplicant[editIndex].isDefault || false),
+
                 title: t,
                 th: th,
                 count: getOnlyNumbers(c),

@@ -2653,18 +2653,6 @@
          * 🎯 [대장 화면 렌더러 엔진 - 5파트 완전 분할 무결성 조립본]
          */
 
-
-
-
-
-
-
-
-
-
-
-
-
         function refreshApplicantView() {
             const tbody = document.getElementById('dom-applicant-table');
             const paginator = document.getElementById('applicant-pagination'); // 페이징 버튼이 그려질 하단 슬롯 돔
@@ -2895,9 +2883,9 @@
                <td style="text-align: center; width: 85px; min-width: 85px; font-size: 14px; color: #ffffff; font-weight: 500;">
                     ${row.ssn ? row.ssn.toString().split('-')[0].slice(0, 6) : '-'}
                 </td>
-                <td style="width: 65px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                        ${parseGenderFromSsn(row.ssn, row.name)}
+               <td style="width: 65px; vertical-align: middle; text-align: center;">
+                    <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
+                        ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
                     </span>
                 </td>
                 <td style="width: 125px; vertical-align: middle;">
@@ -2963,9 +2951,9 @@
                 <td style="width: 85px; vertical-align: middle; text-align: center; color: #ffffff;" font-weight: 400;">
                     ${row.ssn ? row.ssn.toString().split('-')[0].slice(0, 6) : ''}
                 </td>
-                <td style="width: 65px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
-                        ${parseGenderFromSsn(row.ssn, row.name)}
+                 <td style="width: 65px; vertical-align: middle; text-align: center;">
+                    <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}" style="padding: 4px 8px; font-size:12px; display: inline-block;">
+                        ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
                     </span>
                 </td>
                 <td style="width: 125px; vertical-align: middle; text-align: center; color: #e2e8f0; font-family: monospace;">${fmtPhone}</td>

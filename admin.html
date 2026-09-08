@@ -1533,9 +1533,8 @@
             <div id="reportView" class="content-section"
                 style="display: none; flex-direction: column; background: #0f172a; border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; margin-bottom: 24px; width: 100%; gap: 20px;">
 
-                <!-- 🛠️ [가로형 6대 서브 탭 메뉴 바]: 실무 부서별 관제탑 전환 스위치 세트 (원본 버튼 구조 100% 계승) -->
-                <div class="report-sub-tab-bar"
-                    style="display: flex !important; gap: 8px !important; border-bottom: 2px solid var(--border-color) !important; padding-bottom: 10px !important; margin-bottom: 24px !important; width: 100% !important;">
+                <!-- 🛠️ 가로형 6대 서브 탭 메뉴 스위치 단추 셋트 -->
+                <div class="report-sub-tab-bar">
                     <button type="button" class="report-sub-tab-btn active" onclick="switchReportSubTab('summary')">
                         <i class="fa-solid fa-chart-line"></i> 1 탭: 종합 통계 관제탑
                     </button>
@@ -1556,33 +1555,25 @@
                     </button>
                 </div>
 
-                <!-- 📥 [실시간 가변형 뷰포트]: 외부 report-view.js 모듈과 다이렉트로 파이프라인이 꽂히는 6대 슬롯 패널 -->
+                <!-- 📥 가변형 6대 패널 데이터 연동 마운트 슬롯 구역 -->
                 <div id="report-dynamic-tab-viewport" style="width: 100%;">
+                    <!-- 1 탭 패널 슬롯 -->
+                    <div id="report-tab-panel-summary" class="report-tab-content-panel active"></div>
 
-                    <!-- 1 탭: 종합 통계 관제탑 전용 실물 독립 패널 (초기 노출 활성화) -->
-                    <div id="report-tab-panel-summary" class="report-tab-content-panel active"
-                        style="display: flex; flex-direction: column; gap: 20px; width: 100%;"></div>
+                    <!-- 2 탭 패널 슬롯 -->
+                    <div id="report-tab-panel-recruitment" class="report-tab-content-panel"></div>
 
-                    <!-- 2 탭: 시험별 모집 및 재무 현황 전용 실물 독립 패널 -->
-                    <div id="report-tab-panel-recruitment" class="report-tab-content-panel"
-                        style="display: none; flex-direction: column; gap: 20px; width: 100%;"></div>
+                    <!-- 3 탭 패널 슬롯 -->
+                    <div id="report-tab-panel-dropout" class="report-tab-content-panel"></div>
 
-                    <!-- 3 탭: 🔒 대상자 탈락 사유 통계 대장 전용 실물 독립 패널 -->
-                    <div id="report-tab-panel-dropout" class="report-tab-content-panel"
-                        style="display: none; flex-direction: column; gap: 20px; width: 100%;"></div>
+                    <!-- 4 탭 패널 슬롯 -->
+                    <div id="report-tab-panel-ledger" class="report-tab-content-panel"></div>
 
-                    <!-- 4 탭: 대상자 개인별 마스터 원장 조회 전용 실물 독립 패널 -->
-                    <div id="report-tab-panel-ledger" class="report-tab-content-panel"
-                        style="display: none; flex-direction: column; gap: 20px; width: 100%;"></div>
+                    <!-- 5 탭 패널 슬롯 -->
+                    <div id="report-tab-panel-crc" class="report-tab-content-panel"></div>
 
-                    <!-- 5 탭: 담당 CRC별 시험 통제/정산 효율 전용 실물 독립 패널 -->
-                    <div id="report-tab-panel-crc" class="report-tab-content-panel"
-                        style="display: none; flex-direction: column; gap: 20px; width: 100%;"></div>
-
-                    <!-- 6 탭: 차수별(1~3차) 참여비 미래 스케줄러 전용 실물 독립 패널 -->
-                    <div id="report-tab-panel-budget" class="report-tab-content-panel"
-                        style="display: none; flex-direction: column; gap: 20px; width: 100%;"></div>
-
+                    <!-- 6 탭 패널 슬롯 -->
+                    <div id="report-tab-panel-budget" class="report-tab-content-panel"></div>
                 </div>
 
             </div>

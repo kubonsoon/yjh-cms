@@ -3243,10 +3243,6 @@
                 return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
             }
 
-            // 성별 배지 분석(parseGenderFromSsn)용으로는 기호가 살아있는 원본 문자열(s)을 매칭시키고,
-            // 데이터베이스 대장(ssn)에 안착시킬 때는 성별 기호와 서식이 완벽하게 증발한 순수 생년월일 날짜만 강제 격리 락인 처리합니다.
-            const finalizedSsn = cleanSsnToBirthDate(s);
-
             // [오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
             const payload = {
                 uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
@@ -3255,7 +3251,7 @@
                 count: getOnlyNumbers(c),
                 period: getOnlyNumbers(p),
                 name: n,
-                ssn: finalizedSsn, // 🎯 목록 및 모달 허브 슬롯으로 출력될 순정 생년월일 날짜만 보존 적재
+                ssn: s,  // 🎯 목록 및 모달 허브 슬롯으로 출력될 순정 생년월일 날짜만 보존 적재
                 phone: getOnlyNumbers(ph),
 
                 // 🌟 [수리 완료]: 최초 등록 모드(editIndex === "") 일 때 무조건 초기값을 "대기"로 락인 컴입합니다.

@@ -285,11 +285,27 @@
             padding: 0 10px !important;
             font-size: 13px !important;
             color: #ffffff !important;
-            background: #1e293b !important;
+            /* 순백색 글자로 명도 극대화 */
+            background: #0b0f19 !important;
+            /* [배경색 수정] 흐릿한 회색 탈피, 깊고 명확한 블랙 락인 */
             border: 1px solid #334155 !important;
+            /* 테두리 경계선 식별 강도 상향 */
             border-radius: 6px !important;
             box-sizing: border-box !important;
             vertical-align: middle !important;
+            outline: none !important;
+            transition: border-color 0.2s, box-shadow 0.2s !important;
+        }
+
+        /* 2. [추가] 클릭(Focus) 활성화 상태: 선명한 스카이 블루 테두리와 입체적인 네온 그림자 이식 */
+        .register-form .form-group input:focus,
+        .register-form .form-group select:focus {
+            border-color: var(--secondary-color) !important;
+            /* 스카이 블루 #0ea5e9 강조 */
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25) !important;
+            /* 네온 글로우 그림자 두께 상향 */
+            background: #000000 !important;
+            /* [추가] 클릭 시 완전한 리얼 블랙으로 가독성 사수 */
         }
 
         /* 🎯 [대표님 지시안]: 우측 명단 다운로드 위로 등록 단추를 수직 적재하는 복층 스택 박스 */

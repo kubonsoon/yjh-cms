@@ -1460,184 +1460,47 @@
                 </div>
             </div>
 
-            <!--보고서 통계 자리-->
-            <div id="reportView" class="content-section"
-                style="display: none; flex-direction: column; background: #0f172a; border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; margin-bottom: 24px; width: 100%; gap: 20px;">
 
-                <!-- 🛠️ 가로형 6대 서브 탭 메뉴 스위치 단추 셋트 -->
+            <!-- ==========================================================================
+               SECTION 04. 보고서 및 통계 탭 (2안: 외부 JS 연동형 슬림 6대 서브 탭 허브 레이아웃)
+              ========================================================================== -->
+            <div id="reportView" class="content-section" style="display: none; flex-direction: column; background: #0f172a; border:1px solid var(--border-color); padding: 24px; border-radius: 12px; margin-bottom: 24px; width:
+                     100%; gap: 20px;">
+
+                <!-- ️ [가로형 6대 서브 탭 메뉴 바]: 실무 부서별 관제탑 전환 스위치 세트 -->
                 <div class="report-sub-tab-bar">
                     <button type="button" class="report-sub-tab-btn active" onclick="switchReportSubTab('summary')">
-                        <i class="fa-solid fa-chart-line"></i>종합 통계 보고서
+                        <i class="fa-solid fa-chart-line"></i>종합 통계 관제탑
                     </button>
                     <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('recruitment')">
-                        <i class="fa-solid fa-layer-group"></i>시험별 모집 및 재무 현황
+                        <i class="fa-solid fa-layer-group"></i>시험별 모집/재무 현황
                     </button>
                     <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('dropout')">
-                        <i class="fa-solid fa-user-slash"></i>대상자 탈락 사유 통계 대장
+                        <i class="fa-solid fa-user-slash"></i>대상자 탈락 사유 통계
                     </button>
                     <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('ledger')">
-                        <i class="fa-solid fa-address-book"></i>대상자 개인별 원장
+                        <i class="fa-solid fa-address-book"></i>대상자 개인별 원장 조회
                     </button>
                     <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('crc')">
-                        <i class="fa-solid fa-id-card-clip"></i>담당 CRC별 시험 통제/정산
+                        <i class="fa-solid fa-id-card-clip"></i>CRC 시험 통제/효율
                     </button>
                     <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('budget')">
-                        <i class="fa-solid fa-calendar-days"></i>기수별 참여비 스케줄러
+                        <i class="fa-solid fa-calendar-days"></i>차수별 참여비 스케줄러
                     </button>
                 </div>
 
-                <!-- 가변형 6대 패널 데이터 연동 마운트 슬롯 구역 -->
+                <!-- 📥 [실실시간 가변형 뷰포트]: 선택한 서브 탭 메뉴 본문이 안착되는 데이터 마운트 구역 -->
                 <div id="report-dynamic-tab-viewport" style="width: 100%;">
-
-                    <!-- 1 탭: 종합 통계 관제탑 전용 실물 독립 패널 -->
-                    <div id="report-tab-panel-summary" class="report-tab-content-panel active"
-                        style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
-
-                        <!-- 🛠️ 상단 조건 필터 레이어 및 액션 버튼 셋트 가로 수평 정렬 일치화 -->
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 5px;">
-
-                            <!-- 좌측 정렬 구역: 년/월/주간 통계 3연속 기간 필터 셀렉트 팩 -->
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <select id="filter-report-year-summary"
-                                    style="height: 34px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
-                                    <option value="2026">2025년</option>
-                                    <option value="2026">2026년</option>
-                                    <option value="2027">2027년</option>
-                                    <option value="2028">2028년</option>
-                                </select>
-                                <select id="filter-report-month-summary"
-                                    style="height: 34px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
-                                    <option value="ALL">— 월별 전체 —</option>
-                                    <option value="01">1월</option>
-                                    <option value="02">2월</option>
-                                    <option value="03">3월</option>
-                                    <option value="04">4월</option>
-                                    <option value="05">5월</option>
-                                    <option value="06">6월</option>
-                                    <option value="07">7월</option>
-                                    <option value="08">8월</option>
-                                    <option value="09">9월</option>
-                                    <option value="10">10월</option>
-                                    <option value="11">11월</option>
-                                    <option value="12">12월</option>
-                                </select>
-                                <select id="filter-report-week-summary"
-                                    style="height: 34px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
-                                    <option value="ALL">— 주간 전체 —</option>
-                                    <option value="W1">1주차</option>
-                                    <option value="W2">2주차</option>
-                                    <option value="W3">3주차</option>
-                                    <option value="W4">4주차</option>
-                                    <option value="W5">5주차</option>
-                                </select>
-                            </div>
-
-                            <!-- 우측 정렬 구역: 실무형 고대비 인쇄 및 PDF 저장 더블 액션 단추 팩 -->
-                            <div style="display: flex; gap: 8px;">
-                                <button type="button" onclick="window.printReportSummaryMode()"
-                                    style="padding: 0 14px; height: 34px; font-size: 12.5px; font-weight: 700; background: #f97316; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);">
-                                    <i class="fa-solid fa-print"></i>보고서 인쇄
-                                </button>
-                                <button type="button" onclick="executeReportPdfExport('summary')"
-                                    style="padding: 0 14px; height: 34px; font-size: 12.5px; font-weight: 700; background: #10b981; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
-                                    <i class="fa-solid fa-file-pdf"></i>PDF 저장
-                                </button>
-                            </div>
-
-                        </div>
-
-                        <!-- 📥 하부 본문 구역: 지시 사양에 맞춰 순정 점선 가이드의 '준비 중' 스킨으로 완전 묶음 봉합 -->
-                        <div class="report-preparing-box">
-                            <i class="fa-solid fa-hourglass-half"></i> [1 탭: 종합 통계 관제탑] 내부 통계 분석 모듈 및 실시간 데이터 지표 조율 준비
-                            중입니다.
-                        </div>
-
+                    <!-- 전산망 스크립트 엔진 가동 시 외부 report-view.js 모듈 뼈대 -->
+                    <div
+                        style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; font-weight: 700;">
+                        보고서 모듈 로딩 중...
                     </div>
-
-
-
-                    <!-- 2 탭: 시험별 모집 및 재무 현황 전용 실물 독립 패널 -->
-                    <div id="report-tab-panel-recruitment" class="report-tab-content-panel"
-                        style="display: none; flex-direction: column; gap: 20px; width: 100%;">
-
-                        <!-- 🛠️ 상단 조건 필터 레이어 및 액션 버튼 셋트 가로 수평 정렬 일치화 -->
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 5px;">
-
-                            <!-- 좌측 정렬 구역: 년/월/주간 통계 3연속 기간 필터 셀렉트 팩 -->
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <select id="filter-report-year-recruitment"
-                                    style="height: 34px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
-                                    <option value="2026">2026년</option>
-                                    <option value="2027">2027년</option>
-                                    <option value="2028">2028년</option>
-                                </select>
-                                <select id="filter-report-month-recruitment"
-                                    style="height: 34px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
-                                    <option value="ALL">— 월별 전체 —</option>
-                                    <option value="01">1월</option>
-                                    <option value="02">2월</option>
-                                    <option value="03">3월</option>
-                                    <option value="04">4월</option>
-                                    <option value="05">5월</option>
-                                    <option value="06">6월</option>
-                                    <option value="07">7월</option>
-                                    <option value="08">8월</option>
-                                    <option value="09">9월</option>
-                                    <option value="10">10월</option>
-                                    <option value="11">11월</option>
-                                    <option value="12">12월</option>
-                                </select>
-                                <select id="filter-report-week-recruitment"
-                                    style="height: 34px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
-                                    <option value="ALL">— 주간 전체 —</option>
-                                    <option value="W1">1주차</option>
-                                    <option value="W2">2주차</option>
-                                    <option value="W3">3주차</option>
-                                    <option value="W4">4주차</option>
-                                    <option value="W5">5주차</option>
-                                </select>
-                            </div>
-
-                            <!-- 우측 정렬 구역: 실무형 고대비 인쇄 및 PDF 저장 더블 액션 단추 팩 -->
-                            <div style="display: flex; gap: 8px;">
-                                <button type="button" onclick="window.printReportSummaryMode()"
-                                    style="padding: 0 14px; height: 34px; font-size: 12.5px; font-weight: 700; background: #f97316; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);">
-                                    <i class="fa-solid fa-print"></i>인쇄
-                                </button>
-                                <button type="button" onclick="executeReportPdfExport('recruitment')"
-                                    style="padding: 0 14px; height: 34px; font-size: 12.5px; font-weight: 700; background: #10b981; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
-                                    <i class="fa-solid fa-file-pdf"></i>PDF 저장
-                                </button>
-                            </div>
-
-                        </div>
-
-                        <!-- 📥 하부 본문 구역: 지시 사양에 맞춰 순정 점선 가이드의 '준비 중' 스킨으로 완전 묶음 봉합 -->
-                        <div class="report-preparing-box">
-                            <i class="fa-solid fa-hourglass-half"></i> [2 탭: 시험별 모집 및 재무 현황] 과제별 집행 자산 상태 및 정산 재무 통계 조율
-                            준비 중입니다.
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- 3 탭 패널 슬롯 -->
-                    <div id="report-tab-panel-dropout" class="report-tab-content-panel"></div>
-
-                    <!-- 4 탭 패널 슬롯 -->
-                    <div id="report-tab-panel-ledger" class="report-tab-content-panel"></div>
-
-                    <!-- 5 탭 패널 슬롯 -->
-                    <div id="report-tab-panel-crc" class="report-tab-content-panel"></div>
-
-                    <!-- 6 탭 패널 슬롯 -->
-                    <div id="report-tab-panel-budget" class="report-tab-content-panel"></div>
                 </div>
 
             </div>
+
+
 
         </div>
     </div>

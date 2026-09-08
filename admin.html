@@ -521,6 +521,33 @@
             outline: none;
         }
 
+
+        /* 신규 대상자 등록 폼 전용 가로 레이아웃 유연 인프라 */
+        .form-app-row-container {
+            display: flex;
+            flex-wrap: nowrap !important;
+            /* 한 줄에 다 나오도록 강제 락인 */
+            align-items: center !important;
+            /* 모든 요소 수평선 정렬 */
+            gap: 5px !important;
+            /* 칸과 칸 사이의 조밀한 여백 */
+            width: 100%;
+        }
+
+        /* 기수 셀렉트 박스 및 신설 셀렉트 박스들의 미세 처짐 방지벽 */
+        .form-app-row-container select,
+        .form-app-row-container input {
+            height: 34px !important;
+            /* 모든 인풋과 셀렉트의 높이를 34px로 칼같이 단일화 */
+            padding: 6px 8px !important;
+            font-size: 13px !important;
+            vertical-align: middle !important;
+            /* 혼자 아래로 처지던 위상 정밀 수평 교정 */
+            box-sizing: border-box !important;
+            display: inline-block !important;
+        }
+
+
         .text-bold {
             font-weight: 700;
             color: #ffffff;
@@ -1338,11 +1365,11 @@
                             </select>
                         </div>
                         <div class="form-group" style="flex: 0.7 !important;">
-                            <label>인원수(N수)</label>
+                            <label>인원수</label>
                             <input type="text" id="form-app-count" placeholder="숫자만" style="text-align: center;">
                         </div>
                         <div class="form-group" style="flex: 0.7 !important;">
-                            <label>기간(시간)</label>
+                            <label>시간</label>
                             <input type="text" id="form-app-period" placeholder="숫자만" style="text-align: center;">
                         </div>
                         <div class="form-group" style="flex: 0.8 !important;">
@@ -2852,7 +2879,7 @@
                 const callAgreed = (row.isCallAgreed || "대기").trim();
 
                 // ----------------======================================================
-                // 🔒 [A 분기]: 대표님 오리지널 인라인 수정 마크업 (masterIndex 싱크 완료)
+                // [A 분기]: 대표님 오리지널 인라인 수정 마크업 (masterIndex 싱크 완료)
                 // ----------------======================================================
                 if (isAppEditing) {
                     tr.className = "editing-row";
@@ -2891,6 +2918,35 @@
                 <td style="width: 125px; vertical-align: middle;">
                     <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
                 </td>
+                <!-- 참여경로 인라인 수정 셀렉터 (기존 피험자 적재값 자동 selected 매핑) -->
+                <td style="width: 100px; vertical-align: middle;">
+                  <select id="inline-app-category-${masterIndex}" class="inline-input" style="width: 100%; background: var(--card-color) !important; color: #ffffff;">
+                   <option value="알바몬" ${row.category === '알바몬' ? 'selected' : ''}>알바몬</option>
+                   <option value="알바천국" ${row.category === '알바천국' ? 'selected' : ''}>알바천국</option>
+                   <option value="사람인" ${row.category === '사람인' ? 'selected' : ''}>사람인</option>
+                   <option value="잡코리아" ${row.category === '잡코리아' ? 'selected' : ''}>잡코리아</option>
+                   <option value="친구지인" ${row.category === '친구지인' ? 'selected' : ''}>친구지인</option>
+                   <option value="수동등록" ${row.category === '수동등록' ? 'selected' : ''}>수동등록</option>
+                   <option value="M인증" ${row.category === 'M인증' ? 'selected' : ''}>M인증</option>
+                   <option value="파일등록" ${row.category === '파일등록' ? 'selected' : ''}>파일등록</option>
+                   <option value="기타유입" ${row.category === '기타유입' ? 'selected' : ''}>기타유입</option>
+                 </select>
+                </td>
+
+                <!-- 참여상태 인라인 수정 셀렉터 (신검/채혈검사 탈락 및 예비자 포함 가변 selected 락인) -->
+                <td style="width: 110px; vertical-align: middle;">
+                 <select id="inline-app-stage-${masterIndex}" class="inline-input" style="width: 100%; background: var(--card-color) !important; color: #ffffff;">
+                   <option value="참여" ${row.stage === '참여' ? 'selected' : ''}>참여</option>
+                   <option value="예비귀가" ${row.stage === '예비귀가' ? 'selected' : ''}>예비귀가</option>
+                   <option value="검사탈락" ${row.stage === '검사탈락' ? 'selected' : ''}>검사탈락</option>
+                   <option value="개인사정" ${row.stage === '개인사정' ? 'selected' : ''}>개인사정</option>
+                   <option value="규정위반" ${row.stage === '규정위반' ? 'selected' : ''}>규정위반</option>
+                   <option value="임의행동" ${row.stage === '임의행동' ? 'selected' : ''}>임의행동</option>
+                   <option value="욕설폭행" ${row.stage === '욕설폭행' ? 'selected' : ''}>욕설폭행</option>
+                   <option value="기타탈락" ${row.stage === '기타탈락' ? 'selected' : ''}>기타탈락</option>
+                  </select>
+                </td>
+
                 <td style="width: 85px; vertical-align: middle; text-align: center;">
                     <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
                         <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
@@ -3360,7 +3416,7 @@
         * (상단 등록 폼을 오염시키지 않고 목록 자체에서 실시간 세이브 및 성별 기호를 보존 처리합니다)
         */
         function saveInlineApplicantRecord(index) {
-            // 1. 해당 행의 인라인 입력 컴포넌트 실시간 캡처 락인
+            // 1. 해당 행의 인라인 입력 컴포넌트 실시간 캡처 락인 [이전 장전 완착 스펙 보존]
             const elTitle = document.getElementById(`inline-app-title-${index}`);
             const elTh = document.getElementById(`inline-app-th-${index}`);
             const elCount = document.getElementById(`inline-app-count-${index}`);
@@ -3376,6 +3432,11 @@
 
             const elDuty = document.getElementById(`inline-app-duty-${index}`);
             const elCall = document.getElementById(`inline-app-call-${index}`);
+
+            // ⚡ [여기서부터 신설 2대 필드 인라인 돔 수집 포인터 정밀 인젝션 구간]
+            const elCategory = document.getElementById(`inline-app-category-${index}`);
+            const elStage = document.getElementById(`inline-app-stage-${index}`);
+            // ⚡ [여기까지 신설 2대 필드 인라인 돔 수집 포인터 정밀 인젝션 완료]
 
             if (!elTitle || !elTh || !elCount || !elPeriod || !elName || !elSsn || !elPhone) {
                 return alert("오류: 인라인 수정 필드 요소를 로드하지 못했습니다.");
@@ -3415,11 +3476,15 @@
                 isDutyAgreed: elDuty ? elDuty.value : (origin.isDutyAgreed || "대기"),
                 isCallAgreed: elCall ? elCall.value : (origin.isCallAgreed || "대기"),
 
-                stage: `${th} 참여(소집)`
+                // ⚡ [여기서부터 신설 2대 필드 가변 데이터 원천 락인 주입 및 교정 구간]
+                category: elCategory ? elCategory.value : (origin.category || "수동등록"),
+                // 구형 하드코딩 양식인 stage: `${th} 참여(소집)` 문구를 전면 철단하고, 관리자가 선택한 가변 상태값으로 대체
+                stage: elStage ? elStage.value : (origin.stage || "참여")
+                // ⚡ [여기까지 신설 2대 필드 가변 데이터 원천 락인 주입 및 교정 완료]
             };
 
             try {
-                // 4. 가상 가상 데이터베이스 배열 요소 교체 [index: 0.1.30]
+                // 4. 가상 데이터베이스 배열 요소 교체 [index: 0.1.30]
                 dataStoreApplicant[index] = updatedPayload;
 
                 // 5. 로컬스토리지 파일 시스템 영구 저장 커밋 트랜잭션 구동 [index: 0.1.30]

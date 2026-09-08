@@ -1017,6 +1017,48 @@
                 box-shadow: 0 0 25px #39ff14, inset 0 0 15px rgba(57, 255, 20, 0.4) !important;
             }
         }
+
+
+        /* 1. 차수별 배지들이 들어가는 td 칸을 가로 수평 정렬(Flex)로 전환 */
+        #applicantView #dom-applicant-table td:nth-child(11),
+        /* 11번째 컬럼(참여비 차수 구역) */
+        .badge-container-flex {
+            /* 혹은 자바스크립트에서 배지를 감싸는 부모 div 클래스 */
+            display: inline-flex !important;
+            flex-direction: row !important;
+            /* 세로 적재를 가로 정렬로 변경 */
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 4px !important;
+            /* 배지 사이의 조밀한 여백 */
+            width: 100%;
+        }
+
+        /* 2. 개별 배지(1차, 2차, 3차) 자체의 높이 단일화 및 글자 처짐 방지 */
+        .badge,
+        [class^="status-"],
+        [id^="inline-app-stage-"] {
+            display: inline-block !important;
+            height: 24px !important;
+            /* 높이를 칼같이 고정 */
+            line-height: 22px !important;
+            /* 텍스트 세로 정렬 중앙 집중 */
+            padding: 0 8px !important;
+            font-size: 11px !important;
+            vertical-align: middle !important;
+            /* 혼자 위아래로 붕 뜨는 현상 완파 */
+            box-sizing: border-box !important;
+            white-space: nowrap !important;
+        }
+
+        /* 3. 테이블 행(tr) 내부 모든 셀(td)의 높이 균등화 및 상하 여백 정밀 제어 */
+        #applicantView table tbody td {
+            padding: 8px 6px !important;
+            /* 패딩을 조절하여 행 전체 높이를 슬림하게 마감 */
+            height: 38px !important;
+            /* 모든 칸의 높이를 일치시켜 붕 뜨는 느낌 제거 */
+            vertical-align: middle !important;
+        }
     </style>
 
 <body>
@@ -3126,7 +3168,7 @@
                 }
 
                 tbody.appendChild(tr);
-            }); // pagedList.forEach 루프 마감 지점
+            });
 
             // ----------------======================================================
             // [페이징 내비게이션]: 데이터가 설정된 페이지 한도를 초과 시 하단 중앙 슬롯에 버튼 자동 생성 마운트

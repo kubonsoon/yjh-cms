@@ -3287,7 +3287,11 @@
             const elPhone = document.getElementById('form-app-phone');
             const editIndex = document.getElementById("editIndex").value; // 수정용 인덱스 포인터
 
-            if (!elTitle || !elTh || !elCount || !elPeriod || !elName || !elSsn || !elPhone) {
+            // ⚡ [신설 2대 필드 신규 등록 돔 수집 포인터 정밀 인젝션]
+            const elCategory = document.getElementById('form-app-category');
+            const elStage = document.getElementById('form-app-stage');
+
+            if (!elTitle || !elTh || !elCount || !elPeriod || !elName || !elSsn || !elPhone || !elCategory || !elStage) {
                 console.error("대상자 등록 입력 폼 중 일부 엘리먼트 ID 를 찾을 수 없습니다.");
                 return alert("알림: 시스템 화면 요소를 로드하지 못했습니다.");
             }
@@ -3298,6 +3302,10 @@
             if (!t || !th || !c || !p || !n || !s || !ph) {
                 return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
             }
+
+            // 🎯 신설 가변 드롭다운에서 선택된 실무 데이터 옵션값 확보
+            const cat = elCategory.value;
+            const stg = elStage.value;
 
             // [오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
             const payload = {
@@ -3315,7 +3323,7 @@
                 ssn: s,  // 🎯 목록 및 모달 허브 슬롯으로 출력될 순정 생년월일 날짜만 보존 적재
                 phone: getOnlyNumbers(ph),
 
-                // 🌟 [수리 완료]: 최초 등록 모드(editIndex === "") 일 때 무조건 초기값을 "대기"로 락인 컴입합니다.
+                // 최초 등록 모드(editIndex === "") 일 때 무조건 초기값을 "대기"로 락인 컴입합니다.
                 result: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].result || "대기"),
                 payStatus: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus || "대기"),
 
@@ -3328,8 +3336,9 @@
                 isCallAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isCallAgreed || "대기"),
                 isAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isAgreed || "대기"),
 
-                category: editIndex === "" ? "내분비내과 / 대장 수동 등록" : dataStoreApplicant[editIndex].category,
-                stage: `${th} 참여(소집)`,
+                // ⚡ [교정 지점]: 구형 하드코딩 문구 자리에 관리자가 선택한 가변 참여경로와 참여상태를 직격 락인 주입
+                category: cat, // 선택된 참여경로(알바몬, M인증 등) 가상 DB 바인딩 완착
+                stage: stg,    // 선택된 참여상태(참여, 예비귀가, 검사탈락 등) 가상 DB 바인딩 완착
 
                 idCard: editIndex === "" ? true : (dataStoreApplicant[editIndex].idCard !== undefined ? dataStoreApplicant[editIndex].idCard : true),
                 bankbook: editIndex === "" ? true : (dataStoreApplicant[editIndex].bankbook !== undefined ? dataStoreApplicant[editIndex].bankbook : true),
@@ -3338,7 +3347,6 @@
                 idCardUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].idCardUrl || ""),
                 bankBookUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookUrl || "")
             };
-
 
             try {
                 if (editIndex === "") {
@@ -3358,12 +3366,11 @@
 
                 } else {
                     // [수정 완료 모드] (기존 데이터 구조 유실 방지 가드 상속 원형 유지)
-                    // 🎯 [교정 완수]: 구형 찌꺼기 텍스트인 '접수' 리셋을 제거하고, 사용자가 수정한 1차 참여비 상태(payStatus1)를 마스터 필드에 정밀하게 강제 락인
                     if (!payload.payStatus1) {
                         payload.payStatus1 = dataStoreApplicant[editIndex].payStatus1 || '대기';
                     }
 
-                    // 마스터 결과값 변수(result)와 정산 상태(payStatus)를 최신 1차 참여비 단어와 100% 한 몸으로 묶어 상속 [index: 0.1.174, 0.1.175]
+                    // 마스터 결과값 변수(result)와 정산 상태(payStatus)를 최신 1차 참여비 단어와 100% 한 몸으로 묶어 상속
                     payload.payStatus = payload.payStatus1;
                     payload.result = payload.payStatus1;
 
@@ -3388,7 +3395,7 @@
                     resetForm();
                 }
 
-                // 5. 물리 파일 세이브 안착 즉시 원본 소스 필터 및 렌더러 연쇄 구동!
+                // ⚡ [대표님 최적화 스케줄러 동기화 완착]: 물리 파일 세이브 안착 즉시 원본 소스 필터 및 렌더러 연쇄 구동!
                 setTimeout(() => {
                     const filterTitle = document.getElementById('dashboard-filter-title');
                     const filterTh = document.getElementById('dashboard-filter-th');
@@ -3400,6 +3407,7 @@
 
                     if (typeof initDashboardFilter === "function") initDashboardFilter();
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+                    if (typeof calculateReportMasterStats === "function") calculateReportMasterStats();
 
                     // 대표님이 설계해두신 기존 대장 출력 원본 소스를 깨워 양식 훼손 없이 완벽하게 출력
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
@@ -4738,7 +4746,7 @@
         (function () {
             // 1. 모집공고 데이터베이스 3종 마스터 리셋 및 강제 셋팅
             let adminRecruitmentDB = [
-                 {
+                {
                     title: "경동제약 식후 임상시험",
                     th: "4기",
                     count: "46",
@@ -4746,7 +4754,7 @@
                     crc: "강un애",
                     notice: "지정식 이외 취식 금지 및 격리 규정 준수",
                     examDate: "2026-10-15",
-                    payDate: "2026-11-26" 
+                    payDate: "2026-11-26"
                 },
                 {
                     title: "[생동] 하나제약 로수+에제",
@@ -4824,7 +4832,7 @@
 
             // 2. 대상자 관리 데이터베이스 3인방 명단 완벽 매칭 주입
             let adminApplicantDB = [
-                  {
+                {
                     title: "경동제약 식후 임상시험",
                     th: "4기(1차)",
                     count: "46",

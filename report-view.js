@@ -1,146 +1,99 @@
-// 1. 전역 렌더링 오케스트레이터 허브 엔진 깨우기
+// 1. [오케스트레이터] 보고서 탭 최초 개방 시 1탭 인프라 구동 및 이벤트 리스너 영구 매립
 function initReportModule() {
-  renderReportSummaryAndRecruitmentTabs();
-  if (typeof renderDropoutAndLedgerTabs === "function") {
-    renderDropoutAndLedgerTabs();
-  }
+  bindReportSummaryFilterEvents();
 }
 
 /**
- * 📈 [1, 2 탭]: 독립 집계 및 그래프 렌더링 엔진
+ * ⚙️ [1 탭 코어]: 년/월/주간 필터 셀렉트 박스 실시간 동기화 및 이벤트 바인딩
  */
-function renderReportSummaryAndRecruitmentTabs() {
-  // 가상 가동 데이터베이스 연동 및 무결성 검증
-  const data = window.dataStoreApplicant || [];
+function bindReportSummaryFilterEvents() {
+  // 6대 대역 통합 가상 DB 스토리지 스트림 색인 (공통 연동망 보존)
+  const currentDbFullData = window.dataStoreApplicant || [];
 
-  // ----------------------------------------------------------------------
-  // [1 탭]: 종합 통계 실시간 지표 트래킹 연산 (새벽 5시 오리지널)
-  // ----------------------------------------------------------------------
-  let totalN = data.length;
-  let joinedCount = data.filter(
-    (d) =>
-      !d.appStatusFlag ||
-      d.appStatusFlag === "참여" ||
-      d.appStatusFlag === "참여(정상)",
-  ).length;
-  let standbyCount = data.filter((d) => d.appStatusFlag === "예비귀가").length;
-  let dropoutCount = data.filter(
-    (d) =>
-      d.appStatusFlag &&
-      d.appStatusFlag !== "참여" &&
-      d.appStatusFlag !== "참여(정상)" &&
-      d.appStatusFlag !== "예비귀가",
-  ).length;
+  // HTML 본문에 물리 매립된 1탭 3연속 기간 필터 엘리먼트 추적
+  const elYear = document.getElementById("filter-report-year-summary");
+  const elMonth = document.getElementById("filter-report-month-summary");
+  const elWeek = document.getElementById("filter-report-week-summary");
 
-  let pay1Complete = data.filter((d) => d.payStatus1 === "완료").length;
-  let pay2Complete = data.filter((d) => d.payStatus2 === "완료").length;
-  let pay3Complete = data.filter((d) => d.payStatus3 === "완료").length;
-
-  const summaryPanel = document.getElementById(
-    "dom-summary-charts-render-zone",
-  );
-  if (summaryPanel) {
-    summaryPanel.innerHTML = `
-            <!-- 4대 요약 카드 스코어보드 층 -->
-            <div id="report-scoreboard-cards">
-                <div class="mini-chart-box">
-                    <div>
-                        <span style="font-size:12px; color:var(--text-muted); font-weight:700;">총 대상자 풀 (N수)</span>
-                        <h2 style="font-size:24px; font-weight:800; color:#ffffff; margin-top:4px;">\${totalN}명</h2>
-                    </div>
-                    <span style="font-size:11px; color:var(--secondary-color); font-weight:700;">정상 참여진행: \${joinedCount}명</span>
-                </div>
-                <div class="mini-chart-box">
-                    <div>
-                        <span style="font-size:12px; color:#4ade80; font-weight:700;">예비귀가 자산 대기</span>
-                        <h2 style="font-size:24px; font-weight:800; color:#4ade80; margin-top:4px;">\${standbyCount}명</h2>
-                    </div>
-                    <span style="font-size:11px; color:var(--text-muted);">예비비 8만원 정산 스케줄러 연동</span>
-                </div>
-                <div class="mini-chart-box">
-                    <div>
-                        <span style="font-size:12px; color:var(--danger-color); font-weight:700;">🔒 총 탈락자 통제 대장</span>
-                        <h2 style="font-size:24px; font-weight:800; color:var(--danger-color); margin-top:4px;">\${dropoutCount}명</h2>
-                    </div>
-                    <span style="font-size:11px; color:var(--text-muted);">대표 지정 9대 탈락사유 결합</span>
-                </div>
-                <div class="mini-chart-box">
-                    <div>
-                        <span style="font-size:12px; color:var(--warning-color); font-weight:700;">1차 참여비 지급 완료</span>
-                        <h2 style="font-size:24px; font-weight:800; color:var(--warning-color); margin-top:4px;">\${pay1Complete}건</h2>
-                    </div>
-                    <span style="font-size:11px; color:#cbd5e1;">전체 완료율: \${totalN ? Math.round((pay1Complete/totalN)*100) : 0}%</span>
-                </div>
-            </div>
-
-            <!-- 둘째 줄 지표별 1:1 매칭 미니 수평 그래프 레이어 -->
-            <div class="report-mini-charts-layer">
-                <div class="mini-chart-box" style="min-height:95px !important; padding:12px 16px !important; gap:4px;">
-                    <div class="bar-label-group"><span>1차 참여비 완료 스코어</span><span>\${pay1Complete}건</span></div>
-                    <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:\${totalN ? (pay1Complete/totalN)*100 : 0}%; background:var(--secondary-color);"></div></div>
-                </div>
-                <div class="mini-chart-box" style="min-height:95px !important; padding:12px 16px !important; gap:4px;">
-                    <div class="bar-label-group"><span>2차 참여비 완료 스코어</span><span>\${pay2Complete}건</span></div>
-                    <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:\${totalN ? (pay2Complete/totalN)*100 : 0}%; background:var(--warning-color);"></div></div>
-                </div>
-                <div class="mini-chart-box" style="min-height:95px !important; padding:12px 16px !important; gap:4px;">
-                    <div class="bar-label-group"><span>3차 참여비 완료 스코어</span><span>\${pay3Complete}건</span></div>
-                    <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:\${totalN ? (pay3Complete/totalN)*100 : 0}%; background:var(--success-color);"></div></div>
-                </div>
-                <div class="mini-chart-box" style="min-height:95px !important; padding:12px 16px !important; gap:4px;">
-                    <div class="bar-label-group"><span>종합 예비귀가 정산율</span><span>\${standbyCount}건</span></div>
-                    <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:\${totalN ? (standbyCount/totalN)*100 : 0}%; background:#4ade80;"></div></div>
-                </div>
-            </div>
-        `;
+  if (!elYear || !elMonth || !elWeek) {
+    console.warn(
+      "[경고] 1탭 상단 기간 필터 셀렉트 박스 요소를 로드하지 못했습니다.",
+    );
+    return;
   }
 
-  // ----------------------------------------------------------------------
-  // [2 탭]: 과제 시험명 단위 모집 효율 분석
-  // ----------------------------------------------------------------------
-  const recruitmentPanel = document.getElementById(
-    "report-tab-panel-recruitment",
+  // 🎯 [실시간 동기화 훅]: 년도 변경 시 연쇄 제어 가동
+  elYear.onchange = function () {
+    executeSummaryPipelineFiltering(elYear.value, elMonth.value, elWeek.value);
+  };
+
+  // 🎯 [실시간 동기화 훅]: 월별 변경 시 연쇄 제어 가동
+  elMonth.onchange = function () {
+    executeSummaryPipelineFiltering(elYear.value, elMonth.value, elWeek.value);
+  };
+
+  // 🎯 [실시간 동기화 훅]: 주간 변경 시 연쇄 제어 가동
+  elWeek.onchange = function () {
+    executeSummaryPipelineFiltering(elYear.value, elMonth.value, elWeek.value);
+  };
+}
+
+/**
+ * 🔍 [필터 연산부]: 기간 조건 변경 시 가상 DB를 투사하여 로그를 적재하는 내부 파이프라인
+ */
+function executeSummaryPipelineFiltering(year, month, week) {
+  const fullData = window.dataStoreApplicant || [];
+  console.log(
+    `[1 탭 통계 집계 체인 변경 필터 트래킹] 선택 조건 ➡️ 년도: \${year}년 | 월: \${month} | 주간: \${week} | 현재 공유 스토리지 총 N수: \${fullData.length}명`,
   );
-  if (recruitmentPanel) {
-    let examGroups = {};
-    data.forEach((row) => {
-      if (!row.title) return;
-      if (!examGroups[row.title])
-        examGroups[row.title] = { total: 0, joined: 0, dropout: 0 };
-      examGroups[row.title].total++;
-      if (
-        !row.appStatusFlag ||
-        row.appStatusFlag === "참여" ||
-        row.appStatusFlag === "참여(정상)"
-      )
-        examGroups[row.title].joined++;
-      else if (row.appStatusFlag !== "예비귀가")
-        examGroups[row.title].dropout++;
-    });
 
-    let rowsHtml = "";
-    Object.keys(examGroups).forEach((examName) => {
-      let g = examGroups[examName];
-      let joinRate = g.total ? Math.round((g.joined / g.total) * 100) : 0;
-      rowsHtml += `
-                <div class="bar-row" style="margin-bottom:12px; padding:10px; border-radius:6px; border:1px solid var(--border-color); background: rgba(255,255,255,0.01);">
-                    <div class="bar-label-group" style="margin-bottom:6px;">
-                        <span style="color:#ffffff; font-weight:700;">\text{\${examName}}</span>
-                        <span style="color:var(--secondary-color); font-weight:700;">진행률 \${joinRate}% (\${g.joined}/\${g.total}명)</span>
-                    </div>
-                    <div class="bar-bg" style="height:12px;">
-                        <div class="bar-fill" style="width:\${joinRate}%; background:linear-gradient(90deg, var(--secondary-color) 0%, var(--success-color) 100%);"></div>
-                    </div>
-                    <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">내부 통제 중도 탈락 인원: \${g.dropout}명</div>
-                </div>
-            `;
-    });
+  // 시스템 통합 연동망 기믹 검증 (준비 중인 레이아웃 상태에서 필터 값 유지를 유기적으로 체크)
+  // 추후 대장 고도화 시 데이터 리렌더링 코어가 여기에 안착됩니다.
+}
 
-    recruitmentPanel.innerHTML = `
-            <div class="chart-card">
-                <h4><i class="fa-solid fa-layer-group"></i> 과제별 실시간 집행 상태 및 모집 효율 분석</h4>
-                <div class="bar-chart-wrap">\${rowsHtml || '<div class="report-preparing-box">— 가동 중인 과제별 모집 데이터 개체가 존재하지 않습니다 —</div>'}</div>
-            </div>
-        `;
+/**
+ * 📄 [실무형 하드웨어 인쇄 트리거 변환 컨트롤러]: 1탭 전용 독립 사출
+ */
+window.printReportSummaryMode = function () {
+  console.log(
+    "[트랜잭션 실행] 1 탭: 종합 통계 관제탑 독립 보고서 인쇄 모드를 가동합니다.",
+  );
+  document.body.classList.add("print-summary-mode"); // 화면 격리 락인 클래스 주입
+  window.print(); // 하드웨어 프린터 스풀러 호출
+  document.body.classList.remove("print-summary-mode"); // 호출 종료 후 스킨 반환 오프
+};
+
+/**
+ * 📥 [실무형 전산망 PDF 저장 및 파일 내보내기 엔진]
+ */
+window.executeReportPdfExport = function (tabKey) {
+  if (tabKey === "summary") {
+    alert(
+      `[전산 시스템 알림]\n\n'1 탭: 종합 통계 관제탑'의 선택된 기간 필터 조건 기준 관공서 증빙용 고해상도 PDF 추출 저장을 시작합니다.`,
+    );
+    // 브라우저 프린터 드라이버 우회식 PDF 저장 인터랙션 연동 포트
+    window.printReportSummaryMode();
   }
+};
+
+/**
+ * 🔄 [서브 탭 스위칭 라우터 엔진]: 6대 하위 관제탑 스위칭 처리 (새벽 5시 순정 기믹 계승)
+ */
+function switchReportSubTab(tabKey) {
+  var tabs = ["summary", "recruitment", "dropout", "ledger", "crc", "budget"];
+  tabs.forEach((key) => {
+    var btn = document.querySelector(
+      `button[onclick="switchReportSubTab('\${key}')"]`,
+    );
+    var panel = document.getElementById(`report-tab-panel-\${key}`);
+    if (btn) btn.classList.remove("active");
+    if (panel) panel.style.display = "none";
+  });
+
+  var activeBtn = document.querySelector(
+    `button[onclick="switchReportSubTab('\${tabKey}')"]`,
+  );
+  var activePanel = document.getElementById(`report-tab-panel-\${tabKey}`);
+  if (activeBtn) activeBtn.classList.add("active");
+  if (activePanel) activePanel.style.display = "flex";
 }

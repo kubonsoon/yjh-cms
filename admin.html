@@ -252,12 +252,12 @@
             font-weight: 800;
         }
 
-     .register-box {
-    background: var(--card-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 16px 20px !important;
-}
+        .register-box {
+            background: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px !important;
+        }
 
         .register-box h3 {
             font-size: 14px;
@@ -268,67 +268,69 @@
             text-transform: uppercase;
         }
 
-     /* ⚡ [여기서부터 복층 버튼 스택 및 테이블 100% 가로축 확장 CSS 주입 구간] */
-.register-form {
-    display: flex;
-    flex-wrap: nowrap !important;
-    align-items: flex-end !important;
-    gap: 8px !important;
-    width: 100% !important;
-}
+        /* ⚡ [여기서부터 복층 버튼 스택 및 테이블 100% 가로축 확장 CSS 주입 구간] */
+        .register-form {
+            display: flex;
+            flex-wrap: nowrap !important;
+            align-items: flex-end !important;
+            gap: 8px !important;
+            width: 100% !important;
+        }
 
-/* 📱 9대 인풋/셀렉트 입력 콤포넌트 공용 높이 및 수평선 처짐 완전 방어 */
-.register-form .form-group input,
-.register-form .form-group select {
-    width: 100%;
-    height: 36px !important;
-    padding: 0 10px !important;
-    font-size: 13px !important;
-    color: #ffffff !important;
-    background: #1e293b !important;
-    border: 1px solid #334155 !important;
-    border-radius: 6px !important;
-    box-sizing: border-box !important;
-    vertical-align: middle !important;
-}
+        /* 📱 9대 인풋/셀렉트 입력 콤포넌트 공용 높이 및 수평선 처짐 완전 방어 */
+        .register-form .form-group input,
+        .register-form .form-group select {
+            width: 100%;
+            height: 36px !important;
+            padding: 0 10px !important;
+            font-size: 13px !important;
+            color: #ffffff !important;
+            background: #1e293b !important;
+            border: 1px solid #334155 !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
+            vertical-align: middle !important;
+        }
 
-/* 🎯 [대표님 지시안]: 우측 명단 다운로드 위로 등록 단추를 수직 적재하는 복층 스택 박스 */
-.action-stack-box {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    width: 135px !important; /* 복층 단추 전용 슬림 가로폭 고정 */
-    flex-shrink: 0;
-}
+        /* 🎯 [대표님 지시안]: 우측 명단 다운로드 위로 등록 단추를 수직 적재하는 복층 스택 박스 */
+        .action-stack-box {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 135px !important;
+            /* 복층 단추 전용 슬림 가로폭 고정 */
+            flex-shrink: 0;
+        }
 
 
-.action-stack-box .action-btn {
-    width: 100% !important;
-    height: 34px !important;
-    padding: 0 10px !important;
-    font-size: 12.5px !important;
-    font-weight: 800 !important;
-    border-radius: 6px !important;
-    border: none !important;
-    cursor: pointer;
-    white-space: nowrap !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
+        .action-stack-box .action-btn {
+            width: 100% !important;
+            height: 34px !important;
+            padding: 0 10px !important;
+            font-size: 12.5px !important;
+            font-weight: 800 !important;
+            border-radius: 6px !important;
+            border: none !important;
+            cursor: pointer;
+            white-space: nowrap !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
 
-/* 🎯 구형 픽셀 너비를 전면 철단하고 화면 가로를 100% 가득 채우는 마스터 테이블 복원 */
-.table-responsive {
-    width: 100% !important;
-    overflow-x: auto;
-    margin-top: 15px;
-}
+        /* 🎯 구형 픽셀 너비를 전면 철단하고 화면 가로를 100% 가득 채우는 마스터 테이블 복원 */
+        .table-responsive {
+            width: 100% !important;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
 
-.table-responsive table {
-    width: 100% !important; /* 📱 쭈거리 현상을 완파하고 가로축을 시원하게 확장 */
-    border-collapse: collapse;
-}
+        .table-responsive table {
+            width: 100% !important;
+            /* 📱 쭈거리 현상을 완파하고 가로축을 시원하게 확장 */
+            border-collapse: collapse;
+        }
 
         /* ==========================================================
 5. [공통 액션 단추 및 인라인 편집 텍스트 박스]
@@ -1386,16 +1388,15 @@
                 <div class="register-box" style="margin-top:20px;">
                     <h3 id="form-mode-title">[신규 대상자 등록]</h3>
                     <input type="hidden" id="editIndex" value="">
-                    <div class="register-form"
-                        style="display: flex; flex-wrap: nowrap; align-items: center; gap: 5px; width: 100%;">
+                    <div class="register-form">
 
-                        <!-- 1. 참여 시험명 (기본 가시성 폭 유지 flex: 1.4) -->
+                        <!-- 1. 참여 시험명 (공백 최소화 및 배율 다이어트 조율) -->
                         <div class="form-group" style="flex: 1.4 !important;">
                             <label>참여 시험명</label>
                             <input type="text" id="form-app-title" placeholder="예: [임상] 경동제약">
                         </div>
 
-                        <!-- 2. 기수 (🎯 기존 flex 0.8에서 50% 공간 전격 삭감 적용하여 flex 0.4 배치) -->
+                        <!-- 2. 기수 (50% 축소 긴축 압축) -->
                         <div class="form-group" style="flex: 0.4 !important;">
                             <label>기수</label>
                             <select id="form-app-th">
@@ -1406,37 +1407,37 @@
                             </select>
                         </div>
 
-                        <!-- 3. 인원수 (🎯 3자리 숫자 타깃 초슬림 압착 flex 0.5) -->
+                        <!-- 3. 인원수 (3자리 숫자 맞춤 압착) -->
                         <div class="form-group" style="flex: 0.5 !important;">
                             <label>인원수</label>
                             <input type="text" id="form-app-count" placeholder="숫자만" style="text-align: center;">
                         </div>
 
-                        <!-- 4. 시간 (🎯 3자리 숫자 타깃 초슬림 압착 flex 0.5) -->
+                        <!-- 4. 시간 (3자리 숫자 맞춤 압착) -->
                         <div class="form-group" style="flex: 0.5 !important;">
                             <label>시간</label>
                             <input type="text" id="form-app-period" placeholder="숫자만" style="text-align: center;">
                         </div>
 
-                        <!-- 5. 이름 (🎯 성명->이름 명칭 전격 스위칭 및 한글 5글자 수용 최적화 flex 0.8 배치) -->
+                        <!-- 5. 이름 (성명->이름 변경 명시 및 한글 5글자 최적화 수용 확장) -->
                         <div class="form-group" style="flex: 0.8 !important;">
                             <label>이름</label>
                             <input type="text" id="form-app-name" placeholder="홍길동" style="text-align: center;">
                         </div>
 
-                        <!-- 6. 생년월일 및 성별 (기존 포맷 가시성 사수 flex 1.2) -->
+                        <!-- 6. 생년월일 및 성별 (가시성 사수) -->
                         <div class="form-group" style="flex: 1.2 !important;">
                             <label>생년월일 및 성별</label>
                             <input type="text" id="form-app-ssn" placeholder="950505-1" style="text-align: center;">
                         </div>
 
-                        <!-- 7. 전화번호 (11자리 숫자 가시성 완벽 사수 flex 1.2) -->
+                        <!-- 7. 전화번호 (11자리 숫자 가시성 완벽 사수) -->
                         <div class="form-group" style="flex: 1.2 !important;">
                             <label>전화번호</label>
                             <input type="text" id="form-app-phone" placeholder="숫자만" style="text-align: center;">
                         </div>
 
-                        <!-- 8. 참여경로 (🎯 기존 flex 1.0에서 30% 공간 긴축 삭감 적용하여 flex 0.7 배치) -->
+                        <!-- 8. 참여경로 (30% 고정 슬림 압축 반영) -->
                         <div class="form-group" style="flex: 0.7 !important;">
                             <label>참여경로</label>
                             <select id="form-app-category">
@@ -1452,7 +1453,7 @@
                             </select>
                         </div>
 
-                        <!-- 9. 참여상태 (🎯 기존 flex 0.9에서 30% 공간 긴축 삭감 적용하여 flex 0.63 배치) -->
+                        <!-- 9. 참여상태 (30% 고정 슬림 압축 반영) -->
                         <div class="form-group" style="flex: 0.63 !important;">
                             <label>참여상태</label>
                             <select id="form-app-stage">
@@ -1467,44 +1468,46 @@
                             </select>
                         </div>
 
-                        <!-- 액션 버튼 구역 (너비 긴축 최적화 완료로 오른쪽 끝단선 자로 잰 듯 완벽 매칭 안착) -->
-                        <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                        <!-- 🎯 [대표님 지시안]: 명단 다운로드 위에 대상자 등록 버튼을 쌓아올리는 우측 끝 복층 스택 구역 -->
+                        <div class="action-stack-box">
+                            <!-- 1층 (상단) -->
                             <button class="action-btn" id="btn-save" onclick="insertApplicantRecord()"
-                                style="height: 36px; padding: 0 12px; font-weight: 800;">대상자 등록</button>
+                                style="background: var(--success-color); color: #070a12;">대상자 등록</button>
                             <button class="action-btn" id="btn-cancel" onclick="resetForm()"
-                                style="background: #475569; display: none; height: 36px; padding: 0 12px; font-weight: 800;">취소</button>
+                                style="background: #475569; display: none;">취소</button>
+                            <!-- 2층 (하단) -->
                             <button class="action-btn" onclick="exportFinancialSettlementData()"
-                                style="background: var(--secondary-color); height: 36px; padding: 0 12px; font-weight: 800;"><i
+                                style="background: var(--secondary-color); color: #ffffff;"><i
                                     class="fa-solid fa-file-excel"></i> 명단 다운로드</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- [대상자 마스터 테이블] <thead> 컬럼 정합성 스펙 맞춤 정렬 교정 -->
+                <!-- [대상자 마스터 테이블] 고정 픽셀을 걷어내고 유연한 % 비율 체인으로 가로축 100% 시원하게 전면 확장 -->
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th style="text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff;">시험명
-                                </th>
-                                <th style="text-align: center; width: 90px; min-width: 90px;">기수</th>
-                                <th style="text-align: center; width: 75px; min-width: 75px;">인원수</th>
-                                <th style="text-align: center; width: 65px; min-width: 65px;">기간</th>
-                                <th style="text-align: center; width: 80px; min-width: 80px;">이름</th>
-                                <th style="text-align: center; width: 85px; min-width: 85px;">생년월일</th>
-                                <th style="text-align: center; width: 65px; min-width: 65px;">성별</th>
-                                <th style="text-align: center; width: 125px; min-width: 125px;">전화번호</th>
+                                <th
+                                    style="text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; width: 16%;">
+                                    시험명</th>
+                                <th style="text-align: center; width: 6%;">기수</th>
+                                <th style="text-align: center; width: 6.5%;">인원수</th>
+                                <th style="text-align: center; width: 6%;">기간</th>
+                                <th style="text-align: center; width: 8.5%;">이름</th>
+                                <th style="text-align: center; width: 10%;">생년월일</th>
+                                <th style="text-align: center; width: 5%;">성별</th>
+                                <th style="text-align: center; width: 12%;">전화번호</th>
 
-                                <!-- [테이블 헤더 동기화 매칭 추가선]: 신설 2대 필드 항목 열 정밀 개설 -->
-                                <th style="text-align: center; width: 100px; min-width: 100px;">참여경로</th>
-                                <th style="text-align: center; width: 110px; min-width: 110px;">참여상태</th>
+                                <!-- 🎯 [대표님 지시안]: 테이블 헤더 라인선에 참여경로와 참여상태 컬럼 정밀 신설 개설 -->
+                                <th style="text-align: center; width: 9%;">참여경로</th>
+                                <th style="text-align: center; width: 9%;">참여상태</th>
 
-                                <th style="text-align: center; width: 85px; min-width: 85px;">참여비</th>
-                                <th style="text-align: center; width: 75px; min-width: 75px;">당직동의</th>
-                                <th style="text-align: center; width: 75px; min-width: 75px;">소집동의</th>
-                                <th style="text-align: center; width: 140px; min-width: 140px;">첨부서류</th>
-                                <th style="text-align: center; width: 180px; min-width: 180px; padding-right: 15px;">작업
-                                </th>
+                                <th style="text-align: center; width: 8%;">참여비</th>
+                                <th style="text-align: center; width: 6%;">당직동의</th>
+                                <th style="text-align: center; width: 6%;">소집동의</th>
+                                <th style="text-align: center; width: 10%;">첨부서류</th>
+                                <th style="text-align: center; width: 12%; padding-right: 15px;">작업</th>
                             </tr>
                         </thead>
                         <tbody id="dom-applicant-table">

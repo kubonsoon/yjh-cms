@@ -1,6 +1,7 @@
 // 1. [오케스트레이터] 보고서 탭 최초 개방 시 1탭 인프라 구동 및 이벤트 리스너 영구 매립
 function initReportModule() {
-  bindReportSummaryFilterEvents();
+  bindReportSummaryFilterEvents(); // 1탭 인프라 구동
+  bindReportRecruitmentFilterEvents(); // 2탭 인프라 구동
 }
 
 /**
@@ -97,3 +98,73 @@ function switchReportSubTab(tabKey) {
   if (activeBtn) activeBtn.classList.add("active");
   if (activePanel) activePanel.style.display = "flex";
 }
+
+/**
+ * ⚙️ [2 탭 코어]: 년/월/주간 필터 셀렉트 박스 실시간 동기화 및 이벤트 바인딩
+ */
+function bindReportRecruitmentFilterEvents() {
+  // HTML 본문에 물리 매립된 2탭 3연속 기간 필터 엘리먼트 추적
+  const elYear = document.getElementById("filter-report-year-recruitment");
+  const elMonth = document.getElementById("filter-report-month-recruitment");
+  const elWeek = document.getElementById("filter-report-week-recruitment");
+
+  if (!elYear || !elMonth || !elWeek) {
+    console.warn(
+      "[경고] 2탭 상단 기간 필터 셀렉트 박스 요소를 로드하지 못했습니다.",
+    );
+    return;
+  }
+
+  // 🎯 [실시간 동기화 훅]: 2탭 내 데이터 변경 시 연쇄 제어 가동
+  elYear.onchange = function () {
+    executeRecruitmentPipelineFiltering(
+      elYear.value,
+      elMonth.value,
+      elWeek.value,
+    );
+  };
+
+  elMonth.onchange = function () {
+    executeRecruitmentPipelineFiltering(
+      elYear.value,
+      elMonth.value,
+      elWeek.value,
+    );
+  };
+
+  elWeek.onchange = function () {
+    executeRecruitmentPipelineFiltering(
+      elYear.value,
+      elMonth.value,
+      elWeek.value,
+    );
+  };
+}
+
+/**
+ * 🔍 [필터 연산부]: 2탭 조건 변경 시 가상 DB 조건절을 투사하여 로그를 적재하는 내부 파이프라인
+ */
+function executeRecruitmentPipelineFiltering(year, month, week) {
+  const fullData = window.dataStoreApplicant || [];
+  console.log(
+    `[2 탭 재무 집계 체인 변경 필터 트래킹] 선택 조건 ➡️ 년도: \${year}년 | 월: \${month} | 주간: \${week} | 현재 공유 스토리지 총 N수: \${fullData.length}명`,
+  );
+
+  // 추후 실무형 보고서 2탭 막대 그래프 리렌더링 코어가 여기에 안착됩니다.
+}
+
+/**
+ * 📥 [실무형 전산망 PDF 저장 및 파일 내보내기 엔진 - 2탭 전용 분기 트리거]
+ */
+// 기존 executeReportPdfExport 함수에 2탭 분기 핸들러가 유기적으로 작동하도록 유도 및 확장 결합합니다.
+const originalPdfExport = window.executeReportPdfExport;
+window.executeReportPdfExport = function (tabKey) {
+  if (tabKey === "recruitment") {
+    alert(
+      `[전산 시스템 알림]\n\n'2 탭: 시험별 모집 및 재무 현황'의 선택된 기간 필터 조건 기준 관공서 증빙용 고해상도 PDF 추출 저장을 시작합니다.`,
+    );
+    window.printReportSummaryMode(); // 종합 고해상도 격리 인쇄 함수 호출 연동
+  } else if (typeof originalPdfExport === "function") {
+    originalPdfExport(tabKey);
+  }
+};

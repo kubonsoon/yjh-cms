@@ -36,7 +36,9 @@ function renderReportSummaryAndRecruitmentTabs() {
   let pay2Complete = data.filter((d) => d.payStatus2 === "완료").length;
   let pay3Complete = data.filter((d) => d.payStatus3 === "완료").length;
 
-  const summaryPanel = document.getElementById("report-tab-panel-summary");
+  const summaryPanel = document.getElementById(
+    "dom-summary-charts-render-zone",
+  );
   if (summaryPanel) {
     summaryPanel.innerHTML = `
             <!-- 4대 요약 카드 스코어보드 층 -->

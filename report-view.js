@@ -2,9 +2,32 @@
  * ==========================================================================
  * 📑 임상시험 관리 시스템: 보고서 및 통계 단원 외부 독립 모듈 (report-view.js)
  * ==========================================================================
- * [버그 교정 마감본]: 1 탭 닫는 태그 범위를 정밀 격리하여 탭 전환 시 화면 꼬임 버그를 완벽
- * 박멸함.
+
+/**
+ * 🔄 [전역 오케스트레이터 허브]: admin.html 로드 시 최초 1회 자동 기동
+ * 💡 단일 뷰포트 안에 6대 서브 패널 프레임을 최초 주입하고 통계 연산 및 초기 탭을 개방합니다.
  */
+function initReportModule() {
+  console.log("[엔진 가동] 보고서 6대 패널 팩토리 주입을 시작합니다.");
+
+  // admin.html 본문에 존재하는 실시간 가변형 뷰포트 타겟팅
+  const viewport = document.getElementById("report-tab-panel-summary");
+  if (!viewport) {
+    console.warn(
+      "[경고] report-tab-panel-summary 뷰포트 엘리먼트를 찾을 수 없습니다.",
+    );
+    return;
+  }
+
+  // 1. 6대 대역 서브 패널 실물 프레임 덩어리를 뷰포트 내부에 다이렉트 이식
+  viewport.innerHTML = RenderReportMasterDashboard();
+
+  // 2. 1 탭 거시 통계 스코어보드 및 SVG 차트 누적 연산 기믹 기동
+  calculateReportMasterStats();
+
+  // 3. 최초 진입 시 'summary(종합 통계 관제탑)' 패널만 강제 개방 활성화
+  switchReportSubTab("summary");
+}
 
 /**
  * 🚀 [1단계 허브]: 6대 서브 탭 패널 프레임 주입 팩토리 함수 (격리벽 전면 보완)

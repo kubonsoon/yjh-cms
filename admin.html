@@ -644,8 +644,10 @@
 
         /* 인라인 수정(Editing) 모드 활성 행 강조 서식 */
         .editing-row {
-            background-color: rgba(251, 191, 36, 0.04) !important;
-            border-left: 4px solid var(--warning-color);
+            /* 노란색 잔상을 지우고 짙고 어두운 네이비 블랙 톤으로 수정 */
+            background-color: rgba(15, 23, 42, 0.6) !important;
+            /* 왼쪽 강조 선 역시 경고용 노란색에서 시그니처 스카이 블루로 변경 */
+            border-left: 4px solid var(--secondary-color) !important;
         }
 
         /* 직급별 1~10레벨 권한 인포 배지 고대비 전용 서식 디자인 */

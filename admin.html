@@ -3151,28 +3151,21 @@
                         <td style="text-align: center; font-weight: 700; color: ${row.appStatusFlag === '참여' ? 'var(--success-color)' : 'var(--danger-color)'};">${row.appStatusFlag || '참여'}</td>
                         <td style="text-align: center;">
                             <div style="display:flex; flex-direction:column; gap:1px; font-size:11px; text-align:left; padding-left:5px;">
-                                <span>1차: <b style="color:${p1 === '완료' ? 'var(--success-color)' : 'var(--warning-color)'}">${p1}</b></span>
-                                <span>2차: <b style="color:${p2 === '완료' ? 'var(--success-color)' : 'var(--warning-color)'}">${p2}</b></span>
-                                <span>3차: <b style="color:${p3 === '완료' ? 'var(--success-color)' : 'var(--warning-color)'}">${p3}</b></span>
+                                <span>1차: <b style="color:${p1==='완료'?'var(--success-color)':'var(--warning-color)'}">${p1}</b></span>
+                                <span>2차: <b style="color:${p2==='완료'?'var(--success-color)':'var(--warning-color)'}">${p2}</b></span>
+                                <span>3차: <b style="color:${p3==='완료'?'var(--success-color)':'var(--warning-color)'}">${p3}</b></span>
                             </div>
                         </td>
-                        <td style="text-align: center; color:${dutyAgreed === '동의' ? 'var(--success-color)' : dutyAgreed === '거부' ? 'var(--danger-color)' : 'var(--text-muted)'}; font-weight:700;">${dutyAgreed}</td>
-                        <td style="text-align: center; color:${callAgreed === '동의' ? 'var(--success-color)' : callAgreed === '거부' ? 'var(--danger-color)' : 'var(--text-muted)'}; font-weight:700;">${callAgreed}</td>
+                        <td style="text-align: center; color:${dutyAgreed==='동의'?'var(--success-color)':dutyAgreed==='거부'?'var(--danger-color)':'var(--text-muted)'}; font-weight:700;">${dutyAgreed}</td>
+                        <td style="text-align: center; color:${callAgreed==='동의'?'var(--success-color)':callAgreed==='거부'?'var(--danger-color)':'var(--text-muted)'}; font-weight:700;">${callAgreed}</td>
                         <td style="text-align: center;">
                             <span class="doc-badge ${row.bankBookFile ? 'status-bank' : 'status-none'}" onclick="${row.bankBookFile ? `viewUploadedDoc('bank', '${row.bankBookFile}')` : ''}">통장</span>
                             <span class="doc-badge ${row.idCardFile ? 'status-id' : 'status-none'}" onclick="${row.idCardFile ? `viewUploadedDoc('id', '${row.idCardFile}')` : ''}">신분증</span>
-                        </td>  <td style="vertical-align: middle; text-align: center;">
-        <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}">신분</span>
-        <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}">통장</span>
-    </td>
-    
-    <!-- 완결 후 일반 관리 액션 버튼 구역 -->
-    <td style="vertical-align: middle; text-align: center; padding-right: 15px;">
-        <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-            <button type="button" class="btn-inline edit" onclick="activeApplicantInlineEdit(${row.uid}, ${masterIndex})">편집</button>
-            <button type="button" class="btn-inline delete" onclick="deleteApplicantRecord(${masterIndex})">삭제</button>
-        </div>
-    </td>
+                        </td>
+                        <td style="text-align: center;">
+                            <button type="button" class="btn-inline edit" onclick="toggleApplicantInlineEdit(${i})">수정</button>
+                            <button type="button" class="btn-inline delete" onclick="deleteApplicantRecord(${i})">삭제</button>
+                        </td>
 `;
                 }
 

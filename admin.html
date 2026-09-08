@@ -3119,14 +3119,13 @@
         <!-- ... 참여상태 옵션 리스트 생략 ... -->
       </select>
     </td>
-    <td style="width: 85px; vertical-align: middle; text-align: center;">
-        <!-- 1, 2, 3차 차수별 정산 선택 상자 3단 스택 -->
-        <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
-            <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; width:75px; color:#fff; background:#0f172a !important;">...</select>
-            <select id="inline-app-pay2-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; width:75px; color:#fff; background:#0f172a !important;">...</select>
-            <select id="inline-app-pay3-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; width:75px; color:#fff; background:#0f172a !important;">...</select>
-        </div>
-    </td>
+       <td style="text-align: center;">
+                            <div style="display:flex; flex-direction:column; gap:2px; font-size:11px;">
+                                <span>1차: <select id="inline-app-p1-${i}"><option value="대기" ${p1==='대기'?'selected':''}>대기</option><option value="완료" ${p1==='완료'?'selected':''}>완료</option></select></span>
+                                <span>2차: <select id="inline-app-p2-${i}"><option value="대기" ${p2==='대기'?'selected':''}>대기</option><option value="완료" ${p2==='완료'?'selected':''}>완료</option></select></span>
+                                <span>3차: <select id="inline-app-p3-${i}"><option value="대기" ${p3==='대기'?'selected':''}>대기</option><option value="완료" ${p3==='완료'?'selected':''}>완료</option></select></span>
+                            </div>
+                        </td>
     <td style="width: 75px; vertical-align: middle;">
         <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">...</select>
     </td>

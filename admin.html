@@ -362,15 +362,16 @@
         }
 
         .btn-inline {
-            padding: 6px 12px;
-            font-size: 13px;
-            border-radius: 6px;
-            font-weight: 700;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin: 2px;
-            transition: opacity 0.2s;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 26px !important;
+            /* 버튼 높이를 슬림하게 일괄 통일 */
+            padding: 0 10px !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+            white-space: nowrap !important;
+            /* 글자 줄바꿈 절대 방지 */
         }
 
         .btn-inline:hover {

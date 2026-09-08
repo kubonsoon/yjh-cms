@@ -4738,87 +4738,239 @@
         (function () {
             // 1. 모집공고 데이터베이스 3종 마스터 리셋 및 강제 셋팅
             let adminRecruitmentDB = [
-                {
-                    title: "애드파마 로잘탄+로수+에제",
-                    th: "2기",
-                    count: "60",
-                    period: "72",
-                    crc: "석정은",
-                    notice: "공복 유지 필수 및 소집 10분 전 대기",
-                    examDate: "2026-09-01",
-                    payDate: "2026-09-10" // join_login 연동 고정값
-                },
-                {
-                    title: "신일제약-사쿠+발사",
-                    th: "4기",
-                    count: "46",
-                    period: "96",
-                    crc: "최미현",
-                    notice: "지정식 이외 취식 금지 및 격리 규정 준수",
-                    examDate: "2026-09-15",
-                    payDate: "2026-09-30"
-                },
-                {
+                 {
                     title: "경동제약 식후 임상시험",
                     th: "4기",
                     count: "46",
                     period: "96",
-                    crc: "강은애",
+                    crc: "강un애",
                     notice: "지정식 이외 취식 금지 및 격리 규정 준수",
                     examDate: "2026-10-15",
-                    payDate: "2026-10-30"
+                    payDate: "2026-11-26" 
+                },
+                {
+                    title: "[생동] 하나제약 로수+에제",
+                    th: "3기",
+                    count: "60",
+                    period: "72",
+                    crc: "이승호",
+                    notice: "공복 유지 필수 및 소집 10분 전 대기",
+                    examDate: "2026-09-15",
+                    payDate: "2026-10-15"
+                },
+                {
+                    title: "신일제약 사쿠+발사",
+                    th: "4기",
+                    count: "46",
+                    period: "96",
+                    crc: "이은정",
+                    notice: "지정식 이외 취식 금지 및 격리 규정 준수",
+                    examDate: "2026-08-15",
+                    payDate: "2026-09-24"
+                },
+                {
+                    title: "애드파마 로잘탄+로수+에제",
+                    th: "2기",
+                    count: "44",
+                    period: "72",
+                    crc: "석정은",
+                    notice: "공복 유지 필수 및 소집 10분 전 대기",
+                    examDate: "2026-08-01",
+                    payDate: "2026-09-10"
+                },
+                {
+                    title: "삼진제약 팔보시클립",
+                    th: "3기",
+                    count: "30",
+                    period: "96",
+                    crc: "최미현",
+                    notice: "지정식 이외 취식 금지 및 격리 규정 준수",
+                    examDate: "2025-10-10",
+                    payDate: "2025-11-23"
+                },
+                {
+                    title: "[임상] 파마사이언스 룩소리틴",
+                    th: "4기",
+                    count: "48",
+                    period: "24",
+                    crc: "손혜리",
+                    notice: "공복 유지 필수 및 소집 10분 전 대기",
+                    examDate: "2025-10-12",
+                    payDate: "2025-11-23"
+                },
+                {
+                    title: "대우제약 피타+에제",
+                    th: "2기",
+                    count: "60",
+                    period: "72",
+                    crc: "유성은",
+                    notice: "공복 유지 필수 및 소집 10분 전 대기",
+                    examDate: "2025-08-10",
+                    payDate: "2025-09-10"
+                },
+                {
+                    title: "[생동] 명인제약 아고멜라틴",
+                    th: "1기",
+                    count: "46",
+                    period: "10",
+                    crc: "이선경",
+                    notice: "지정식 이외 취식 금지 및 격리 규정 준수",
+                    examDate: "2025-07-15",
+                    payDate: "2025-08-02"
                 }
             ];
             localStorage.setItem('dataStoreRecruitment', JSON.stringify(adminRecruitmentDB));
-            console.log("[통합 동기화] 모집공고 마스터 테이블 3종 리셋 및 락인 완료.");
+            console.log("[통합 동기화] 모집공고 마스터 테이블 8종 리셋 및 락인 완료.");
 
             // 2. 대상자 관리 데이터베이스 3인방 명단 완벽 매칭 주입
             let adminApplicantDB = [
+                  {
+                    title: "경동제약 식후 임상시험",
+                    th: "4기(1차)",
+                    count: "46",
+                    period: "96",
+                    name: "진재영",
+                    ssn: "050607-2", // 이미지 속 생년월일 050607 / 성별 여(-2) 동기화 [INDEX: 0.1.32]
+                    phone: "01023459876",
+                    payStatus1: "완료", // 이미지 속 1차 지급 상태 초록색 [완료] 배지 매핑 [INDEX: 0.1.32]
+                    payStatus2: "대기",
+                    payStatus3: "대기",
+                    payStatus: "완료",
+                    result: "완료",
+                    isAgreed: "동의",
+                    idCardImg: "무",
+                    bankBookImg: "무",
+                    stage: "4 기 [1 차 차수분] 분할 사례비"
+                },
+                {
+                    title: "[생동] 하나제약 로수+에제",
+                    th: "3기(1차)",
+                    count: "60",
+                    period: "72",
+                    name: "김수지",
+                    ssn: "780406-2", // 이미지 속 생년월일 780406 / 성별 여(-2) 동기화
+                    phone: "01095207978",
+                    payStatus1: "접수", // 이미지 속 1차 지급 상태 파란색 [접수] 배지 매핑
+                    payStatus2: "대기",
+                    payStatus3: "대기",
+                    payStatus: "접수",
+                    result: "접수",
+                    isAgreed: "동의",
+                    idCardImg: "무",
+                    bankBookImg: "무",
+                    stage: "3 기 [1 차 차수분] 분할 사례비"
+                },
+                {
+                    title: "신일제약 사쿠+발사",
+                    th: "4기(1차)",
+                    count: "46",
+                    period: "96",
+                    name: "강남구",
+                    ssn: "980101-1", // 이미지 속 생년월일 980101 / 성별 남(-1) 동기화
+                    phone: "01090956763",
+                    payStatus1: "처리중", // 이미지 속 1차 지급 상태 노란색 [처리중] 배지 매핑
+                    payStatus2: "대기",
+                    payStatus3: "대기",
+                    payStatus: "처리중",
+                    result: "처리중",
+                    isAgreed: "동의",
+                    idCardImg: "무",
+                    bankBookImg: "무",
+                    stage: "4 기 [1 차 차수분] 분할 사례비"
+                },
                 {
                     title: "애드파마 로잘탄+로수+에제",
                     th: "2기(1차)",
-                    count: "60",
+                    count: "44",
                     period: "72",
                     name: "홍길동",
-                    ssn: "950505",
+                    ssn: "950505-1", // 이미지 속 생년월일 950505 / 성별 남(-1) 동기화
                     phone: "01012345678",
-                    payStatus: "대기",
+                    payStatus1: "접수", // 이미지 속 1차 지급 상태 파란색 [접수] 배지 매핑
+                    payStatus2: "대기",
+                    payStatus3: "대기",
+                    payStatus: "접수",
+                    result: "접수",
                     isAgreed: "동의",
                     idCardImg: "무",
                     bankBookImg: "무",
                     stage: "2 기 [1 차 차수분] 분할 사례비"
                 },
                 {
-                    title: "신일제약-사쿠+발사",
+                    title: "[임상] 파마사이언스 룩소리틴",
                     th: "4기(1차)",
-                    count: "46",
-                    period: "96",
-                    name: "강남구",
-                    ssn: "980101",
-                    phone: "01090956763",
-                    payStatus: "대기",
+                    count: "48",
+                    period: "24",
+                    name: "김태희",
+                    ssn: "851023-2", // 이미지 속 생년월일 851023 / 성별 여(-2) 동기화
+                    phone: "01035747476",
+                    payStatus1: "처리중", // 이미지 속 1차 지급 상태 노란색 [처리중] 배지 매핑
+                    payStatus2: "대기",
+                    payStatus3: "대기",
+                    payStatus: "처리중",
+                    result: "처리중",
                     isAgreed: "동의",
                     idCardImg: "무",
                     bankBookImg: "무",
                     stage: "4 기 [1 차 차수분] 분할 사례비"
                 },
                 {
-                    title: "경동제약 식후 임상시험",
-                    th: "4기(2차)",
-                    count: "46",
+                    title: "삼진제약 팔보시클립",
+                    th: "3기(1차)",
+                    count: "30",
                     period: "96",
-                    name: "진재영",
-                    ssn: "050607",
-                    phone: "01023469876",
-                    payStatus: "대기",
+                    name: "이정용",
+                    ssn: "821208-1", // 이미지 속 생년월일 821208 / 성별 남(-1) 동기화
+                    phone: "01078059522",
+                    payStatus1: "완료", // 이미지 속 1차 지급 상태 초록색 [완료] 배지 매핑
+                    payStatus2: "대기",
+                    payStatus3: "대기",
+                    payStatus: "완료",
+                    result: "완료",
                     isAgreed: "동의",
                     idCardImg: "무",
                     bankBookImg: "무",
-                    stage: "4 기 [1 차 차수분] 분할 사례비"
+                    stage: "3 기 [1 차 차수분] 분할 사례비"
+                },
+                {
+                    title: "대우제약 피타+에제",
+                    th: "2기(1차)",
+                    count: "60",
+                    period: "72",
+                    name: "정은영",
+                    ssn: "950405-2", // 이미지 속 생년월일 950405 / 성별 여(-2) 동기화
+                    phone: "01065431234",
+                    payStatus1: "처리중", // 이미지 속 1차 지급 상태 노란색 [처리중] 배지 매핑
+                    payStatus2: "대기",
+                    payStatus3: "대기",
+                    payStatus: "처리중",
+                    result: "처리중",
+                    isAgreed: "동의",
+                    idCardImg: "무",
+                    bankBookImg: "무",
+                    stage: "2 기 [1 차 차수분] 분할 사례비"
+                },
+                {
+                    title: "[생동] 명인제약 아고멜라틴",
+                    th: "1기(1차)",
+                    count: "46",
+                    period: "10",
+                    name: "김정관",
+                    ssn: "900102-1", // 이미지 속 생년월일 900102 / 성별 남(-1) 동기화 [INDEX: 0.1.31]
+                    phone: "01091825414",
+                    payStatus1: "접수", // 이미지 속 1차 지급 상태 파란색 [접수] 배지 매핑
+                    payStatus2: "대기",
+                    payStatus3: "대기",
+                    payStatus: "접수",
+                    result: "접수",
+                    isAgreed: "동의",
+                    idCardImg: "무",
+                    bankBookImg: "무",
+                    stage: "1 기 [1 차 차수분] 분할 사례비"
                 }
             ];
             localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-            console.log("[통합 동기화] 대상자 관리 명단 3종 명칭 싱크 결합 완료.");
+            console.log("[통합 동기화] 대상자 관리 명단 8종 마스터 명칭 싱크 결합 완료.");
 
             // 3. 브라우저 로딩이 끝나면 양쪽 뷰 포트를 일제히 강제 출력 리프레시
             window.addEventListener('load', function () {

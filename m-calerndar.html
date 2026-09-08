@@ -517,15 +517,16 @@ function renderCalendar() {
     const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
 
     // 📱 일요일부터 토요일까지 딱 7일간의 상단 날짜 단추 레일 생성 루프
-    for (let i = 0; i < 7; i++) {
+   for (let i = 0; i < 7; i++) {
         const loopDate = new Date(startOfWeek);
         loopDate.setDate(startOfWeek.getDate() + i);
 
-        const yearStr = loopDate.getFullYear();
-        const monthStr = (loopDate.getMonth() + 1).toString().padStart(2, '0');
-        const dateStr = loopDate.getDate().toString().padStart(2, '0');
-        const formattedDateKey = `${yearStr}-${monthStr}-${dateStr}`;
-
+        // ⚡ [여기서부터 날짜 포맷 분리 버그 전격 수정 및 정밀 대체 주입 구간]
+        // 한국 시차(UTC+9) 보정 오프셋 반영 후 완벽한 YYYY-MM-DD 10자리 표준 규격 문자열 정밀 추출
+        const kstOffset = loopDate.getTime() - (loopDate.getTimezoneOffset() * 60000);
+        const formattedDateKey = new Date(kstOffset).toISOString().split('T')[0];
+        // ⚡ [여기까지 날짜 포맷 분리 버그 전격 수정 및 정밀 대체 주입 완료]
+        
         // 최초 로딩 시 오늘 일자를 디폴트 활성화 타겟으로 지정
         if (!selectedDateStr && i === currentDayOfWeek) {
             selectedDateStr = formattedDateKey;

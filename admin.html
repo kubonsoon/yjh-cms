@@ -1987,21 +1987,18 @@
                 document.getElementById('menuGrade').classList.add('active');
                 if (typeof refreshAdminMemberTableView === "function") refreshAdminMemberTableView();
 
+                /* 🎯 admin.html 내 changeMainViewport 함수의 보고서 분기점 최종 정형본 */
             } else if (viewName === 'reportView' && document.getElementById('menuReport')) {
                 document.getElementById('menuReport').classList.add('active');
                 var currentSabun = sessionStorage.getItem('adminLoginSabun');
 
-                // [보안 게이트웨이 기동]
+                // 1. 임직원 사번 권한 보안 게이트 가동 (순정 유지)
                 if (typeof applyReportLedgerPermissionGate === "function") {
                     applyReportLedgerPermissionGate(currentSabun);
                 }
 
-                // 🎯 [전산망 동기화 링크 복구 안전핀]: 메뉴 진입 즉시 독립 모듈의 실시간 데이터 연산 및 차트 주입 엔진 강제 연쇄 트리거
-                if (typeof calculateReportMasterStats === "function") {
-                    calculateReportMasterStats();
-                }
-
-                // 🔄 [초기화 락인]: 첫 보고서 진입 시 6대 서브 탭 바 중 1번 종합 통계 탭을 기본 active 활성화 처리
+                // 2. ⚡ [단일 제어권 이관]: admin 내부의 구형 코드를 무시하고, 
+                // 오직 report-view.js의 최신 마스터 스위처만 호출하여 1번 탭을 개방합니다.
                 if (typeof switchReportSubTab === "function") {
                     switchReportSubTab('summary');
                 }

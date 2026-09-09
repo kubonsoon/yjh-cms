@@ -422,16 +422,19 @@ ister-form .form-group:nth-child(3) {
   flex-shrink: 0 !important;
 }
 
-/* 1. 등록 폼 부모 상자 (기존 라인 426~432번 부근 교체) */
+/* 1. 등록 폼 부모 상자 */
 #applicantView .register-form {
   display: flex !important;
   flex-wrap: nowrap !important;
   align-items: flex-end !important;
-  gap: 0px !important;
+  gap: 0px !important; /* 자식 간의 미세 마찰 간격을 0으로 유지하여 축 고정 */
   width: 100% !important;
-  padding: 0 !important;
-  margin: 0 !important;
+  margin: 0 0 20px 0 !important; /* 하단 테이블 헤더와의 시원한 숨통 거리 20px 확보 */
   box-sizing: border-box !important;
+  background: #1e293b !important; /* 모집공고와 100% 싱크로율을 이루는 단정한 회색톤 레이어 */
+  border: 1px solid var(--border-color) !important; /* 경계선 테두리 가드 */
+  border-radius: 8px !important; /* 둥근 엣지 8px 모서리 스킨 복원 */
+  padding: 16px 12px !important;
 }
 
 /* 2. 개별 인풋 상자 공통 가두리 (기존 라인 435~441번 부근 교체) */

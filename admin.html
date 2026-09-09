@@ -468,11 +468,11 @@
                         <thead>
                             <tr style="display: table-row;">
                                 <th
-                                    style="min-width: 200px; max-width: 270px; text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; width: 26%;">
+                                    style="min-width: 220px; max-width: 300px; text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; width: 26%;">
                                     시험명</th>
                                 <th style="text-align: center; width: 6%;">기수</th>
                                 <th style="text-align: center; width: 6.5%;">인원수</th>
-                                <th style="text-align: center; width: 6%;">기간</th>
+                                <th style="text-align: center; width: 6%;">시간</th>
                                 <th style="text-align: center; width: 8.5%;">이름</th>
                                 <th style="text-align: center; width: 10%;">생년월일</th>
                                 <th style="text-align: center; width: 5%;">성별</th>
@@ -482,7 +482,7 @@
                                 <th style="text-align: center; width: 4.5%;">당직동의</th>
                                 <th style="text-align: center; width: 4.5%;">소집동의</th>
                                 <th style="text-align: center; width: 5.5%;">첨부서류</th>
-                                <th style="text-align: center; width: 6.5%; padding-right: 15px;">작업</th>
+                                <th style="width: 140px; text-align: center; padding-right: 15px;">작업</th>
                             </tr>
                         </thead>
                         <tbody id="dom-applicant-table">
@@ -2003,7 +2003,7 @@
                     tr.innerHTML = `
 
        <!-- 🟢 [1열 교정]: 일반 목록과 동일하게 너비 26% 및 좌측 패딩 15px 수직 시작선 완벽 일치 잠금 -->
-    <td style="min-width: 200px; max-width: 270px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;">
+    <td style="min-width: 220px; max-width: 300px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;">
         <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
     </td>
     
@@ -2098,7 +2098,7 @@
     <td style="width: 5.5%; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px; white-space: nowrap;">교체 중 변경불가</td>
     
     <!-- 🟢 [14열 교정]: 시험명 칸을 압착하던 주범인 비대한 180px 완벽 청소, 일반 목록 작업 스펙인 width: 6.5% 및 패딩 우측 15px 최종 고정 마감 -->
-    <td style="width: 6.5%; vertical-align: middle; text-align: center; padding-right: 15px;">
+    <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
         <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
             <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
             <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
@@ -2166,7 +2166,7 @@
         </td>
         
         <!-- 🟢 [14열 잠금]: 헤더 최종 작업 스펙인 width: 6.5% 및 우측 안전 마진 패딩 15px 완벽 동기화 매칭 마감 -->
-        <td style="vertical-align: middle; text-align: center; width: 6.5%; padding-right: 15px;">
+        <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px;">
             <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
                 <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
                 <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})">삭제</button>

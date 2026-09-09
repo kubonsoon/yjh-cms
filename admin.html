@@ -2121,7 +2121,7 @@
         </td>
         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isDutyAgreed || '대기'}</span></td>
         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isCallAgreed || '대기'}</span></td>
-         <!-- 🟢 [작업 완료]: 정갈한 10% 너비 및 1.5px 배지 구조를 백퍼센트 사수한 상태에서, 초기 디폴트 8명은 완벽히 대기(회색)로 묶고, 실제 업로드된 진짜 파일은 실시간 연두색으로 활성화하는 무결성 데이터 가드를 완성했습니다 -->
+            <!-- 🟢 [작업 완료]: 정갈한 10% 너비 및 1.5px 배지 구조를 백퍼센트 사수한 상태에서, 초기 디폴트 8명은 완벽히 대기(회색)로 묶고, 실제 업로드된 진짜 파일은 실시간 연두색으로 활성화하는 무결성 데이터 가드를 완성했습니다 -->
         <td style="width: 10%; vertical-align: middle; text-align: center; white-space: nowrap !important; padding: 0 !important;">
             
             <!-- ① 신분증 사본 데이터 실측 및 트리거 브릿지 -->
@@ -5642,10 +5642,6 @@
         // =========================================================================
         // 이력조회 부분
         // =========================================================================
-
-
-
-
         function openIndividualHistoryModal(index) {
             // 1. 최신 로컬스토리지 대상자 대장 파이프라인 실시간 로드
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -6427,6 +6423,89 @@
         // 정렬 중 유실되었던 오리지널 이름표를 복원하여 스마트폰 UI 창과의 통신선을 영구 종결짓습니다.
         window.renderAdminApplicantTable = refreshApplicantView;
 
+
+        /* =========================================================================
+   [엔진 완전 복원] Uncaught ReferenceError 해결을 위한 공용 마스터 이미지 모달 함수
+   ========================================================================= */
+        function openImageModal(imgSrc, titleText) {
+            // 1. 시스템에 빌드된 오리지널 모달창 레이어 구성 요소를 탐색합니다
+            let modal = document.getElementById('imageModal') || document.getElementById('fileViewerModal');
+            let modalImg = document.getElementById('modalImage') || document.getElementById('imgModalContent');
+            let modalTitle = document.getElementById('modalTitle') || document.getElementById('fileModalTitle');
+
+            // 💡 방어벽: 만약 HTML 단에 모달창 마크업이 임의 유실되었다면 동적으로 자동 생성하여 연동선을 사수합니다
+            if (!modal) {
+                const modalDiv = document.createElement('div');
+                modalDiv.id = 'imageModal';
+                modalDiv.style = "display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.85); align-items:center; justify-content:center; flex-direction:column; color:#fff;";
+                modalDiv.innerHTML = `
+            <div style="background:#1e293b; padding:20px; border-radius:8px; border:1px solid #334155; width:90%; max-width:500px; text-align:center; position:relative; margin: 5% auto;">
+                <h3 id="modalTitle" style="margin:0 0 15px 0; font-size:14px; font-weight:700; color:#38bdf8;"></h3>
+                <div style="max-height:60vh; overflow-y:auto; margin-bottom:15px; background:#0f172a; padding:10px; border-radius:4px;">
+                    <img id="modalImage" style="max-width:100%; height:auto; display:block; margin:0 auto; border-radius:4px;">
+                </div>
+                <div style="display:flex; gap:8px; justify-content:center;">
+                    <button type="button" onclick="window.printModalImage()" style="background:#22c55e; color:#070a12; padding:6px 16px; border:none; border-radius:4px; font-weight:700; cursor:pointer;">인쇄</button>
+                    <button type="button" onclick="window.downloadModalImage()" style="background:#3b82f6; color:#fff; padding:6px 16px; border:none; border-radius:4px; font-weight:700; cursor:pointer;">저장(PDF)</button>
+                    <button type="button" onclick="document.getElementById('imageModal').style.display='none'" style="background:#475569; color:#fff; padding:6px 16px; border:none; border-radius:4px; font-weight:700; cursor:pointer;">닫기</button>
+                </div>
+            </div>
+        `;
+                document.body.appendChild(modalDiv);
+                modal = document.getElementById('imageModal');
+                modalImg = document.getElementById('modalImage');
+                modalTitle = document.getElementById('modalTitle');
+            }
+
+            if (modal && modalImg) {
+                // 2. 인자값으로 넘어온 원본 이미지 주소와 파일명을 뷰어창에 자석처럼 매칭 바인딩합니다
+                modalTitle.innerText = titleText || '파일 뷰어';
+                modalImg.src = imgSrc;
+
+                // 3. 브릿지 글로벌 변수에 원본 주소와 타이틀을 안전하게 임시 백업해 둡니다 (인쇄/다운로드 전용)
+                window.currentModalImgSrc = imgSrc;
+                window.currentModalTitle = titleText || '첨부서류';
+
+                // 4. 모달 팝업 레이어를 화면에 시원하게 개방합니다
+                modal.style.display = 'flex';
+            }
+        }
+
+        /* =========================================================================
+           [연쇄 엔진] 모달 이미지 원본 화질 유실 없는 실시간 인쇄 및 가상 다운로드 브릿지
+           ========================================================================= */
+        // ① 실시간 인쇄 처리 함수 완벽 연결
+        window.printModalImage = function () {
+            if (!window.currentModalImgSrc) return;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+        <html>
+        <head>
+            <title>${window.currentModalTitle}</title>
+            <style>
+                body { margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#fff; }
+                img { max-width:100%; max-height:100%; object-fit:contain; page-break-inside:avoid; }
+                @page { margin: 0; }
+            </style>
+        </head>
+        <body>
+            <img src="${window.currentModalImgSrc}" onload="window.print(); window.close();">
+        </body>
+        </html>
+    `);
+            printWindow.document.close();
+        };
+
+        // ② PDF 다운로드 (가상 다운로드 앵커 트리거 기법) 함수 완벽 연결
+        window.downloadModalImage = function () {
+            if (!window.currentModalImgSrc) return;
+            const link = document.createElement('a');
+            link.href = window.currentModalImgSrc;
+            link.download = `${window.currentModalTitle.replace(/\s/g, '_')}_원본.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

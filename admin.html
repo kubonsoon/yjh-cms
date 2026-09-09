@@ -464,27 +464,23 @@
                 <div class="table-responsive">
                     <table>
                         <thead>
-                            <tr>
-                                <!-- 참여경로 제거 후 잔여 %를 동의 및 작업 컬럼으로 완벽하게 이관 배분 -->
+                            <tr style="display: table-row;">
                                 <th
-                                    style="min-width: 220px; max-width: 350px;text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; width: 16%;">
+                                    style="min-width: 220px; max-width: 350px; text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; width: 26%;">
                                     시험명</th>
-                                <th style="text-align: center; width: 5.5%;">기수</th>
+                                <th style="text-align: center; width: 6%;">기수</th>
                                 <th style="text-align: center; width: 6.5%;">인원수</th>
                                 <th style="text-align: center; width: 6%;">기간</th>
                                 <th style="text-align: center; width: 8.5%;">이름</th>
                                 <th style="text-align: center; width: 10%;">생년월일</th>
                                 <th style="text-align: center; width: 5%;">성별</th>
                                 <th style="text-align: center; width: 12%;">전화번호</th>
-
-                                <!-- 참여경로 컬럼 th 제거 완료 -->
-
-                                <th style="text-align: center; width: 8%;">참여상태</th>
-                                <th style="text-align: center; width: 8%;">참여비</th>
-                                <th style="text-align: center; width: 8%;">당직동의</th>
-                                <th style="text-align: center; width: 8%;">소집동의</th>
-                                <th style="text-align: center; width: 10%;">첨부서류</th>
-                                <th style="text-align: center; width: 13%; padding-right: 15px;">작업</th>
+                                <th style="text-align: center; width: 7%;">참여상태</th>
+                                <th style="text-align: center; width: 7%;">참여비</th>
+                                <th style="text-align: center; width: 4.5%;">당직동의</th>
+                                <th style="text-align: center; width: 4.5%;">소집동의</th>
+                                <th style="text-align: center; width: 5.5%;">첨부서류</th>
+                                <th style="text-align: center; width: 6.5%; padding-right: 15px;">작업</th>
                             </tr>
                         </thead>
                         <tbody id="dom-applicant-table">
@@ -2031,7 +2027,7 @@
            !important;">
          </td>
 
-     <!-- 💡 [교정 및 흰색 글자 고정 완료]: 참여비 1차, 2차, 3차 수정을 위한 3단 멀티 셀렉트 박
+     <!-- 참여비 1차, 2차, 3차 수정을 위한 3단 멀티 셀렉트 박
            스 인프라 구축 -->
       <td style="width: 85px; vertical-align: middle; text-align: center;">
      <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap;
@@ -2112,13 +2108,13 @@
                 }
 
                 // ----------------======================================================
-                // 🔒 [B분기]: 대상자 목록
+                // [B분기]: 대상자 목록
                 // ----------------======================================================
                 else {
                     tr.innerHTML = `
-    <td style="min-width: 220px; max-width: 350px; width: 16%; vertical-align: middle; padding-left: 23px; text-align: left;" class="text-bold">${row.title || ''}</td>
-    <td style="vertical-align: middle; text-align: center;">${formatTh(row.th)}</td>
-    <td style="vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
+        <td style="min-width: 220px; max-width: 350px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;" class="text-bold">${row.title || ''}</td>
+        <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
+        <td style="vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
     <td style="vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
     <td style="vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
     <td style="text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">

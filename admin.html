@@ -478,10 +478,10 @@
                                 <th style="text-align: center; width: 4.5%;">성별</th>
                                 <th style="text-align: center; width: 11%;">전화번호</th>
                                 <th style="text-align: center; width: 6.5%;">참여상태</th>
-                                <th style="text-align: center; width: 9%;">참여비</th>
-                                <th style="text-align: center; width: 6.5%;">당직동의</th>
-                                <th style="text-align: center; width: 6.5%;">소집동의</th>
-                                <th style="text-align: center; width: 8%;">첨부서류</th>
+                                <th style="text-align: center; width: 7.5%;">참여비</th>
+                                <th style="text-align: center; width: 7%;">당직동의</th>
+                                <th style="text-align: center; width: 7%;">소집동의</th>
+                                <th style="text-align: center; width: 5.5%;">첨부서류</th>
                                 <th style="width: 140px; text-align: center; padding-right: 15px;">작업</th>
                             </tr>
                         </thead>
@@ -2023,7 +2023,7 @@
         <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
     </td>
     <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
-        ${row.ssn ? row.ssn.toString().trim().substring(0, 8) : '-'}
+        ${row.ssn ? row.ssn.toString().trim().substring(0, 6) : '-'}
     </td>
     <td style="width: 4.5%; vertical-align: middle; text-align: center;">
         <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
@@ -2036,7 +2036,7 @@
     <td style="width: 6.5%; vertical-align: middle; text-align: center;">
         <span class="badge" style="background:#334155; color:#fff; border-radius:4px; font-weight:700; display: inline-block; padding: 4px 8px; font-size: 11px;">${row.result || '참여'}</span>
     </td>
-    <td style="width: 9%; vertical-align: middle; text-align: center;">
+    <td style="width: 7.5%; vertical-align: middle; text-align: center;">
         <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
             <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
                 <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대기</option>
@@ -2058,23 +2058,23 @@
             </select>
         </div>
     </td>
-    <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+    <td style="width: 7%; vertical-align: middle; text-align: center;">
         <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
             <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
             <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
             <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
         </select>
     </td>
-    <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+    <td style="width: 7%; vertical-align: middle; text-align: center;">
         <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
             <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
             <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
             <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
         </select>
     </td>
-    <td style="width: 8%; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px; white-space: nowrap;">교체 중 변경불가</td>
+    <td style="width: 5.5%; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px; white-space: nowrap;">교체 중 변경불가</td>
     <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
-        <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+        <div style="display: flex; justify-content: center; gap: 8px !important; width: 100%;">
             <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
             <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
         </div>
@@ -2092,8 +2092,8 @@
         <td style="width: 6.5%; vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
-          <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
-            ${row.ssn ? row.ssn.toString().trim().substring(0, 8) : '-'}
+        <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
+            ${row.ssn ? row.ssn.toString().trim().substring(0, 6) : '-'}
         </td>
         <td style="width: 4.5%; vertical-align: middle; text-align: center;">
             <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
@@ -2102,26 +2102,26 @@
         </td>
         <td style="width: 11%; vertical-align: middle; text-align: center;">${formatPhone(row.phone)}</td>
         <td style="width: 6.5%; vertical-align: middle; text-align: center;"><span class="doc-badge ${row.stage === '참여' ? 'status-id' : 'status-none'}">${row.stage || '참여'}</span></td>
-        <td style="width: 9%; vertical-align: middle; text-align: center;">
+        <td style="width: 7.5%; vertical-align: middle; text-align: center;">
             <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">
                 ${buildMiniBadgeHTML('1차', row.payStatus1)}
                 ${buildMiniBadgeHTML('2차', row.payStatus2)}
                 ${buildMiniBadgeHTML('3차', row.payStatus3)}
             </div>
         </td>
-        <td style="width: 6.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isDutyAgreed || '대기'}</span></td>
-        <td style="width: 6.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isCallAgreed || '대기'}</span></td>
-        <td style="width: 8%; vertical-align: middle; text-align: center; white-space: nowrap !important; padding: 0 !important;">
-            <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}" style="margin: 0 4px !important;">신분증</span>
-            <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}" style="margin: 0 4px !important;">통장</span>
+        <td style="width: 7%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isDutyAgreed || '대기'}</span></td>
+        <td style="width: 7%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isCallAgreed || '대기'}</span></td>
+        <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important; padding: 0 !important;">
+            <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}" style="margin: 0 1.5px !important;">신분증</span>
+            <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}" style="margin: 0 1.5px !important;">통장</span>
         </td>
         <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px;">
-            <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+            <div style="display: flex; justify-content: center; gap: 8px !important; width: 100%;">
                 <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
                 <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})">삭제</button>
             </div>
         </td>
-`;
+    `;
                 }
 
                 tbody.appendChild(tr);

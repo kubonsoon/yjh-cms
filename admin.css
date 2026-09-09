@@ -968,3 +968,40 @@ input[type="date"]::-webkit-calendar-picker-indicator {
       inset 0 0 15px rgba(57, 255, 20, 0.4) !important;
   }
 }
+
+/* =========================================================================
+   [CSS 교정] 대시보드 상단 우측 탑바(사용자 인증 존) 레이아웃 격리 복원
+   ========================================================================= */
+
+/* 🟢 [신규 추가] 탑바 정렬 유저 존: 내부 컴포넌트들을 완벽하게 수평 센터 정렬 */
+.top-bar-user-zone {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+/* 🟢 [신규 추가] 탑바 전용 비밀번호수정 버튼: 테이블 내부 버튼의 간섭을 완전히 걷어내고 순정 규격 복원 */
+.top-bar-user-zone .btn-inline.password-reset-btn {
+  height: 32px !important; /* 26px 압착 서식을 해제하고 32px 순정 높이 락인 */
+  line-height: 30px !important;
+  padding: 0 12px !important; /* 좁아 터지던 패딩 여백 정상화 */
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  background: rgba(
+    251,
+    191,
+    36,
+    0.15
+  ) !important; /* 순백색으로 오염된 배경을 차분한 연주황으로 복복원 */
+  border: 1px solid var(--warning-color) !important;
+  color: var(--warning-color) !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+}
+
+/* 🟢 [신규 추가] 비밀번호수정 버튼 마우스 호버(Hover) 시 고대비 블랙 리얼 전환 이펙트 */
+.top-bar-user-zone .btn-inline.password-reset-btn:hover {
+  background: var(--warning-color) !important;
+  color: #070a12 !important;
+}

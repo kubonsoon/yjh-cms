@@ -370,13 +370,26 @@ tr:hover {
   width: 100% !important;
 }
 
+/* 타이틀과 인풋 전체를 안고 회색 레이어를 입히는 진짜 부모 울타리 */
+#applicantView .register-box {
+  width: 100% !important;
+  background: #1e293b !important; /* 모집공고와 100% 일치하는 정형화된 회색 레이어 스킨 */
+  border: 1px solid var(--border-color) !important; /* 경계선 테두리 가드 */
+  border-radius: 8px !important; /* 둥근 엣지 8px 모서리 스킨 완벽 장착 */
+  padding: 16px 16px !important; /* 레이어 외곽 테두리와 내부 요소들 사이에 정갈한 숨통 여백 형성 */
+  margin: 0 0 20px 0 !important; /* 하단 테이블 헤더와의 시원한 수직 축선 거리 20px 유지 */
+  box-sizing: border-box !important;
+}
+
 /* [신규 대상자 등록] 타이틀: 모집공고의 신규 공고 등록 타이틀 서식과 100% 일치화 */
 #applicantView .register-box h3 {
   font-size: 14px !important;
   font-weight: 700 !important;
-  margin-bottom: 18px !important;
-  color: var(--secondary-color) !important; /* 선명하고 밝은 스카이 블루 적용 */
-  text-transform: uppercase !important; /* 폼 안내 타이틀 대문자 강조 락인 */
+  margin: 0 0 16px 4px !important; /* 타이틀 하단과 인풋 상자 사이의 최적의 거리감 부여 */
+  color: var(
+    --secondary-color
+  ) !important; /* 선명하고 밝은 스카이 블루 완벽 유지 */
+  text-transform: uppercase !important;
 }
 
 /* 타이틀 내부 아이콘 간격 정렬 */
@@ -427,14 +440,12 @@ ister-form .form-group:nth-child(3) {
   display: flex !important;
   flex-wrap: nowrap !important;
   align-items: flex-end !important;
-  gap: 0px !important; /* 자식 간의 미세 마찰 간격을 0으로 유지하여 축 고정 */
+  gap: 0px !important; /* 자식 인풋 간의 미세 마찰 여백을 0으로 묶어 축 정렬 유지 */
   width: 100% !important;
-  margin: 0 0 20px 0 !important; /* 하단 테이블 헤더와의 시원한 숨통 거리 20px 확보 */
+  padding: 0 !important; /* ❌ 12px 밀림 패딩을 완벽히 청소하여 하단 테이블과의 실선 일치화 완수 */
+  margin: 0 !important;
   box-sizing: border-box !important;
-  background: #1e293b !important; /* 모집공고와 100% 싱크로율을 이루는 단정한 회색톤 레이어 */
-  border: 1px solid var(--border-color) !important; /* 경계선 테두리 가드 */
-  border-radius: 8px !important; /* 둥근 엣지 8px 모서리 스킨 복원 */
-  padding: 16px 12px !important;
+  background: transparent !important; /* 부모 박스의 회색 스킨이 온전히 투과되도록 투명화 처리 */
 }
 
 /* 2. 개별 인풋 상자 공통 가두리 (기존 라인 435~441번 부근 교체) */

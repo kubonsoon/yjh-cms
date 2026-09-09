@@ -2033,8 +2033,17 @@
     <td style="width: 11%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>
-    <td style="width: 6.5%; vertical-align: middle; text-align: center;">
-        <span class="badge" style="background:#334155; color:#fff; border-radius:4px; font-weight:700; display: inline-block; padding: 4px 8px; font-size: 11px;">${row.result || '참여'}</span>
+        <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+        <select id="inline-app-stage-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important; font-weight: 700; color: #ffffff !important; text-align: center; cursor: pointer;">
+            <option value="참여" ${row.stage === '참여' || !row.stage ? 'selected' : ''}>참여</option>
+            <option value="예비귀가" ${row.stage === '예비귀가' ? 'selected' : ''}>예비귀가</option>
+            <option value="검사탈락" ${row.stage === '검사탈락' ? 'selected' : ''}>검사탈락</option>
+            <option value="개인사정" ${row.stage === '개인사정' ? 'selected' : ''}>개인사정</option>
+            <option value="규정위반" ${row.stage === '규정위반' ? 'selected' : ''}>규정위반</option>
+            <option value="임의행동" ${row.stage === '임의행동' ? 'selected' : ''}>임의행동</option>
+            <option value="욕설폭행" ${row.stage === '욕설폭행' ? 'selected' : ''}>욕설폭행</option>
+            <option value="기타탈락" ${row.stage === '기타탈락' ? 'selected' : ''}>기타탈락</option>
+        </select>
     </td>
     <td style="width: 9%; vertical-align: middle; text-align: center;">
         <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">

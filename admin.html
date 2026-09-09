@@ -1909,6 +1909,24 @@
                     tr.className = 'editing-row';
                 }
 
+                // 대상자 목록에 기수별 색상 선언 (변수명 중복 충돌 교정)
+                const activeTargetTh_app = row ? row.th : "";
+                const thNumMatch_app = (activeTargetTh_app || "").toString().match(/\d+/);
+
+                /* thNum -> thNum_app 으로 이름을 바꿔 중복 선언 에러를 해결합니다 */
+                const thNum_app = thNumMatch_app ? parseInt(thNumMatch_app, 10) : 1;
+
+                let thBadgeClass = "lvl-1";
+                if (thNum_app === 1) {
+                    thBadgeClass = "lvl-1\" style=\"color: #f8fafc !important; background: rgba(248, 250, 252, 0.12) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important;\"";
+                } else if (thNum_app === 2) {
+                    thBadgeClass = "lvl-2\" style=\"color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important;\"";
+                } else if (thNum_app === 3) {
+                    thBadgeClass = "lvl-3\" style=\"color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important;\"";
+                } else if (thNum_app >= 4) {
+                    thBadgeClass = "lvl-4\" style=\"color: #fbbf24 !important; background: rgba(245, 158, 11, 0.15) !important; border: 1px solid #f59e0b !important; font-weight: 800 !important;\"";
+                }
+
                 const cleanName = (row.name || '').replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim();
                 const rawPhone = (row.phone || '').replace(/[^0-9]/g, '');
                 let fmtPhone = '-';
@@ -2111,22 +2129,6 @@
                 // [B분기]: 대상자 목록
                 // ----------------======================================================
                 else {
-                    //대상자 목록에 기수별 색상 선언
-                    const activeTargetTh = row ? row.th : "";
-                    const thNumMatch = (activeTargetTh || "").toString().match(/\d+/);
-                    const thNum = thNumMatch ? parseInt(thNumMatch, 10) : 1;
-
-                    let thBadgeClass = "lvl-1";
-                    if (thNum === 1) {
-                        thBadgeClass = "lvl-1\" style=\"color: #f8fafc !important; background: rgba(248, 250, 252, 0.12) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important;\"";
-                    } else if (thNum === 2) {
-                        thBadgeClass = "lvl-2\" style=\"color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important;\"";
-                    } else if (thNum === 3) {
-                        thBadgeClass = "lvl-3\" style=\"color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important;\"";
-                    } else if (thNum >= 4) {
-                        thBadgeClass = "lvl-4\" style=\"color: #fbbf24 !important; background: rgba(245, 158, 11, 0.15) !important; border: 1px solid #f59e0b !important; font-weight: 800 !important;\"";
-                    }
-
                     tr.innerHTML = `
         <td style="min-width: 220px; max-width: 350px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;" class="text-bold">${row.title || ''}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>

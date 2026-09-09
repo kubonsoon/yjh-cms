@@ -422,21 +422,25 @@ ister-form .form-group:nth-child(3) {
   flex-shrink: 0 !important;
 }
 
-/* 부모 가두리 프레임: 라벨 밑바닥선과 우측 버튼들의 수평 일직선 정렬 축 복원 */
+/* 1. 등록 폼 부모 상자 (기존 라인 426~432번 부근 교체) */
 #applicantView .register-form {
   display: flex !important;
   flex-wrap: nowrap !important;
-  align-items: flex-end !important; /* 모든 컴포넌트의 밑바닥 라인을 수평선 일치화 */
-  gap: 8px !important;
+  align-items: flex-end !important;
+  gap: 0px !important;
   width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
 }
 
-/* 폼 그룹 내부 배치 유연화 */
+/* 2. 개별 인풋 상자 공통 가두리 (기존 라인 435~441번 부근 교체) */
 #applicantView .register-form .form-group {
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 0 4px !important;
   display: flex !important;
   flex-direction: column !important;
+  box-sizing: border-box !important;
 }
 
 /* 1. 참여 시험명 입력 상자 부모 (테이블 1열 매칭) */

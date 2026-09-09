@@ -409,10 +409,10 @@ tr:hover {
   display: flex !important;
   flex-direction: row !important;
   justify-content: center !important;
-  align-items: center !important; /* 세로축 기준 완벽한 정중앙 정렬 */
+  align-items: center !important;
   gap: 4px !important;
   white-space: nowrap !important;
-  height: 100% !important; /* 줄 높이 동기화 */
+  height: 38px !important;
   min-height: 38px !important;
   box-sizing: border-box !important;
 }
@@ -487,14 +487,14 @@ ister-form .form-group:nth-child(3) {
   text-align: center !important;
 }
 
-/* 8. 참여경로 선택 상자 부모: 90px 정밀 락인 */
-#applicantView .register-form .form-group:has(#form-app-category) {
+/* 8. 참여경로 선택 상자 부모: 110px 정밀 락인 (ID 매칭 완료) */
+#applicantView .register-form .form-group:has(#form-app-inflow-path) {
   width: 110px !important;
   flex-shrink: 0 !important;
 }
 
-/* 9. 참여상태 선택 상자 부모: 85px 정밀 락인 */
-#applicantView .register-form .form-group:has(#form-app-stage) {
+/* 9. 참여상태 선택 상자 부모: 110px 정밀 락인 (ID 매칭 완료) */
+#applicantView .register-form .form-group:has(#form-app-status-flag) {
   width: 110px !important;
   flex-shrink: 0 !important;
 }
@@ -584,16 +584,13 @@ ister-form .form-group:nth-child(3) {
   filter: brightness(1.2);
 }
 
-/* 🟢 [신규 추가] 대상자 관리 작업 컬럼 (마지막 셀): 나란히 가로 배열 강제 사수 */
+/* 대상자 관리 작업 컬럼 (마지막 셀): 나란히 가로 배열 강제 사수 */
 #applicantView #dom-applicant-table td:last-child {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: center !important; /* 가로축 기준 정중앙 정렬 */
-  align-items: center !important; /* 🔥 위로 치우치던 버튼들을 세로축 기준 정중앙으로 정밀 교정 */
+  display: table-cell !important;
+  vertical-align: middle !important;
+  text-align: center !important;
   gap: 4px !important;
   white-space: nowrap !important;
-  height: 100% !important; /* 🔥 부모 td의 전체 늘어난 줄 높이를 100% 동기화 확장 */
-  min-height: 38px !important; /* 최소 높이 방어벽 설정 */
   box-sizing: border-box !important;
 }
 

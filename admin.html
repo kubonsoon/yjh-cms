@@ -918,6 +918,7 @@
             line-height: 1.4;
         }
 
+        /* A분기: 모집공고 목록 작업 컬럼 방어 (원본 유지) */
         #dom-recruitment-table td:last-child {
             display: flex;
             justify-content: center;
@@ -1070,22 +1071,28 @@
         }
 
 
-        /* 1. 차수별 배지들이 들어가는 td 칸을 가로 수평 정렬(Flex)로 전환 */
+        /* B분기. 차수별 배지들이 들어가는 td 칸을 가로 수평 정렬(Flex)로 전환 */
         #applicantView #dom-applicant-table td:last-child {
             display: flex !important;
             flex-direction: row !important;
-            /* 가로 배열 보장 */
             justify-content: center !important;
             align-items: center !important;
             gap: 4px !important;
             vertical-align: middle !important;
+            white-space: nowrap !important;
+            /* 🔥 A분기와 동일하게 줄바꿈 절대 방지 주입 */
+            width: 100% !important;
         }
 
+        /* 대상자 관리 내 인라인 버튼 크기 최적화 및 텍스트 찌그러짐 방지 */
         #applicantView #dom-applicant-table td:last-child .btn-inline {
             height: 26px !important;
             line-height: 24px !important;
             padding: 0 8px !important;
             box-sizing: border-box !important;
+            flex-shrink: 0 !important;
+            /* 부모가 압착해도 버튼 형태 보존 */
+            white-space: nowrap !important;
         }
 
         /* 2. 개별 배지(1차, 2차, 3차) 자체의 높이 단일화 및 글자 처짐 방지 */
@@ -1346,19 +1353,23 @@
                     <table>
                         <thead>
                             <tr>
-                                <th style="min-width: 220px; max-width: 400px; text-align: left; padding-left: 15px;">
+                                <th
+                                    style="text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; width: 14%;">
                                     시험명</th>
-                                <th style="width: 80px; text-align: center;">기수</th>
-                                <th style="width: 100px; text-align: center;">인원수</th>
-                                <th style="width: 100px; text-align: center;">기간(시간)</th>
-                                <th style="width: 110px; text-align: center;">담당 CRC</th>
-                                <th style="width: 130px; text-align: center;">소집일</th>
-                                <th style="width: 80px; text-align: center;">주의사항</th>
-                                <th style="width: 80px; text-align: center;">시험일정</th>
-                                <th style="width: 80px; text-align: center;">당직공지</th>
-                                <th style="width: 80px; text-align: center;">소집공지</th>
-                                <th style="width: 150px; text-align: center;">참여비 지급일</th>
-                                <th style="width: 140px; text-align: center; padding-right: 15px;">작업</th>
+                                <th style="text-align: center; width: 4.5%;">기수</th>
+                                <th style="text-align: center; width: 5.5%;">인원수</th>
+                                <th style="text-align: center; width: 4.5%;">시간</th>
+                                <th style="text-align: center; width: 7.5%;">이름</th>
+                                <th style="text-align: center; width: 9%;">생년월일</th>
+                                <th style="text-align: center; width: 4.5%;">성별</th>
+                                <th style="text-align: center; width: 11%;">전화번호</th>
+                                <th style="text-align: center; width: 8%;">참여경로</th>
+                                <th style="text-align: center; width: 8%;">참여상태</th>
+                                <th style="text-align: center; width: 7.5%;">참여비</th>
+                                <th style="text-align: center; width: 5.5%;">당직동의</th>
+                                <th style="text-align: center; width: 5.5%;">소집동의</th>
+                                <th style="text-align: center; width: 10%;">첨부서류</th>
+                                <th style="text-align: center; width: 10%; padding-right: 15px;">작업</th>
                             </tr>
                         </thead>
                         <tbody id="dom-recruitment-table"></tbody>

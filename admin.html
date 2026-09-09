@@ -3102,9 +3102,9 @@
            value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-
            color) !important;">
          </td>
- <td style="text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
+     <!--<td style="text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
         ${row.ssn ? row.ssn.toString().split('-')[0].slice(0, 6) : '-'}
-    </td>
+    </td>-->
     <td style="vertical-align: middle; text-align: center;">
         <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
             ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}

@@ -382,21 +382,14 @@
 
                 <!-- [신규 대상자 등록] 인풋 폼 구역 -->
                 <div class="register-box" style="margin-top:20px;">
-                    <h3 id="form-mode-title">
-                        <i class="fa-solid fa-square-plus"></i> [신규 대상자 등록]
-                    </h3>
-
+                    <h3 id="form-mode-title"><i class="fa-solid fa-square-plus"></i> [신규 대상자 등록]</h3>
                     <input type="hidden" id="editIndex" value="">
                     <div class="register-form">
-
-                        <!-- 1. 참여 시험명 (공백 최소화 및 배율 다이어트 조율) -->
-                        <div class="form-group" style="flex: 1.4 !important;">
+                        <div class="form-group">
                             <label>참여 시험명</label>
                             <input type="text" id="form-app-title" placeholder="예: [임상] 경동제약">
                         </div>
-
-                        <!-- 2. 기수 (50% 축소 긴축 압축) -->
-                        <div class="form-group" style="flex: 0.4 !important;">
+                        <div class="form-group">
                             <label>기수</label>
                             <select id="form-app-th">
                                 <option value="1기">1기</option>
@@ -405,39 +398,27 @@
                                 <option value="4기">4기</option>
                             </select>
                         </div>
-
-                        <!-- 3. 인원수 (3자리 숫자 맞춤 압착) -->
-                        <div class="form-group" style="flex: 0.5 !important;">
+                        <div class="form-group">
                             <label>인원수</label>
                             <input type="text" id="form-app-count" placeholder="숫자만" style="text-align: center;">
                         </div>
-
-                        <!-- 4. 시간 (3자리 숫자 맞춤 압착) -->
-                        <div class="form-group" style="flex: 0.5 !important;">
+                        <div class="form-group">
                             <label>시간</label>
                             <input type="text" id="form-app-period" placeholder="숫자만" style="text-align: center;">
                         </div>
-
-                        <!-- 5. 이름 (성명->이름 변경 명시 및 한글 5글자 최적화 수용 확장) -->
-                        <div class="form-group" style="flex: 0.8 !important;">
+                        <div class="form-group">
                             <label>이름</label>
                             <input type="text" id="form-app-name" placeholder="홍길동" style="text-align: center;">
                         </div>
-
-                        <!-- 6. 생년월일 및 성별 (가시성 사수) -->
-                        <div class="form-group" style="flex: 1.2 !important;">
+                        <div class="form-group">
                             <label>생년월일 및 성별</label>
                             <input type="text" id="form-app-ssn" placeholder="950505-1" style="text-align: center;">
                         </div>
-
-                        <!-- 7. 전화번호 (11자리 숫자 가시성 완벽 사수) -->
-                        <div class="form-group" style="flex: 1.2 !important;">
+                        <div class="form-group">
                             <label>전화번호</label>
                             <input type="text" id="form-app-phone" placeholder="숫자만" style="text-align: center;">
                         </div>
-
-                        <!-- 8. 참여경로 (30% 고정 슬림 압축 반영) -->
-                        <div class="form-group" style="flex: 0.7 !important;">
+                        <div class="form-group">
                             <label>참여경로</label>
                             <select id="form-app-category">
                                 <option value="알바몬">알바몬</option>
@@ -451,9 +432,7 @@
                                 <option value="기타유입">기타유입</option>
                             </select>
                         </div>
-
-                        <!-- 9. 참여상태 (30% 고정 슬림 압축 반영) -->
-                        <div class="form-group" style="flex: 0.63 !important;">
+                        <div class="form-group">
                             <label>참여상태</label>
                             <select id="form-app-stage">
                                 <option value="참여" selected>참여</option>
@@ -467,21 +446,19 @@
                             </select>
                         </div>
 
-                        <!-- 🎯 [대표님 지시안]: 명단 다운로드 위에 대상자 등록 버튼을 쌓아올리는 우측 끝 복층 스택 구역 -->
+                        <!-- 우측 끝: 복층 버튼 스택 박스 (기존 무결성 구조 유지 및 연동 완결) -->
                         <div class="action-stack-box">
-                            <!-- 1층 (상단) -->
                             <button class="action-btn" id="btn-save" onclick="insertApplicantRecord()"
                                 style="background: var(--success-color); color: #070a12;">대상자 등록</button>
                             <button class="action-btn" id="btn-cancel" onclick="resetForm()"
                                 style="background: #475569; display: none;">취소</button>
-                            <!-- 2층 (하단) -->
                             <button class="action-btn" onclick="exportFinancialSettlementData()"
                                 style="background: var(--secondary-color); color: #ffffff;"><i
                                     class="fa-solid fa-file-excel"></i> 명단 다운로드</button>
                         </div>
+
                     </div>
                 </div>
-
                 <!-- [대상자 마스터 테이블] 고정 픽셀을 걷어내고 유연한 % 비율 체인으로 가로축 100% 시원하게 전면 확장 -->
                 <div class="table-responsive">
                     <table>

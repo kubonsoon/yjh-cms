@@ -541,7 +541,7 @@ ister-form .form-group:nth-child(3) {
   line-height: 22px !important; /* 텍스트 세로 중앙 정렬 집중 */
   padding: 0 8px !important;
   font-size: 11px !important;
-  vertical-align: middle !important; /* 혼자 위아래로 붕 뜨거나 처지는 현상 완파 */
+  vertical-align: middle !important;
   box-sizing: border-box !important;
   white-space: nowrap !important;
 }

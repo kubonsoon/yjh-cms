@@ -475,7 +475,7 @@ ister-form .form-group:nth-child(3) {
   width: 6.5% !important;
 }
 #applicantView .register-form .form-group:has(#form-app-stage) {
-  width: 7.5% !important;
+  width: 9% !important;
 }
 
 /* 우측 끝 버튼 그룹: 수평 일직선 레이아웃 세트를 유지하며 버튼 간격 최적화 */

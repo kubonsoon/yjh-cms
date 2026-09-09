@@ -409,10 +409,10 @@ tr:hover {
   display: flex !important;
   flex-direction: row !important;
   justify-content: center !important;
-  align-items: center !important; /* 🔥 vertical-align 대신 flex 세로 정중앙 마스터 축 단독 주입 */
+  align-items: center !important; /* 세로축 기준 완벽한 정중앙 정렬 */
   gap: 4px !important;
   white-space: nowrap !important;
-  height: 100% !important; /* 부모 td의 전체 늘어난 줄 높이를 100% 동기화 확장 */
+  height: 100% !important; /* 줄 높이 동기화 */
   min-height: 38px !important;
   box-sizing: border-box !important;
 }

@@ -1780,6 +1780,12 @@
 
         // [대장 화면 렌더러 엔진 - 5파트 완전 분할 무결성 조립본]
         function refreshApplicantView() {
+            // 구형 메모리를 즉시 강제 덮어쓰기(Overriding) 체인지합니다.
+            if (localStorage.getItem('dataStoreApplicant')) {
+                window.db = JSON.parse(localStorage.getItem('dataStoreApplicant'));
+                if (typeof db !== 'undefined') { db = window.db; }
+            }
+
             const tbody = document.getElementById('dom-applicant-table');
             const paginator = document.getElementById('applicant-pagination'); // 페이징 버튼이 그려질 하단 슬롯 돔
             if (!tbody) return; tbody.innerHTML = '';

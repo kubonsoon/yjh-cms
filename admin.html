@@ -450,11 +450,13 @@
                         </div>
 
                         <!-- 우측 끝: 복층 버튼 스택 박스 (기존 무결성 구조 유지 및 연동 완결) -->
-                        <div class="action-stack-box">
+                        <div class="action-stack-box"
+                            style="width: 21%; margin-left: auto; display: flex; gap: 6px; align-items: center; justify-content: flex-end;">
                             <button class="action-btn" id="btn-save" onclick="insertApplicantRecord()"
-                                style="background: var(--success-color); color: #070a12;">대상자 등록</button>
+                                style="background: var(--success-color); color: #070a12; flex: 1; height: 36px;">대상자
+                                등록</button>
                             <button class="action-btn" onclick="exportFinancialSettlementData()"
-                                style="background: var(--secondary-color); color: #ffffff;"><i
+                                style="background: var(--secondary-color); color: #ffffff; flex: 1; height: 36px;"><i
                                     class="fa-solid fa-file-excel"></i> 명단 다운로드</button>
                         </div>
 

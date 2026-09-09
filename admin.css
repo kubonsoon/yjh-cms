@@ -439,65 +439,57 @@ ister-form .form-group:nth-child(3) {
   flex-direction: column !important;
 }
 
-/* 1. 참여 시험명 입력 상자 부모: 최대 480px까지 시원하게 확장 확장 */
+/* 1. 참여 시험명 입력 상자 부모 (테이블 1열 매칭) */
 #applicantView .register-form .form-group:has(#form-app-title) {
   min-width: 220px !important;
-  max-width: 350px !important;
-  width: 100% !important;
-  flex-shrink: 0 !important;
+  max-width: 300px !important;
+  width: 26% !important; /* 헤더 1열과 완벽 동기화 */
 }
 
-/* 2. 기수 선택 상자 부모: 10px 확장 스펙인 75px 정밀 락인 */
+/* 2. 기수 선택 상자 부모 (테이블 2열 매칭) */
 #applicantView .register-form .form-group:has(#form-app-th) {
-  width: 90px !important;
-  flex-shrink: 0 !important;
+  width: 6% !important; /* 헤더 2열과 완벽 동기화 */
 }
 
-/* 3. 인원수 입력 상자 부모: 10px 확장 스펙인 60px 정밀 락인 */
+/* 3. 인원수 입력 상자 부모 (테이블 3열 매칭) */
 #applicantView .register-form .form-group:has(#form-app-count) {
-  width: 75px !important;
-  flex-shrink: 0 !important;
+  width: 6.5% !important; /* 헤더 3열과 완벽 동기화 */
   text-align: center !important;
 }
 
-/* 4. 시간 입력 상자 부모: 10px 확장 스펙인 60px 정밀 락인 */
+/* 4. 시간 입력 상자 부모 (테이블 4열 매칭) */
 #applicantView .register-form .form-group:has(#form-app-period) {
-  width: 75px !important;
-  flex-shrink: 0 !important;
+  width: 6% !important; /* 헤더 4열과 완벽 동기화 */
   text-align: center !important;
 }
 
-/* 5. 이름 입력 상자 부모: 10px 확장 스펙인 80px 정밀 락인 */
+/* 5. 이름 입력 상자 부모 (테이블 5열 매칭) */
 #applicantView .register-form .form-group:has(#form-app-name) {
-  width: 95px !important;
-  flex-shrink: 0 !important;
+  width: 8.5% !important; /* 헤더 5열과 완벽 동기화 */
   text-align: center !important;
 }
 
-/* 6. 생년월일 입력 상자 부모: 10px 확장 스펙인 115px 정밀 락인 */
+/* 6. 생년월일 입력 상자 부모 (테이블 6열 매칭) */
 #applicantView .register-form .form-group:has(#form-app-ssn) {
-  width: 115px !important;
-  flex-shrink: 0 !important;
+  width: 10% !important; /* 헤더 6열과 완벽 동기화 */
   text-align: center !important;
 }
 
-/* 7. 전화번호 입력 상자 부모: 125px 정밀 락인 */
+/* 7. 전화번호 입력 상자 부모 (테이블 8열 매칭) */
+/* 💡 주의: 테이블 7열(성별)은 상단 폼에 입력창이 없으므로 건너뛰고 8열 비율과 매칭합니다 */
 #applicantView .register-form .form-group:has(#form-app-phone) {
-  width: 125px !important;
-  flex-shrink: 0 !important;
+  width: 12% !important; /* 헤더 8열과 완벽 동기화 */
   text-align: center !important;
 }
 
-/* 8. 참여경로 선택 상자 부모: 110px 정밀 락인 (ID 매칭 완료) */
-#applicantView .register-form .form-group:has(#form-app-inflow-path) {
-  width: 110px !important;
-  flex-shrink: 0 !important;
+/* 8. 참여경로 선택 상자 부모 (테이블 9열 매칭 앞쪽 채우기) */
+#applicantView .register-form .form-group:has(#form-app-category) {
+  width: 7% !important; /* 헤더 9열과 완벽 동기화 */
 }
 
-/* 9. 참여상태 선택 상자 부모: 110px 정밀 락인 (ID 매칭 완료) */
-#applicantView .register-form .form-group:has(#form-app-status-flag) {
-  width: 110px !important;
-  flex-shrink: 0 !important;
+/* 9. 참여상태 선택 상자 부모 (테이블 10열 매칭 앞쪽 채우기) */
+#applicantView .register-form .form-group:has(#form-app-stage) {
+  width: 7% !important; /* 헤더 10열과 완벽 동기화 */
 }
 
 /* 우측 끝 버튼 그룹: 수평 일직선 레이아웃 세트를 유지하며 버튼 간격 최적화 */

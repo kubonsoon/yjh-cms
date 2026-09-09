@@ -2022,8 +2022,8 @@
     <td style="width: 6%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
     </td>
-    <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
-        ${row.ssn ? row.ssn.toString().trim().substring(0, 6) : '-'}
+     <td style="width: 8.5%; vertical-align: middle; text-align: center;">
+        <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${row.ssn ? row.ssn.toString().trim().substring(0, 6) : ''}" placeholder="721127" style="text-align:center; background: var(--card-color) !important; font-weight:700; color: #ffffff !important; height: 30px;">
     </td>
     <td style="width: 4.5%; vertical-align: middle; text-align: center;">
         <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
@@ -2578,6 +2578,13 @@
         * (상단 등록 폼을 오염시키지 않고 목록 자체에서 실시간 세이브 및 성별 기호를 보존 처리합니다)
         */
         function saveInlineApplicantRecord(index) {
+
+            // 💡 방어벽: 마스터 인덱스 컨텍스트가 유실되었거나 가상 DB가 비어있으면 트랜잭션을 원천 차단합니다
+            if (typeof masterIndex === 'undefined' || !db || !db[masterIndex]) {
+                alert("수정 대상자 데이터의 메모리 인덱스를 포착하지 못했습니다.");
+                return;
+            }
+
             // 1. 해당 행의 인라인 입력 컴포넌트 실시간 캡처 락인 [이전 장전 완착 스펙 보존]
             const elTitle = document.getElementById(`inline-app-title-${index}`);
             const elTh = document.getElementById(`inline-app-th-${index}`);
@@ -2648,6 +2655,11 @@
             try {
                 // 4. 가상 데이터베이스 배열 요소 교체 [index: 0.1.30]
                 dataStoreApplicant[index] = updatedPayload;
+
+                // 🟢 [작업 완료]: dataStoreApplicant 가 업데이트되는 바로 그 순간에 글로벌 변수 db 축까지 함께 최신본으로 오버라이딩 체인지합니다.
+                if (typeof db !== 'undefined') {
+                    db[index] = updatedPayload;
+                }
 
                 // 5. 로컬스토리지 파일 시스템 영구 저장 커밋 트랜잭션 구동 [index: 0.1.30]
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));

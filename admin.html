@@ -1766,20 +1766,17 @@
         // [5-A 파트] 대상자 마스터 대장 동적 테이블 렌더러 및 단일 통제 엔진
         // =========================================================================
         // ========================================================
-        // 🎯 [인라인 튜닝] 현재 인라인 수정 모드가 활성화된 행의 index 기록 변수
+        // 현재 인라인 수정 모드가 활성화된 행의 index 기록 변수
         // ========================================================
         var currentAppEditingIndex = null;
 
         // ========================================================
-        // 🎯 [완전 종결] 대상자 마스터 테이블 기수 문자열 싱크 및 배지 드로잉 엔진 (당직/소집 분리형)
+        // 대상자 마스터 테이블 기수 문자열 싱크 및 배지 드로잉 엔진 (당직/소집 분리형)
         // ========================================================
         window.currentApplicantPage = 1;
         const APPLICANT_PAGE_SIZE = 8; // 페이지당 최대 15개 로깅 제한
 
-        /**
-         * 🎯 [대장 화면 렌더러 엔진 - 5파트 완전 분할 무결성 조립본]
-         */
-
+        // [대장 화면 렌더러 엔진 - 5파트 완전 분할 무결성 조립본]
         function refreshApplicantView() {
             const tbody = document.getElementById('dom-applicant-table');
             const paginator = document.getElementById('applicant-pagination'); // 페이징 버튼이 그려질 하단 슬롯 돔
@@ -2112,7 +2109,7 @@
          </select>
          </td>
         <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-
-           muted); font-size:12px;">교재 중 변경불가</td>
+           muted); font-size:12px;">교체 중 변경불가</td>
           <td style="width: 180px; vertical-align: middle; text-align: center; padding-right:
            15px;">
           <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
@@ -2164,8 +2161,8 @@
     <!-- 완결 후 일반 관리 액션 버튼 구역 -->
    <td style="vertical-align: middle; text-align: center; padding-right: 15px;">
     <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-        <button type="button" class="btn-inline edit" onclick="enableInlineApplicantEdit(${masterIndex})">수정</button>
-        <button type="button" class="btn-inline delete" onclick="deleteApplicantRecord(${masterIndex})">삭제</button>
+        <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
+        <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})">삭제</button>
     </div>
 </td>
 `;

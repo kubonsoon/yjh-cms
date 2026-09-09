@@ -2112,44 +2112,66 @@
                 // ----------------======================================================
                 else {
                     tr.innerHTML = `
-        <td style="min-width: 200px; max-width: 270px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;" class="text-bold">${row.title || ''}</td>
+        <!-- 🟢 [1열 잠금]: 상하단 수직 시작선을 1px의 오차도 없이 맞추는 26% 및 padding-left 15px 락인 -->
+        <td style="min-width: 220px; max-width: 300px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;" class="text-bold">${row.title || ''}</td>
+        
+        <!-- 🟢 [2열 잠금]: 헤더 기수 비율과 정확히 대칭되는 width: 6% 잠금선 확보 -->
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
-        <td style="vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
-    <td style="vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
-    <td style="vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
-    <td style="text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
-        ${row.ssn ? row.ssn.toString().split('-')[0].slice(0, 6) : '-'}
-    </td>
-    <td style="vertical-align: middle; text-align: center;">
-        <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
-            ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
-        </span>
-    </td>
-    <td style="vertical-align: middle; text-align: center;">${formatPhone(row.phone)}</td>
-    
-    <!-- 텍스트 배지 노출 구역 -->
-    <td style="vertical-align: middle; text-align: center;"><span class="doc-badge ${row.stage === '참여' ? 'status-id' : 'status-none'}">${row.stage || '참여'}</span></td>
-    <td style="width: 85px; vertical-align: middle; text-align: center;">
-          <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">
-                           ${buildMiniBadgeHTML('1차', row.payStatus1)}
-                           ${buildMiniBadgeHTML('2차', row.payStatus2)}
-                           ${buildMiniBadgeHTML('3차', row.payStatus3)}
-           </div>
-    </td>
-    <td style="vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isDutyAgreed || '대기'}</span></td>
-    <td style="vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isCallAgreed || '대기'}</span></td>
-    <td style="vertical-align: middle; text-align: center;">
-        <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}">신분증</span>
-        <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}">통장</span>
-    </td>
-    
-    <!-- 완결 후 일반 관리 액션 버튼 구역 -->
-   <td style="vertical-align: middle; text-align: center; padding-right: 15px;">
-    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-        <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
-        <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})">삭제</button>
-    </div>
-</td>
+        
+        <!-- 🟢 [3열 잠금]: 너비 누락을 제거하고 헤더 인원수 스펙인 width: 6.5% 전격 잠금 -->
+        <td style="width: 6.5%; vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
+        
+        <!-- 🟢 [4열 잠금]: 너비 누락을 제거하고 헤더 기간 스펙인 width: 6% 전격 잠금 -->
+        <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
+        
+        <!-- 🟢 [5열 잠금]: 너비 누락을 제거하고 헤더 이름 스펙인 width: 8.5% 및 굵은 서체 전격 잠금 -->
+        <td style="width: 8.5%; vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
+
+        <!-- 🟢 [6열 잠금]: 너비 누락을 제거하고 헤더 생년월일 스펙인 width: 10% 전격 잠금 -->
+        <td style="width: 10%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
+            ${row.ssn ? row.ssn.toString().split('-').slice(0, 6) : '-'}
+        </td>
+        
+        <!-- 🟢 [7열 잠금]: 너비 누락을 제거하고 헤더 성별 스펙인 width: 5% 전격 잠금 -->
+        <td style="width: 5%; vertical-align: middle; text-align: center;">
+            <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
+                ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
+            </span>
+        </td>
+        
+        <!-- 🟢 [8열 잠금]: 너비 누락을 제거하고 헤더 전화번호 스펙인 width: 12% 전격 잠금 -->
+        <td style="width: 12%; vertical-align: middle; text-align: center;">${formatPhone(row.phone)}</td>
+        
+        <!-- 🟢 [9열 잠금]: 너비 누락을 제거하고 헤더 참여상태 스펙인 width: 7% 전격 잠금 -->
+        <td style="width: 7%; vertical-align: middle; text-align: center;"><span class="doc-badge ${row.stage === '참여' ? 'status-id' : 'status-none'}">${row.stage || '참여'}</span></td>
+        
+        <!-- 🟢 [10열 교정]: b구역 찌그러짐의 주범인 구형 85px를 전면 철거하고 헤더 스펙과 대칭되는 width: 7% 퍼센트 체인 전격 안착 -->
+        <td style="width: 7%; vertical-align: middle; text-align: center;">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">
+                ${buildMiniBadgeHTML('1차', row.payStatus1)}
+                ${buildMiniBadgeHTML('2차', row.payStatus2)}
+                ${buildMiniBadgeHTML('3차', row.payStatus3)}
+            </div>
+        </td>
+        <!-- 🟢 [11열 잠금]: 너비 누락을 제거하고 헤더 당직동의 스펙인 width: 4.5% 전격 잠금 -->
+        <td style="width: 4.5%; vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isDutyAgreed || '대기'}</span></td>
+        
+        <!-- 🟢 [12열 잠금]: 너비 누락을 제거하고 헤더 소집동의 스펙인 width: 4.5% 전격 잠금 -->
+        <td style="width: 4.5%; vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isCallAgreed || '대기'}</span></td>
+        
+        <!-- 🟢 [13열 잠금]: 너비 누락을 제거하고 헤더 첨부서류 스펙인 width: 5.5% 전격 잠금 -->
+        <td style="width: 5.5%; vertical-align: middle; text-align: center;">
+            <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}">신분증</span>
+            <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}">통장</span>
+        </td>
+        
+        <!-- 🟢 [14열 잠금]: 헤더 최종 작업 스펙인 width: 6.5% 및 우측 안전 마진 패딩 15px 완벽 동기화 매칭 마감 -->
+        <td style="vertical-align: middle; text-align: center; width: 6.5%; padding-right: 15px;">
+            <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+                <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
+                <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})">삭제</button>
+            </div>
+        </td>
 `;
                 }
 

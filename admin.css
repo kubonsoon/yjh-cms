@@ -411,7 +411,7 @@ tr:hover {
   justify-content: center !important;
   align-items: center !important;
   gap: 4px !important;
-  white-space: nowrap !important; /* 🔥 어떤 너비 압착 상황에서도 줄바꿈 절대 방지 */
+  white-space: nowrap !important; /* 어떤 너비 압착 상황에서도 줄바꿈 절대 방지 */
 }
 
 ister-form .form-group:nth-child(3) {
@@ -419,11 +419,28 @@ ister-form .form-group:nth-child(3) {
   flex-shrink: 0 !important;
 }
 
+/* 부모 가두리 프레임: 라벨 밑바닥선과 우측 버튼들의 수평 일직선 정렬 축 복원 */
+#applicantView .register-form {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: flex-end !important; /* 모든 컴포넌트의 밑바닥 라인을 수평선 일치화 */
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+/* 폼 그룹 내부 배치 유연화 */
+#applicantView .register-form .form-group {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
 /* 1. 참여 시험명 입력 상자 부모: 최대 480px까지 시원하게 확장 확장 */
 #applicantView .register-form .form-group:has(#form-app-title) {
   min-width: 220px !important;
   max-width: 480px !important;
-  flex: 1 !important;
+  width: 100% !important;
 }
 
 /* 2. 기수 선택 상자 부모: 10px 확장 스펙인 75px 정밀 락인 */
@@ -477,22 +494,20 @@ ister-form .form-group:nth-child(3) {
 /* 우측 끝 수평 버튼 그룹: 상단 인풋 상자들과 수평 위상이 완벽하게 한 세트로 결합되도록 전면 수정 */
 #applicantView .action-stack-box {
   display: flex !important;
-  flex-direction: row !important; /* 수평 정렬 축 고정 */
+  flex-direction: row !important; /* 가로형 수평 정렬 일직선 축 유지 */
   align-items: center !important;
-  gap: 6px !important; /* 가로형 버튼 간격 사수 */
+  gap: 6px !important; /* 버튼 간격 단단히 고정 */
   width: auto !important;
   flex-shrink: 0 !important;
-  margin-left: auto !important; /* 가로축 잔여 여백을 전부 밀어내어 우측 정렬 */
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
-  height: 36px !important; /* 인풋창 자체 알맹이 높이 규격과 정밀 동기화 */
+  margin-left: auto !important; /* 좌측 빈 공간을 전부 밀어내어 우측 끝 밀착 정렬 */
+  height: 36px !important; /* 인풋창 자체 알맹이 수직 높이 규격과 정확히 일치화 */
 }
 
 /* 가로 정렬 결합에 따른 버튼 내부 텍스트 폰트 배율 균형 마감 */
 #applicantView .action-stack-box .action-btn {
-  height: 36px !important; /* 인풋창 높이 36px 스펙과 1:1 완벽 동기화 */
+  height: 36px !important; /* 알맹이 높이 36px 스펙과 1:1 완벽 마감 */
   line-height: 36px !important;
-  padding: 0 14px !important; /* 보기 좋은 정형화된 여백 부여 */
+  padding: 0 14px !important;
   font-size: 13px !important;
   display: inline-flex !important;
   align-items: center !important;

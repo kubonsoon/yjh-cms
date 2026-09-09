@@ -3229,14 +3229,14 @@
     <td style="vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isDutyAgreed || '대기'}</span></td>
     <td style="vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isCallAgreed || '대기'}</span></td>
     <td style="vertical-align: middle; text-align: center;">
-        <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}">신분</span>
+        <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}">신분증</span>
         <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}">통장</span>
     </td>
     
     <!-- 완결 후 일반 관리 액션 버튼 구역 -->
     <td style="vertical-align: middle; text-align: center; padding-right: 15px;">
         <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-            <button type="button" class="btn-inline edit" onclick="activeApplicantInlineEdit(${row.uid}, ${masterIndex})">편집</button>
+            <button type="button" class="btn-inline edit" onclick="activeApplicantInlineEdit(${row.uid}, ${masterIndex})">수정</button>
             <button type="button" class="btn-inline delete" onclick="deleteApplicantRecord(${masterIndex})">삭제</button>
         </div>
     </td>

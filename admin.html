@@ -2112,13 +2112,19 @@
         </td>
         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isDutyAgreed || '대기'}</span></td>
         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isCallAgreed || '대기'}</span></td>
-        <td style="width: 10%; vertical-align: middle; text-align: center; white-space: nowrap !important; padding: 0 !important;">
-            <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}" 
-                  onclick="${row.idCard ? `openImageModal('${row.idCard}', '[신분증] ${row.name || ''}')` : ''}" 
-                  style="margin: 0 1.5px !important; cursor: ${row.idCard ? 'pointer' : 'not-allowed'} !important; font-weight: ${row.idCard ? '700' : '500'};">신분증</span>
-            <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}" 
-                  onclick="${row.bankbook ? `openImageModal('${row.bankbook}', '[통장] ${row.name || ''}')` : ''}" 
-                  style="margin: 0 1.5px !important; cursor: ${row.bankbook ? 'pointer' : 'not-allowed'} !important; font-weight: ${row.bankbook ? '700' : '500'};">통장</span>
+         <td style="width: 10%; vertical-align: middle; text-align: center; white-space: nowrap !important; padding: 0 !important;">            
+            <!-- ① 신분증 사본 검증 및 트리거 브릿지 -->
+            ${row.idCard && row.idCard.toString().includes('data:image') ? `
+                <span class="doc-badge status-id" onclick="openImageModal('${row.idCard}', '[신분증] ${row.name || ''}')" style="margin: 0 1.5px !important; cursor: pointer !important; font-weight: 700;">신분증</span>
+            ` : `
+                <span class="doc-badge status-none" style="margin: 0 1.5px !important; cursor: not-allowed !important; opacity: 0.5; font-weight: 500;">신분증</span>
+            `}            
+            <!-- ② 통장 사본 검증 및 트리거 브릿지 -->
+            ${row.bankbook && row.bankbook.toString().includes('data:image') ? `
+                <span class="doc-badge status-id" onclick="openImageModal('${row.bankbook}', '[통장] ${row.name || ''}')" style="margin: 0 1.5px !important; cursor: pointer !important; font-weight: 700;">통장</span>
+            ` : `
+                <span class="doc-badge status-none" style="margin: 0 1.5px !important; cursor: not-allowed !important; opacity: 0.5; font-weight: 500;">통장</span>
+            `}                  
         </td>
         <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px;">
             <div style="display: flex; justify-content: center; gap: 8px !important; width: 100%;">

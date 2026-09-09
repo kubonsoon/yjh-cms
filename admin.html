@@ -482,7 +482,7 @@
                                 <th style="text-align: center; width: 6%;">당직동의</th>
                                 <th style="text-align: center; width: 6%;">소집동의</th>
                                 <th style="text-align: center; width: 5.5%;">첨부서류</th>
-                                <th style="width: 140px; text-align: center; padding-right: 10px;">작업</th>
+                                <th style="width: 140px; text-align: center; padding-right: 5px;">작업</th>
                             </tr>
                         </thead>
                         <tbody id="dom-applicant-table">
@@ -2073,7 +2073,7 @@
         </select>
     </td>
     <td style="width: 5.5%; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px; white-space: nowrap;">교체 중 변경불가</td>
-    <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 10px;">
+    <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 5px;">
         <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
             <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
             <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
@@ -2116,7 +2116,7 @@
             <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}" style="margin: 0 1px !important;">신분증</span>
             <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}" style="margin: 0 1px !important;">통장</span>
         </td>
-        <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 10px;">
+        <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 5px;">
             <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
                 <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
                 <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})">삭제</button>

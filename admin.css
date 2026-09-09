@@ -419,77 +419,84 @@ ister-form .form-group:nth-child(3) {
   flex-shrink: 0 !important;
 }
 
-/* 참여 시험명 인풋창: 장문 시험명 가독성을 위해 최대 폭을 480px로 대폭 확장 */
-#applicantView .register-form .form-group:nth-child(1) {
+/* 1. 참여 시험명 입력 상자 부모: 최대 480px까지 시원하게 확장 확장 */
+#applicantView .register-form .form-group:has(#form-app-title) {
   min-width: 220px !important;
   max-width: 480px !important;
   flex: 1 !important;
 }
 
-/* 기수 선택 상자: 2글자 규격에 맞춰 조밀하게 축소 고정 */
-#applicantView .register-form .form-group:nth-child(2) {
+/* 2. 기수 선택 상자 부모: 10px 확장 스펙인 75px 정밀 락인 */
+#applicantView .register-form .form-group:has(#form-app-th) {
   width: 75px !important;
   flex-shrink: 0 !important;
 }
 
-/* 인원수 인풋창: 숫자 3자리 최적 입력 크기인 50px로 극한 압착 */
-#applicantView .register-form .form-group:nth-child(3) {
-  width: 75px !important;
-  flex-shrink: 0 !important;
-}
-
-/* 시간 인풋창: 숫자 3글자 크기 전용 슬림 가두리 락인 */
-#applicantView .register-form .form-group:nth-child(4) {
+/* 3. 인원수 입력 상자 부모: 10px 확장 스펙인 60px 정밀 락인 */
+#applicantView .register-form .form-group:has(#form-app-count) {
   width: 60px !important;
   flex-shrink: 0 !important;
 }
 
-/* 이름 인풋창: 한글 성명 3~4글자 입력 최적 규격인 70px로 슬림화 */
-#applicantView .register-form .form-group:nth-child(5) {
+/* 4. 시간 입력 상자 부모: 10px 확장 스펙인 60px 정밀 락인 */
+#applicantView .register-form .form-group:has(#form-app-period) {
+  width: 60px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 5. 이름 입력 상자 부모: 10px 확장 스펙인 80px 정밀 락인 */
+#applicantView .register-form .form-group:has(#form-app-name) {
   width: 80px !important;
   flex-shrink: 0 !important;
 }
 
-/* 생년월일 및 성별 인풋창: 주민번호 포맷(950505-1) 8자리에 딱 맞춘 105px 락인 */
-#applicantView .register-form .form-group:nth-child(6) {
+/* 6. 생년월일 입력 상자 부모: 10px 확장 스펙인 115px 정밀 락인 */
+#applicantView .register-form .form-group:has(#form-app-ssn) {
   width: 115px !important;
   flex-shrink: 0 !important;
 }
 
-/* 전화번호 인풋창: 하이픈 포함 휴대폰 13자리 폰트 크기 맞춤형 125px 긴축 */
-#applicantView .register-form .form-group:nth-child(7) {
+/* 7. 전화번호 입력 상자 부모: 125px 정밀 락인 */
+#applicantView .register-form .form-group:has(#form-app-phone) {
   width: 125px !important;
   flex-shrink: 0 !important;
 }
 
-/* 참여경로 선택 상자: 내부 여백을 거두어내고 90px로 정형화 */
-#applicantView .register-form .form-group:nth-child(8) {
+/* 8. 참여경로 선택 상자 부모: 90px 정밀 락인 */
+#applicantView .register-form .form-group:has(#form-app-category) {
   width: 90px !important;
   flex-shrink: 0 !important;
 }
 
-/* 참여상태 선택 상자: 상태 정보 데이터 가독성 맞춤형 85px 정형화 */
-#applicantView .register-form .form-group:nth-child(9) {
-  width: 90px !important;
+/* 9. 참여상태 선택 상자 부모: 85px 정밀 락인 */
+#applicantView .register-form .form-group:has(#form-app-stage) {
+  width: 85px !important;
   flex-shrink: 0 !important;
 }
 
-/* 우측 끝 복층 버튼 스택 박스: 가로 찢어짐을 차단하고 대표님 지시 5px 간격 완벽 락인 */
+/* 우측 끝 수평 버튼 그룹: 상단 인풋 상자들과 수평 위상이 완벽하게 한 세트로 결합되도록 전면 수정 */
 #applicantView .action-stack-box {
   display: flex !important;
-  flex-direction: row !important; /* 수직에서 수평 정렬 구조로 변경 */
-  align-items: center !important; /* 인풋창들과 수평 높이 센터 동기화 */
-  gap: 6px !important; /* 가로 버튼 간의 정밀 조밀 여백 확보 */
-  width: auto !important; /* 고정 가로폭 해제하여 가로 확장 허용 */
+  flex-direction: row !important; /* 수평 정렬 축 고정 */
+  align-items: center !important;
+  gap: 6px !important; /* 가로형 버튼 간격 사수 */
+  width: auto !important;
   flex-shrink: 0 !important;
-  margin-left: auto !important;
+  margin-left: auto !important; /* 가로축 잔여 여백을 전부 밀어내어 우측 정렬 */
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  height: 36px !important; /* 인풋창 자체 알맹이 높이 규격과 정밀 동기화 */
 }
 
-/* 가로 정렬 전환에 따른 버튼 자체 높이 규격 밸런싱 */
+/* 가로 정렬 결합에 따른 버튼 내부 텍스트 폰트 배율 균형 마감 */
 #applicantView .action-stack-box .action-btn {
-  height: 36px !important; /* 인풋창 컴포넌트 전용 36px 높이 스펙과 칼같이 일치화 */
-  padding: 0 14px !important; /* 슬림하고 균형 잡힌 가로 여백 마감 */
+  height: 36px !important; /* 인풋창 높이 36px 스펙과 1:1 완벽 동기화 */
+  line-height: 36px !important;
+  padding: 0 14px !important; /* 보기 좋은 정형화된 여백 부여 */
   font-size: 13px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* -------------------------------------------------------------------------

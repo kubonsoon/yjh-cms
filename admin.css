@@ -1010,20 +1010,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
    [CSS 교정] 관리자 비밀번호 변경 팝업 모달창 내부 레이아웃 완전 격리 및 복원
    ========================================================================= */
 
-/* 🟢 [신규 추가] 모달 오버레이 프레임: 배경 어둠 및 블러 필터 재강조 */
+/* 모달 오버레이 프레임: 배경 어둠 및 블러 필터 재강조 */
 .pw-modal-overlay {
   backdrop-filter: blur(6px) !important;
   -webkit-backdrop-filter: blur(6px) !important;
   display: none; /* 기본 숨김 상태 유지 */
 }
 
-/* 🟢 [신규 추가] 모달 박스 내부 폼 그룹간 간격 최적화 수평 정렬 */
+/* 모달 박스 내부 폼 그룹간 간격 최적화 수평 정렬 */
 .pw-modal-box .form-group {
   margin-bottom: 16px !important;
+  justify-content: center !important;
   width: 100% !important;
 }
 
-/* 🟢 [신규 추가] 모달 박스 내부 인풋 컴포넌트 너비 100% 강제 락인 (터짐 방지) */
+/* 모달 박스 내부 인풋 컴포넌트 너비 100% 강제 락인 (터짐 방지) */
 .pw-modal-box .form-group input {
   width: 100% !important;
   box-sizing: border-box !important;
@@ -1031,7 +1032,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   padding: 0 12px !important;
 }
 
-/* 🟢 [신규 추가] 모달창 내부 전용 인라인 버튼 격리 서식: 외부 테이블 압착 간섭 코드를 전면 무력화 */
+/* 모달창 내부 전용 인라인 버튼 격리 서식: 외부 테이블 압착 간섭 코드를 전면 무력화 */
 .pw-modal-box .btn-inline {
   height: 34px !important; /* 테이블용 26px 간섭을 지우고 모달용 최적 높이 락인 */
   line-height: 32px !important;
@@ -1044,7 +1045,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: inline-flex !important;
 }
 
-/* 🟢 [신규 추가] 대표님 스크립트 맞춤 모달 변경 실행 단추 고유 색상 및 고대비 락인 */
+/* 스크립트 맞춤 모달 변경 실행 단추 고유 색상 및 고대비 락인 */
 .pw-modal-box .modal-btn-group .btn-inline:first-child {
   background: #0284c7 !important; /* 대표님 지정 오션 블루 시그니처 테마 주입 */
   color: #ffffff !important;
@@ -1053,7 +1054,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25) !important;
 }
 
-/* 🟢 [신규 추가] 모달창 취소 단추 격리 서식 마감 */
+/* 모달창 취소 단추 격리 서식 마감 */
 .pw-modal-box .modal-btn-group .btn-inline:last-child {
   background: #475569 !important; /* 차분한 그레이 톤 락인 */
   color: #ffffff !important;

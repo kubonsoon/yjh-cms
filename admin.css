@@ -419,45 +419,69 @@ ister-form .form-group:nth-child(3) {
   flex-shrink: 0 !important;
 }
 
-/* 🟢 [신규 추가] 4. 시간 인풋창: 숫자 3글자 크기 전용 슬림 가두리 락인 */
+/* 🔵 [수정] 1. 참여 시험명 인풋창: 장문 시험명 가독성을 위해 최대 폭을 480px로 대폭 확장 */
+#applicantView .register-form .form-group:nth-child(1) {
+  min-width: 220px !important;
+  max-width: 480px !important;
+  flex: 1 !important;
+}
+
+/* 🔵 [수정] 2. 기수 선택 상자: 2글자 규격에 맞춰 조밀하게 축소 고정 */
+#applicantView .register-form .form-group:nth-child(2) {
+  width: 65px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 🔵 [수정] 3. 인원수 인풋창: 숫자 3자리 최적 입력 크기인 50px로 극한 압착 */
+#applicantView .register-form .form-group:nth-child(3) {
+  width: 50px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 시간 인풋창: 숫자 3글자 크기 전용 슬림 가두리 락인 */
 #applicantView .register-form .form-group:nth-child(4) {
-  width: 60px !important;
+  width: 50px !important;
   flex-shrink: 0 !important;
 }
 
-/* 🟢 [신규 추가] 5. 이름 인풋창: 한글 성명 5글자 크기 최적화 가두리 락인 */
+/* 🔵 [수정] 5. 이름 인풋창: 한글 성명 3~4글자 입력 최적 규격인 70px로 슬림화 */
 #applicantView .register-form .form-group:nth-child(5) {
-  width: 80px !important;
+  width: 70px !important;
   flex-shrink: 0 !important;
 }
 
-/* 🟢 [신규 추가] 6. 생년월일 및 성별 인풋창: 너무 크던 칸을 주민번호 앞자리+성별(8~12자) 크기로 축소 */
+/* 🔵 [수정] 6. 생년월일 및 성별 인풋창: 주민번호 포맷(950505-1) 8자리에 딱 맞춘 105px 락인 */
 #applicantView .register-form .form-group:nth-child(6) {
-  width: 120px !important;
+  width: 105px !important;
   flex-shrink: 0 !important;
 }
 
-/* 🟢 [신규 추가] 7. 전화번호 인풋창: 하이픈 포함 휴대폰 11자리 입력 규격 맞춤 축소 */
-#applicantView .register-form .form-group:nth-block:nth-child(7) {
-  width: 140px !important;
+/* 🔵 [수정] 7. 전화번호 인풋창: 하이픈 포함 휴대폰 13자리 폰트 크기 맞춤형 125px 긴축 */
+#applicantView .register-form .form-group:nth-child(7) {
+  width: 125px !important;
   flex-shrink: 0 !important;
 }
 
-/* 🟢 [신규 추가] 8. 참여경로 선택 상자: 유입 경로 명칭 가독성 맞춤 폭 슬림화 */
+/* 🔵 [수정] 8. 참여경로 선택 상자: 내부 여백을 거두어내고 90px로 정형화 */
 #applicantView .register-form .form-group:nth-child(8) {
-  width: 100px !important;
+  width: 90px !important;
   flex-shrink: 0 !important;
 }
 
-/* 🟢 [신규 추가] 9. 참여상태 선택 상자: 상태 정보 데이터 가독성 맞춤 폭 슬림화 */
+/* 🔵 [수정] 9. 참여상태 선택 상자: 상태 정보 데이터 가독성 맞춤형 85px 정형화 */
 #applicantView .register-form .form-group:nth-child(9) {
-  width: 95px !important;
+  width: 85px !important;
   flex-shrink: 0 !important;
 }
 
-/* 🟢 [신규 추가] 인풋 레이아웃 최적화에 맞추어 우측 끝 등록/다운로드 버튼 박스 여백 자동 정렬 */
+/* 🔵 [수정] 우측 끝 복층 버튼 스택 박스: 가로 찢어짐을 차단하고 대표님 지시 5px 간격 완벽 락인 */
 #applicantView .action-stack-box {
-  margin-left: auto !important; /* 좌측 남은 잔여 가로축 폭을 전부 밀어내어 버튼 세트를 우측 완전 정렬 */
+  display: flex !important;
+  flex-direction: column !important; /* 🔥 가로 정렬 오류를 박멸하고 세로 복층 스택 강제 고정 */
+  gap: 5px !important; /* 🔥 버튼과 버튼 사이의 수직 안전 거리 칼같이 5px 확보 */
+  width: 135px !important; /* 버튼 박스 너비 고정 */
+  flex-shrink: 0 !important;
+  margin-left: auto !important; /* 남은 여백을 전부 밀어내어 우측 밀착 정렬 */
 }
 
 /* -------------------------------------------------------------------------

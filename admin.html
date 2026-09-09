@@ -2002,8 +2002,8 @@
                     tr.className = "editing-row";
                     tr.innerHTML = `
 
-         <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px; text-align: left;">
-        <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
+      <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important;">
+        <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important; padding-left: 4px !important;">
     </td>
     <td style="width: 6%; vertical-align: middle; text-align: center;">
         <select id="inline-app-th-${masterIndex}" class="inline-input" style="height:32px; padding:2px; text-align:center; text-align-last:center; background: #1e293b !important; cursor: pointer !important;">
@@ -2088,7 +2088,7 @@
                 // ----------------======================================================
                 else {
                     tr.innerHTML = `
-        <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px; text-align: left;" class="text-bold">${row.title || ''}</td>
+        <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
         <td style="width: 6.5%; vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>

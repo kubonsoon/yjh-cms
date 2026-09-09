@@ -414,6 +414,52 @@ tr:hover {
   white-space: nowrap !important; /* 🔥 어떤 너비 압착 상황에서도 줄바꿈 절대 방지 */
 }
 
+ister-form .form-group:nth-child(3) {
+  width: 60px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 🟢 [신규 추가] 4. 시간 인풋창: 숫자 3글자 크기 전용 슬림 가두리 락인 */
+#applicantView .register-form .form-group:nth-child(4) {
+  width: 60px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 🟢 [신규 추가] 5. 이름 인풋창: 한글 성명 5글자 크기 최적화 가두리 락인 */
+#applicantView .register-form .form-group:nth-child(5) {
+  width: 80px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 🟢 [신규 추가] 6. 생년월일 및 성별 인풋창: 너무 크던 칸을 주민번호 앞자리+성별(8~12자) 크기로 축소 */
+#applicantView .register-form .form-group:nth-child(6) {
+  width: 120px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 🟢 [신규 추가] 7. 전화번호 인풋창: 하이픈 포함 휴대폰 11자리 입력 규격 맞춤 축소 */
+#applicantView .register-form .form-group:nth-block:nth-child(7) {
+  width: 140px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 🟢 [신규 추가] 8. 참여경로 선택 상자: 유입 경로 명칭 가독성 맞춤 폭 슬림화 */
+#applicantView .register-form .form-group:nth-child(8) {
+  width: 100px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 🟢 [신규 추가] 9. 참여상태 선택 상자: 상태 정보 데이터 가독성 맞춤 폭 슬림화 */
+#applicantView .register-form .form-group:nth-child(9) {
+  width: 95px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 🟢 [신규 추가] 인풋 레이아웃 최적화에 맞추어 우측 끝 등록/다운로드 버튼 박스 여백 자동 정렬 */
+#applicantView .action-stack-box {
+  margin-left: auto !important; /* 좌측 남은 잔여 가로축 폭을 전부 밀어내어 버튼 세트를 우측 완전 정렬 */
+}
+
 /* -------------------------------------------------------------------------
    [그룹 B-1] 대상자 관리 내부: 실제 전화번호 및 서류 배지(Badge) 정밀 디자인
    ------------------------------------------------------------------------- */

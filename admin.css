@@ -385,7 +385,7 @@ tr:hover {
 #applicantView .register-box h3 {
   font-size: 14px !important;
   font-weight: 700 !important;
-  margin: 0 0 16px 4px !important; /* 타이틀 하단과 인풋 상자 사이의 최적의 거리감 부여 */
+  margin: 0 0 16px 0px !important; /* 타이틀 하단과 인풋 상자 사이의 최적의 거리감 부여 */
   color: var(
     --secondary-color
   ) !important; /* 선명하고 밝은 스카이 블루 완벽 유지 */

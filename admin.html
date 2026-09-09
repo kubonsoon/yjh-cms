@@ -2120,24 +2120,18 @@
             </div>
         </td>
         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isDutyAgreed || '대기'}</span></td>
-        <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isCallAgreed || '대기'}</span></td>
-            <!-- 🟢 [작업 완료]: 정갈한 10% 너비 및 1.5px 배지 구조를 백퍼센트 사수한 상태에서, 초기 디폴트 8명은 완벽히 대기(회색)로 묶고, 실제 업로드된 진짜 파일은 실시간 연두색으로 활성화하는 무결성 데이터 가드를 완성했습니다 -->
         <td style="width: 10%; vertical-align: middle; text-align: center; white-space: nowrap !important; padding: 0 !important;">
-            
-            <!-- ① 신분증 사본 데이터 실측 및 트리거 브릿지 -->
-            ${row.idCard && row.idCard.toString().trim() !== '' && row.idCard.toString().trim() !== '-' ? `
+            ${row.idCard && (row.idCard.toString().includes('data:image') || row.idCard.toString().includes('/uploads/') || row.idCard.toString().includes('blob:')) ? `
                 <span class="doc-badge status-id" onclick="openImageModal('${row.idCard}', '[신분증] ${row.name || ''}')" style="margin: 0 1.5px !important; cursor: pointer !important; font-weight: 700;">신분증</span>
             ` : `
                 <span class="doc-badge status-none" style="margin: 0 1.5px !important; cursor: not-allowed !important; opacity: 0.5; font-weight: 500;">신분증</span>
             `}
             
-            <!-- ② 통장 사본 데이터 실측 및 트리거 브릿지 -->
-            ${row.bankbook && row.bankbook.toString().trim() !== '' && row.bankbook.toString().trim() !== '-' ? `
+            ${row.bankbook && (row.bankbook.toString().includes('data:image') || row.bankbook.toString().includes('/uploads/') || row.bankbook.toString().includes('blob:')) ? `
                 <span class="doc-badge status-id" onclick="openImageModal('${row.bankbook}', '[통장] ${row.name || ''}')" style="margin: 0 1.5px !important; cursor: pointer !important; font-weight: 700;">통장</span>
             ` : `
                 <span class="doc-badge status-none" style="margin: 0 1.5px !important; cursor: not-allowed !important; opacity: 0.5; font-weight: 500;">통장</span>
             `}
-                  
         </td>
         <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px;">
             <div style="display: flex; justify-content: center; gap: 8px !important; width: 100%;">

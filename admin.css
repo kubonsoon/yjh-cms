@@ -444,6 +444,7 @@ ister-form .form-group:nth-child(3) {
   min-width: 220px !important;
   max-width: 350px !important;
   width: 100% !important;
+  flex-shrink: 0 !important;
 }
 
 /* 2. 기수 선택 상자 부모: 10px 확장 스펙인 75px 정밀 락인 */
@@ -504,11 +505,10 @@ ister-form .form-group:nth-child(3) {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 9px !important; /* 🔥 등록과 다운로드 버튼 사이의 간격을 정확히 9px로 조율 */
-  width: auto !important;
+  gap: 9px !important;
+  margin-left: auto !important; /* 시험명이 줄어든 만큼 남는 공간을 밀어내어 버튼을 우측 끝에 자석처럼 밀착 */
+  height: 36px !important;
   flex-shrink: 0 !important;
-  margin-left: auto !important; /* 좌측 여백 공간을 밀어내어 우측 밀착 정렬 */
-  height: 36px !important; /* 인풋창 자체 수직 높이 규격과 정확히 일치화 */
 }
 
 /* 버튼 내부 텍스트 정형화 밸런싱 마감 */

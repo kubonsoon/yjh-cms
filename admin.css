@@ -370,6 +370,20 @@ tr:hover {
   width: 100% !important;
 }
 
+/* [신규 대상자 등록] 타이틀: 모집공고의 신규 공고 등록 타이틀 서식과 100% 일치화 */
+#applicantView .register-box h3 {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  margin-bottom: 18px !important;
+  color: var(--secondary-color) !important; /* 선명하고 밝은 스카이 블루 적용 */
+  text-transform: uppercase !important; /* 폼 안내 타이틀 대문자 강조 락인 */
+}
+
+/* 타이틀 내부 아이콘 간격 정렬 */
+#applicantView .register-box h3 i {
+  margin-right: 6px !important;
+}
+
 /* 내부 인풋 컴포넌트들이 부모 셀 가로폭 비율을 깨뜨리지 못하도록 철통 가두리 */
 #applicantView #dom-applicant-table input,
 #applicantView #dom-applicant-table select {

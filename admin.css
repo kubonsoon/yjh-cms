@@ -1,0 +1,1127 @@
+/* =========================================================
+         1. 글로벌 디자인 시스템 컬러 변수 정의 (고대비 및 가독성 업그레이드)
+=       ========================================================= */
+:root {
+  --primary-color: #1e293b;
+  --secondary-color: #0ea5e9;
+  /* 더 선명하고 밝은 스카이 블루 */
+  --bg-color: #0b0f19;
+  /* 깊고 어두운 백그라운드로 텍스트 고대비 확보 */
+  --border-color: #334155;
+  /* 경계선 식별 강도를 높이기 위한 명도 조정 */
+  --danger-color: #f87171;
+  /* 경고성 텍스트 가독성을 위한 고명도 레드 */
+  --success-color: #4ade80;
+  /* 통과성 텍스트 가독성을 위한 고명도 그린 */
+  --warning-color: #fbbf24;
+  /* 수정 모드용 고명도 옐로우 */
+  --text-color: #f8fafc;
+  /* 거의 완전한 화이트로 기본 글자 명도 극대화 */
+  --text-muted: #94a3b8;
+  /* 설명글 전용 고해상도 그레이 */
+  --card-color: #1a233a;
+  /* 카드 배경을 살짝 밝게 처리하여 입체감 부여 */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif;
+  letter-spacing: -0.3px;
+  /* 자간을 좁혀 장문 가독성 향상 */
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================
+2. [로그인 레이어] 폼 요소 테두리 및 폰트 고해상도 튜닝
+========================================================== */
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #0b0f19 0%, #1a233a 100%);
+}
+
+.login-container {
+  background: var(--card-color);
+  padding: 50px 40px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 450px;
+}
+
+.login-container h2 {
+  margin-bottom: 30px;
+  text-align: center;
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border-color);
+  /* 테두리 두께를 늘려 폼 가독성 확보 */
+  background-color: #0b0f19;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #ffffff;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--secondary-color);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 700;
+  margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  transition:
+    opacity 0.2s,
+    transform 0.1s;
+}
+
+.login-btn:hover {
+  opacity: 0.95;
+}
+
+.login-btn:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================
+3. [대시보드 메인 레이아웃 및 내비게이션 사이드바]
+========================================================== */
+.dashboard-container {
+  display: none;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 250px;
+  background: var(--card-color);
+  border-right: 1px solid var(--border-color);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidebar .brand {
+  padding: 30px 24px;
+  font-size: 20px;
+  font-weight: 800;
+  border-bottom: 1px solid var(--border-color);
+  background: #0b0f19;
+  letter-spacing: -0.5px;
+  color: var(--secondary-color);
+  /* 브랜드 정체성 컬러 부여 */
+}
+
+.sidebar .brand i {
+  margin-right: 6px;
+}
+
+.sidebar .menu-list {
+  padding-top: 20px;
+  flex: 1;
+}
+
+.menu-item {
+  padding: 18px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-item i {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
+}
+
+.menu-item.active {
+  background: var(--secondary-color);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: inset 4px 0 0 0 #ffffff;
+  /* 액티브 메뉴 시각 인디케이터 */
+}
+
+/* ==========================================================
+4. [우측 콘텐츠 섹션 및 정보 등록 카드]
+========================================================== */
+.main-content {
+  flex: 1;
+  padding: 35px;
+  background: var(--bg-color);
+  overflow-y: auto;
+  height: 100%;
+}
+
+.content-section {
+  display: none;
+  /* 스위칭 연동을 위해 기본 숨김 */
+  background: var(--card-color);
+  padding: 35px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.content-section.active {
+  display: block;
+  /* 활성화된 섹션만 노출 */
+}
+
+.content-section h2 {
+  margin-bottom: 25px;
+  color: #ffffff;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 14px;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.register-box {
+  background: var(--card-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px 20px !important;
+}
+
+.register-box h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: var(--secondary-color);
+  /* 폼 안내 타이틀 강조 */
+  text-transform: uppercase;
+}
+
+/* ⚡ [여기서부터 복층 버튼 스택 및 테이블 100% 가로축 확장 CSS 주입 구간] */
+.register-form {
+  display: flex;
+  flex-wrap: nowrap !important;
+  align-items: flex-end !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+/* 📱 9대 인풋/셀렉트 입력 콤포넌트 공용 높이 및 수평선 처짐 완전 방어 */
+.register-form .form-group input,
+.register-form .form-group select {
+  width: 100%;
+  height: 36px !important;
+  padding: 0 10px !important;
+  font-size: 13px !important;
+  color: #ffffff !important;
+  /* 순백색 글자로 명도 극대화 */
+  background: #0b0f19 !important;
+  /* [배경색 수정] 흐릿한 회색 탈피, 깊고 명확한 블랙 락인 */
+  border: 1px solid #334155 !important;
+  /* 테두리 경계선 식별 강도 상향 */
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+  vertical-align: middle !important;
+  outline: none !important;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s !important;
+}
+
+/* 2. [추가] 클릭(Focus) 활성화 상태: 선명한 스카이 블루 테두리와 입체적인 네온 그림자 이식 */
+.register-form .form-group input:focus,
+.register-form .form-group select:focus {
+  border-color: var(--secondary-color) !important;
+  /* 스카이 블루 #0ea5e9 강조 */
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25) !important;
+  /* 네온 글로우 그림자 두께 상향 */
+  background: #000000 !important;
+  /* [추가] 클릭 시 완전한 리얼 블랙으로 가독성 사수 */
+}
+
+/* 🎯 [대표님 지시안]: 우측 명단 다운로드 위로 등록 단추를 수직 적재하는 복층 스택 박스 */
+.action-stack-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 135px !important;
+  /* 복층 단추 전용 슬림 가로폭 고정 */
+  flex-shrink: 0;
+}
+
+/* 1. [수정] 기본 상태: 노란색 강조 테두리를 걷어내고 신규 등록 폼과 동일하게 딥 블랙 배경 및 다크 그레이 테두리로 교정 */
+.inline-input,
+#applicantView #dom-applicant-table input,
+#applicantView #dom-applicant-table select {
+  width: 100%;
+  padding: 6px 10px !important;
+  background-color: #0b0f19 !important;
+  /* [배경색 수정] 흐릿한 회색 대신 딥 블랙으로 일괄 변경 */
+  color: #ffffff !important;
+  /* 순백색 글자 사수 */
+  border: 1px solid #334155 !important;
+  /* [테두리 수정] 기본 테두리를 차분한 컬러로 단일화 */
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  font-weight: 500;
+  outline: none !important;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s !important;
+}
+
+.inline-input:focus,
+#applicantView #dom-applicant-table input:focus,
+#applicantView #dom-applicant-table select:focus {
+  /* 기존 var(--warning-color) 노란색 테두리를 완전히 지우고 스카이 블루로 교정 */
+  border-color: var(--secondary-color) !important;
+  /* 스카이 블루 #0ea5e9 */
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25) !important;
+  /* 은은한 네온 그림자 글로우 효과 추가 */
+  background-color: #000000 !important;
+  /* 포커스 시 리얼 블랙 전환 */
+}
+
+.action-stack-box .action-btn {
+  width: 100% !important;
+  height: 34px !important;
+  padding: 0 10px !important;
+  font-size: 12.5px !important;
+  font-weight: 800 !important;
+  border-radius: 6px !important;
+  border: none !important;
+  cursor: pointer;
+  white-space: nowrap !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* 🎯 구형 픽셀 너비를 전면 철단하고 화면 가로를 100% 가득 채우는 마스터 테이블 복원 */
+.table-responsive {
+  width: 100% !important;
+  overflow-x: auto;
+  margin-top: 15px;
+}
+
+.table-responsive table {
+  width: 100% !important;
+  /* 📱 쭈거리 현상을 완파하고 가로축을 시원하게 확장 */
+  border-collapse: collapse;
+}
+
+/* ==========================================================
+5. [공통 액션 단추 및 인라인 편집 텍스트 박스]
+========================================================== */
+.action-btn {
+  padding: 12px 20px;
+  color: #070a12;
+  /* 글자를 어둡게 처리해 고대비 가독성 확보 */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  /* 버튼 내부 텍스트 줄바꿈 방지 */
+  height: 43px;
+  /* 인풋 필드 높이 규격과 일치화 */
+  background: var(--success-color);
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
+  transition:
+    opacity 0.2s,
+    transform 0.1s;
+}
+
+.action-btn:hover {
+  opacity: 0.9;
+}
+
+.action-btn:active {
+  transform: scale(0.98);
+}
+
+.btn-inline {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 26px !important;
+  /* 버튼 높이를 슬림하게 일괄 통일 */
+  padding: 0 10px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  /* 글자 줄바꿈 절대 방지 */
+}
+
+.btn-inline:hover {
+  opacity: 0.9;
+}
+
+.btn-inline.edit {
+  background: #334155;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.btn-inline.delete {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
+}
+
+.btn-inline.save {
+  background: var(--success-color);
+  color: #070a12;
+}
+
+.btn-inline.list {
+  background: #475569;
+}
+
+/* 대상자 명단 파일 업로드 구역 [업로드 공통] */
+.upload-zone {
+  border: 2px dashed #e2e8f0;
+  /* 부드러운 점선 테두리 */
+  padding: 25px 20px;
+  text-align: center;
+  background-color: #f8fafc;
+  /* 연한 회색 배경 */
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+  /* 스마트 명단 구역과의 간격 확보 */
+}
+
+/* 마우스를 올렸을 때(호버) 시각 효과 */
+.upload-zone:hover {
+  border-color: #f97316;
+  /* PPT 테마 색상인 주황색으로 강조 */
+  background-color: #fff7ed;
+  /* 주황빛 도는 연한 배경색 */
+}
+
+/* 내부 타이틀(strong) 스타일 */
+.upload-zone strong {
+  display: block;
+  font-size: 16px;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+/* 내부 아이콘 크기 살짝 키우기 */
+.upload-zone strong i {
+  font-size: 18px;
+  margin-right: 6px;
+}
+
+/* 안내 문구(p) 스타일 */
+.upload-zone p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* 변수 미지정으로 인한 텍스트 컬러 깨짐 방지용 */
+#exam-selected-file-name {
+  margin-top: 12px !important;
+  font-weight: 700;
+  color: #f97316;
+  /* 선택된 파일명을 주황색으로 강조 */
+  font-size: 14px;
+}
+
+/* 1. 상단 신규 공고 등록용 달력 상자 아이콘 흰색 처리 */
+#form-rec-date::-webkit-calendar-picker-indicator,
+        /* 2. 모집공고 관리 목록 인라인 수정 모드용 달력 상자 아이콘 흰색 처리 */
+        [id^="inline-rec-date-"]::-webkit-calendar-picker-indicator,
+        /* 3. 대상자 관리 목록 인라인 수정 모드용 달력 상자 아이콘 흰색 처리 */
+        [id^="inline-app-date-"]::-webkit-calendar-picker-indicator,
+        /* 4. 임의의 가변 데이터 데이트 피커 요소 일체 교차 방어 처리 */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) !important;
+  /* 💡 기존 검은색 아이콘을 완벽하게 반전시켜 고대비 순백색(#ffffff)으로 강제 변환 */
+  cursor: pointer !important;
+  /* 마우스 호버 시 안정적인 손가락 포인터 마크 유지 */
+}
+
+/* 상단 스타일 시트 내 기존 처리 구역에 ID 선택자 3종을 추가 매칭 바인딩 하세요 */
+#form-rec-date::-webkit-calendar-picker-indicator,
+#form-rec-pay1::-webkit-calendar-picker-indicator,
+#form-rec-pay2::-webkit-calendar-picker-indicator,
+#form-rec-pay3::-webkit-calendar-picker-indicator,
+[id^="inline-rec-date-"]::-webkit-calendar-picker-indicator,
+[id^="inline-app-date-"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) !important;
+  cursor: pointer !important;
+}
+
+/* ==========================================================
+6. [데이터 명단 테이블 표 및 가변 배지 가독성 최적화]
+========================================================== */
+/* A. 모든 화면(모집공고, 관리담당자 등) 공통 규칙: 원래 원하셨던 시원한 가로 개방형 구조 복원 */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto !important;
+  /* 💡 auto 복원: 다른 화면에서 목록이 잘리거나 축소되는 현상을 완벽 박멸 */
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: #111827;
+}
+
+th,
+td {
+  padding: 12px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+  white-space: normal !important;
+  /* 기본 자동 줄바꿈 성질 유지 */
+  word-break: break-all !important;
+}
+
+/* ----------------==================================---------------- */
+/* 🎯 B. [오직 대상자 관리 화면만 단독 격리]: 다른 화면 타격 없이 미세 오차 최종 마감 */
+/* ----------------==================================---------------- */
+
+/* 1. 부모 상자를 다시 가로 100% 와이드로 열어 상단 카드 끝선과 일직선 일치 */
+#applicantView .table-responsive {
+  width: 100% !important;
+  max-width: 100% !important;
+  background: #111827;
+}
+
+/* 2. 테이블 자체도 100% 개방하여 우측 끝 테두리 벽면을 화면 끝 축에 강제 밀착 */
+#applicantView table {
+  width: 100% !important;
+}
+
+/* 3. 내부 인풋 상자 알맹이들이 부모 방 크기를 절대 깨지 못하도록 철통 잠금 */
+#applicantView #dom-applicant-table input,
+#applicantView #dom-applicant-table select {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+th {
+  background-color: #0b0f19;
+  color: #ffffff;
+  /* 헤더 명도 화이트로 상향 */
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  color: #e2e8f0;
+}
+
+tr:hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.inline-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid var(--warning-color);
+  /* 편집 중인 필드를 강하게 강조 */
+  background-color: #0b0f19;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+}
+
+/* 신규 대상자 등록 폼 전용 가로 레이아웃 유연 인프라 */
+.form-app-row-container {
+  display: flex;
+  flex-wrap: nowrap !important;
+  /* 한 줄에 다 나오도록 강제 락인 */
+  align-items: center !important;
+  /* 모든 요소 수평선 정렬 */
+  gap: 5px !important;
+  /* 칸과 칸 사이의 조밀한 여백 */
+  width: 100%;
+}
+
+/* 기수 셀렉트 박스 및 신설 셀렉트 박스들의 미세 처짐 방지벽 */
+.form-app-row-container select,
+.form-app-row-container input {
+  height: 34px !important;
+  /* 모든 인풋과 셀렉트의 높이를 34px로 칼같이 단일화 */
+  padding: 6px 8px !important;
+  font-size: 13px !important;
+  vertical-align: middle !important;
+  /* 혼자 아래로 처지던 위상 정밀 수평 교정 */
+  box-sizing: border-box !important;
+  display: inline-block !important;
+}
+
+.text-bold {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* 인라인 수정(Editing) 모드 활성 행 강조 서식 */
+.editing-row {
+  /* 노란색 잔상을 지우고 짙고 어두운 네이비 블랙 톤으로 수정 */
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  /* 왼쪽 강조 선 역시 경고용 노란색에서 시그니처 스카이 블루로 변경 */
+  border-left: 4px solid var(--secondary-color) !important;
+}
+
+/* 직급별 1~10레벨 권한 인포 배지 고대비 전용 서식 디자인 */
+.lvl-badge {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.lvl-1 {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.lvl-2,
+.lvl-3 {
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+.lvl-4,
+.lvl-5 {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.lvl-6,
+.lvl-7,
+.lvl-8 {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.lvl-10 {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+/* ==========================================================
+[신규 추가] 암호 변경 전용 팝업 모달창 및 탑바 정렬 CSS
+========================================================== */
+.top-bar-user-zone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.btn-inline.password-reset-btn {
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid var(--warning-color);
+  color: var(--warning-color);
+}
+
+.btn-inline.password-reset-btn:hover {
+  background: var(--warning-color);
+  color: #070a12;
+}
+
+/* 모달 레이아웃 프레임 */
+.pw-modal-overlay {
+  display: none;
+  position: fixed;
+  /* 💡 부모 패널의 여백이나 위치 계산을 무시하고 전체 브라우저 화면 좌상단 끝에 고정합니다 */
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  /* 부모의 너비를 무시하고 전체 가로 화면 차지 */
+  height: 100vh !important;
+  /* 부모의 높이를 무시하고 전체 세로 화면 차지 */
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  /* Safari 브라우저 대응 */
+  z-index: 99999 !important;
+  /* 대시보드 탑바나 사이드바 위로 강제 인상 */
+  justify-content: center;
+  align-items: center;
+}
+
+.pw-modal-box {
+  background: var(--card-color);
+  border: 1px solid var(--border-color);
+  padding: 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+  /* 패딩 때문에 상자가 늘어나 비뚤어지는 현상 방지 */
+  margin: 0 !important;
+  /* 부모 요소가 강제로 밀어넣는 여백(Margin)을 원천 차단 */
+}
+
+.pw-modal-box h3 {
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: var(--secondary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.pw-modal-box .modal-btn-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* ==========================================================
+모집공고 관리: 시험 관련 파일 업로드 및 에디터 팝업 전용 스타일
+========================================================== */
+.register-box-margin {
+  margin-top: 20px !important;
+}
+
+.exam-title-link {
+  cursor: pointer;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.exam-title-link:hover {
+  color: #1d4ed8;
+}
+
+.exam-notice-cell {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ef4444;
+  font-size: 13px;
+}
+
+.editor-modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-modal-content {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 10px;
+  width: 500px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+}
+
+.editor-modal-title {
+  margin-top: 0;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 10px;
+  color: #1e293b;
+}
+
+.editor-form-group {
+  margin-top: 15px;
+}
+
+.editor-form-group-last {
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.editor-form-group label {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #475569;
+}
+
+.editor-input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.editor-textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 10px;
+  box-sizing: border-box;
+  font-family: inherit;
+  resize: none;
+}
+
+.editor-btn-group {
+  text-align: right;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.editor-btn-cancel {
+  background-color: #94a3b8;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.editor-btn-cancel:hover {
+  background-color: #64748b;
+}
+
+.editor-btn-save {
+  background-color: #f97316;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.editor-btn-save:hover {
+  background-color: #ea580c;
+}
+
+.btn-edit {
+  background-color: #3b82f6;
+  /* 파란색 계열 테마 */
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.btn-edit:hover {
+  background-color: #2563eb;
+  /* 마우스 호버 시 진한 파란색 */
+}
+
+/* A분기: 모집공고 목록 작업 컬럼 방어 (원본 유지) */
+#dom-recruitment-table td:last-child {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+  /* 줄바꿈 절대 방지 */
+}
+
+/* 모집공고 마스터 테이블 기본 fixed 레이아웃 규칙 사수 */
+#recruitmentView .table-responsive table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: collapse;
+}
+
+/* 1. 시험명 컬럼 (첫 번째 셀): 원본 고유의 가독성 및 링크 영역 사수 */
+#dom-recruitment-table td:first-child {
+  white-space: normal !important;
+  /* 자동 줄바꿈 허용 */
+  word-break: break-all !important;
+  /* 영어/숫자/한글 모두 글자 단위 끊기 */
+  line-height: 1.4;
+  text-align: left;
+  padding-left: 15px;
+}
+
+#dom-recruitment-table,
+#dom-recruitment-table td,
+#dom-recruitment-table a {
+  text-decoration: none !important;
+  color: #eeeeee !important;
+  font-weight: normal;
+  transition: color 0.2s ease;
+}
+
+#dom-recruitment-table tr:hover td,
+#dom-recruitment-table a:hover {
+  text-decoration: none !important;
+  color: #57a7fd !important;
+  /* 호버 색상 */
+  cursor: pointer;
+  /* 마우스 올렸을 때 손가락 모양 표시 */
+}
+
+/* B분기. 차수별 배지들이 들어가는 td 칸을 가로 수평 정렬(Flex)로 전환 */
+#applicantView #dom-applicant-table td:last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+  /* 줄바꿈 절대 방지 */
+}
+
+/* 🔥 [통합 완결판] 두 테이블 작업 컬럼 내 인라인 버튼 크기 최적화 및 압착 파괴 방지 */
+#dom-recruitment-table td:last-child .btn-inline,
+#applicantView #dom-applicant-table td:last-child .btn-inline {
+  height: 26px !important;
+  line-height: 24px !important;
+  padding: 0 8px !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  /* 부모 너비 압착 시 버튼 형태 강제 보존 */
+  white-space: nowrap !important;
+  /* 버튼 내부 텍스트 찌그러짐/줄바꿈 원천 차단 */
+}
+
+/* 2. 개별 배지(1차, 2차, 3차) 자체의 높이 단일화 및 글자 처짐 방지 */
+.badge,
+[class^="status-"],
+[id^="inline-app-stage-"] {
+  display: inline-block !important;
+  height: 24px !important;
+  /* 높이를 칼같이 고정 */
+  line-height: 22px !important;
+  /* 텍스트 세로 정렬 중앙 집중 */
+  padding: 0 8px !important;
+  font-size: 11px !important;
+  vertical-align: middle !important;
+  /* 혼자 위아래로 붕 뜨는 현상 완파 */
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+}
+
+/* 3. 테이블 행(tr) 내부 모든 셀(td)의 높이 균등화 및 상하 여백 정밀 제어 */
+#applicantView table tbody td {
+  padding: 8px 6px !important;
+  /* 패딩을 조절하여 행 전체 높이를 슬림하게 마감 */
+  height: 38px !important;
+  /* 모든 칸의 높이를 일치시켜 붕 뜨는 느낌 제거 */
+  vertical-align: middle !important;
+}
+
+.doc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  margin: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doc-badge.status-none {
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.doc-badge.status-bank {
+  background: rgba(14, 165, 233, 0.15);
+  border: 1px solid #0ea5e9;
+  color: #38bdf8;
+}
+
+.doc-badge.status-id {
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid #4ade80;
+  color: #4ade80;
+}
+
+.doc-badge:hover:not(.status-none) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  filter: brightness(1.2);
+}
+
+.history-modal-overlay {
+  display: none;
+  /* 초기에는 숨김 처리 */
+  position: fixed;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(7, 10, 18, 0.8);
+  /* 묵직하고 깊은 어둠 배경 */
+  backdrop-filter: blur(6px);
+  /* 고급스러운 뒷배경 blur 효과 */
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 999999 !important;
+  /* 최고 존엄 인덱스로 대시보드 위로 인상 */
+  justify-content: center;
+  align-items: center;
+}
+
+.history-modal-box {
+  background: var(--card-color);
+  border: 1px solid var(--border-color);
+  padding: 35px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 650px;
+  /* 많은 신상 정보를 넉넉하게 담기 위해 와이드 처리 */
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
+  margin: 0 !important;
+  animation: modalFadeIn 0.25s ease-out;
+  /* 등장 시 부드러운 애니메이션 효과 */
+}
+
+.history-modal-box h3 {
+  margin-bottom: 25px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--secondary-color);
+  /* 스카이 블루 시그니처 반영 */
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* 2열 균등 배치 */
+  gap: 16px;
+  margin-bottom: 25px;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.blink-orange-neon {
+  animation: neon-blink-loop 0.4s infinite alternate ease-in-out !important;
+  border: 3px solid #ff5722 !important;
+  /* 초기 주황색 테두리 강제 설정 */
+}
+
+@keyframes neon-blink-loop {
+  0% {
+    border-color: #ff5722 !important;
+    box-shadow:
+      0 0 15px #ff5722,
+      inset 0 0 10px rgba(255, 87, 34, 0.3) !important;
+  }
+
+  100% {
+    border-color: #39ff14 !important;
+    /* 강렬한 네온 형광색 (Lime Green) */
+    box-shadow:
+      0 0 25px #39ff14,
+      inset 0 0 15px rgba(57, 255, 20, 0.4) !important;
+  }
+}

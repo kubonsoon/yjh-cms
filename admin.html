@@ -1005,6 +1005,40 @@
             }
         } // 💡 changeMainViewport 함수가 정확히 닫히고 다음 함수와 깨끗하게 결합됩니다.
 
+
+
+        function refreshRecruitmentView() {
+            const listContainer = document.getElementById('dom-recruitment-table');
+            if (!listContainer) return;
+
+            let htmlBuffer = "";
+            dataStoreRecruitment.forEach((row, index) => {
+                htmlBuffer += `
+            <tr data-uid="${row.uid}">
+                <td style="text-align: left; padding-left: 15px;">
+                    <a class="exam-title-link" onclick="openIndependentEditorModal(${index}, 'title')">${row.title}</a>
+                </td>
+                <td><span class="text-bold">${row.th}</span></td>
+                <td>${row.count}명</td>
+                <td>${row.period}시간</td>
+                <td>${row.crc}</td>
+                <td>${row.recDate || '미정'}</td>
+                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'notice')">보기</button></td>
+                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'schedule')">보기</button></td>
+                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'duty')">보기</button></td>
+                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'call')">보기</button></td>
+                <td><span class="text-bold" style="color: var(--warning-color);">${row.paySchedule || '추후공지'}</span></td>
+                <td style="padding-right: 15px;">
+                    <button class="btn-inline edit" onclick="enableInlineRecruitmentEdit(${index})">수정</button>
+                    <button class="btn-inline delete" onclick="deleteRecruitmentRecord(${row.uid})">삭제</button>
+                </td>
+            </tr>
+        `;
+            });
+            listContainer.innerHTML = htmlBuffer;
+        }
+
+
         // =========================================================================
         // 🔒 [순정 완전 보존] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진
         // =========================================================================

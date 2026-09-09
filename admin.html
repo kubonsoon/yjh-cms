@@ -247,8 +247,10 @@
                         <thead>
                             <tr>
                                 <!-- 대표님이 지정해주신 12대 항목 구조 스펙 정확히 매칭 마감 -->
-                                <th style="min-width: 220px; max-width: 400px; text-align: left; padding-left: 15px;">
-                                    시험명</th>
+                                <th
+                                    style="min-width: 220px; max-width: 350px; text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; width: 16%;">
+                                    시험명
+                                </th>
                                 <th style="width: 80px; text-align: center;">기수</th>
                                 <th style="width: 100px; text-align: center;">인원수</th>
                                 <th style="width: 100px; text-align: center;">시간</th>
@@ -2114,7 +2116,7 @@
                 // ----------------======================================================
                 else {
                     tr.innerHTML = `
-    <td style="min-width: 220px; max-width: 350px; width: 16%; vertical-align: middle; padding-left: 15px; text-align: left;" class="text-bold">${row.title || ''}</td>
+    <td style="min-width: 220px; max-width: 350px; width: 16%; vertical-align: middle; padding-left: 23px; text-align: left;" class="text-bold">${row.title || ''}</td>
     <td style="vertical-align: middle; text-align: center;">${formatTh(row.th)}</td>
     <td style="vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
     <td style="vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>

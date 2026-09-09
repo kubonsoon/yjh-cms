@@ -2023,7 +2023,7 @@
         <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
     </td>
     <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
-        ${row.ssn ? row.ssn.toString().split('-').slice(0, 6) : '-'}
+        ${row.ssn ? row.ssn.toString().trim().substring(0, 8) : '-'}
     </td>
     <td style="width: 4.5%; vertical-align: middle; text-align: center;">
         <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
@@ -2092,8 +2092,8 @@
         <td style="width: 6.5%; vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
-        <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
-            ${row.ssn ? row.ssn.toString().split('-').slice(0, 6) : '-'}
+          <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
+            ${row.ssn ? row.ssn.toString().trim().substring(0, 8) : '-'}
         </td>
         <td style="width: 4.5%; vertical-align: middle; text-align: center;">
             <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">

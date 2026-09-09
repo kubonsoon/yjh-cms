@@ -439,73 +439,78 @@ ister-form .form-group:nth-child(3) {
 /* 1. 참여 시험명 입력 상자 부모: 최대 480px까지 시원하게 확장 확장 */
 #applicantView .register-form .form-group:has(#form-app-title) {
   min-width: 220px !important;
-  max-width: 480px !important;
+  max-width: 350px !important;
   width: 100% !important;
 }
 
 /* 2. 기수 선택 상자 부모: 10px 확장 스펙인 75px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-th) {
-  width: 75px !important;
+  width: 90px !important;
   flex-shrink: 0 !important;
 }
 
 /* 3. 인원수 입력 상자 부모: 10px 확장 스펙인 60px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-count) {
-  width: 60px !important;
+  width: 75px !important;
   flex-shrink: 0 !important;
+  text-align: center !important;
 }
 
 /* 4. 시간 입력 상자 부모: 10px 확장 스펙인 60px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-period) {
-  width: 60px !important;
+  width: 75px !important;
   flex-shrink: 0 !important;
+  text-align: center !important;
 }
 
 /* 5. 이름 입력 상자 부모: 10px 확장 스펙인 80px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-name) {
-  width: 80px !important;
+  width: 95px !important;
   flex-shrink: 0 !important;
+  text-align: center !important;
 }
 
 /* 6. 생년월일 입력 상자 부모: 10px 확장 스펙인 115px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-ssn) {
   width: 115px !important;
   flex-shrink: 0 !important;
+  text-align: center !important;
 }
 
 /* 7. 전화번호 입력 상자 부모: 125px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-phone) {
   width: 125px !important;
   flex-shrink: 0 !important;
+  text-align: center !important;
 }
 
 /* 8. 참여경로 선택 상자 부모: 90px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-category) {
-  width: 90px !important;
+  width: 110px !important;
   flex-shrink: 0 !important;
 }
 
 /* 9. 참여상태 선택 상자 부모: 85px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-stage) {
-  width: 85px !important;
+  width: 110px !important;
   flex-shrink: 0 !important;
 }
 
-/* 우측 끝 수평 버튼 그룹: 상단 인풋 상자들과 수평 위상이 완벽하게 한 세트로 결합되도록 전면 수정 */
+/* 우측 끝 버튼 그룹: 수평 일직선 레이아웃 세트를 유지하며 버튼 간격 최적화 */
 #applicantView .action-stack-box {
   display: flex !important;
-  flex-direction: row !important; /* 가로형 수평 정렬 일직선 축 유지 */
+  flex-direction: row !important;
   align-items: center !important;
-  gap: 6px !important; /* 버튼 간격 단단히 고정 */
+  gap: 9px !important; /* 🔥 등록과 다운로드 버튼 사이의 간격을 정확히 9px로 조율 */
   width: auto !important;
   flex-shrink: 0 !important;
-  margin-left: auto !important; /* 좌측 빈 공간을 전부 밀어내어 우측 끝 밀착 정렬 */
-  height: 36px !important; /* 인풋창 자체 알맹이 수직 높이 규격과 정확히 일치화 */
+  margin-left: auto !important; /* 좌측 여백 공간을 밀어내어 우측 밀착 정렬 */
+  height: 36px !important; /* 인풋창 자체 수직 높이 규격과 정확히 일치화 */
 }
 
-/* 가로 정렬 결합에 따른 버튼 내부 텍스트 폰트 배율 균형 마감 */
+/* 버튼 내부 텍스트 정형화 밸런싱 마감 */
 #applicantView .action-stack-box .action-btn {
-  height: 36px !important; /* 알맹이 높이 36px 스펙과 1:1 완벽 마감 */
+  height: 36px !important;
   line-height: 36px !important;
   padding: 0 14px !important;
   font-size: 13px !important;

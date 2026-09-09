@@ -2162,12 +2162,12 @@
     </td>
     
     <!-- 완결 후 일반 관리 액션 버튼 구역 -->
-    <td style="vertical-align: middle; text-align: center; padding-right: 15px;">
-        <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-            <button type="button" class="btn-inline edit" onclick="activeApplicantInlineEdit(${row.uid}, ${masterIndex})">수정</button>
-            <button type="button" class="btn-inline delete" onclick="deleteApplicantRecord(${masterIndex})">삭제</button>
-        </div>
-    </td>
+   <td style="vertical-align: middle; text-align: center; padding-right: 15px;">
+    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+        <button type="button" class="btn-inline edit" onclick="enableInlineApplicantEdit(${masterIndex})">수정</button>
+        <button type="button" class="btn-inline delete" onclick="deleteApplicantRecord(${masterIndex})">삭제</button>
+    </div>
+</td>
 `;
                 }
 

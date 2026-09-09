@@ -2041,7 +2041,6 @@
             ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
         </span>
     </td>
-/* === [파트 2/3] admin.html 수정 모드(A분기) 중반부 너비 동기화 및 누락 9열 전격 복원 === */
     <!-- 🟢 [8열 교정]: 구형 125px 철거, 일반 목록 전화번호 스펙인 width: 12% 비율 체인 안착 -->
     <td style="width: 12%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">

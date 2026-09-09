@@ -401,7 +401,7 @@ tr:hover {
 #applicantView table tbody td {
   padding: 8px 6px !important; /* 패딩을 세밀하게 제어하여 컴팩트한 행 높이 마감 */
   min-height: 38px !important; /* height 고정 간섭을 해제하여 참여비 3단 글자 겹침 현상 원천 차단 */
-  vertical-align: middle !important; /* 세로축 정중앙 위상 센터 집중 */
+  vertical-align: bottom !important; /* 세로축 정중앙 위상 센터 집중 */
 }
 
 /* 대상자 관리 작업 컬럼 (마지막 셀): 나란히 가로 배열 강제 사수 */

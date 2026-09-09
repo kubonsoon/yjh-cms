@@ -472,15 +472,15 @@
                                     시험명</th>
                                 <th style="text-align: center; width: 6%;">기수</th>
                                 <th style="text-align: center; width: 6.5%;">인원수</th>
-                                <th style="text-align: center; width: 6%;">시간</th>
-                                <th style="text-align: center; width: 8.5%;">이름</th>
-                                <th style="text-align: center; width: 10%;">생년월일</th>
+                                <th style="text-align: center; width: 6%;">기간</th>
+                                <th style="text-align: center; width: 7.5%;">이름</th>
+                                <th style="text-align: center; width: 8.5%;">생년월일</th>
                                 <th style="text-align: center; width: 5%;">성별</th>
-                                <th style="text-align: center; width: 12%;">전화번호</th>
-                                <th style="text-align: center; width: 7%;">참여상태</th>
-                                <th style="text-align: center; width: 7%;">참여비</th>
-                                <th style="text-align: center; width: 4.5%;">당직동의</th>
-                                <th style="text-align: center; width: 4.5%;">소집동의</th>
+                                <th style="text-align: center; width: 11%;">전화번호</th>
+                                <th style="text-align: center; width: 5%;">참여상태</th>
+                                <th style="text-align: center; width: 8.5%;">참여비</th>
+                                <th style="text-align: center; width: 6%;">당직동의</th>
+                                <th style="text-align: center; width: 6%;">소집동의</th>
                                 <th style="text-align: center; width: 5.5%;">첨부서류</th>
                                 <th style="width: 140px; text-align: center; padding-right: 15px;">작업</th>
                             </tr>
@@ -2002,12 +2002,9 @@
                     tr.className = "editing-row";
                     tr.innerHTML = `
 
-       <!-- 🟢 [1열 교정]: 일반 목록과 동일하게 너비 26% 및 좌측 패딩 15px 수직 시작선 완벽 일치 잠금 -->
-    <td style="min-width: 220px; max-width: 300px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;">
+      <td style="min-width: 220px; max-width: 300px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;">
         <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
     </td>
-    
-    <!-- 🟢 [2열 교정]: 구형 90px 철거, 일반 목록 기수 스펙인 width: 6% 비율 체인 안착 -->
     <td style="width: 6%; vertical-align: middle; text-align: center;">
         <select id="inline-app-th-${masterIndex}" class="inline-input" style="height:32px; padding:2px; text-align:center; text-align-last:center; background: #1e293b !important; cursor: pointer !important;">
             <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
@@ -2016,45 +2013,30 @@
             <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
         </select>
     </td>
-    
-    <!-- 🟢 [3열 교정]: 구형 75px 철거, 일반 목록 인원수 스펙인 width: 6.5% 비율 체인 안착 -->
     <td style="width: 6.5%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>
-    
-    <!-- 🟢 [4열 교정]: 구형 65px 철거, 일반 목록 기간 스펙인 width: 6% 비율 체인 안착 -->
     <td style="width: 6%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>
-    
-    <!-- 🟢 [5열 교정]: 구형 80px 철거, 일반 목록 이름 스펙인 width: 8.5% 비율 체인 안착 -->
-    <td style="width: 8.5%; vertical-align: middle; text-align: center;">
+    <td style="width: 7.5%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
     </td>
-    
-    <!-- 🟢 [6열 교정]: 너비 규격 누락 보정, 일반 목록 생년월일 스펙인 width: 10% 잠금선 확보 -->
-    <td style="width: 10%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
-        ${row.ssn ? row.ssn.toString().split('-')[0].slice(0, 6) : '-'}
+    <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
+        ${row.ssn ? row.ssn.toString().split('-').slice(0, 6) : '-'}
     </td>
-    
-    <!-- 🟢 [7열 교정]: 너비 규격 누락 보정, 일반 목록 성별 스펙인 width: 5% 잠금선 확보 -->
     <td style="width: 5%; vertical-align: middle; text-align: center;">
         <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
             ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
         </span>
     </td>
-    <!-- 🟢 [8열 교정]: 구형 125px 철거, 일반 목록 전화번호 스펙인 width: 12% 비율 체인 안착 -->
-    <td style="width: 12%; vertical-align: middle; text-align: center;">
+    <td style="width: 11%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>
-    
-    <!-- 🟢 [9열 전격 복원!!!]: 수정 모드에서 유실되어 전체 칸을 도미노처럼 깨트리던 진짜 원인, 참여상태 칸(width: 7%)을 목록과 동일한 뼈대로 복원 주입합니다 -->
-    <td style="width: 7%; vertical-align: middle; text-align: center;">
+    <td style="width: 5%; vertical-align: middle; text-align: center;">
         <span class="badge" style="background:#334155; color:#fff; border-radius:4px; font-weight:700; display: inline-block; padding: 4px 8px; font-size: 11px;">${row.result || '참여'}</span>
     </td>
-    
-    <!-- 🟢 [10열 교정]: 구형 85px 철거, 일반 목록 참여비 3단 콤보 스펙인 width: 7% 비율 체인 안착 -->
-    <td style="width: 7%; vertical-align: middle; text-align: center;">
+    <td style="width: 8.5%; vertical-align: middle; text-align: center;">
         <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
             <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
                 <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대기</option>
@@ -2076,33 +2058,27 @@
             </select>
         </div>
     </td>
-    
-    <!-- 🟢 [11열 교정]: 구형 75px 철거, 일반 목록 당직동의 스펙인 width: 4.5% 비율 체인 안착 -->
-    <td style="width: 4.5%; vertical-align: middle; text-align: center;">
+    <td style="width: 6%; vertical-align: middle; text-align: center;">
         <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
             <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
             <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
             <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
         </select>
     </td>
-   <!-- 🟢 [12열 교정]: 구형 75px 철거, 일반 목록 소집동의 스펙인 width: 4.5% 비율 체인 안착 -->
-    <td style="width: 4.5%; vertical-align: middle; text-align: center;">
+    <td style="width: 6%; vertical-align: middle; text-align: center;">
         <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
             <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
             <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
             <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
         </select>
     </td>
-    
-    <!-- 🟢 [13열 교정]: 우측을 터트리던 거대한 140px 전면 폐기, 일반 목록 첨부서류 스펙인 width: 5.5% 정밀 배분 -->
     <td style="width: 5.5%; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px; white-space: nowrap;">교체 중 변경불가</td>
-    
-    <!-- 🟢 [14열 교정]: 시험명 칸을 압착하던 주범인 비대한 180px 완벽 청소, 일반 목록 작업 스펙인 width: 6.5% 및 패딩 우측 15px 최종 고정 마감 -->
     <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
         <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
             <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
             <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
         </div>
+    </td>
     </td>
 `;
                 }
@@ -2112,60 +2088,34 @@
                 // ----------------======================================================
                 else {
                     tr.innerHTML = `
-        <!-- 🟢 [1열 잠금]: 상하단 수직 시작선을 1px의 오차도 없이 맞추는 26% 및 padding-left 15px 락인 -->
-        <td style="min-width: 220px; max-width: 300px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;" class="text-bold">${row.title || ''}</td>
-        
-        <!-- 🟢 [2열 잠금]: 헤더 기수 비율과 정확히 대칭되는 width: 6% 잠금선 확보 -->
+         <td style="min-width: 220px; max-width: 300px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;" class="text-bold">${row.title || ''}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
-        
-        <!-- 🟢 [3열 잠금]: 너비 누락을 제거하고 헤더 인원수 스펙인 width: 6.5% 전격 잠금 -->
         <td style="width: 6.5%; vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
-        
-        <!-- 🟢 [4열 잠금]: 너비 누락을 제거하고 헤더 기간 스펙인 width: 6% 전격 잠금 -->
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
-        
-        <!-- 🟢 [5열 잠금]: 너비 누락을 제거하고 헤더 이름 스펙인 width: 8.5% 및 굵은 서체 전격 잠금 -->
-        <td style="width: 8.5%; vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
-
-        <!-- 🟢 [6열 잠금]: 너비 누락을 제거하고 헤더 생년월일 스펙인 width: 10% 전격 잠금 -->
-        <td style="width: 10%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
+        <td style="width: 7.5%; vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
+        <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
             ${row.ssn ? row.ssn.toString().split('-').slice(0, 6) : '-'}
         </td>
-        
-        <!-- 🟢 [7열 잠금]: 너비 누락을 제거하고 헤더 성별 스펙인 width: 5% 전격 잠금 -->
         <td style="width: 5%; vertical-align: middle; text-align: center;">
             <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
                 ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
             </span>
         </td>
-        
-        <!-- 🟢 [8열 잠금]: 너비 누락을 제거하고 헤더 전화번호 스펙인 width: 12% 전격 잠금 -->
-        <td style="width: 12%; vertical-align: middle; text-align: center;">${formatPhone(row.phone)}</td>
-        
-        <!-- 🟢 [9열 잠금]: 너비 누락을 제거하고 헤더 참여상태 스펙인 width: 7% 전격 잠금 -->
-        <td style="width: 7%; vertical-align: middle; text-align: center;"><span class="doc-badge ${row.stage === '참여' ? 'status-id' : 'status-none'}">${row.stage || '참여'}</span></td>
-        
-        <!-- 🟢 [10열 교정]: b구역 찌그러짐의 주범인 구형 85px를 전면 철거하고 헤더 스펙과 대칭되는 width: 7% 퍼센트 체인 전격 안착 -->
-        <td style="width: 7%; vertical-align: middle; text-align: center;">
+        <td style="width: 11%; vertical-align: middle; text-align: center;">${formatPhone(row.phone)}</td>
+        <td style="width: 5%; vertical-align: middle; text-align: center;"><span class="doc-badge ${row.stage === '참여' ? 'status-id' : 'status-none'}">${row.stage || '참여'}</span></td>
+        <td style="width: 8.5%; vertical-align: middle; text-align: center;">
             <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">
                 ${buildMiniBadgeHTML('1차', row.payStatus1)}
                 ${buildMiniBadgeHTML('2차', row.payStatus2)}
                 ${buildMiniBadgeHTML('3차', row.payStatus3)}
             </div>
         </td>
-        <!-- 🟢 [11열 잠금]: 너비 누락을 제거하고 헤더 당직동의 스펙인 width: 4.5% 전격 잠금 -->
-        <td style="width: 4.5%; vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isDutyAgreed || '대기'}</span></td>
-        
-        <!-- 🟢 [12열 잠금]: 너비 누락을 제거하고 헤더 소집동의 스펙인 width: 4.5% 전격 잠금 -->
-        <td style="width: 4.5%; vertical-align: middle; text-align: center;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}">${row.isCallAgreed || '대기'}</span></td>
-        
-        <!-- 🟢 [13열 잠금]: 너비 누락을 제거하고 헤더 첨부서류 스펙인 width: 5.5% 전격 잠금 -->
-        <td style="width: 5.5%; vertical-align: middle; text-align: center;">
-            <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}">신분증</span>
-            <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}">통장</span>
+        <td style="width: 6%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isDutyAgreed || '대기'}</span></td>
+        <td style="width: 6%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isCallAgreed || '대기'}</span></td>
+        <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important; padding: 0 !important;">
+            <span class="doc-badge ${row.idCard ? 'status-id' : 'status-none'}" style="margin: 0 1px !important;">신분증</span>
+            <span class="doc-badge ${row.bankbook ? 'status-id' : 'status-none'}" style="margin: 0 1px !important;">통장</span>
         </td>
-        
-        <!-- 🟢 [14열 잠금]: 헤더 최종 작업 스펙인 width: 6.5% 및 우측 안전 마진 패딩 15px 완벽 동기화 매칭 마감 -->
         <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px;">
             <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
                 <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>

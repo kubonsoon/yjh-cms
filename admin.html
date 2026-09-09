@@ -1994,131 +1994,115 @@
                 const callAgreed = (row.isCallAgreed || "대기").trim();
 
                 // ----------------======================================================
-                // [A분기]: 모집공고 목록
+                // [A분기]:대상자 목록 수정모드
                 // ----------------======================================================
                 if (isAppEditing) {
                     tr.className = "editing-row";
                     tr.innerHTML = `
-                       <td style="vertical-align: middle; padding-left: 15px;">
-    <input type="text" id="inline-app-title-${masterIndex}" class="inline-input"
-           value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
-  </td>
- <td style="width: 90px; vertical-align: middle;">
- <select id="inline-app-th-${masterIndex}" class="inline-input" style="height:32px;
-           padding:2px; text-align:center; text-align-last:center; background: #1e293b !important; cursor:
-           pointer !important;">
-   <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
-   <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
-    <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
- <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
-  </select>
+
+       <!-- 🟢 [1열 교정]: 일반 목록과 동일하게 너비 26% 및 좌측 패딩 15px 수직 시작선 완벽 일치 잠금 -->
+    <td style="min-width: 220px; max-width: 350px; width: 26%; vertical-align: middle; padding-left: 15px; text-align: left;">
+        <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important;">
     </td>
-<td style="width: 75px; vertical-align: middle;">
-    <input type="text" id="inline-app-count-${masterIndex}" class="inline-input"
-           value="${row.count || ''}" style="text-align:center; background: var(--card-color)
-           !important;">
-         </td>
-      <td style="width: 65px; vertical-align: middle;">
-      <input type="text" id="inline-app-period-${masterIndex}" class="inline-input"
-           value="${row.period || ''}" style="text-align:center; background: var(--card-color)
-           !important;">
-         </td>
-          <td style="width: 80px; vertical-align: middle;">
-    <input type="text" id="inline-app-name-${masterIndex}" class="inline-input"
-           value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-
-           color) !important;">
-         </td>
-    <td style="text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
+    
+    <!-- 🟢 [2열 교정]: 구형 90px 철거, 일반 목록 기수 스펙인 width: 6% 비율 체인 안착 -->
+    <td style="width: 6%; vertical-align: middle; text-align: center;">
+        <select id="inline-app-th-${masterIndex}" class="inline-input" style="height:32px; padding:2px; text-align:center; text-align-last:center; background: #1e293b !important; cursor: pointer !important;">
+            <option value="1기" ${row.th === '1기' ? 'selected' : ''}>1기</option>
+            <option value="2기" ${row.th === '2기' ? 'selected' : ''}>2기</option>
+            <option value="3기" ${row.th === '3기' ? 'selected' : ''}>3기</option>
+            <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
+        </select>
+    </td>
+    
+    <!-- 🟢 [3열 교정]: 구형 75px 철거, 일반 목록 인원수 스펙인 width: 6.5% 비율 체인 안착 -->
+    <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+        <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">
+    </td>
+    
+    <!-- 🟢 [4열 교정]: 구형 65px 철거, 일반 목록 기간 스펙인 width: 6% 비율 체인 안착 -->
+    <td style="width: 6%; vertical-align: middle; text-align: center;">
+        <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">
+    </td>
+    
+    <!-- 🟢 [5열 교정]: 구형 80px 철거, 일반 목록 이름 스펙인 width: 8.5% 비율 체인 안착 -->
+    <td style="width: 8.5%; vertical-align: middle; text-align: center;">
+        <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
+    </td>
+    
+    <!-- 🟢 [6열 교정]: 너비 규격 누락 보정, 일반 목록 생년월일 스펙인 width: 10% 잠금선 확보 -->
+    <td style="width: 10%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
         ${row.ssn ? row.ssn.toString().split('-')[0].slice(0, 6) : '-'}
     </td>
-    <td style="vertical-align: middle; text-align: center;">
+    
+    <!-- 🟢 [7열 교정]: 너비 규격 누락 보정, 일반 목록 성별 스펙인 width: 5% 잠금선 확보 -->
+    <td style="width: 5%; vertical-align: middle; text-align: center;">
         <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
             ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
         </span>
     </td>
-        <td style="width: 125px; vertical-align: middle;">
-     <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input"
-           value="${row.phone || ''}" style="text-align:center; background: var(--card-color)
-           !important;">
-         </td>
-
-     <!-- 참여비 1차, 2차, 3차 수정을 위한 3단 멀티 셀렉트 박
-           스 인프라 구축 -->
-      <td style="width: 85px; vertical-align: middle; text-align: center;">
-     <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap;
-           align-items: center; width: 100%;">
-
-              <!-- 1차 참여비 상태 제어 (순백색 글자 고정) -->
-    <select id="inline-app-pay1-${masterIndex}" class="inline-input"
-         style="height:22px; font-size:11px; padding:0 2px; color:#ffffff
-           !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
-          <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대
-           기</option>
-        <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>1차: 접
-           수</option>
-       <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>1
-           차: 처리중</option>
-                <option value="완료" ${row.payStatus1 === '완료' ? 'selected' : ''}>1차: 완
-           료</option>
+/* === [파트 2/3] admin.html 수정 모드(A분기) 중반부 너비 동기화 및 누락 9열 전격 복원 === */
+    <!-- 🟢 [8열 교정]: 구형 125px 철거, 일반 목록 전화번호 스펙인 width: 12% 비율 체인 안착 -->
+    <td style="width: 12%; vertical-align: middle; text-align: center;">
+        <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
+    </td>
+    
+    <!-- 🟢 [9열 전격 복원!!!]: 수정 모드에서 유실되어 전체 칸을 도미노처럼 깨트리던 진짜 원인, 참여상태 칸(width: 7%)을 목록과 동일한 뼈대로 복원 주입합니다 -->
+    <td style="width: 7%; vertical-align: middle; text-align: center;">
+        <span class="badge" style="background:#334155; color:#fff; border-radius:4px; font-weight:700; display: inline-block; padding: 4px 8px; font-size: 11px;">${row.result || '참여'}</span>
+    </td>
+    
+    <!-- 🟢 [10열 교정]: 구형 85px 철거, 일반 목록 참여비 3단 콤보 스펙인 width: 7% 비율 체인 안착 -->
+    <td style="width: 7%; vertical-align: middle; text-align: center;">
+        <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
+            <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
+                <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대기</option>
+                <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>1차: 접수</option>
+                <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>1차: 처리중</option>
+                <option value="완료" ${row.payStatus1 === '완료' ? 'selected' : ''}>1차: 완료</option>
             </select>
-
-              <!-- 2차 참여비 상태 제어 (순백색 글자 고정) -->
-         <select id="inline-app-pay2-${masterIndex}" class="inline-input"
-                style="height:22px; font-size:11px; padding:0 2px; color:#ffffff
-           !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
-                <option value="대기" ${row.payStatus2 === '대기' ? 'selected' : ''}>2차: 대
-           기</option>
-                <option value="접수" ${row.payStatus2 === '접수' ? 'selected' : ''}>2차: 접
-           수</option>
-         <option value="처리중" ${row.payStatus2 === '처리중' ? 'selected' : ''}>2
-           차: 처리중</option>
-            <option value="완료" ${row.payStatus2 === '완료' ? 'selected' : ''}>2차: 완
-           료</option>
-           </select>
-
-                <!-- 3차 참여비 상태 제어 (순백색 글자 고정) -->
-      <select id="inline-app-pay3-${masterIndex}" class="inline-input"
-           style="height:22px; font-size:11px; padding:0 2px; color:#ffffff
-           !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
-                    <option value="대기" ${row.payStatus3 === '대기' ? 'selected' : ''}>3차: 대
-           기</option>
-           <option value="접수" ${row.payStatus3 === '접수' ? 'selected' : ''}>3차: 접
-           수</option>
-            <option value="처리중" ${row.payStatus3 === '처리중' ? 'selected' : ''}>3
-           차: 처리중</option>
-            <option value="완료" ${row.payStatus3 === '완료' ? 'selected' : ''}>3차: 완
-           료</option>
-                </select>
-           </div>
-        </td>
-    <td style="width: 75px; vertical-align: middle;">
-          <select id="inline-app-duty-${masterIndex}" class="inline-input"
-           style="height:30px; padding:2px; background: #1e293b !important;">
-         <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
-        <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
+            <select id="inline-app-pay2-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
+                <option value="대기" ${row.payStatus2 === '대기' ? 'selected' : ''}>2차: 대기</option>
+                <option value="접수" ${row.payStatus2 === '접수' ? 'selected' : ''}>2차: 접수</option>
+                <option value="처리중" ${row.payStatus2 === '처리중' ? 'selected' : ''}>2차: 처리중</option>
+                <option value="완료" ${row.payStatus2 === '완료' ? 'selected' : ''}>2차: 완료</option>
+            </select>
+            <select id="inline-app-pay3-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
+                <option value="대기" ${row.payStatus3 === '대기' ? 'selected' : ''}>3차: 대기</option>
+                <option value="접수" ${row.payStatus3 === '접수' ? 'selected' : ''}>3차: 접수</option>
+                <option value="처리중" ${row.payStatus3 === '처리중' ? 'selected' : ''}>3차: 처리중</option>
+                <option value="완료" ${row.payStatus3 === '완료' ? 'selected' : ''}>3차: 완료</option>
+            </select>
+        </div>
+    </td>
+    
+    <!-- 🟢 [11열 교정]: 구형 75px 철거, 일반 목록 당직동의 스펙인 width: 4.5% 비율 체인 안착 -->
+    <td style="width: 4.5%; vertical-align: middle; text-align: center;">
+        <select id="inline-app-duty-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
+            <option value="대기" ${dutyAgreed === '대기' ? 'selected' : ''}>대기</option>
+            <option value="동의" ${dutyAgreed === '동의' ? 'selected' : ''}>동의</option>
             <option value="미동의" ${dutyAgreed === '미동의' ? 'selected' : ''}>미동의</option>
-             </select>
- </td>
- <td style="width: 75px; vertical-align: middle;">
-  <select id="inline-app-call-${masterIndex}" class="inline-input"
-           style="height:30px; padding:2px; background: #1e293b !important;">
-       <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
-      <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
-               <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의
-           </option>
-         </select>
-         </td>
-        <td style="width: 140px; vertical-align: middle; text-align: center; color: var(--text-
-           muted); font-size:12px;">교체 중 변경불가</td>
-          <td style="width: 180px; vertical-align: middle; text-align: center; padding-right:
-           15px;">
-          <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
-           <button type="button" class="btn-inline save" onclick="saveInlineApplicantR­ecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px
-           10px; border-radius: 4px; font-weight: 700;">저장</button>
-    <button type="button" class="btn-inline edit" onclick="cancelInlineApplican­tEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding:
-           5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
-       </div>
-     </td>
+        </select>
+    </td>
+   <!-- 🟢 [12열 교정]: 구형 75px 철거, 일반 목록 소집동의 스펙인 width: 4.5% 비율 체인 안착 -->
+    <td style="width: 4.5%; vertical-align: middle; text-align: center;">
+        <select id="inline-app-call-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important;">
+            <option value="대기" ${callAgreed === '대기' ? 'selected' : ''}>대기</option>
+            <option value="동의" ${callAgreed === '동의' ? 'selected' : ''}>동의</option>
+            <option value="미동의" ${callAgreed === '미동의' ? 'selected' : ''}>미동의</option>
+        </select>
+    </td>
+    
+    <!-- 🟢 [13열 교정]: 우측을 터트리던 거대한 140px 전면 폐기, 일반 목록 첨부서류 스펙인 width: 5.5% 정밀 배분 -->
+    <td style="width: 5.5%; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px; white-space: nowrap;">교체 중 변경불가</td>
+    
+    <!-- 🟢 [14열 교정]: 시험명 칸을 압착하던 주범인 비대한 180px 완벽 청소, 일반 목록 작업 스펙인 width: 6.5% 및 패딩 우측 15px 최종 고정 마감 -->
+    <td style="width: 6.5%; vertical-align: middle; text-align: center; padding-right: 15px;">
+        <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+            <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
+            <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
+        </div>
+    </td>
 `;
                 }
 

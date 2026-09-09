@@ -1115,3 +1115,29 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: #ffffff !important;
   border: none !important;
 }
+
+/* =========================================================================
+   [CSS 최종 교정] admin.css 최하단 추가: 인라인 수정 모드 입력 상자 규격 통제
+   ========================================================================= */
+.editing-row .inline-input {
+  width: 100% !important;
+  height: 30px !important; /* 세로로 길어지던 인풋 창들을 컴팩트한 30px 규격으로 제어 */
+  line-height: 28px !important;
+  padding: 0 6px !important;
+  background-color: #0b0f19 !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 4px !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  vertical-align: middle !important; /* 붕 뜨거나 처지는 정렬 축 수평 센터 고정 */
+  box-sizing: border-box !important;
+}
+
+/* 수정 모드 내 우측 끝 [저장] [취소] 버튼 정렬 축 밀착 */
+.editing-row td:last-child {
+  display: flex !important;
+  gap: 4px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}

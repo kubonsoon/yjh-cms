@@ -522,6 +522,43 @@ ister-form .form-group:nth-child(3) {
   filter: brightness(1.2);
 }
 
+/* 🟢 [신규 추가] 대상자 관리 테이블 행(tr) 내부 모든 셀(td)의 높이 슬림 균등화 및 세로축 센터 집중 */
+#applicantView table tbody td {
+  padding: 8px 6px !important; /* 패딩을 세밀하게 제어하여 컴팩트한 행 높이 마감 */
+  height: 38px !important; /* 모든 칸의 세로 높이를 칼같이 일치시켜 위상 이탈 차단 */
+  vertical-align: middle !important;
+}
+
+/* 🟢 [신규 추가] 대상자 관리 작업 컬럼 (마지막 셀): 나란히 가로 배열 강제 사수 */
+#applicantView #dom-applicant-table td:last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important; /* 어떤 너비 압착 상황에서도 줄바꿈 절대 방지 */
+}
+
+/* 🟢 [신규 추가] 대상자 관리 내 실제 전화번호 문자열이 압착 시 숨겨지거나 깨지지 않도록 방어 */
+#applicantView #dom-applicant-table td:nth-child(8) {
+  white-space: nowrap !important;
+  font-variant-numeric: tabular-nums; /* 숫자 폭 균등 정렬 */
+}
+
+/* 🟢 [신규 추가] 1차, 2차, 3차 참여 상태 배지 가독성 사수 및 위상 처짐 완파 */
+.badge,
+[class^="status-"],
+[id^="inline-app-stage-"] {
+  display: inline-block !important;
+  height: 24px !important; /* 높이를 명확하게 고정 */
+  line-height: 22px !important; /* 텍스트 세로 중앙 정렬 집중 */
+  padding: 0 8px !important;
+  font-size: 11px !important;
+  vertical-align: middle !important; /* 혼자 위아래로 붕 뜨거나 처지는 현상 완파 */
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+}
+
 /* =========================================================================
    [그룹 C] SECTION 03. 전산망 관리 담당자 탭 전용 구역 서식 디자인
    ========================================================================= */

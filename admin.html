@@ -2135,10 +2135,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         <td style="width: 6.5%; vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
         
-        <!-- 🟢 [수정 완료]: 대표님의 진짜 원본 스펙을 100% 무결성 사수하며, 이름 칸에 살아있는 openAppHistoryDetailModal(${masterIndex}) 함수를 정밀 매칭 결합 완료했습니다. -->
-        <td style="width: 6%; vertical-align: middle; text-align: center; font-weight: 700;">
-            <a onclick="openAppHistoryDetailModal(${masterIndex})" style="color: #57a7fd !important; text-decoration: underline; cursor: pointer;">${row.name || ''}</a>
-        </td>
+        <!-- 🟢 [수정 완료]: 이름 칸은 원래 설계 서식대로 깨끗하게 텍스트 정돈 원복 처리 -->
+        <td style="width: 6%; vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
         
         <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
             ${row.ssn ? row.ssn.toString().trim().substring(0, 6) : '-'}
@@ -2159,28 +2157,26 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         </td>
         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isDutyAgreed || '대기'}</span></td>
         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isCallAgreed || '대기'}</span></td>
-              <!-- 🟢 [작업 완료]: 정갈한 10% 너비 및 1.5px 배지 구조를 100% 사수한 상태에서, 콘솔 패킷 이름표(idCardImg / bankBookImg)와 주파수를 일치시켜 실시간 활성화를 종결합니다 -->
+              <!-- [기존 무결성 보존] idCardImg / bankBookImg 패킷 이미지 모달 연동 스펙 -->
         <td style="width: 10%; vertical-align: middle; text-align: center; white-space: nowrap !important; padding: 0 !important;">
-            
-            <!-- ① 신분증 사본 진짜 패킷 이름표 정밀 검증 및 트리거 브릿지 -->
             ${row.idCardImg && (row.idCardImg.toString().includes('data:image') || row.idCardImg.toString().includes('/uploads/') || row.idCardImg.toString().includes('blob:')) ? `
                 <span class="doc-badge status-id" onclick="openImageModal('${row.idCardImg}', '[신분증] ${row.name || ''}')" style="margin: 0 1.5px !important; cursor: pointer !important; font-weight: 700;">신분증</span>
             ` : `
                 <span class="doc-badge status-none" style="margin: 0 1.5px !important; cursor: not-allowed !important; opacity: 0.5; font-weight: 500;">신분증</span>
             `}
-            
-            <!-- ② 통장 사본 진짜 패킷 이름표 정밀 검증 및 트리거 브릿지 -->
             ${row.bankBookImg && (row.bankBookImg.toString().includes('data:image') || row.bankBookImg.toString().includes('/uploads/') || row.bankBookImg.toString().includes('blob:')) ? `
                 <span class="doc-badge status-id" onclick="openImageModal('${row.bankBookImg}', '[통장] ${row.name || ''}')" style="margin: 0 1.5px !important; cursor: pointer !important; font-weight: 700;">통장</span>
             ` : `
                 <span class="doc-badge status-none" style="margin: 0 1.5px !important; cursor: not-allowed !important; opacity: 0.5; font-weight: 500;">통장</span>
             `}
-                  
         </td>
-        <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px;">
-            <div style="display: flex; justify-content: center; gap: 8px !important; width: 100%;">
-                <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
-                <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})">삭제</button>
+        
+        <!-- 🟢 [수정 완료]: 수정 왼쪽에 [이력] 버튼 신설 배지 완료! 패딩(5px 6px) 및 자식 gap(4px) 정밀 압착 처리를 통해 140px 내 줄바꿈을 철통 방어했습니다. -->
+        <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px; box-sizing: border-box !important;">
+            <div style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
+                <button type="button" class="btn-inline" onclick="openAppHistoryDetailModal(${masterIndex})" style="background: #475569 !important; color: #ffffff !important; padding: 5px 6px !important; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">이력</button>
+                <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="padding: 5px 6px !important; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">수정</button>
+                <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})" style="padding: 5px 6px !important; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">삭제</button>
             </div>
         </td>
     `;

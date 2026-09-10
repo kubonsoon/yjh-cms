@@ -1198,14 +1198,18 @@
             document.getElementById("modal-app-phone").innerText = typeof formatPhone === "function" ? formatPhone(selectedUser.phone || "-") : (selectedUser.phone || "-");
             document.getElementById("modal-app-th").innerText = typeof formatTh === "function" ? formatTh(selectedUser.th || "-") : (selectedUser.th || "-");
 
-            // 주민번호 가공 및 성별 추출 통합 락인 (예: 950505 (남)) [index: 0.1.29]
-            const pureBirthDate = selectedUser.ssn ? selectedUser.ssn.toString().trim().substring(0, 6) : '-';
-            const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
+            // 주민번호 가공 및 성별 추출 통합 락인 (예: 950505 (남)) 
+           const pureBirthDate = selectedUser && selectedUser.ssn ? selectedUser.ssn.toString().trim().substring(0, 6) : '-';
+            const genderSign = (selectedUser && typeof parseGenderFromSsn === "function") ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
 
-            document.getElementById("modal-app-ssn-gender").innerHTML = `
-             <span style="font-weight: 700; color: #ffffff;">${pureBirthDate}</span> 
-            <span class="lvl-badge ${genderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${genderSign}</span>
-            `;
+            // 변수가 확실히 존재할 때만 안전하게 돔(DOM)에 사출하는 방어막 빌드
+            const targetModalSsn = document.getElementById("modal-app-ssn-gender");
+            if (targetModalSsn) {
+                targetModalSsn.innerHTML = `
+                    <span style="font-weight: 700; color: #ffffff;">${pureBirthDate}</span> 
+                    <span class="lvl-badge ${genderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${genderSign}</span>
+                `;
+            }
 
             // 동의 현황 텍스트 가독성 배지 스타일 매칭
             document.getElementById("modal-app-duty").innerHTML = selectedUser.isDutyAgreed === "동의"

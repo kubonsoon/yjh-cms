@@ -224,13 +224,12 @@
                         <!-- 10. 최종 버튼 그룹 (크기 동일화 및 10px 세로 간격 조율) -->
                         <div style="display: flex; flex-direction: column; gap: 10px; min-width: 105px;">
                             <!-- 캘린더 보기 버튼 (공고 등록과 동일한 height: 38px 부여) -->
-                            <button type="button"
-                                onclick="window.open('calendar.html', 'CalendarPopup', 'width=1020,height=980,scrollbars=yes,resizable=yes')"
-                                style="width: 100%; height: 38px; padding: 0 12px; color: #ffffff; border: 2px solid var(--secondary-color); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; background: rgba(14, 165, 233, 0.15); white-space: nowrap; transition: all 0.2s;"
-                                onmouseover="this.style.background='var(--secondary-color)'; this.style.color='#000';"
-                                onmouseout="this.style.background='rgba(14, 165, 233, 0.15)'; this.style.color='#ffffff';">
-                                📅 캘린더 보기
-                            </button>
+                            <button type="button" onclick="window.open('calendar.html', 'CalendarPopup', 'width=1020,height=980,scrollbars=yes,resizable=yes')"
+                    style="width: 100%; height: 38px !important; padding: 0 12px; color: #ffffff; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; background: #334155; white-space: nowrap; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;"
+                    onmouseover="this.style.background='#475569'"
+                    onmouseout="this.style.background='#334155'">
+                    📅 캘린더 보기
+                </button>
                             <!-- 공고 등록 버튼 (height: 38px 동일 규격 락인) -->
                             <button class="action-btn" onclick="insertRecruitmentRecord()"
                                 style="width: 100%; height: 38px; padding: 0 12px; color: #070a12; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; background: var(--success-color); box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2); white-space: nowrap;">

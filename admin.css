@@ -410,6 +410,12 @@ tr:hover {
   border-left: 4px solid var(--secondary-color) !important; /* 노란색에서 시그니처 스카이 블루 변경 */
 }
 
+/* 모집공고 목록내에 작업 버튼 위치조정? */
+.editing-row #dom-recruitment-table td:last-child,
+#dom-recruitment-table .editing-row td:last-child {
+    padding-top: 14px !important;
+}
+
 /* 대상자 테이블 행(tr) 내부 모든 셀(td)의 높이 슬림 균등화 및 세로축 센터 집중 */
 #applicantView table tbody td {
   padding: 8px 6px !important; /* 패딩을 세밀하게 제어하여 컴팩트한 행 높이 마감 */

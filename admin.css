@@ -370,13 +370,26 @@ tr:hover {
   width: 100% !important;
 }
 
+/* 타이틀과 인풋 전체를 안고 회색 레이어를 입히는 진짜 부모 울타리 */
+#applicantView .register-box {
+  width: 100% !important;
+  background: #1e293b !important; /* 모집공고와 100% 일치하는 정형화된 회색 레이어 스킨 */
+  border: 1px solid var(--border-color) !important; /* 경계선 테두리 가드 */
+  border-radius: 8px !important; /* 둥근 엣지 8px 모서리 스킨 완벽 장착 */
+  padding: 16px 16px !important; /* 레이어 외곽 테두리와 내부 요소들 사이에 정갈한 숨통 여백 형성 */
+  margin: 0 0 20px 0 !important; /* 하단 테이블 헤더와의 시원한 수직 축선 거리 20px 유지 */
+  box-sizing: border-box !important;
+}
+
 /* [신규 대상자 등록] 타이틀: 모집공고의 신규 공고 등록 타이틀 서식과 100% 일치화 */
 #applicantView .register-box h3 {
   font-size: 14px !important;
   font-weight: 700 !important;
-  margin-bottom: 18px !important;
-  color: var(--secondary-color) !important; /* 선명하고 밝은 스카이 블루 적용 */
-  text-transform: uppercase !important; /* 폼 안내 타이틀 대문자 강조 락인 */
+  margin: 0 0 16px 0px !important; /* 타이틀 하단과 인풋 상자 사이의 최적의 거리감 부여 */
+  color: var(
+    --secondary-color
+  ) !important; /* 선명하고 밝은 스카이 블루 완벽 유지 */
+  text-transform: uppercase !important;
 }
 
 /* 타이틀 내부 아이콘 간격 정렬 */
@@ -409,10 +422,10 @@ tr:hover {
   display: flex !important;
   flex-direction: row !important;
   justify-content: center !important;
-  align-items: center !important; /* 세로축 기준 완벽한 정중앙 정렬 */
+  align-items: center !important;
   gap: 4px !important;
   white-space: nowrap !important;
-  height: 100% !important; /* 줄 높이 동기화 */
+  height: 38px !important;
   min-height: 38px !important;
   box-sizing: border-box !important;
 }
@@ -422,81 +435,61 @@ ister-form .form-group:nth-child(3) {
   flex-shrink: 0 !important;
 }
 
-/* 부모 가두리 프레임: 라벨 밑바닥선과 우측 버튼들의 수평 일직선 정렬 축 복원 */
+/* 1. 등록 폼 부모 상자 */
 #applicantView .register-form {
   display: flex !important;
   flex-wrap: nowrap !important;
-  align-items: flex-end !important; /* 모든 컴포넌트의 밑바닥 라인을 수평선 일치화 */
-  gap: 8px !important;
+  align-items: flex-end !important;
+  gap: 0px !important; /* 자식 인풋 간의 미세 마찰 여백을 0으로 묶어 축 정렬 유지 */
   width: 100% !important;
+  padding: 0 !important; /* ❌ 12px 밀림 패딩을 완벽히 청소하여 하단 테이블과의 실선 일치화 완수 */
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important; /* 부모 박스의 회색 스킨이 온전히 투과되도록 투명화 처리 */
 }
 
-/* 폼 그룹 내부 배치 유연화 */
+/* 2. 개별 인풋 상자 공통 가두리 (기존 라인 435~441번 부근 교체) */
 #applicantView .register-form .form-group {
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 0 4px !important;
   display: flex !important;
   flex-direction: column !important;
+  box-sizing: border-box !important;
 }
 
-/* 1. 참여 시험명 입력 상자 부모: 최대 480px까지 시원하게 확장 확장 */
 #applicantView .register-form .form-group:has(#form-app-title) {
   min-width: 220px !important;
-  max-width: 350px !important;
-  width: 100% !important;
+  max-width: 300px !important;
+  width: 21% !important;
 }
-
-/* 2. 기수 선택 상자 부모: 10px 확장 스펙인 75px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-th) {
-  width: 90px !important;
-  flex-shrink: 0 !important;
+  width: 6% !important;
 }
-
-/* 3. 인원수 입력 상자 부모: 10px 확장 스펙인 60px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-count) {
-  width: 75px !important;
-  flex-shrink: 0 !important;
+  width: 6.5% !important;
   text-align: center !important;
 }
-
-/* 4. 시간 입력 상자 부모: 10px 확장 스펙인 60px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-period) {
-  width: 75px !important;
-  flex-shrink: 0 !important;
+  width: 6% !important;
   text-align: center !important;
 }
-
-/* 5. 이름 입력 상자 부모: 10px 확장 스펙인 80px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-name) {
-  width: 95px !important;
-  flex-shrink: 0 !important;
+  width: 6% !important;
   text-align: center !important;
 }
-
-/* 6. 생년월일 입력 상자 부모: 10px 확장 스펙인 115px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-ssn) {
-  width: 115px !important;
-  flex-shrink: 0 !important;
+  width: 8.5% !important;
   text-align: center !important;
 }
-
-/* 7. 전화번호 입력 상자 부모: 125px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-phone) {
-  width: 125px !important;
-  flex-shrink: 0 !important;
+  width: 11% !important;
   text-align: center !important;
 }
-
-/* 8. 참여경로 선택 상자 부모: 90px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-category) {
-  width: 110px !important;
-  flex-shrink: 0 !important;
+  width: 6.5% !important;
 }
-
-/* 9. 참여상태 선택 상자 부모: 85px 정밀 락인 */
 #applicantView .register-form .form-group:has(#form-app-stage) {
-  width: 110px !important;
-  flex-shrink: 0 !important;
+  width: 9% !important;
 }
 
 /* 우측 끝 버튼 그룹: 수평 일직선 레이아웃 세트를 유지하며 버튼 간격 최적화 */
@@ -504,11 +497,10 @@ ister-form .form-group:nth-child(3) {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 9px !important; /* 🔥 등록과 다운로드 버튼 사이의 간격을 정확히 9px로 조율 */
-  width: auto !important;
+  gap: 9px !important;
+  margin-left: auto !important; /* 시험명이 줄어든 만큼 남는 공간을 밀어내어 버튼을 우측 끝에 자석처럼 밀착 */
+  height: 36px !important;
   flex-shrink: 0 !important;
-  margin-left: auto !important; /* 좌측 여백 공간을 밀어내어 우측 밀착 정렬 */
-  height: 36px !important; /* 인풋창 자체 수직 높이 규격과 정확히 일치화 */
 }
 
 /* 버튼 내부 텍스트 정형화 밸런싱 마감 */
@@ -541,7 +533,7 @@ ister-form .form-group:nth-child(3) {
   line-height: 22px !important; /* 텍스트 세로 중앙 정렬 집중 */
   padding: 0 8px !important;
   font-size: 11px !important;
-  vertical-align: middle !important; /* 혼자 위아래로 붕 뜨거나 처지는 현상 완파 */
+  vertical-align: middle !important;
   box-sizing: border-box !important;
   white-space: nowrap !important;
 }
@@ -584,16 +576,13 @@ ister-form .form-group:nth-child(3) {
   filter: brightness(1.2);
 }
 
-/* 🟢 [신규 추가] 대상자 관리 작업 컬럼 (마지막 셀): 나란히 가로 배열 강제 사수 */
+/* 대상자 관리 작업 컬럼 (마지막 셀): 나란히 가로 배열 강제 사수 */
 #applicantView #dom-applicant-table td:last-child {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: center !important; /* 가로축 기준 정중앙 정렬 */
-  align-items: center !important; /* 🔥 위로 치우치던 버튼들을 세로축 기준 정중앙으로 정밀 교정 */
+  display: table-cell !important;
+  vertical-align: middle !important;
+  text-align: center !important;
   gap: 4px !important;
   white-space: nowrap !important;
-  height: 100% !important; /* 🔥 부모 td의 전체 늘어난 줄 높이를 100% 동기화 확장 */
-  min-height: 38px !important; /* 최소 높이 방어벽 설정 */
   box-sizing: border-box !important;
 }
 
@@ -1117,4 +1106,30 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background: #475569 !important; /* 차분한 그레이 톤 락인 */
   color: #ffffff !important;
   border: none !important;
+}
+
+/* =========================================================================
+   [CSS 최종 교정] admin.css 최하단 추가: 인라인 수정 모드 입력 상자 규격 통제
+   ========================================================================= */
+.editing-row .inline-input {
+  width: 100% !important;
+  height: 30px !important; /* 세로로 길어지던 인풋 창들을 컴팩트한 30px 규격으로 제어 */
+  line-height: 28px !important;
+  padding: 0 6px !important;
+  background-color: #0b0f19 !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 4px !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  vertical-align: middle !important; /* 붕 뜨거나 처지는 정렬 축 수평 센터 고정 */
+  box-sizing: border-box !important;
+}
+
+/* 수정 모드 내 우측 끝 [저장] [취소] 버튼 정렬 축 밀착 */
+.editing-row td:last-child {
+  display: flex !important;
+  gap: 4px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
 }

@@ -1304,21 +1304,25 @@
             });
 
           // 🟢 [최종 정정]: 이중으로 숨어 버티던 복제 모달 뼈대(.history-modal-overlay)의 데이터 슬롯까지 전격 2중 핀포인트 타격하여 721127 형태를 강제 고정 완료했습니다.
-            if (selectedUser && selectedUser.ssn) {
+             if (selectedUser && selectedUser.ssn) {
                 const finalBirthDate = selectedUser.ssn.toString().trim().substring(0, 6);
                 const finalGenderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
                 
-                // 1안 (정식 ID 노드 타격)
-                const targetDisplayNode = document.getElementById("modal-app-ssn-gender");
-                if (targetDisplayNode) {
-                    targetDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
-                }
-                
-                // 2안 (숨겨진 복제 클래스 노드 우회 교차 타격 - 화면 버그 박멸 안전핀)
-                const fallbackDisplayNode = document.querySelector(".history-modal-overlay #modal-app-ssn-gender") || document.querySelector(".history-modal-overlay [id*='ssn']");
-                if (fallbackDisplayNode) {
-                    fallbackDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
-                }
+                // 타이밍 간섭 분쇄 마스터 가드 구동 (0초 대기 후 즉시 덮어쓰기)
+                setTimeout(function() {
+                    const targetDisplayNode = document.getElementById("modal-app-ssn-gender") || document.querySelector(".history-modal-overlay #modal-app-ssn-gender");
+                    if (targetDisplayNode) {
+                        targetDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
+                    }
+                }, 0);
+
+                // 2중 안전 락인 쉴드 기믹 가동 (혹시 모를 0.05초 지연 초기화까지 완전히 격리 진압)
+                setTimeout(function() {
+                    const targetDisplayNode = document.getElementById("modal-app-ssn-gender") || document.querySelector(".history-modal-overlay #modal-app-ssn-gender");
+                    if (targetDisplayNode) {
+                        targetDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
+                    }
+                }, 50);
             }
 
             // 5. 와이드 오버레이 프레임 활성화 출력 제어

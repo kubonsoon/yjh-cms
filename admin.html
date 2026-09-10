@@ -1180,10 +1180,8 @@
         }
 
 
-        /**
- * 피험자 개인 이력 마스터 대장 오픈 및 데이터 실시간 바인딩 함수
- * @param {number} index - 현재 선택한 데이터스토어 인덱스 번호
- */
+        //대상자 개인 이력 마스터 대장 오픈 및 데이터 실시간 바인딩 함수
+
         function openAppHistoryDetailModal(index) {
             // 1. 메모리 컨텍스트 최신 데이터 동기화 락인 [index: 0.1.30]
             let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -1203,6 +1201,10 @@
             const genderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
             document.getElementById("modal-app-ssn-gender").innerHTML = `${selectedUser.ssn || "-"} <span style="color: ${genderSign === '남' ? '#38bdf8' : '#fb7185'}; font-weight:800;">(${genderSign})</span>`;
 
+             // 뒷자리 하이픈 및 괄호 성별 찌꺼기 문자열 연산을 통째로 제거하고, 오직 6자리 생년월일(721127) 형태로만 전격 순정화 사출 처리했습니다.
+            const cleanBirthDate = selectedUser.ssn ? selectedUser.ssn.toString().trim().substring(0, 6) : "-";
+            document.getElementById("modal-app-ssn-gender").innerHTML = `${cleanBirthDate}`;
+            
             // 동의 현황 텍스트 가독성 배지 스타일 매칭
             document.getElementById("modal-app-duty").innerHTML = selectedUser.isDutyAgreed === "동의"
                 ? `<span style="color:#4ade80;"><i class="fa-solid fa-circle-check"></i> 동의완료</span>`
@@ -1217,7 +1219,7 @@
             document.getElementById("modal-pay-status2").innerText = selectedUser.payStatus2 || "대기";
             document.getElementById("modal-pay-status3").innerText = selectedUser.payStatus3 || "대기";
 
-            // 3. 🎯 동일 피험자 임상시험 참여 이력 전수 추적 매커니즘 가동 (공백 무관 정밀 매칭) [index: 0.1.30]
+            // 3. 동일 피험자 임상시험 참여 이력 전수 추적 매커니즘 가동 (공백 무관 정밀 매칭) [index: 0.1.30]
             const scrollZone = document.getElementById("modal-history-scroll-zone");
             if (!scrollZone) return console.error("스크롤 영역 엘리먼트(modal-history-scroll-zone)가 돔에 존재하지 않습니다.");
             scrollZone.innerHTML = ""; // 기존 스크롤 노드 리셋 청소
@@ -1277,7 +1279,7 @@
 
                 const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
 
-                // 🎯 [교정 완수]: 4대 표준 단어별로 고대비 시그니처 폰트 컬러 스타일을 인젝션합니다. [index: 0.1.150]
+                // 4대 표준 단어별로 고대비 시그니처 폰트 컬러 스타일을 인젝션합니다. 
                 let statusColor = "#94a3b8"; // 기본 대기 색상 (설명글 그레이)
                 if (currentPayStatus === "접수") {
                     statusColor = "#38bdf8"; // 스카이 블루 (디자인 시스템 컬러)

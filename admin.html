@@ -1303,19 +1303,24 @@
                 scrollZone.appendChild(cardTr);
             });
 
-            // 하단 루프 간섭을 완벽히 우회하여 최종 승리자 축으로 721127 순정 생년월일 포맷을 락업 완료했습니다.
-           if (selectedUser && selectedUser.ssn) {
+          // 🟢 [최종 정정]: 이중으로 숨어 버티던 복제 모달 뼈대(.history-modal-overlay)의 데이터 슬롯까지 전격 2중 핀포인트 타격하여 721127 형태를 강제 고정 완료했습니다.
+            if (selectedUser && selectedUser.ssn) {
                 const finalBirthDate = selectedUser.ssn.toString().trim().substring(0, 6);
                 const finalGenderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
+                
+                // 1안 (정식 ID 노드 타격)
                 const targetDisplayNode = document.getElementById("modal-app-ssn-gender");
                 if (targetDisplayNode) {
-                    targetDisplayNode.innerHTML = `
-                        <span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> 
-                        <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>
-                    `;
+                    targetDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
+                }
+                
+                // 2안 (숨겨진 복제 클래스 노드 우회 교차 타격 - 화면 버그 박멸 안전핀)
+                const fallbackDisplayNode = document.querySelector(".history-modal-overlay #modal-app-ssn-gender") || document.querySelector(".history-modal-overlay [id*='ssn']");
+                if (fallbackDisplayNode) {
+                    fallbackDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
                 }
             }
-            
+
             // 5. 와이드 오버레이 프레임 활성화 출력 제어
             const modalEl = document.getElementById("historyModalOverlay");
             if (modalEl) {

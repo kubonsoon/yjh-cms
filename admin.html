@@ -3763,19 +3763,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             window.open('join_login.html', 'civilAuthPopup', 'width=500, height=750, top=150, left=200');
         }
 
-        // [모바일 전용] 우측 상단 모바일 인증서 로그인 테스트 팝업 가동
-        function openMobileAuthBridge() {
-            window.open('m-login.html', 'mobileAuthPopup', 'width=420, height=860, top=10, left=230, resizable=no, scrollbars=yes');
-        }
-        window.openMobileAuthBridge = openMobileAuthBridge;
-
-        // [모바일 전용] m-adm.html 전용 독립 팝업
-        function openAdminMobileControlBridge() {
-            window.open('m-adm.html', 'adminMobileControlPopup', 'width=420, height=860, top=10, left=680, resizable=no, scrollbars=yes');
-        }
-        window.openAdminMobileControlBridge = openAdminMobileControlBridge;
-
-
+    
         // B. 목록 내에서 [사례비 신청 프로세스 관리] 또는 상단 테스트 버튼 클릭 시 adm_mem 오픈
         // 💡 팁: 목록 테이블 렌더링 시 버튼에 인자로 user 객체를 넘겨주거나(openAdminMemberController(user)), 
         // 인자 없이 호출하면(openAdminMemberController()) 방금 join_login을 통과한 유저를 제어하도록 다형성(Polymorphism)을 부여합니다.
@@ -6600,6 +6588,40 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             link.click();
             document.body.removeChild(link);
         };
+
+        // 원문 내용 앞 소스 (admin.html 파일의 맨 최하단부인 closeNoticeEditor / saveNoticeEditorData 함수 종료 분기점)
+        function closeNoticeEditor() {
+            if (document.getElementById('noticeEditorModal'))
+                document.getElementById('noticeEditorModal').style.display = 'none';
+        }
+        function saveNoticeEditorData() {
+            const id = document.getElementById('modal-rec-id').value;
+            const idx = dataStoreRecruitment.findIndex(item => String(item.uid) ===
+                String(id));
+            if (idx !== -1) {
+                dataStoreRecruitment[idx].notice = document.getElementById('modal-rec-notice').value.trim();
+                dataStoreRecruitment[idx].examSchedule = document.getElementById('modal-rec-examSchedule').value.trim();
+                dataStoreRecruitment[idx].paySchedule = document.getElementById('modal-rec-paySchedule').value.trim();
+                commitToLocalStorage(); alert('세부 데이터가 목록에 반영되었습니다.');
+                closeNoticeEditor(); refreshRecruitmentView();
+            }
+        }
+
+        // ----------------======================================================================
+        // 🟢 [최종 정정 완료]: 다른 거대 함수의 중괄호 간섭을 전면 전역 탈출하여, 최하단 전역 독립 공간에 안전 락인 마감했습니다.
+        // ----------------======================================================================
+        // [실제 모바일용] B. 우측 상단 모바일 인증서 로그인 테스트 팝업 가동
+        function openMobileAuthBridge() {
+            window.open('m-login.html', 'mobileAuthPopup', 'width=420, height=860, top=130, left=230, resizable=no, scrollbars=yes');
+        }
+        window.openMobileAuthBridge = openMobileAuthBridge;
+
+        // [실제 모바일용] C. 상단 모바일 관리자 제어반 테스트 팝업 가동
+        function openAdminMobileControlBridge() {
+            window.open('m-adm.html', 'adminMobileControlPopup', 'width=450, height=740, top=130, left=680, resizable=no, scrollbars=yes');
+        }
+        window.openAdminMobileControlBridge = openAdminMobileControlBridge;
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

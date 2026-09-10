@@ -759,7 +759,7 @@
         }
 
         // 💥 2단: [하이브리드 이중 분기 패치] 마스터 DB 대조 및 신규 유저 대상 가상 계정 즉석 발급 엔진
-           function executeStep2Submit() {
+        function executeStep2Submit() {
             const name = document.getElementById('txtUserName').value.trim();
             const birth = document.getElementById('txtUserBirth').value.trim().replace(/[^0-9]/g, '');
             const phone = document.getElementById('txtUserPhone').value.trim().replace(/[^0-9]/g, '');
@@ -771,25 +771,14 @@
             temporaryVerifiedName = name;
 
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            
-            // 🟢 [수정 완료]: 입력 길이에 상관없이 앞 6자리만 잘라내어 진재영 님의 '050607' 6자리 대장 스펙과 완벽 동기화
-            const cleanInputBirth6 = birth.substring(0, 6);
+            const cleanInputBirth6 = birth.length === 8 ? birth.substring(2) : birth;
 
-            // 마스터 대장과 실시간 교차 대조 검증 (하이픈 공백 제거 및 순수 숫자 체인 정밀 대조)
+            // 마스터 대장과 실시간 교차 대조 검증
             matchedPatientData = adminApplicantDB.find(user => {
-                if (!user || !user.name) return false;
-                
-                const isNameMatch = user.name.toString().trim() === name;
-                
                 const dbBirth = (user.ssn || '').toString().replace(/[^0-9]/g, '');
                 const cleanDbBirth6 = dbBirth.length === 8 ? dbBirth.substring(2) : dbBirth;
-                const isBirthMatch = cleanDbBirth6 === cleanInputBirth6;
-                
-                const dbPhoneClean = (user.phone || '').toString().replace(/[^0-9]/g, '');
-                const inputPhoneClean = phone.replace(/[^0-9]/g, '');
-                const isPhoneMatch = dbPhoneClean === inputPhoneClean;
-                
-                return isNameMatch && isBirthMatch && isPhoneMatch;
+                const cleanDbPhone = (user.phone || '').toString().replace(/[^0-9]/g, '');
+                return user.name === name && cleanDbBirth6 === cleanInputBirth6 && cleanDbPhone === phone;
             });
 
             const popup = document.getElementById('popupEmbedded3');
@@ -810,9 +799,7 @@
                 popup.parentElement.className = "popup-display-zone pop-theme-pass";
                 if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
-                
-                // 🟢 [용어 통일]: 사례비 ➡️ 참여비 전격 교정 단일화
-                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}\n\n📢 [참여비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
+                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}\n\n📢 [사례비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
             } else {
                 // 💡 [트랙 B: 최초 방문 신규 대상자] 가상 패스권 즉석 발급 가동
                 const ghostPassTicket = {

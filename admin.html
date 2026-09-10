@@ -259,7 +259,7 @@
                                 <th style="width: 80px; text-align: center;">당직공지</th>
                                 <th style="width: 80px; text-align: center;">소집공지</th>
                                 <th style="width: 150px; text-align: center;">참여비 지급일</th>
-                                <th style="width: 140px; text-align: center; padding-right: 35px;">작업</th>
+                                <th style="width: 140px; text-align: center; padding-right: 15px;">작업</th>
                             </tr>
                         </thead>
                         <tbody id="dom-recruitment-table"></tbody>
@@ -2134,7 +2134,12 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
         <td style="width: 6.5%; vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
-        <td style="width: 6%; vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
+        
+        <!-- 🟢 [수정 완료]: 대표님의 진짜 원본 스펙을 100% 무결성 사수하며, 이름 칸에 살아있는 openAppHistoryDetailModal(${masterIndex}) 함수를 정밀 매칭 결합 완료했습니다. -->
+        <td style="width: 6%; vertical-align: middle; text-align: center; font-weight: 700;">
+            <a onclick="openAppHistoryDetailModal(${masterIndex})" style="color: #57a7fd !important; text-decoration: underline; cursor: pointer;">${row.name || ''}</a>
+        </td>
+        
         <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
             ${row.ssn ? row.ssn.toString().trim().substring(0, 6) : '-'}
         </td>

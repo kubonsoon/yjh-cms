@@ -931,6 +931,49 @@
                 alert("전산 오류: 데이터 동기화 유실로 인해 청구 접수가 거절되었습니다.");
             }
         }
+
+
+// 원문 내용 앞 소스 (fireUpload 파일 업로드 완료 및 closePopupAndApply 함수 하위 구역)
+        function closePopupAndApply() {
+            document.getElementById('view_popup').style.display = 'none';
+            let badge = document.getElementById('mo_badge');
+            if(window.latestStatus === 'PASS') {
+                badge.innerText = "통과"; badge.className = "badge bg-green";
+            } else {
+                badge.innerText = "탈락"; badge.className = "badge bg-red";
+            }
+        }
+
+        function commitFinalSettlement() {
+            let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            let row = applicantDB.find(u => u.name === myName);
+            
+            if(row) {
+                // 🟢 [수정 완료]: 관리자 제어반 m-adm 스펙과 호환되도록 차수별 정산완료/탈락정산 상태값 분기 매칭 완결
+                if(targetStageCode === 1) row.payStatus1 = "완료";
+                else if(targetStageCode === 2) { row.payStatus1 = "완료"; row.payStatus2 = "완료"; row.payStatus3 = "완료"; }
+                else if(targetStageCode === 3) row.payStatus1 = "탈락정산";
+                else if(targetStageCode === 4) row.payStatus1 = "예비정산";
+                else if(targetStageCode === 5) row.payStatus1 = "중도정산";
+
+                // 🟢 [수정 완료]: 부모창 admin.html 명단의 첨부서류 슬롯과 실시간 주파수를 일치시키는 진짜 패킷 이름표 데이터 다이렉트 바인딩 주입
+                row.idCardImg = idCardBase64;
+                row.bankBookImg = bankBookBase64;
+
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
+                
+                // 🟢 [수정 완료]: 서류 전송 즉시 관제탑 부모 창(admin.html)의 마스터 대장을 원격 리렌더링하여 실시간 불 들어오기 하이브리드 종결
+                if(window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
+                    window.opener.refreshApplicantView();
+                }
+
+                alert("🎉 접수 완료\n\n귀하의 참여비 온라인 금융 정산 청구서 및 증빙 서류가 마스터 대장 전산망으로 안전하게 전송되었습니다.");
+                document.getElementById('mo_submit_btn').disabled = true;
+                document.getElementById('mo_submit_btn').innerText = "지급 신청 접수 완료";
+                document.getElementById('mo_submit_btn').style.opacity = "0.5";
+            }
+        }
+                
     </script>
 </body>
 

@@ -512,9 +512,9 @@
 
                     <!-- 🟢 [수정 완료]: 불필요한 가로 공간 낭비를 막고 버튼을 인풋 창 바로 옆으로 밀착시키기 위해 부모 너비를 max-content로 제어 -->
                     <div class="register-form"
-                        style="display: flex; flex-wrap: nowrap; gap: 6px; align-items: flex-end; width: max-content;">
+                        style="display: flex; flex-wrap: nowrap; gap: 6px; align-items: center !important; width: max-content;">
 
-                        <!-- 1. 사번 인풋 (5글자 스펙 ➡️ 컴팩트 고정 폭 100px 락업) -->
+                        <!-- 1. 사번 인풋 (5글자 스펙 ➡️ 컴팩트 고정 폭 110px 락업) -->
                         <div class="form-group" style="width: 110px; flex-shrink: 0;">
                             <label
                                 style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">사번</label>
@@ -522,7 +522,7 @@
                                 style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; font-size: 14px; font-weight: 500; outline: none; text-align: center;">
                         </div>
 
-                        <!-- 2. 이름 인풋 (5글자 스펙 ➡️ 컴팩트 고정 폭 110px 락업) -->
+                        <!-- 2. 이름 인풋 (5글자 스펙 ➡️ 컴팩트 고정 폭 120px 락업) -->
                         <div class="form-group" style="width: 120px; flex-shrink: 0;">
                             <label
                                 style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">이름</label>
@@ -530,7 +530,7 @@
                                 style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; font-size: 14px; font-weight: 500; outline: none; text-align: center;">
                         </div>
 
-                        <!-- 3. 직급 셀렉트 (7글자 스펙 ➡️ 화살표 공간 포함 고정 폭 140px 락업) -->
+                        <!-- 3. 직급 셀렉트 (7글자 스펙 ➡️ 화살표 공간 포함 고정 폭 160px 락업) -->
                         <div class="form-group" style="width: 160px; flex-shrink: 0;">
                             <label
                                 style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">직급</label>
@@ -548,7 +548,7 @@
                             </select>
                         </div>
 
-                        <!-- 4. 소속 부서 인풋 (10글자 스펙 ➡️ 컴팩트 고정 폭 180px 락업) -->
+                        <!-- 4. 소속 부서 인풋 (10글자 스펙 ➡️ 컴팩트 고정 폭 200px 락업) -->
                         <div class="form-group" style="width: 200px; flex-shrink: 0;">
                             <label
                                 style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">소속
@@ -557,7 +557,7 @@
                                 style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 14px; font-weight: 500; outline: none;">
                         </div>
 
-                        <!-- 5. 등록 실행 단추 (🟢 수정 완료: margin-bottom: 0 !important; 이식을 통해 아래로 처지던 현상을 완벽히 해결하고 수평 정렬 일치화 완수) -->
+                        <!-- 5. 등록 실행 단추 -->
                         <button class="action-btn" onclick="insertAdminMember()"
                             style="height: 38px !important; margin-bottom: 0 !important; padding: 0 16px; color: #070a12; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; background: var(--success-color); box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             임직원 등록

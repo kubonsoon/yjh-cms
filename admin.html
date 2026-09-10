@@ -1182,7 +1182,6 @@
 
 
         //대상자 개인 이력 마스터 대장 오픈 및 데이터 실시간 바인딩 함수
-
         function openAppHistoryDetailModal(index) {
             // 1. 메모리 컨텍스트 최신 데이터 동기화 락인 [index: 0.1.30]
             let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -1305,14 +1304,18 @@
             });
 
             // 하단 루프 간섭을 완벽히 우회하여 최종 승리자 축으로 721127 순정 생년월일 포맷을 락업 완료했습니다.
-            if (selectedUser && selectedUser.ssn) {
+           if (selectedUser && selectedUser.ssn) {
                 const finalBirthDate = selectedUser.ssn.toString().trim().substring(0, 6);
+                const finalGenderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
                 const targetDisplayNode = document.getElementById("modal-app-ssn-gender");
                 if (targetDisplayNode) {
-                    targetDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span>`;
+                    targetDisplayNode.innerHTML = `
+                        <span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> 
+                        <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>
+                    `;
                 }
             }
-
+            
             // 5. 와이드 오버레이 프레임 활성화 출력 제어
             const modalEl = document.getElementById("historyModalOverlay");
             if (modalEl) {

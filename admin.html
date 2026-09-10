@@ -1016,7 +1016,7 @@
         } // 💡 changeMainViewport 함수가 정확히 닫히고 다음 함수와 깨끗하게 결합됩니다.
 
 
-
+        //신규 모집 공고 등록 - 데이터 출력
         function refreshRecruitmentView() {
             const listContainer = document.getElementById('dom-recruitment-table');
             if (!listContainer) return;
@@ -1310,7 +1310,7 @@
         }
 
         // ========================================================
-        // 모집공고 실시간 해당 라인 수정 엔진
+        // 모집공고 실시간 해당 라인 수정
         // ========================================================
         window.currentEditingRecruitmentIndex = null; // 현재 인라인 수정 중인 행 번호 슬롯 (초기값 null)
 
@@ -1408,7 +1408,7 @@
                 const modalMetaText = `${displayTitle} ${displayTh}`;
 
                 // ----------------======================================================
-                // 💡 [A 분기]: 인라인 수정 모드 활성화 상태 마크업 사출 (원본 유지 및 보정)
+                //  [A분기]: 인라인 수정 모드 활성화 상태 마크업 사출
                 // ----------------------------------------------------------------======
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
@@ -1435,7 +1435,7 @@
                         <option value="3기" ${row.th === '3기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">3기</option>
                         <option value="4기" ${row.th === '4기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">4기</option>
                     </select>
-                    <!-- 🎯 우측 끝 공간에 상시 박제되는 순백색 역삼각형 화살표 아이콘 -->
+                    <!-- 우측 끝 공간에 상시 박제되는 순백색 역삼각형 화살표 아이콘 -->
                     <span style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: #ffffff !important; font-size: 8px; pointer-events: none; user-select: none; font-weight: bold;">▼</span>
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
@@ -1469,17 +1469,19 @@
                         <input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
                     </div>
                 </td>
-                <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
-                    <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important;">
-                        <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
-                        <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
-                    </div>
-                </td>
+                <td style="width: 140px; vertical-align: middle !important; text-align: center; padding-right: 15px;">
+                   <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; align-items: center !important; gap: 4px !important; width: 100% !important; height: 100% !important; pointer-events: auto !important; white-space: nowrap !important;">
+                     <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color,
+                       #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
+                     <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--
+                       border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
+            </div>
+        </td>
             `;
                 }
 
                 // ----------------======================================================
-                // 💡 [B 분기]: 일반 읽기 전용 상태 리스트 모드일 때 (순정 "보기" 버튼 양식 100% 보존)
+                // 💡 [B분기]: 일반 읽기 전용 상태 리스트 모드일 때 
                 // ----------------======================================================
                 else {
                     const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
@@ -2904,12 +2906,12 @@
                     <button class="btn-inline list" onclick="cancelAdminMemberInlineMode()">목록</button>
                 </td>`;
                 } else {
-                   // 🟢 [수정 완료]: 상단 탑바와 완벽한 통일성을 갖추도록 차분한 연주황 오렌지색 테마(rgba 조합 + border 라인)로 고정
+                    // 🟢 [수정 완료]: 상단 탑바와 완벽한 통일성을 갖추도록 차분한 연주황 오렌지색 테마(rgba 조합 + border 라인)로 고정
                     const pBtn = isMasterAdmin ? `<button class="btn-inline" style="background: rgba(251, 191, 36, 0.15) !important; border: 1px solid #fbbf24 !important; font-size: 11px; padding: 4px 8px; color: #fbbf24 !important; font-weight: 700; border-radius: 4px; cursor: pointer;" onclick="openSelfPasswordModal('${row.sabun}')"><i class="fa-solid fa-key"></i> 비밀번호 수정</button>` : '';
-                    
+
                     // 🟢 [수정 완료]: 수정 단추를 인디고 딥 블루(#1e40af)로 적용하고, 대표님 지시대로 간격을 시원하게 gap: 10px !important 스펙으로 격리 마감
                     const aBtn = isMasterAdmin ? `<div style="display:inline-flex !important; justify-content:center !important; gap:10px !important; align-items:center !important; vertical-align:middle !important;"><button class="btn-inline edit" style="background: #1e293b !important; color: #fff !important; font-weight: 700; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" onclick="enableAdminMemberInlineMode('${row.sabun}')">수정</button><button class="btn-inline delete" onclick="removeAdminMemberRecord('${row.sabun}')">삭제</button></div>` : '';
-                    
+
                     tr.innerHTML = `<td style="color:var(--secondary-color); font-weight:700;">${row.sabun}</td><td class="text-bold">${row.name}</td><td>${row.dept}</td><td><span class="text-bold" style="color:#fff;">${row.duty}</span></td><td><span class="lvl-badge lvl-${lvl}"><i class="fa-solid fa-shield"></i> ${lvl}레벨 등급</span></td><td>${pBtn}</td><td style="text-align: center; vertical-align: middle;">${aBtn}</td>`;
                 }
                 tbody.appendChild(tr);

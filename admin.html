@@ -296,15 +296,16 @@
 
                         <!-- 2. 참여비 신청 버튼 (25px 간격 배치 완료) -->
                         <button onclick="openAdminMobileControlBridge()" type="button" style="background: #0e66e9; color: #ffffff; padding: 10px 16px;border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display:inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 102, 233, 0.3);
-                              transition: all 0.2s ease;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#0e66e9'">
-                              심사처리(관리자)
+                              transition: all 0.2s ease;" onmouseover="this.style.background='#2563eb'"
+                            onmouseout="this.style.background='#0e66e9'">
+                            심사처리(관리자)
                         </button>
 
                         <!-- 2. 참여비 신청 버튼 (25px 간격 배치 완료) -->
                         <button onclick="openMobileForm()" type="button"
-                                style="background: #0e66e9; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 102, 233, 0.3); transition: all 0.2s ease;"
-                                onmouseover="this.style.background='#2563eb'"
-                                onmouseout="this.style.background='#0e66e9'">대상자 참여비 신청
+                            style="background: #0e66e9; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 102, 233, 0.3); transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#2563eb'"
+                            onmouseout="this.style.background='#0e66e9'">대상자 참여비 신청
                         </button>
 
                     </div>
@@ -3762,13 +3763,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             window.open('join_login.html', 'civilAuthPopup', 'width=500, height=750, top=150, left=200');
         }
 
-        // [실제 모바일용] B. 우측 상단 모바일 인증서 로그인 테스트 팝업 가동
+        // [모바일 전용] 우측 상단 모바일 인증서 로그인 테스트 팝업 가동
         function openMobileAuthBridge() {
-            // 프리미엄 모바일 폰 규격(폭 420px, 높이 860px)에 맞춰 m-login.html을 자식 창으로 오픈
-            // 부모 창(window.opener) 컨텍스트 바인딩을 통해 실시간 메모리 동기화 링크 활성화
-            window.open('m-login.html', 'mobileAuthPopup', 'width=420, height=860, top=130, left=230, resizable=no, scrollbars=yes');
+            window.open('m-login.html', 'mobileAuthPopup', 'width=420, height=860, top=10, left=230, resizable=no, scrollbars=yes');
         }
         window.openMobileAuthBridge = openMobileAuthBridge;
+
+        // [모바일 전용] m-adm.html 전용 독립 팝업
+        function openAdminMobileControlBridge() {
+            window.open('m-adm.html', 'adminMobileControlPopup', 'width=420, height=860, top=10, left=680, resizable=no, scrollbars=yes');
+        }
+        window.openAdminMobileControlBridge = openAdminMobileControlBridge;
 
 
         // B. 목록 내에서 [사례비 신청 프로세스 관리] 또는 상단 테스트 버튼 클릭 시 adm_mem 오픈

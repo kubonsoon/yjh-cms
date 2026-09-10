@@ -829,7 +829,7 @@
         }
 
         // 💥 3단: [하이브리드 라우팅 라우터] 처리 결과 확인 시 유저 속성별 페이지 고속 스위칭 공정
-        function executeStep3ConfirmNext() {
+         function executeStep3ConfirmNext() {
             if (matchedPatientData) {
                 // 💡 객체 내 신규방문 플래그 유무 속성을 역추적하여 전산망 분기
                 if (matchedPatientData.isNewUserGhost) {
@@ -842,6 +842,27 @@
                         iframe.contentWindow.renderCalendar();
                     }
                 } else {
+                    // ----------------======================================================================
+                    // 🟢 [정밀 교정]: 순정 변수(matchedPatientData) 스펙 일치화 및 6개월 경과 캘린더 이동 인터셉터 완결!
+                    // ----------------======================================================================
+                    // 하단 commitFinalSettlement() 함수와 전역 주파수를 맞추기 위해 마스터 변수 락인
+                    myName = matchedPatientData.name || "홍길동"; 
+
+                    const systemCurrentTime = new Date("2026-09-11"); // 전산망 표준 현재 마스터 시점 고정
+                    const lastExamDate = matchedPatientData.recDate ? new Date(matchedPatientData.recDate) : null;
+
+                    if (lastExamDate) {
+                        const timeDiff = systemCurrentTime.getTime() - lastExamDate.getTime();
+                        const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+                        // 180일(6개월) 이상 경과 완료된 25년도 기존 참여 대상자 격리 가드 발동
+                        if (dayDiff >= 180) {
+                            alert(`ℹ️ 전산망 보안 안내\n\n대상자 ${matchedPatientData.name} 님은 마지막 시험 참여 후 6개월(현재 ${dayDiff}일 경과)이 지나 새로운 시험에 참여가 가능합니다.\n\n확인을 누르면 모바일 모집공고 캘린더 화면으로 이동합니다.`);
+                            location.href = "m-calendar.html";
+                            return; // 4단계 정산 신청서 화면으로의 진입을 완벽하게 차단
+                        }
+                    }
+
                     // [분기 트랙 A] 기존 연동 완료 대상자는 원본 기획서 그대로 4단계 정산서 양식 랜딩!
                     navigateToStep(4);
                     document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
@@ -973,7 +994,7 @@
                 document.getElementById('mo_submit_btn').style.opacity = "0.5";
             }
         }
-                
+
     </script>
 </body>
 

@@ -6613,6 +6613,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         // ----------------======================================================================
         // [실제 모바일용] B. 우측 상단 모바일 인증서 로그인 테스트 팝업 가동
         function openMobileAuthBridge() {
+            if (!sessionStorage.getItem('targetApplicantName')) {
+                sessionStorage.setItem('targetApplicantName', '홍길동');
+            }
             window.open('m-login.html', 'mobileAuthPopup', 'width=420, height=860, top=130, left=230, resizable=no, scrollbars=yes');
         }
         window.openMobileAuthBridge = openMobileAuthBridge;

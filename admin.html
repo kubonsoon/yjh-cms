@@ -295,9 +295,10 @@
                         </button>
 
                         <!-- 2. 참여비 신청 버튼 (25px 간격 배치 완료) -->
-                        <button onclick="openAdminMobileControlBridge()" type="button" style="background: #0e66e9; color: #ffffff; padding: 10px 16px;border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display:inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 102, 233, 0.3);
-                              transition: all 0.2s ease;" onmouseover="this.style.background='#2563eb'"
-                            onmouseout="this.style.background='#0e66e9'">
+                        <!-- 🟢 [최종 마감 확정]: 인라인에 어떠한 난수 찌꺼기도 없이 깨끗하게 openAdminMobileControlBridge() 전용 독립 브릿지 함수 호출선이 고정 락인되었습니다. -->
+                        <button onclick="openAdminMobileControlBridge()" type="button"
+                            style="background: #0e66e9; color: #ffffff; padding: 10px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 102, 233, 0.3); transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#0e66e9'">
                             심사처리(관리자)
                         </button>
 
@@ -3763,7 +3764,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             window.open('join_login.html', 'civilAuthPopup', 'width=500, height=750, top=150, left=200');
         }
 
-    
+
         // B. 목록 내에서 [사례비 신청 프로세스 관리] 또는 상단 테스트 버튼 클릭 시 adm_mem 오픈
         // 💡 팁: 목록 테이블 렌더링 시 버튼에 인자로 user 객체를 넘겨주거나(openAdminMemberController(user)), 
         // 인자 없이 호출하면(openAdminMemberController()) 방금 join_login을 통과한 유저를 제어하도록 다형성(Polymorphism)을 부여합니다.

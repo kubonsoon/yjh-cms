@@ -1304,23 +1304,44 @@
             });
 
                 // 🟢 [최종 종결]: 비동기 타이밍 스케줄러(setTimeout)를 인젝션하여, 화면 뒤에서 몰래 작동하던 강제 초기화 간섭을 완벽히 무력화하고 721127 형태를 강제 고정 마감했습니다.
-             if (selectedUser && selectedUser.ssn) {
-                const finalBirthDate = selectedUser.ssn.toString().trim().substring(0, 6);
+             if (selectedUser) {
+                console.log("==========================================");
+                console.log("[디버깅] 1. 선택된 대상자 원본 객체 데이터:", selectedUser);
+                console.log("[디버깅] 2. 대상자 원본 주민등록번호(ssn):", selectedUser.ssn);
+                
+                const finalBirthDate = selectedUser.ssn ? selectedUser.ssn.toString().trim().substring(0, 6) : "데이터없음";
                 const finalGenderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
                 
-                // ID 명칭 오차를 원천 무력화하는 슬롯 정밀 추적기 가동
-                const targetNodes = [
-                    document.getElementById("modal-app-ssn-gender"),
-                    document.getElementById("modal-app-ssn"),
-                    document.querySelector("[id*='modal-app-ssn']"),
-                    document.querySelector(".history-modal-overlay [id*='ssn']")
-                ];
+                console.log("[디버깅] 3. 가공 완료된 6자리 생년월일 포맷:", finalBirthDate);
+                console.log("[디버깅] 4. 실시간 연산된 성별 결과값:", finalGenderSign);
 
-                targetNodes.forEach(node => {
+                // 모달창 내부의 후보 노드들 실시간 추적 및 돔 상태 로깅
+                const targetNodes = {
+                    "id_ssn_gender": document.getElementById("modal-app-ssn-gender"),
+                    "id_ssn_only": document.getElementById("modal-app-ssn"),
+                    "query_id_match": document.querySelector("[id*='modal-app-ssn']"),
+                    "query_class_match": document.querySelector(".history-modal-overlay [id*='ssn']")
+                };
+
+                console.log("[디버깅] 5. 현재 화면 돔(DOM) 엘리먼트 실시간 생존 판정:", {
+                    "modal-app-ssn-gender 존재여부": targetNodes.id_ssn_gender ? "🟢 생존 (정상)" : "❌ 소멸 (유령ID)",
+                    "modal-app-ssn 존재여부": targetNodes.id_ssn_only ? "🟢 생존 (정상)" : "❌ 소멸 (유령ID)",
+                    "모달 내부 ssn 아이디 포함 태그": targetNodes.query_id_match ? "🟢 생존" : "❌ 소멸",
+                    "복제 클래스틀 내 ssn 태그": targetNodes.query_class_match ? "🟢 생존" : "❌ 소멸"
+                });
+
+                // 데이터 강제 주입 실행 및 결과 로깅
+                Object.keys(targetNodes).forEach(key => {
+                    const node = targetNodes[key];
                     if (node) {
                         node.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
+                        console.log(`[디버깅] 6. [성공] 엘리먼트 [${key}] 구역에 6자리 생년월일 및 성별 배지 주입 완료.`);
                     }
                 });
+                console.log("==========================================");
+            } else {
+                console.error("[디버깅 에러] selectedUser 객체가 메모리에 존재하지 않아 로그 추적을 중단합니다.");
+            
             }
 
              // 5. 와이드 오버레이 프레임 활성화 출력 제어

@@ -1199,7 +1199,7 @@
             document.getElementById("modal-app-th").innerText = typeof formatTh === "function" ? formatTh(selectedUser.th || "-") : (selectedUser.th || "-");
 
             // 주민번호 가공 및 성별 추출 통합 락인 (예: 950505 (남)) 
-           const pureBirthDate = selectedUser && selectedUser.ssn ? selectedUser.ssn.toString().trim().substring(0, 6) : '-';
+            const pureBirthDate = selectedUser && selectedUser.ssn ? selectedUser.ssn.toString().trim().substring(0, 6) : '-';
             const genderSign = (selectedUser && typeof parseGenderFromSsn === "function") ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
 
             // 변수가 확실히 존재할 때만 안전하게 돔(DOM)에 사출하는 방어막 빌드
@@ -1225,7 +1225,7 @@
             document.getElementById("modal-pay-status2").innerText = selectedUser.payStatus2 || "대기";
             document.getElementById("modal-pay-status3").innerText = selectedUser.payStatus3 || "대기";
 
-            // 3. 동일 피험자 임상시험 참여 이력 전수 추적 매커니즘 가동 (공백 무관 정밀 매칭) [index: 0.1.30]
+            // 3. 동일 피험자 임상시험 참여 이력 전수 추적 매커니즘 가동 (공백 무관 정밀 매칭) 
             const scrollZone = document.getElementById("modal-history-scroll-zone");
             if (!scrollZone) return console.error("스크롤 영역 엘리먼트(modal-history-scroll-zone)가 돔에 존재하지 않습니다.");
             scrollZone.innerHTML = ""; // 기존 스크롤 노드 리셋 청소
@@ -1241,7 +1241,7 @@
             // 상단 제목 건수 표기 실시간 동기화 업데이트
             const titleEl = document.getElementById("modal-history-count-title");
             if (titleEl) {
-                titleEl.innerText = `동일 피험자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)`;
+                titleEl.innerText = `동일 댕사자 과거 임상시험 참여 누적 내역 (${historyRecords.length}건)`;
             }
 
             // 4. 추출된 기록을 기반으로 현재시험 / 과거시험 분기하여 스크롤 리스트업 사출 [index: 0.1.30]
@@ -1303,6 +1303,15 @@
                 cardTr.appendChild(statusDiv);
                 scrollZone.appendChild(cardTr);
             });
+
+            // 하단 루프 간섭을 완벽히 우회하여 최종 승리자 축으로 721127 순정 생년월일 포맷을 락업 완료했습니다.
+            if (selectedUser && selectedUser.ssn) {
+                const finalBirthDate = selectedUser.ssn.toString().trim().substring(0, 6);
+                const targetDisplayNode = document.getElementById("modal-app-ssn-gender");
+                if (targetDisplayNode) {
+                    targetDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span>`;
+                }
+            }
 
             // 5. 와이드 오버레이 프레임 활성화 출력 제어
             const modalEl = document.getElementById("historyModalOverlay");

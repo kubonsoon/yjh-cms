@@ -1304,25 +1304,23 @@
             });
 
                 // 🟢 [최종 종결]: 비동기 타이밍 스케줄러(setTimeout)를 인젝션하여, 화면 뒤에서 몰래 작동하던 강제 초기화 간섭을 완벽히 무력화하고 721127 형태를 강제 고정 마감했습니다.
-            if (selectedUser && selectedUser.ssn) {
+             if (selectedUser && selectedUser.ssn) {
                 const finalBirthDate = selectedUser.ssn.toString().trim().substring(0, 6);
                 const finalGenderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
                 
-                // 타이밍 간섭 분쇄 마스터 가드 구동 (0초 대기 후 즉시 덮어쓰기)
-                setTimeout(function() {
-                    const targetDisplayNode = document.getElementById("modal-app-ssn-gender") || document.querySelector(".history-modal-overlay #modal-app-ssn-gender");
-                    if (targetDisplayNode) {
-                        targetDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
-                    }
-                }, 0);
+                // ID 명칭 오차를 원천 무력화하는 슬롯 정밀 추적기 가동
+                const targetNodes = [
+                    document.getElementById("modal-app-ssn-gender"),
+                    document.getElementById("modal-app-ssn"),
+                    document.querySelector("[id*='modal-app-ssn']"),
+                    document.querySelector(".history-modal-overlay [id*='ssn']")
+                ];
 
-                // 2중 안전 락인 쉴드 기믹 가동 (혹시 모를 0.05초 지연 초기화까지 완전히 격리 진압)
-                setTimeout(function() {
-                    const targetDisplayNode = document.getElementById("modal-app-ssn-gender") || document.querySelector(".history-modal-overlay #modal-app-ssn-gender");
-                    if (targetDisplayNode) {
-                        targetDisplayNode.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
+                targetNodes.forEach(node => {
+                    if (node) {
+                        node.innerHTML = `<span style="font-weight: 700; color: #ffffff;">${finalBirthDate}</span> <span class="lvl-badge ${finalGenderSign === '남' ? 'lvl-2' : 'lvl-10'}" style="margin-left: 6px; font-weight: 800;">${finalGenderSign}</span>`;
                     }
-                }, 50);
+                });
             }
 
              // 5. 와이드 오버레이 프레임 활성화 출력 제어

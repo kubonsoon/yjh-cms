@@ -2904,13 +2904,13 @@
                     <button class="btn-inline list" onclick="cancelAdminMemberInlineMode()">목록</button>
                 </td>`;
                 } else {
-                    // 🟢 [수정 완료]: 노란색을 제외하고 차분하고 묵직한 소프트 딥 골드 브라운(#b45309) 테마로 톤다운 변경
-                    const pBtn = isMasterAdmin ? `<button class="btn-inline" style="background:#1E90FF; font-size:11px; padding:4px 10px; color:#fff; font-weight:700; border:none; border-radius:4px; cursor:pointer;" onclick="openSystemResetPasswordModal('${row.sabun}')"><i class="fa-solid fa-key"></i> 비밀번호 수정</button>` : '';
+                   // 🟢 [수정 완료]: 상단 탑바와 완벽한 통일성을 갖추도록 차분한 연주황 오렌지색 테마(rgba 조합 + border 라인)로 정밀 변환
+                    const pBtn = isMasterAdmin ? `<button class="btn-inline" style="background: rgba(251, 191, 36, 0.15) !important; border: 1px solid #fbbf24 !important; font-size: 11px; padding: 4px 8px; color: #fbbf24 !important; font-weight: 700; border-radius: 4px; cursor: pointer;" onclick="openSystemResetPasswordModal('${row.sabun}')"><i class="fa-solid fa-key"></i> 비밀번호 수정</button>` : '';
                     
-                    // 🟢 [수정 완료]: 수정 단추를 차분한 스틸 블루(#334155)로 변경하고, 대표님 지시대로 간격을 3px 더 벌려 gap: 8px !important 스펙으로 정밀 락인
-                    const aBtn = isMasterAdmin ? `<div style="display:inline-flex !important; justify-content:center !important; gap:8px !important; align-items:center !important; vertical-align:middle !important;"><button class="btn-inline edit" style="background:#334155 !important; color:#fff !important; font-weight:700; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="enableAdminMemberInlineMode('${row.sabun}')">수정</button><button class="btn-inline delete" onclick="removeAdminMemberRecord('${row.sabun}')">삭제</button></div>` : '';
+                    // 🟢 [수정 완료]: 버튼 간격은 원본 순정 상태를 그대로 유지하고, 수정 버튼의 색상만 차분한 인디고 딥 블루(#1e40af) 스펙으로 변경 완료
+                    const aBtn = isMasterAdmin ? `<button class="btn-inline edit" style="background: #1e40af !important; color: #fff !important; font-weight: 700; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" onclick="enableAdminMemberInlineMode('${row.sabun}')">수정</button><button class="btn-inline delete" onclick="removeAdminMemberRecord('${row.sabun}')">삭제</button>` : '';
                     
-                    tr.innerHTML = `<td style="color:var(--secondary-color); font-weight:700;">${row.sabun}</td><td class="text-bold">${row.name}</td><td>${row.dept}</td><td><span class="text-bold" style="color:#fff;">${row.duty}</span></td><td><span class="lvl-badge lvl-${lvl}"><i class="fa-solid fa-shield"></i> ${lvl}레벨 등급</span></td><td>${pBtn}</td><td style="text-align: center; vertical-align: middle;">${aBtn}</td>`;
+                    tr.innerHTML = `<td style="color:var(--secondary-color); font-weight:700;">${row.sabun}</td><td class="text-bold">${row.name}</td><td>${row.dept}</td><td><span class="text-bold" style="color:#fff;">${row.duty}</span></td><td><span class="lvl-badge lvl-${lvl}"><i class="fa-solid fa-shield"></i> ${lvl}레벨 등급</span></td><td>${pBtn}</td><td style="text-align: center;">${aBtn}</td>`;
                 }
                 tbody.appendChild(tr);
             });

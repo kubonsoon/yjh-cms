@@ -2905,7 +2905,7 @@
                 </td>`;
                 } else {
                     // 🟢 [수정 완료]: 노란색을 제외하고 차분하고 묵직한 소프트 딥 골드 브라운(#b45309) 테마로 톤다운 변경
-                    const pBtn = isMasterAdmin ? `<button class="btn-inline" style="background:#b45309; font-size:11px; padding:4px 10px; color:#fff; font-weight:700; border:none; border-radius:4px; cursor:pointer;" onclick="openSystemResetPasswordModal('${row.sabun}')"><i class="fa-solid fa-key"></i> 비밀번호 수정</button>` : '';
+                    const pBtn = isMasterAdmin ? `<button class="btn-inline" style="background:#ff0000; font-size:11px; padding:4px 10px; color:#fff; font-weight:700; border:none; border-radius:4px; cursor:pointer;" onclick="openSystemResetPasswordModal('${row.sabun}')"><i class="fa-solid fa-key"></i> 비밀번호 수정</button>` : '';
                     
                     // 🟢 [수정 완료]: 수정 단추를 차분한 스틸 블루(#334155)로 변경하고, 대표님 지시대로 간격을 3px 더 벌려 gap: 8px !important 스펙으로 정밀 락인
                     const aBtn = isMasterAdmin ? `<div style="display:inline-flex !important; justify-content:center !important; gap:8px !important; align-items:center !important; vertical-align:middle !important;"><button class="btn-inline edit" style="background:#334155 !important; color:#fff !important; font-weight:700; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="enableAdminMemberInlineMode('${row.sabun}')">수정</button><button class="btn-inline delete" onclick="removeAdminMemberRecord('${row.sabun}')">삭제</button></div>` : '';

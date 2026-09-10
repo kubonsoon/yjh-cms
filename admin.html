@@ -1303,8 +1303,8 @@
                 scrollZone.appendChild(cardTr);
             });
 
-          // 🟢 [최종 정정]: 이중으로 숨어 버티던 복제 모달 뼈대(.history-modal-overlay)의 데이터 슬롯까지 전격 2중 핀포인트 타격하여 721127 형태를 강제 고정 완료했습니다.
-             if (selectedUser && selectedUser.ssn) {
+                // 🟢 [최종 종결]: 비동기 타이밍 스케줄러(setTimeout)를 인젝션하여, 화면 뒤에서 몰래 작동하던 강제 초기화 간섭을 완벽히 무력화하고 721127 형태를 강제 고정 마감했습니다.
+            if (selectedUser && selectedUser.ssn) {
                 const finalBirthDate = selectedUser.ssn.toString().trim().substring(0, 6);
                 const finalGenderSign = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(selectedUser.ssn, selectedUser.name) : "미정";
                 

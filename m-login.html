@@ -1139,20 +1139,32 @@
                     }
                 }
 
-                // [B채널 연동]: 부모창 실시간 정산 양식 권한 원격 락해제 가드
+                // =========================================================================
+                // 🟢 [정밀 교정 완결]: msg_auth_signal 로컬 무선 신호 전격 가로채기 채널 개설
+                // =========================================================================
+                const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
+                if (authSignal && authSignal.name === myName) {
+                    if (authSignal.isAllow === true) {
+                        // 제어반의 신청가능 개방 신호 포착 즉시 모바일 잠금 장벽 전격 원격 강제 해제!!
+                        setMobileFormActive(true);
+                        document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>지급 신청 개방</span>";
+
+                        // 전산 락 해제 트랜잭션이 성공 완결되었으므로 중복 작동 방지를 위해 감시 타이머 클리어 종료
+                        clearInterval(monitorInterval);
+                        console.log("[모바일] m-adm 제어반 무선 개방 신호 포착에 따라 은행/계좌/첨부서류 락 장벽 해제 완결.");
+                        return;
+                    }
+                }
+
+                // [B채널 연동 폴백]: PC용 마스터 관리자창(admin.html) 직접 팝업 모드 연동 백업선 유지
                 if (window.opener && !window.opener.closed && window.opener.currentCertifiedUser) {
                     const currentStatus = window.opener.currentCertifiedUser.payStatus;
                     if (currentStatus === "신청가능") {
                         setMobileFormActive(true);
                         document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>승인 신호 포착</span>";
+                        clearInterval(monitorInterval);
                         console.log("[모바일] 관리자 허브 승인 신호 감지에 따라 서식 폼 양식 입력 락 해제 완료.");
                     }
-                }
-
-                // 관리자가 지급 허가(msg_auth_signal)를 완결하여 최종 접수되면 감시 타이머 클리어 종료
-                const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
-                if (authSignal && authSignal.name === myName && authSignal.isAllow === true) {
-                    clearInterval(monitorInterval);
                 }
             }, 1000);
         }

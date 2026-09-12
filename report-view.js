@@ -209,24 +209,24 @@ function switchReportSubTab(tabKey) {
       return dateB.localeCompare(dateA);
     });
 
-    // C. 동적 데이터 매트릭스 그리드 빌더 가동
+    // C. 동적 데이터 매트릭스 그리드 빌더 가동 (테이블 폰트 16px 스케일업 고정)
     let htmlBuffer = `
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px;">
-                <h4 style="font-size: 16px; font-weight: 800; color: #ffffff; margin: 0;">
+                <h4 style="font-size: 18px; font-weight: 800; color: #ffffff; margin: 0;">
                     <i class="fa-solid fa-layer-group" style="color: var(--secondary-color); margin-right: 6px;"></i>
-                    전산망 등록 임상시험별 마스터 모집 및 재무 실시간 통제 현황
+                    임상시험별 모집 및 정산처리 현황
                 </h4>
             </div>
             <div class="table-responsive">
-                <table style="width: 100% !important; table-layout: fixed !important; border-collapse: collapse;">
+                <table style="width: 100% !important; table-layout: fixed !important; border-collapse: collapse; font-size: 16px !important;">
                     <thead>
                         <tr>
-                            <th style="width: 25%; text-align: left; padding-left: 15px;">임상시험 과제명</th>
-                            <th style="width: 8%;">진행기수</th>
-                            <th style="width: 10%;">담당 CRC</th>
-                            <th style="width: 12%;">소집일자</th>
-                            <th style="width: 15%;">모집 진척도</th>
-                            <th style="width: 30%;">재무 정산 현황 (피험자별 표준 지급 상태)</th>
+                            <th style="width: 25%; text-align: left; padding-left: 15px; font-size: 15px !important;">임상시험 과제명</th>
+                            <th style="width: 8%; font-size: 15px !important;">진행기수</th>
+                            <th style="width: 10%; font-size: 15px !important;">담당 CRC</th>
+                            <th style="width: 12%; font-size: 15px !important;">소집일자</th>
+                            <th style="width: 17%; font-size: 15px !important;">모집 진척도</th>
+                            <th style="width: 28%; font-size: 15px !important;">참여비 지급현황</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -235,7 +235,7 @@ function switchReportSubTab(tabKey) {
     if (recruitmentDB.length === 0) {
       htmlBuffer += `
                 <tr>
-                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px; font-weight: 700;">
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px; font-weight: 700; font-size: 16px;">
                         전산망에 마운트된 모집공고 내역이 존재하지 않습니다.
                     </td>
                 </tr>
@@ -255,7 +255,7 @@ function switchReportSubTab(tabKey) {
         const recTitleClean = cleanStr(rec.title);
         const recThNum = (rec.th || "").replace(/[^0-9]/g, "");
 
-        // 대상자 대장에서 해당 과제 및 기수와 100% 매칭되는 피험자 풀 필터링
+        // [교정 반영]: 특정 상태값 필터를 완전히 제거하여 과제와 기수 조건만 맞으면 풀에 100% 반영 처리 (누수 박멸)
         const matchedApplicants = applicantDB.filter((app) => {
           const appTitleClean = cleanStr(app.title);
           const appThNum = (app.th || "").replace(/[^0-9]/g, "");
@@ -266,11 +266,9 @@ function switchReportSubTab(tabKey) {
           return isTitleMatched && recThNum === appThNum && recThNum !== "";
         });
 
-        // 실시간 모집률 연산
+        // 실시간 모집률 연산 (조건 제한을 풀어 프리셋 데이터까지 정상 누적됨)
         const goalCount = parseInt(rec.count) || 0;
-        const activeJoined = matchedApplicants.filter(
-          (app) => (app.payStatus || app.result || "참여") === "참여",
-        ).length;
+        const activeJoined = matchedApplicants.length;
         const recruitmentPercent =
           goalCount > 0
             ? Math.min(Math.round((activeJoined / goalCount) * 100), 100)
@@ -297,13 +295,13 @@ function switchReportSubTab(tabKey) {
 
         htmlBuffer += `
                     <tr>
-                        <td style="text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff;">${rec.title || "미지정 과제"}</td>
-                        <td><span class="lvl-badge ${thClass}">${rec.th || "1기"}</span></td>
-                        <td style="color: #38bdf8; font-weight: 600;">${rec.crc || "-"}</td>
-                        <td style="font-weight: 700;"><i class="fa-regular fa-calendar-check" style="color: var(--text-muted); margin-right: 4px;"></i>${rec.recDate || "미정"}</td>
+                        <td style="text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; font-size: 16px;">${rec.title || "미지정 과제"}</td>
+                        <td><span class="lvl-badge ${thClass}" style="font-size: 13px !important; padding: 4px 8px !important;">${rec.th || "1기"}</span></td>
+                        <td style="color: #38bdf8; font-weight: 600; font-size: 16px;">${rec.crc || "-"}</td>
+                        <td style="font-weight: 700; font-size: 15px;"><i class="fa-regular fa-calendar-check" style="color: var(--text-muted); margin-right: 4px;"></i>${rec.recDate || "미정"}</td>
                         <td>
                             <div class="report-progress-wrapper">
-                                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; padding: 0 4px;">
+                                <div style="display: flex; justify-content: space-between; padding: 0 4px;">
                                     <span>${activeJoined}/${goalCount}명</span>
                                     <span style="color: var(--secondary-color);">${recruitmentPercent}%</span>
                                 </div>

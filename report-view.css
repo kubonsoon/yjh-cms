@@ -328,8 +328,13 @@
 .report-progress-wrapper {
   display: flex !important;
   flex-direction: column !important;
-  gap: 4px !important;
+  gap: 6px !important;
   align-items: stretch !important;
+}
+
+.report-progress-wrapper span {
+  font-size: 13px !important; /* 모집 인원수 및 퍼센트 글자 상향 */
+  font-weight: 800 !important;
 }
 
 .report-financial-grid {
@@ -337,12 +342,12 @@
   gap: 8px !important;
   justify-content: center !important;
   align-items: center !important;
-  font-size: 12px !important;
+  font-size: 14px !important; /* 재무 그리드 폰트 기본축 상향 */
   font-weight: 700 !important;
 }
 
 .report-financial-badge {
-  padding: 3px 6px !important;
+  padding: 4px 8px !important; /* 글자가 커진 만큼 패딩 확장 */
   border-radius: 4px !important;
-  font-size: 11px !important;
+  font-size: 13px !important; /* 접수/검토/완료 배지 폰트 2px 상향 */
 }

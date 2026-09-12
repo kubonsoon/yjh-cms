@@ -1239,41 +1239,62 @@
         // 🎯 부모 관리자 시스템 및 m-adm 원격 제어반 글로벌 시그널 폴링 추적 하이브리드 루프
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {
+                // [정밀 교정 완결]: 인증 성공 시점에 고정 락업된 브라우저 마스터 캐시 세션 성명을 실시간 호출 (주파수 단절 완벽 치료)
+                const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
+                const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
+
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
                 const cmsBadgeSlot = document.getElementById('cms-badge');
 
-                if (pushSignal && pushSignal.name === myName) {
-                    if (pushSignal.status === 'PASS') {
-                        if (cmsBadgeSlot) {
-                            cmsBadgeSlot.className = "badge bg-blue state-pass";
-                            cmsBadgeSlot.innerText = "통과\n(지급)";
+                // 1. m-adm 제어반의 1단계 원격 심사 통과(PASS) / 탈락(FAIL) 무선 신호 실시간 스캔 가드
+                if (pushSignal && pushSignal.name) {
+                    const cleanPushName = pushSignal.name.toString().replace(/\s/g, "");
+                    if (cleanPushName === cleanSessionName) {
+                        if (pushSignal.status === 'PASS') {
+                            if (cmsBadgeSlot) {
+                                cmsBadgeSlot.className = "badge bg-blue state-pass";
+                                cmsBadgeSlot.innerText = "통과\n(지급)";
+                            }
+                            document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
+                        } else if (pushSignal.status === 'FAIL') {
+                            if (cmsBadgeSlot) {
+                                cmsBadgeSlot.className = "badge bg-blue state-fail";
+                                cmsBadgeSlot.innerText = "탈락\n(정산)";
+                            }
+                            document.getElementById('history-log').innerHTML = "<span style='color:#F43F5E; font-weight:700;'>심사 탈락 반려</span>";
                         }
-                        document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
-                    } else if (pushSignal.status === 'FAIL') {
-                        if (cmsBadgeSlot) {
-                            cmsBadgeSlot.className = "badge bg-blue state-fail";
-                            cmsBadgeSlot.innerText = "탈락\n(정산)";
-                        }
-                        document.getElementById('history-log').innerHTML = "<span style='color:#F43F5E; font-weight:700;'>심사 탈락 반려</span>";
                     }
                 }
 
+                // 2. m-adm 제어반의 3단계 참여비 지급 신청 인가(msg_auth_signal) 무선 신호 실시간 가로채기 개방 채널
                 const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
-                if (authSignal && authSignal.name === myName) {
-                    if (authSignal.isAllow === true) {
-                        setMobileFormActive(true);
-                        document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>지급 신청 개방</span>";
-                        clearInterval(monitorInterval);
-                        console.log("[모바일] m-adm 제어반 무선 개방 신호 포착에 따라 은행/계좌/첨부서류 락 장벽 해제 완결.");
-                        return;
+                if (authSignal && authSignal.name) {
+                    const cleanAuthName = authSignal.name.toString().replace(/\s/g, "");
+
+                    // 제어반 사출 이름 패킷과 모바일 캐시 로그인 세션 명의가 완전 일치할 때 가드 개방
+                    if (cleanAuthName === cleanSessionName) {
+                        if (authSignal.isAllow === true) {
+                            // [전산망 개방 트리거]: 은행 선택, 계좌번호 인풋박스, 신분증 및 통장사본 양측 [파일 선택] 단추 전격 활성화!!
+                            setMobileFormActive(true);
+                            document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>지급 신청 개방</span>";
+
+                            // 전역 주파수 매칭 무결성을 최종 유지하기 위해 안전 네임 세팅 동기화
+                            myName = currentVerifiedSessionName;
+
+                            clearInterval(monitorInterval);
+                            console.log(`[모바일 연동] m-adm 제어반 무선 개방 수신 완결에 따른 락 해제 성공. 대상자 명의: ${myName}`);
+                            return;
+                        }
                     }
                 }
 
+                // 3. PC 최고관리자 마스터창(admin.html) 직접 팝업 분기 모드 백업선 동시 유지
                 if (window.opener && !window.opener.closed && window.opener.currentCertifiedUser) {
                     const currentStatus = window.opener.currentCertifiedUser.payStatus;
                     if (currentStatus === "신청가능") {
                         setMobileFormActive(true);
                         document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>승인 신호 포착</span>";
+                        myName = sessionStorage.getItem('certifiedUserName') || myName;
                         clearInterval(monitorInterval);
                         console.log("[모바일] 관리자 허브 승인 신호 감지에 따라 서식 폼 양식 입력 락 해제 완료.");
                     }

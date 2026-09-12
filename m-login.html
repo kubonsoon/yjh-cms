@@ -1120,11 +1120,26 @@
             }
         }
 
-        // 🎯 4단 스마트 폼 비동기 장벽 원격 해제 스위치 (원본보존)
+        // 진짜 파일 첨부 데이터 스트림 보존용 전역 메모리 버퍼
+        let idCardBase64 = "";
+        let bankBookBase64 = "";
+
+        // 🎯 4단 스마트 폼 비동기 장벽 원격 해제 스위치 (진짜 파일 업로드 가드 결합 정화)
         function setMobileFormActive(isActive) {
             const isDisable = !isActive;
             if (document.getElementById('ui_bank_select')) document.getElementById('ui_bank_select').disabled = isDisable;
             if (document.getElementById('ui_bank_input')) document.getElementById('ui_bank_input').disabled = isDisable;
+
+            const box1 = document.getElementById('doc_box_1');
+            const box2 = document.getElementById('doc_box_2');
+
+            if (isActive) {
+                if (box1 && !idCardBase64) box1.className = "upload-box active-click";
+                if (box2 && !bankBookBase64) box2.className = "upload-box active-click";
+            } else {
+                if (box1 && !idCardBase64) box1.className = "upload-box";
+                if (box2 && !bankBookBase64) box2.className = "upload-box";
+            }
 
             const submitBtn = document.getElementById('ui_submit_btn');
             if (submitBtn) {
@@ -1133,8 +1148,6 @@
                     submitBtn.style.background = "#0284c7";
                     submitBtn.style.cursor = "pointer";
                     submitBtn.innerText = "지급 신청하기 (관리자 승인 완료)";
-                    document.getElementById('doc_box_1').innerHTML = '<span style="font-weight:700; color:#4ade80;">✅ 신분증 자동 연동됨</span>';
-                    document.getElementById('doc_box_2').innerHTML = '<span style="font-weight:700; color:#4ade80;">✅ 통장사본 자동 연동됨</span>';
                 } else {
                     submitBtn.style.background = "#9ca3af";
                     submitBtn.style.cursor = "not-allowed";
@@ -1143,10 +1156,53 @@
             }
         }
 
-        // 🎯 부모 관리자 시스템(admin.html) 글로벌 시그널 폴링 추적 루프 (원본보존)
+        // 🎯 첨부서류 박스 터치 시 매립된 진짜 파일 태그 트리거 브릿지
+        function triggerFileInput(type) {
+            const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
+            const isOpened = authSignal && authSignal.name === myName && authSignal.isAllow === true;
+
+            // 관리자가 신청 개방을 승인했을 때만 카메라/갤러리 작동 허용
+            if (!isOpened) {
+                alert("알림: 관리자의 [신청가능 개방] 승인이 완료된 후에 서류 첨부가 가능합니다.");
+                return;
+            }
+
+            if (type === 'id') document.getElementById('real_file_id').click();
+            else if (type === 'bank') document.getElementById('real_file_bank').click();
+        }
+
+        // 🎯 선택된 이미지 파일을 진짜 Base64 스트림 데이터 패킷으로 변환 인코딩 엔진
+        function handleFileSelect(input, type) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const base64String = e.target.result;
+                    if (type === 'id') {
+                        idCardBase64 = base64String;
+                        const box1 = document.getElementById('doc_box_1');
+                        if (box1) {
+                            box1.className = "upload-box upload-complete";
+                            box1.innerHTML = `<span style="font-weight:700; color:#4ade80;">✅ 신분증 자동 연동됨</span><br style="margin-top:2px;"><span style="font-size:10px;color:rgba(255,255,255,0.4);">${file.name.substring(0, 12)}...</span>`;
+                        }
+                    } else if (type === 'bank') {
+                        bankBookBase64 = base64String;
+                        const box2 = document.getElementById('doc_box_2');
+                        if (box2) {
+                            box2.className = "upload-box upload-complete";
+                            box2.innerHTML = `<span style="font-weight:700; color:#4ade80;">✅ 통장사본 자동 연동됨</span><br style="margin-top:2px;"><span style="font-size:10px;color:rgba(255,255,255,0.4);">${file.name.substring(0, 12)}...</span>`;
+                        }
+                    }
+                    console.log(`[전산 정화] 모바일 증빙 서류 이미지 파일 데이터 패킷 추출 및 인코딩 성공: ${file.name}`);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 🎯 부모 관리자 시스템(admin.html) 글로벌 시그널 폴링 추적 하이브리드 루프
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {
-                // [A채널 연동]: 관리자 제어반(m-adm)의 실시간 무선 원격 심사 통과/탈락 신호 패킷 가드 가동
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
                 const cmsBadgeSlot = document.getElementById('cms-badge');
 
@@ -1166,24 +1222,17 @@
                     }
                 }
 
-                // =========================================================================
-                // 🟢 [정밀 교정 완결]: msg_auth_signal 로컬 무선 신호 전격 가로채기 채널 개설
-                // =========================================================================
                 const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
                 if (authSignal && authSignal.name === myName) {
                     if (authSignal.isAllow === true) {
-                        // 제어반의 신청가능 개방 신호 포착 즉시 모바일 잠금 장벽 전격 원격 강제 해제!!
                         setMobileFormActive(true);
                         document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>지급 신청 개방</span>";
-
-                        // 전산 락 해제 트랜잭션이 성공 완결되었으므로 중복 작동 방지를 위해 감시 타이머 클리어 종료
                         clearInterval(monitorInterval);
                         console.log("[모바일] m-adm 제어반 무선 개방 신호 포착에 따라 은행/계좌/첨부서류 락 장벽 해제 완결.");
                         return;
                     }
                 }
 
-                // [B채널 연동 폴백]: PC용 마스터 관리자창(admin.html) 직접 팝업 모드 연동 백업선 유지
                 if (window.opener && !window.opener.closed && window.opener.currentCertifiedUser) {
                     const currentStatus = window.opener.currentCertifiedUser.payStatus;
                     if (currentStatus === "신청가능") {
@@ -1196,7 +1245,7 @@
             }, 1000);
         }
 
-        // 💥 4단: 최종 정산 데이터 전산 패킷 트랜잭션 전송 공정 (원본보존)
+        // 💥 4단: 최종 정산 데이터 전산 패킷 트랜잭션 전송 및 마스터 대장 원격 불 켜기 공정 완결
         function submitFinalSettlementForm() {
             const bankSelect = document.getElementById('ui_bank_select');
             const accountInput = document.getElementById('ui_bank_input');
@@ -1205,30 +1254,51 @@
 
             if (!bankSelect.value) return alert("알림: 참여비를 수령하실 은행을 선택해 주세요.");
             if (inputtedAccount === "") return alert("알림: 정산 처리를 위한 계좌번호를 입력해 주세요.");
+            if (!idCardBase64) return alert("알림: 지급 증빙을 위한 신분증 사본을 반드시 첨부해 주세요.");
+            if (!bankBookBase64) return alert("알림: 지급 증빙을 위한 통장사본 이미지를 반드시 첨부해 주세요.");
 
             const finalFinancialInfo = `${selectedBankName} ${inputtedAccount}`;
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            const idx = adminApplicantDB.findIndex(user => String(user.uid) === String(matchedPatientData.uid));
+
+            // 전역 변수 myName 가이드를 매칭 식별자로 1:1 역추적 락인
+            const idx = adminApplicantDB.findIndex(user => user.name === myName);
 
             if (idx !== -1) {
+                // [교정 반영]: 부모 전산망 마스터 명단에 진짜 인코딩 이미지 파일 패킷 이름표 데이터 결합 주입
                 adminApplicantDB[idx].payStatus = "접수";
                 adminApplicantDB[idx].accountInfo = finalFinancialInfo;
+                adminApplicantDB[idx].idCardImg = idCardBase64;
+                adminApplicantDB[idx].bankBookImg = bankBookBase64;
+
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
-                alert(`[전산 접수 완료]\n\n${temporaryVerifiedName} 대상자님의 참여비 청구서가 [${finalFinancialInfo}] 접수되었습니다.`);
+                alert(`[전산 접수 완료]\n\n${myName} 대상자님의 참여비 온라인 정산 청구서 및 증빙 서류가 전산 접수 완료되었습니다.`);
 
                 const targetBtn = document.getElementById('ui_submit_btn');
-                targetBtn.disabled = true;
-                targetBtn.innerText = "✔ 지급 신청 완료 (전산 전송됨)";
-                targetBtn.style.background = "#475569";
-                document.getElementById('cms-badge').innerText = "접수";
-                document.getElementById('cms-badge').style.background = "#38bdf8";
+                if (targetBtn) {
+                    targetBtn.disabled = true;
+                    targetBtn.innerText = "✔ 지급 신청 완료 (전산 전송됨)";
+                    targetBtn.style.background = "#475569";
+                }
+                if (document.getElementById('cms-badge')) {
+                    document.getElementById('cms-badge').innerText = "접수";
+                    document.getElementById('cms-badge').className = "badge bg-blue";
+                }
                 document.getElementById('history-log').innerHTML = "<strong style='color:#38bdf8;'>[접수완료]</strong>";
+
+                // =========================================================================
+                // 🟢 [하이브리드 통신 종결]: 서류 전송 즉시 관제탑 부모 창(admin.html)의 마스터 대장을 
+                //                           원격 강제 리렌더링하여 실시간 불 들어오기 하이브리드 종결
+                // =========================================================================
+                if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
+                    window.opener.refreshApplicantView();
+                } else if (window.opener && !window.opener.closed && typeof window.opener.refreshAdminMemberTableView === "function") {
+                    window.opener.refreshAdminMemberTableView();
+                }
             } else {
                 alert("전산 오류: 데이터 동기화 유실로 인해 청구 접수가 거절되었습니다.");
             }
         }
-
 
         // 원문 내용 앞 소스 (fireUpload 파일 업로드 완료 및 closePopupAndApply 함수 하위 구역)
         function closePopupAndApply() {

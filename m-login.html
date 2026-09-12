@@ -1026,7 +1026,6 @@
             navigateToStep(3);
         }
 
-        // 💥 3단: [하이브리드 라우팅 라우터] 처리 결과 확인 시 유저 속성별 페이지 고속 스위칭 공정
         function executeStep3ConfirmNext() {
             if (matchedPatientData) {
                 // 💡 객체 내 신규방문 플래그 유무 속성을 역추적하여 전산망 분기
@@ -1195,7 +1194,7 @@
             else if (type === 'bank') document.getElementById('real_file_bank').click();
         }
 
-        // 🎯 [참조 오류 디버깅 완결]: 변수명 주파수를 단일화하여 진짜 이미지 패킷을 가로채는 인코더 엔진
+        // 🎯 [참조 오류 디버깅 완결]: 변수명 주파수를 단일화하여 진짜 이미지 패킷을 가로채는 인코더 엔진 (변경하기 결합)
         function handleFileSelect(input, type) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
@@ -1312,28 +1311,38 @@
 
             if (!bankSelect.value) return alert("알림: 참여비를 수령하실 은행을 선택해 주세요.");
             if (inputtedAccount === "") return alert("알림: 정산 처리를 위한 계좌번호를 입력해 주세요.");
+
+            // [유효성 검증 레이어 디버깅 완결]: 참조 오류 오타 변수명을 순정 레일 변수명(bankBookBase64)으로 완벽히 소독 (1316행 에러 박멸)
             if (!idCardBase64) return alert("알림: 지급 증빙을 위한 신분증 사본을 반드시 첨부해 주세요.");
-            if (!bankBookBookBase64) return alert("알림: 지급 증빙을 위한 통장사본 이미지를 반드시 첨부해 주세요.");
+            if (!bankBookBase64) return alert("알림: 지급 증빙을 위한 통장사본 이미지를 반드시 첨부해 주세요.");
 
             const finalFinancialInfo = `${selectedBankName} ${inputtedAccount}`;
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            const idx = adminApplicantDB.findIndex(user => user.name === myName);
+
+            // 로그인 캐시 세션에 바인딩된 마스터 이름을 매칭 식별자로 1:1 정밀 역추적 락인 (인덱스 탐색 단절 완벽 복구)
+            const cleanSessionName = (sessionStorage.getItem('certifiedUserName') || myName).toString().replace(/\s/g, "");
+            const idx = adminApplicantDB.findIndex(user => {
+                const cleanDbName = (user.name || '').toString().replace(/\s/g, "");
+                return cleanDbName === cleanSessionName;
+            });
 
             if (idx !== -1) {
+                // [교정 반영]: 부모 전산망 마스터 명단에 진짜 인코딩 이미지 파일 패킷 이름표 데이터 완전 결합 주입 (통장 오타 데이터 유실 원천 진압)
                 adminApplicantDB[idx].payStatus = "접수";
                 adminApplicantDB[idx].accountInfo = finalFinancialInfo;
                 adminApplicantDB[idx].idCardImg = idCardBase64;
-                adminApplicantDB[idx].bankBookImg = bankBookBookBase64;
+                adminApplicantDB[idx].bankBookImg = bankBookBase64;
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
-                alert(`[전산 접수 완료]\n\n${myName} 대상자님의 참여비 온라인 정산 청구서 및 증빙 서류가 전산 접수 완료되었습니다.`);
+                alert(`[전산 접수 완료]\n\n${adminApplicantDB[idx].name} 대상자님의 참여비 온라인 정산 청구서 및 증빙 서류가 전산 접수 완료되었습니다.`);
 
                 const targetBtn = document.getElementById('ui_submit_btn');
                 if (targetBtn) {
                     targetBtn.disabled = true;
                     targetBtn.innerText = "✔ 지급 신청 완료 (전산 전송됨)";
                     targetBtn.style.background = "#475569";
+                    targetBtn.style.cursor = "not-allowed";
                 }
                 if (document.getElementById('cms-badge')) {
                     document.getElementById('cms-badge').innerText = "접수";
@@ -1341,55 +1350,98 @@
                 }
                 document.getElementById('history-log').innerHTML = "<strong style='color:#38bdf8;'>[접수완료]</strong>";
 
+                // =========================================================================
+                // 🟢 [양방향 하이브리드 통신 완결]: 서류 전송 즉시 최고관리자 마스터 대장창(admin.html)의 
+                //                                   그리드를 원격 강제 리렌더링하여 실시간 불 들어오기 완결
+                // =========================================================================
                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                     window.opener.refreshApplicantView();
+                } else if (window.opener && !window.opener.closed && typeof window.opener.refreshAdminMemberTableView === "function") {
+                    window.opener.refreshAdminMemberTableView();
                 }
+                console.log(`[금융 신청 허브] ${adminApplicantDB[idx].name} 대상자 청구서 및 인코딩 서류 패킷 마스터 대장 적재 후 원격 불 켜기 시그널 전송 완결.`);
             } else {
-                alert("전산 오류: 데이터 동기화 유실로 인해 청구 접수가 거절되었습니다.");
+                alert("전산 오류: 데이터 동기화 유실로 인해 청구 접수가 거절되었습니다. 다시 로그인해 주세요.");
             }
         }
 
-        // 원문 내용 앞 소스 (fireUpload 파일 업로드 완료 및 closePopupAndApply 함수 하위 구역)
         function closePopupAndApply() {
-            document.getElementById('view_popup').style.display = 'none';
+            if (document.getElementById('view_popup')) {
+                document.getElementById('view_popup').style.display = 'none';
+            }
             let badge = document.getElementById('mo_badge');
-            if (window.latestStatus === 'PASS') {
-                badge.innerText = "통과"; badge.className = "badge bg-green";
-            } else {
-                badge.innerText = "탈락"; badge.className = "badge bg-red";
+            if (badge) {
+                if (window.latestStatus === 'PASS') {
+                    badge.innerText = "통과";
+                    badge.className = "badge bg-green";
+                } else {
+                    badge.innerText = "탈락";
+                    badge.className = "badge bg-red";
+                }
             }
         }
 
+        // 🎯 [전산 무결성 완결]: 제어반 무선 패킷을 실시간 동기화하여 차수별 상태 대장을 최종 커밋하는 서브 시스템
         function commitFinalSettlement() {
+            // 1. 제어반(m-adm)이 방출한 원격 인가 신호 패킷을 최종 실시간 가로채기 파싱
+            const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
+
+            // [참조 오류 소독 가드 이식]: 유실되었던 targetStageCode 변수를 제어반 패킷의 stageCode와 완벽 직렬 연결!!
+            const targetStageCode = (authSignal && authSignal.stageCode) ? parseInt(authSignal.stageCode, 10) : 0;
+
+            // 2. 로그인 캐시 세션 성명을 실시간 강제 호출하여 명의 단절 버그 원천 진압
+            const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
+            const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
+
             let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            let row = applicantDB.find(u => u.name === myName);
+
+            // 가상 DB 스캔 매칭 조건문 포맷 소독 일치화
+            let row = applicantDB.find(u => {
+                const cleanDbName = (u.name || '').toString().replace(/\s/g, "");
+                return cleanDbName === cleanSessionName;
+            });
 
             if (row) {
-                // 🟢 [수정 완료]: 관리자 제어반 m-adm 스펙과 호환되도록 차수별 정산완료/탈락정산 상태값 분기 매칭 완결
-                if (targetStageCode === 1) row.payStatus1 = "완료";
-                else if (targetStageCode === 2) { row.payStatus1 = "완료"; row.payStatus2 = "완료"; row.payStatus3 = "완료"; }
-                else if (targetStageCode === 3) row.payStatus1 = "탈락정산";
-                else if (targetStageCode === 4) row.payStatus1 = "예비정산";
-                else if (targetStageCode === 5) row.payStatus1 = "중도정산";
+                // 관리자 제어반 m-adm 스펙과 호환되도록 차수별 정산완료/탈락정산 상태값 분기 매칭 완결
+                if (targetStageCode === 1) {
+                    row.payStatus1 = "완료";
+                } else if (targetStageCode === 2) {
+                    row.payStatus1 = "완료";
+                    row.payStatus2 = "완료";
+                    row.payStatus3 = "완료";
+                } else if (targetStageCode === 3) {
+                    row.payStatus1 = "탈락정산";
+                } else if (targetStageCode === 4) {
+                    row.payStatus1 = "예비정산";
+                } else if (targetStageCode === 5) {
+                    row.payStatus1 = "중도정산";
+                }
 
-                // 🟢 [수정 완료]: 부모창 admin.html 명단의 첨부서류 슬롯과 실시간 주파수를 일치시키는 진짜 패킷 이름표 데이터 다이렉트 바인딩 주입
+                // 부모창 admin.html 명단의 첨부서류 슬롯과 실시간 주파수를 일치시키는 리얼 데이터 바인딩 주입
                 row.idCardImg = idCardBase64;
                 row.bankBookImg = bankBookBase64;
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
 
-                // 🟢 [수정 완료]: 서류 전송 즉시 관제탑 부모 창(admin.html)의 마스터 대장을 원격 리렌더링하여 실시간 불 들어오기 하이브리드 종결
+                // 서류 전송 즉시 관제탑 부모 창(admin.html)의 마스터 대장을 원격 리렌더링하여 실시간 불 들어오기 하이브리드 종결
                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                     window.opener.refreshApplicantView();
                 }
 
-                alert("🎉 접수 완료\n\n귀하의 참여비 온라인 금융 정산 청구서 및 증빙 서류가 마스터 대장 전산망으로 안전하게 전송되었습니다.");
-                document.getElementById('mo_submit_btn').disabled = true;
-                document.getElementById('mo_submit_btn').innerText = "지급 신청 접수 완료";
-                document.getElementById('mo_submit_btn').style.opacity = "0.5";
+                // 구형 용어 완전 소독 정화 ('피험자' -> '대상자', '사례비' -> '참여비' 철저 사수)
+                alert(`🎉 접수 완료\n\n귀하의 참여비 온라인 금융 정산 청구서 및 증빙 서류가 마스터 대장 전산망으로 안전하게 전송되었습니다.`);
+
+                const moBtn = document.getElementById('mo_submit_btn');
+                if (moBtn) {
+                    moBtn.disabled = true;
+                    moBtn.innerText = "지급 신청 접수 완료";
+                    moBtn.style.opacity = "0.5";
+                }
+                console.log(`[백엔드 데이터 최종 종결] 대상자 ${row.name} 님의 차수별 정산 레코드 코딩 적재 완결. (스테이지 코드: ${targetStageCode})`);
+            } else {
+                console.log(`[전산 누수 경고] 대장 업데이트 거절: 현재 로그인 세션 명의와 일치하는 대상자 행이 가상 DB에 없습니다.`);
             }
         }
-
     </script>
 </body>
 

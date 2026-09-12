@@ -1445,7 +1445,7 @@
                 const modalMetaText = `${displayTitle} ${displayTh}`;
 
                 // ----------------======================================================
-                //  [A분기]: 인라인 수정 모드 활성화 상태 마크업 사출
+                //  [A분기]: 모집공고 수정 모드 활성화 상태 마크업 사출
                 // ----------------------------------------------------------------======
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
@@ -1507,7 +1507,7 @@
                     </div>
                 </td>
                         <td style="width: 140px; vertical-align: middle !important; text-align: center; padding-right: 15px;">
-            <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; padding-top: 24px !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important; white-space: nowrap !important;">
+            <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important; white-space: nowrap !important;">
                 <button type="button" class="btn-inline save"
 onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color,
 #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor:
@@ -6608,7 +6608,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             }
         }
 
-        
+
         // ----------------======================================================================
         // 🟢 [최종 정정 완료]: 다른 거대 함수의 중괄호 간섭을 전면 전역 탈출하여, 최하단 전역 독립 공간에 안전 락인 마감했습니다.
         // ----------------======================================================================

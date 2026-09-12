@@ -410,30 +410,41 @@
             cursor: pointer;
         }
 
-        /* [4단계: 정산 인프라 서식 고유스킨 - 원본 보존] */
+        /* ========================================================
+   [교정 수정] 4단계: 정산 인프라 상단 고유 스킨 가독성 강화
+   ======================================================== */
         .trial-list-card {
             border-radius: 14px;
             background-color: #122442;
             border: 1px solid #1E293B;
-            padding: 14px 12px;
+            padding: 16px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .trial-info span#lblTrialCategory {
+            font-size: 11px !important;
+            padding: 3px 6px !important;
         }
 
         .trial-info h4 {
-            font-size: 13px;
-            margin-bottom: 4px;
+            font-size: 16px !important;
+            margin-top: 4px;
+            margin-bottom: 6px;
             color: #FFFFFF;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: -0.4px;
         }
 
         .meta-row {
             display: flex;
-            gap: 12px;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.5);
+            flex-direction: column;
+            gap: 4px;
+            font-size: 13px !important;
+            color: #e2e8f0 !important;
+            font-weight: 500;
         }
 
         .badge.bg-blue {
@@ -643,18 +654,16 @@
             </div>
         </div>
 
-        <!-- 자동으로 인증서 통과한 기존 등록 대상자 전용 정산 청구서 페이지 -->
+        <!-- 4단계 : 자동으로 인증서 통과한 기존 등록 대상자 전용 정산 청구서 페이지 -->
         <div class="step-panel" id="layer4">
             <div class="panel-header-title"><i class="fa-solid fa-money-check-dollar"></i> 4 단계: 정산 정보 등록 및 참여비 신청</div>
             <div id="ui_trial_card" class="trial-list-card">
                 <div class="trial-info" style="text-align: left;">
-                    <span id="lblTrialCategory"
-                        style="font-size: 10px; font-weight: bold; color: #06B6D4; background: rgba(6, 182, 212, 0.15); padding: 2px 5px; border-radius: 4px; display: inline-block; margin-bottom: 3px;">
-                        2기 시험</span>
+                    <span id="lblTrialCategory" class="badge bg-blue"></span>
                     <h4 id="lblTrialTitle">임상과제 정보 로딩 중...</h4>
                     <div class="meta-row">
-                        <div>대상자: <span id="lblSetTarget">-</span></div>
-                        <div>담당: 관리자</div>
+                        <div id="ui_target_name_zone"></div>
+                        <div id="ui_crc_name_zone"></div>
                     </div>
                 </div>
                 <span id="cms-badge" class="badge bg-blue">참여(소집)</span>
@@ -663,14 +672,19 @@
                 <span>실시간 연결: <b style="color:#4ade80;">연결중</b></span>
                 <span>◀ 상태: <b id="history-log" style="color: #06B6D4;">승인 대기중</b></span>
             </div>
-            <div class="settlement-card">
-                <div class="settlement-title">참여비 지급 신청 서식</div>
-                <div class="progress-status" id="ui_stage_text">
+            <div class="mobile-settlement-box"
+                style="background-color: #112240; border: 1px solid #1E293B; border-radius: 16px; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px;">
+                <div class="settlement-title"
+                    style="font-size: 13px; font-weight: 700; color: #06B6D4; border-bottom: 1px solid #1E293B; padding-bottom: 4px;">
+                    참여비 지급 신청 서식</div>
+                <div class="progress-status" id="ui_stage_text"
+                    style="background-color: #07132B; padding: 8px; border-radius: 6px; font-size: 11px; color: #94A3B8; border: 1px solid #1E293B; line-height: 1.4;">
                     ⏳ <b>전산 검증 단계</b><br>
                     <span style="font-size:11px;color:#94A3B8;">* 관리자가 [신청가능] 상태를 승인하면 계좌 입력이 가능합니다</span>
                 </div>
-                <div class="form-grid">
-                    <select class="form-select" id="ui_bank_select" disabled>
+                <div class="form-grid" style="display: grid; grid-template-columns: 95px 1fr; gap: 6px;">
+                    <select class="form-select" id="ui_bank_select" disabled
+                        style="height: 34px; background-color: #07132B; border: 1px solid #1E293B; border-radius: 6px; color: #FFF; padding: 0 8px; font-size: 11.5px; outline: none;">
                         <option value="">은행 선택</option>
                         <option value="국민">KB국민은행</option>
                         <option value="우리">우리은행</option>
@@ -681,18 +695,22 @@
                         <option value="토스">토스뱅크</option>
                     </select>
                     <input type="text" class="form-input" id="ui_bank_input" disabled placeholder="계좌번호 입력(숫자만)"
-                        value="110-123-456789">
+                        value=""
+                        style="height: 34px; background-color: #07132B; border: 1px solid #1E293B; border-radius: 6px; color: #FFF; padding: 0 8px; font-size: 11.5px; outline: none;">
                 </div>
-                <div class="upload-box-wrapper">
-                    <div class="upload-box" id="doc_box_1">
+                <div class="upload-box-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                    <div class="upload-box" id="doc_box_1"
+                        style="border: 1.5px dashed #1E293B; border-radius: 8px; padding: 12px 6px; background-color: #07132B; text-align: center; font-size: 11px; color: #94A3B8;">
                         <span class="status-text" style="font-weight:700; color:#f87171;">❌ 신분증 미첨부</span>
                     </div>
-                    <div class="upload-box" id="doc_box_2">
+                    <div class="upload-box" id="doc_box_2"
+                        style="border: 1.5px dashed #1E293B; border-radius: 8px; padding: 12px 6px; background-color: #07132B; text-align: center; font-size: 11px; color: #94A3B8;">
                         <span class="status-text" style="font-weight:700; color:#f87171;">❌ 통장사본 미첨부</span>
                     </div>
                 </div>
-                <button id="ui_submit_btn" class="btn-submit-form" onclick="submitFinalSettlementForm()" disabled>관리자 승인
-                    대기중 (신청 불가)</button>
+                <button id="ui_submit_btn" class="btn-submit-form" onclick="submitFinalSettlementForm()" disabled
+                    style="width: 100%; height: 44px; background-color: #9ca3af; border: none; border-radius: 10px; color: #FFF; font-size: 13.5px; font-weight: 700; cursor: not-allowed; transition: all 0.3s; margin-top: 5px;">관리자
+                    승인 대기중 (신청 불가)</button>
             </div>
         </div>
 
@@ -877,7 +895,7 @@
             if (matchedPatientData) {
                 // 💡 객체 내 신규방문 플래그 유무 속성을 역추적하여 전산망 분기
                 if (matchedPatientData.isNewUserGhost) {
-                    // [분기 트랙 B] 참여 적 없는 신규 대상자는 5단계 캘린더 컴포넌트로 리디렉션!
+                    // [분기 트랙 B] 참여 이력 없는 최초 방문 신규 대상자는 5단계 캘린더 컴포넌트로 리디렉션
                     navigateToStep(5);
                     document.getElementById('lblSetTargetNew').innerText = `${matchedPatientData.name} 대상자님 (최초인증)`;
 
@@ -886,10 +904,9 @@
                         iframe.contentWindow.renderCalendar();
                     }
                 } else {
-                    // ----------------======================================================================
-                    // 🟢 [정밀 교정]: 순정 변수(matchedPatientData) 스펙 일치화 및 6개월 경과 캘린더 이동 인터셉터 완결!
-                    // ----------------======================================================================
-                    // 하단 commitFinalSettlement() 함수와 전역 주파수를 맞추기 위해 마스터 변수 락인
+                    // =========================================================================
+                    // 🟢 [정밀 교정]: 가짜 예시 데이터를 완벽 소독하고 100% 동적 리얼 데이터 강제 마운트
+                    // =========================================================================
                     myName = matchedPatientData.name || "홍길동";
 
                     const systemCurrentTime = new Date("2026-09-11"); // 전산망 표준 현재 마스터 시점 고정
@@ -899,7 +916,7 @@
                         const timeDiff = systemCurrentTime.getTime() - lastExamDate.getTime();
                         const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
 
-                        // 180일(6개월) 이상 경과 완료된 25년도 기존 참여 대상자 격리 가드 발동
+                        // 180일(6개월) 이상 경과 완료된 기존 참여 대상자 격리 가드 발동
                         if (dayDiff >= 180) {
                             alert(`ℹ️ 전산망 보안 안내\n\n대상자 ${matchedPatientData.name} 님은 마지막 시험 참여 후 6개월(현재 ${dayDiff}일 경과)이 지나 새로운 시험에 참여가 가능합니다.\n\n확인을 누르면 모바일 모집공고 캘린더 화면으로 이동합니다.`);
                             location.href = "m-calendar.html";
@@ -907,11 +924,61 @@
                         }
                     }
 
-                    // [분기 트랙 A] 기존 연동 완료 대상자는 원본 기획서 그대로 4단계 정산서 양식 랜딩!
+                    // [분기 트랙 A] 기존 연동 완료 대상자 4단계 실시간 데이터 동기화 마운트
                     navigateToStep(4);
+
+                    // 1. 실제 연동 시험 공고의 진짜 기수(th) 실시간 치환 주입
+                    const trialCategorySlot = document.getElementById('lblTrialCategory');
+                    if (trialCategorySlot) {
+                        trialCategorySlot.innerText = matchedPatientData.th ? `${matchedPatientData.th} 시험` : "과제 기수 미정";
+                    }
+
+                    // 2. 실제 연동 시험명 매핑
                     document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
+
+                    // 3. 대상자 실제 이름 및 생년월일 포맷 결합 주입
                     const userBirthInput = document.getElementById('txtUserBirth').value.trim();
-                    document.getElementById('lblSetTarget').innerText = `${matchedPatientData.name} 대상자님 (${userBirthInput})`;
+                    document.getElementById('ui_target_name_zone').innerText = `● 대상자: ${matchedPatientData.name} 대상자님 (${userBirthInput})`;
+
+                    // 4. 모집공고 마스터 가상 DB를 실시간 역추적하여 과제 배정 진짜 담당 CRC 사원명 바인딩
+                    let adminRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                    const realRecData = adminRecruitmentDB.find(rec => {
+                        const recTitle = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const appTitle = (matchedPatientData.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const recTh = (rec.th || '').toString().replace(/[^0-9]/g, "");
+                        const appTh = (matchedPatientData.th || '').toString().replace(/[^0-9]/g, "");
+                        return recTitle === appTitle && recTh === appTh;
+                    });
+                    const realCrcName = realRecData ? realRecData.crc : "관리자";
+                    document.getElementById('ui_crc_name_zone').innerText = `● 담당자: ${realCrcName}`;
+
+                    // 5. 가짜 계좌번호 가이드를 소독하고, 대상자 계좌 연동 패킷 파싱 후 자동 실시간 인젝션
+                    const bankInputSlot = document.getElementById('ui_bank_input');
+                    if (bankInputSlot) {
+                        if (matchedPatientData.accountInfo) {
+                            // 기존 적재된 계좌 데이터(예: "신한 110123456") 분리 역파싱
+                            const accountTokens = matchedPatientData.accountInfo.split(" ");
+                            if (accountTokens.length >= 2) {
+                                const savedBank = accountTokens[0];
+                                const savedAccount = accountTokens.slice(1).join(" ");
+
+                                const bankSelectSlot = document.getElementById('ui_bank_select');
+                                if (bankSelectSlot) {
+                                    for (let i = 0; i < bankSelectSlot.options.length; i++) {
+                                        if (bankSelectSlot.options[i].text.includes(savedBank) || bankSelectSlot.options[i].value === savedBank) {
+                                            bankSelectSlot.selectedIndex = i;
+                                            break;
+                                        }
+                                    }
+                                }
+                                bankInputSlot.value = savedAccount;
+                            } else {
+                                bankInputSlot.value = matchedPatientData.accountInfo;
+                            }
+                        } else {
+                            bankInputSlot.value = ""; // 기존 등록 계좌가 없는 순정 상태 유저는 빈칸으로 소독 초기화
+                        }
+                    }
 
                     if (matchedPatientData.stage) {
                         document.getElementById('ui_stage_text').innerHTML = matchedPatientData.stage;

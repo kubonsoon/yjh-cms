@@ -974,7 +974,7 @@
                     }
                 } else {
                     // =========================================================================
-                    // 🟢 [정밀 교정]: 가짜 예시 데이터를 완벽 소독하고 100% 동적 리얼 데이터 강제 마운트
+                    // 🟢 [정밀 교정 완결]: 유실되었던 전역 주파수 myName 락인 결합선 복원 (중복적재 영구 차단)
                     // =========================================================================
                     myName = matchedPatientData.name || "홍길동";
 
@@ -996,7 +996,7 @@
                     // [분기 트랙 A] 기존 연동 완료 대상자 4단계 실시간 데이터 동기화 마운트
                     navigateToStep(4);
 
-                    // 정사각형 라운드 배지 텍스트 개행 매핑 반영
+                    // 정사각형 라운드 배지 텍스트 개행 매핑 안전 이식 완결
                     const cmsBadgeSlot = document.getElementById('cms-badge');
                     if (cmsBadgeSlot) {
                         cmsBadgeSlot.innerText = "참여\n(소집)";
@@ -1011,7 +1011,7 @@
                     // 2. 실제 연동 시험명 매핑
                     document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
 
-                    // 3. [교정 수정 완결]: 하이픈 뒤 숫자 박멸 및 성별 분리 배지화 공정 가동
+                    // 3. 하이픈 뒤 숫자 박멸 및 성별 분리 배지화 공정 가동
                     const rawDbSsn = (matchedPatientData.ssn || "").toString().trim();
                     const displayBirth6 = rawDbSsn.substring(0, 6) || "-";
 

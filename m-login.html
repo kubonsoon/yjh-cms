@@ -771,20 +771,29 @@
             temporaryVerifiedName = name;
 
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            const cleanInputBirth6 = birth.length === 8 ? birth.substring(2) : birth;
 
-            // 마스터 대장과 실시간 교차 대조 검증
+            // [교정 반영]: 입력된 생년월일 데이터의 앞 6자리 스트링만 컴팩트하게 추출
+            const cleanInputBirth6 = birth.substring(0, 6);
+
+            // [교정 반영]: 특수문자, 하이픈, 미세공백 찌꺼기를 완벽히 발라내어 매칭 무력화를 방어하는 이중 소독 가드 가동
             matchedPatientData = adminApplicantDB.find(user => {
-                const dbBirth = (user.ssn || '').toString().replace(/[^0-9]/g, '');
-                const cleanDbBirth6 = dbBirth.length === 8 ? dbBirth.substring(2) : dbBirth;
+                const cleanDbName = (user.name || '').toString().replace(/\s/g, '');
+                const cleanInputName = name.replace(/\s/g, '');
+
+                // 원본 데이터베이스 주민번호에서 숫자만 추출한 뒤 무조건 앞 6자리만 잘라내어 동등 규격화
+                const rawDbBirth = (user.ssn || '').toString().replace(/[^0-9]/g, '');
+                const cleanDbBirth6 = rawDbBirth.substring(0, 6);
+
+                // 원본 데이터베이스 전화번호에서 하이픈을 소독하여 순수 숫자 스트링으로 단일화
                 const cleanDbPhone = (user.phone || '').toString().replace(/[^0-9]/g, '');
-                return user.name === name && cleanDbBirth6 === cleanInputBirth6 && cleanDbPhone === phone;
+
+                return cleanDbName === cleanInputName && cleanDbBirth6 === cleanInputBirth6 && cleanDbPhone === phone;
             });
 
             const popup = document.getElementById('popupEmbedded3');
 
             if (matchedPatientData) {
-                // 💡 [트랙 A: 기존 등록 대상자] 세션 바인딩 및 정산안내 모달 알림 컨텍스트 구성
+                // 💡 [트랙 A: 기존 등록 대상자 매칭 성공] 세션 바인딩 및 정산안내 모달 알림 컨텍스트 구성
                 sessionStorage.setItem('certifiedUserName', name);
                 localStorage.setItem('loggedInUser', JSON.stringify({ name: name, isNew: false }));
 
@@ -793,34 +802,44 @@
                 }
 
                 let adminRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-                const matchedRec = adminRecruitmentDB.find(rec => rec.title === matchedPatientData.title && String(rec.th) === String(matchedPatientData.th));
-                const payScheduleText = (matchedRec && matchedRec.payDate) ? matchedRec.payDate.trim() : "추후 공지 예정";
+                const matchedRec = adminRecruitmentDB.find(rec => {
+                    const recTitleClean = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                    const appTitleClean = (matchedPatientData.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                    const recTh = (rec.th || '').toString().replace(/[^0-9]/g, "");
+                    const appTh = (matchedPatientData.th || '').toString().replace(/[^0-9]/g, "");
+                    return recTitleClean === appTitleClean && recTh === appTh;
+                });
+
+                const payScheduleText = (matchedRec && matchedRec.paySchedule) ? matchedRec.paySchedule.trim() : "추후 공지 예정";
 
                 popup.parentElement.className = "popup-display-zone pop-theme-pass";
-                if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
+                if (document.getElementById('icoPop'))
+                    document.getElementById('icoPop').className = "fa-solid fa-circle-check";
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
                 document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}\n\n📢 [사례비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
             } else {
-                // 💡 [트랙 B: 최초 방문 신규 대상자] 가상 패스권 즉석 발급 가동
+                // 💡 [트랙 B: 최초 방문 신규 대상자 가드] 유령 데이터 터짐을 막기 위해 디폴트 폴백값 매핑
                 const ghostPassTicket = {
                     uid: "VIRTUAL_" + Date.now(),
                     name: name,
                     ssn: birth,
-                    phone: phone,
-                    title: "",
-                    th: "",
+                    phone: phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3'), // 관리자 폼 호환 하이픈 규격화
+                    title: "신규 방문 과제 미배정",
+                    th: "1기",
+                    count: "-",
+                    period: "-",
                     payStatus: "대기",
-                    isNewUserGhost: true // 신규방문 플래그 강력 고정
+                    isNewUserGhost: true
                 };
                 adminApplicantDB.push(ghostPassTicket);
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
                 matchedPatientData = ghostPassTicket;
 
-                // 글로벌 세션 크로스 연동 잠금
                 localStorage.setItem('loggedInUser', JSON.stringify({ name: name, isNew: true }));
 
                 popup.parentElement.className = "popup-display-zone pop-theme-pass";
-                if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
+                if (document.getElementById('icoPop'))
+                    document.getElementById('icoPop').className = "fa-solid fa-circle-check";
                 document.getElementById('txtPopTitle').innerText = "신규 대상자 본인인증 완료";
                 document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}님\n\n양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.\n\n확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
             }
@@ -829,7 +848,7 @@
         }
 
         // 💥 3단: [하이브리드 라우팅 라우터] 처리 결과 확인 시 유저 속성별 페이지 고속 스위칭 공정
-         function executeStep3ConfirmNext() {
+        function executeStep3ConfirmNext() {
             if (matchedPatientData) {
                 // 💡 객체 내 신규방문 플래그 유무 속성을 역추적하여 전산망 분기
                 if (matchedPatientData.isNewUserGhost) {
@@ -846,7 +865,7 @@
                     // 🟢 [정밀 교정]: 순정 변수(matchedPatientData) 스펙 일치화 및 6개월 경과 캘린더 이동 인터셉터 완결!
                     // ----------------======================================================================
                     // 하단 commitFinalSettlement() 함수와 전역 주파수를 맞추기 위해 마스터 변수 락인
-                    myName = matchedPatientData.name || "홍길동"; 
+                    myName = matchedPatientData.name || "홍길동";
 
                     const systemCurrentTime = new Date("2026-09-11"); // 전산망 표준 현재 마스터 시점 고정
                     const lastExamDate = matchedPatientData.recDate ? new Date(matchedPatientData.recDate) : null;
@@ -954,11 +973,11 @@
         }
 
 
-// 원문 내용 앞 소스 (fireUpload 파일 업로드 완료 및 closePopupAndApply 함수 하위 구역)
+        // 원문 내용 앞 소스 (fireUpload 파일 업로드 완료 및 closePopupAndApply 함수 하위 구역)
         function closePopupAndApply() {
             document.getElementById('view_popup').style.display = 'none';
             let badge = document.getElementById('mo_badge');
-            if(window.latestStatus === 'PASS') {
+            if (window.latestStatus === 'PASS') {
                 badge.innerText = "통과"; badge.className = "badge bg-green";
             } else {
                 badge.innerText = "탈락"; badge.className = "badge bg-red";
@@ -968,23 +987,23 @@
         function commitFinalSettlement() {
             let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let row = applicantDB.find(u => u.name === myName);
-            
-            if(row) {
+
+            if (row) {
                 // 🟢 [수정 완료]: 관리자 제어반 m-adm 스펙과 호환되도록 차수별 정산완료/탈락정산 상태값 분기 매칭 완결
-                if(targetStageCode === 1) row.payStatus1 = "완료";
-                else if(targetStageCode === 2) { row.payStatus1 = "완료"; row.payStatus2 = "완료"; row.payStatus3 = "완료"; }
-                else if(targetStageCode === 3) row.payStatus1 = "탈락정산";
-                else if(targetStageCode === 4) row.payStatus1 = "예비정산";
-                else if(targetStageCode === 5) row.payStatus1 = "중도정산";
+                if (targetStageCode === 1) row.payStatus1 = "완료";
+                else if (targetStageCode === 2) { row.payStatus1 = "완료"; row.payStatus2 = "완료"; row.payStatus3 = "완료"; }
+                else if (targetStageCode === 3) row.payStatus1 = "탈락정산";
+                else if (targetStageCode === 4) row.payStatus1 = "예비정산";
+                else if (targetStageCode === 5) row.payStatus1 = "중도정산";
 
                 // 🟢 [수정 완료]: 부모창 admin.html 명단의 첨부서류 슬롯과 실시간 주파수를 일치시키는 진짜 패킷 이름표 데이터 다이렉트 바인딩 주입
                 row.idCardImg = idCardBase64;
                 row.bankBookImg = bankBookBase64;
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
-                
+
                 // 🟢 [수정 완료]: 서류 전송 즉시 관제탑 부모 창(admin.html)의 마스터 대장을 원격 리렌더링하여 실시간 불 들어오기 하이브리드 종결
-                if(window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
+                if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                     window.opener.refreshApplicantView();
                 }
 

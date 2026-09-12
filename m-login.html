@@ -958,7 +958,7 @@
                         setMobileFormActive(true);
                         clearInterval(monitorInterval);
                         document.getElementById('history-log').innerHTML = "<span style='color:#4ade80;'>승인 신호 포착</span>";
-                        console.log("[모바일] 관리자 허브 승인 신호 감지에 따라 서식 폼 양식 입력 락 해제 완료.");
+                        console.log("[모바일] 관리자 승인 신호 감지에 따라 서식 폼 양식 입력 락 해제 완료.");
                     }
                 }
             }, 1000);
@@ -983,7 +983,7 @@
                 adminApplicantDB[idx].accountInfo = finalFinancialInfo;
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
-                alert(`[전산 접수 완료]\n\n${temporaryVerifiedName} 대상자님의 사례비 청구서가 [${finalFinancialInfo}] 허브를 통해 전산 최종 접수 완료되었습니다.`);
+                alert(`[전산 접수 완료]\n\n${temporaryVerifiedName} 대상자님의 참여비 청구서가 [${finalFinancialInfo}] 접수되었습니다.`);
 
                 const targetBtn = document.getElementById('ui_submit_btn');
                 targetBtn.disabled = true;

@@ -812,11 +812,36 @@
 
                 const payScheduleText = (matchedRec && matchedRec.paySchedule) ? matchedRec.paySchedule.trim() : "추후 공지 예정";
 
+                // [교정 반영]: 마스터 대장에 등록된 피험자의 주민번호 원본(ssn)에서 생년월일 앞 6자리와 성별을 정밀 사출
+                const rawDbSsn = (matchedPatientData.ssn || "").toString().trim();
+                const displayBirth = rawDbSsn.substring(0, 6) || "-";
+
+                // admin.html 성별 판정 엔진 인터셉트 연동
+                let displayGender = "미정";
+                if (rawDbSsn.includes("-M") || rawDbSsn.endsWith("M") || rawDbSsn.endsWith("1") || rawDbSsn.endsWith("3")) {
+                    displayGender = "남";
+                } else if (rawDbSsn.includes("-F") || rawDbSsn.endsWith("F") || rawDbSsn.endsWith("2") || rawDbSsn.endsWith("4")) {
+                    displayGender = "여";
+                }
+
+                // [교정 반영]: 모집공고 마스터 대장에서 기록된 가변형 차수별 일정(paySchedule) 데이터를 누수 없이 통째로 릴레이
+                const finalPayScheduleLog = (matchedRec && matchedRec.paySchedule) ? matchedRec.paySchedule.toString().replace(/\s*\/\s*/g, "\n") : "추후 공지 예정";
+
                 popup.parentElement.className = "popup-display-zone pop-theme-pass";
                 if (document.getElementById('icoPop'))
                     document.getElementById('icoPop').className = "fa-solid fa-circle-check";
+
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
-                document.getElementById('txtPopMessage').innerText = `● 연계기관: ${currentChannelName} 연동모듈\n● 대상자명: ${name}\n\n📢 [사례비 지급 예정일]\n👉 ${payScheduleText}\n\n아래 확인 버튼을 선택하시면 정산 청구서 페이지로 다이렉트 랜딩됩니다.`;
+
+                // [요구사항 가이드 형식을 100% 만족하는 정형화 목록 텍스트 마운트]
+                document.getElementById('txtPopMessage').innerText =
+                    `● 인증기관: ${currentChannelName} 연동모듈\n` +
+                    `● 대상자: ${matchedPatientData.name || name} (${displayBirth} / ${displayGender})\n` +
+                    `● 시험명: ${matchedPatientData.title || "미배정 과제"} (${matchedPatientData.th || "1기"})\n\n` +
+                    `📢 [참여비 지급 예정일]\n` +
+                    `${finalPayScheduleLog}\n\n` +
+                    `아래 확인 버튼을 클릭하면 참여중인 시험현황으로 이동합니다.`;
+
             } else {
                 // 💡 [트랙 B: 최초 방문 신규 대상자 가드] 유령 데이터 터짐을 막기 위해 디폴트 폴백값 매핑
                 const ghostPassTicket = {

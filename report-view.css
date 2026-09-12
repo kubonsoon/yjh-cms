@@ -179,6 +179,52 @@
   letter-spacing: 0.5px !important;
 }
 
+/* =========================================================================
+   [교정 추가] 보고서 상단 액션 컨트롤 가드 및 입체 버튼 복원 스킨
+   ========================================================================= */
+.report-action-btn-set {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  vertical-align: middle !important;
+}
+
+.report-action-btn-set button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 36px !important;
+  padding: 0 16px !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+/* 인쇄 단추 테마: 반투명 스카이 블루 시그니처 락인 */
+.report-action-btn-set button:nth-of-type(1) {
+  background: rgba(14, 165, 233, 0.15) !important;
+  border: 1px solid var(--secondary-color) !important;
+  color: var(--secondary-color) !important;
+}
+.report-action-btn-set button:nth-of-type(1):hover {
+  background: var(--secondary-color) !important;
+  color: #070a12 !important;
+}
+
+/* PDF 저장 단추 테마: 차분하고 구조적인 슬레이트 그레이 락인 */
+.report-action-btn-set button:nth-of-type(2) {
+  background: #1e293b !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-color) !important;
+}
+.report-action-btn-set button:nth-of-type(2):hover {
+  background: var(--border-color) !important;
+}
+
 /* ----------------==================================---------------- */
 /* 3. 🎯 [보고서 전용 프리미엄 2대 분리형 인쇄 미디어 쿼리]           */
 /* ----------------==================================---------------- */

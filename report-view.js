@@ -128,8 +128,12 @@ function RenderSummaryTabContent() {
                     <option value="MONTH">월 단위 통계</option>
                     <option value="WEEK">주간 단위 통계</option>
                 </select>
-                <button onclick="executeReportPrint('summary')" type="button" style="background: rgba(14, 165, 233, 0.15); color: var(--secondary-color); border: 1px solid var(--secondary-color);"><i class="fa-solid fa-print"></i> 통합 보고서 인쇄</button>
-                <button onclick="executeReportPDF('summary')" type="button" style="background: #1e293b; color: var(--text-color); border: 1px solid var(--border-color);"><i class="fa-solid fa-file-pdf"></i> PDF 저장</button>
+                <button onclick="executeReportPrint('summary')" type="button">
+                    <i class="fa-solid fa-print"></i> 통합 보고서 인쇄
+                </button>
+                <button onclick="executeReportPDF('summary')" type="button">
+                    <i class="fa-solid fa-file-pdf"></i> PDF 저장
+                </button>
             </div>
         </div>
         <div id="report-scoreboard-cards"></div>

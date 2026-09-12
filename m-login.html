@@ -1160,10 +1160,10 @@
 
             if (isActive) {
                 if (box1 && !idCardBase64) box1.className = "upload-box active-click";
-                if (box2 && !bankBookBookBase64) box2.className = "upload-box active-click";
+                if (box2 && !bankBookBase64) box2.className = "upload-box active-click";
             } else {
                 if (box1 && !idCardBase64) box1.className = "upload-box";
-                if (box2 && !bankBookBookBase64) box2.className = "upload-box";
+                if (box2 && !bankBookBase64) box2.className = "upload-box";
             }
 
             const submitBtn = document.getElementById('ui_submit_btn');
@@ -1195,10 +1195,10 @@
             else if (type === 'bank') document.getElementById('real_file_bank').click();
         }
 
-        // 🎯 [정밀 디버깅 완결]: 문법 오타를 소독하여 100% 리얼 파일 데이터를 가로채는 인코더 엔진
+        // 🎯 [참조 오류 디버깅 완결]: 변수명 주파수를 단일화하여 진짜 이미지 패킷을 가로채는 인코더 엔진
         function handleFileSelect(input, type) {
-            if (input.files && input.files[0]) { // 문법 오타 정화 완료
-                const file = input.files[0];     // 배열 첫 번째 인자 파일 객체 정밀 추출 완료
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
                 const reader = new FileReader();
 
                 reader.onload = function (e) {
@@ -1215,7 +1215,8 @@
                             if (btn) btn.innerText = "변경하기";
                         }
                     } else if (type === 'bank') {
-                        bankBookBookBase64 = base64String;
+                        // [교정 반영]: 전역 마스터 변수 선언문 철자와 100% 동수 일치화 집계 (ReferenceError 파괴 완료)
+                        bankBookBase64 = base64String;
                         const box2 = document.getElementById('doc_box_2');
                         const bankTxt = document.getElementById('bank_status_txt');
                         if (box2 && bankTxt) {

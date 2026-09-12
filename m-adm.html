@@ -248,11 +248,21 @@
             document.getElementById('btn_allow').disabled = document.getElementById('btn_block').disabled = true;
         }
 
+        // 🎯 [전산 무결성 완결]: 개방 승인 시 무선 신호 사출과 동시에 가상 DB 상태값까지 실시간 동시 오버라이드
         function toggleAuth(isAllow) {
             syncTargetSession(); // 원격 무선 송신 전 세션 주파수 최종 최신화 리프레시
 
+            // 이름 내부 공백을 완벽히 소독하여 조회 가드 무력화 간섭 차단
+            const cleanTargetName = targetName.replace(/\s/g, "");
+
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-            let user = db.find(u => u.name === targetName);
+
+            // 가상 DB 스캔 매칭 조건문 포맷 소독 일치화
+            let user = db.find(u => {
+                const cleanDbName = (u.name || '').toString().replace(/\s/g, "");
+                return cleanDbName === cleanTargetName;
+            });
+
             if (user) {
                 let code = 0;
                 if (document.getElementById('chk_step2').checked) code = 2;
@@ -261,8 +271,31 @@
                 else if (document.getElementById('chk_backup_out').checked) code = 4;
                 else if (document.getElementById('chk_self_out').checked) code = 5;
 
-                localStorage.setItem('msg_auth_signal', JSON.stringify({ name: targetName, isAllow: isAllow, stageCode: code, time: Date.now() }));
+                // =========================================================================
+                // 🟢 [교정 반영]: 모바일 화면 진입 및 폴백 로딩 타이밍과의 완벽 동수 일치화를 위해
+                //                  가상 마스터 DB의 대상자 정산 처리 상태를 원자적 동시 업데이트
+                // =========================================================================
+                if (isAllow) {
+                    user.payStatus = "신청가능"; // 마스터 대장에 "신청가능" 권한 전격 락인 주입
+                } else {
+                    user.payStatus = "대기"; // 차단 시 대기 상태 롤백 복원
+                }
+
+                // 변경된 상태 원본을 가상 데이터베이스 대장에 실시간 커밋 반영 저장
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
+
+                // 무선 인가 신호 패킷 정상 방출 처리
+                localStorage.setItem('msg_auth_signal', JSON.stringify({
+                    name: user.name, // 가상 DB에 등록된 오리지널 순정 네임 고정
+                    isAllow: isAllow,
+                    stageCode: code,
+                    time: Date.now()
+                }));
+
                 alert(isAllow ? "👍 대상자 화면에 참여비 청구서가 실시간 승인 개방되었습니다." : "🔒 참여비 청구 권한을 홀딩 잠금 처리했습니다.");
+                console.log(`[원격 관제탑] ${user.name} 대상자 앞 지급 신청 권한 갱신 완결 (payStatus: ${user.payStatus})`);
+            } else {
+                alert("알림: 현재 심사 중인 대상자의 명의를 가상 데이터베이스 대장에서 찾을 수 없습니다.");
             }
         }
     </script>

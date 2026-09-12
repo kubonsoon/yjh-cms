@@ -413,7 +413,7 @@ tr:hover {
 /* 모집공고 목록내에 작업 버튼 위치조정? */
 .editing-row #dom-recruitment-table td:last-child,
 #dom-recruitment-table .editing-row td:last-child {
-    padding-top: 40px !important;
+  padding-top: 40px !important;
 }
 
 /* 대상자 테이블 행(tr) 내부 모든 셀(td)의 높이 슬림 균등화 및 세로축 센터 집중 */
@@ -1137,5 +1137,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 4px !important;
   align-items: center !important;
   justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+/* =========================================================================
+    [교정 추가] 전산망 관리 담당자 회원 목록 인라인 수정 모드 정렬 가드
+ ========================================================================= */
+#gradeView .table-responsive table tbody tr.editing-row td {
+  vertical-align: middle !important;
+}
+
+.admin-action-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: 100% !important;
   white-space: nowrap !important;
 }

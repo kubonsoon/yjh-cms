@@ -71,7 +71,7 @@
                     <!-- B. 본인 비밀번호 변경 팝업 트리거 버튼 -->
                     <button class="btn-inline password-reset-btn" onclick="openSelfPasswordModal()"
                         style="height: 32px; font-size: 12.5px; font-weight: 700;">
-                        <i class="fa-solid fa-lock-open"></i> 비밀번호수정
+                        <i class="fa-solid fa-lock-open"></i> 비밀번호 수정
                     </button>
 
                     <!-- C. 로그아웃 단추 -->
@@ -2940,10 +2940,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 </select></td>
                 <td><span class="lvl-badge lvl-1"><i class="fa-solid fa-hourglass-half"></i> 연산 대기</span></td>
                 <td><span style="font-size:12px; color:var(--text-muted);">편집 중 조작 제한</span></td>
-                <td style="text-align: center;">
-                    <button class="btn-inline save" onclick="saveAdminMemberInlineRecord('${row.sabun}')">완료</button>
-                    <button class="btn-inline list" onclick="cancelAdminMemberInlineMode()">목록</button>
-                </td>`;
+               <td style="vertical-align: middle !important; text-align: center;">
+                    <div class="admin-action-wrapper">
+                        <button class="btn-inline save" onclick="saveAdminMemberInlineRecord('${row.sabun}')">저장</button>
+                        <button class="btn-inline list" onclick="cancelAdminMemberInlineMode()">취소</button>
+                    </div>
+                </td>
+                `;
+
                 } else {
                     // 🟢 [수정 완료]: 상단 탑바와 완벽한 통일성을 갖추도록 차분한 연주황 오렌지색 테마(rgba 조합 + border 라인)로 고정
                     const pBtn = isMasterAdmin ? `<button class="btn-inline" style="background: rgba(251, 191, 36, 0.15) !important; border: 1px solid #fbbf24 !important; font-size: 11px; padding: 4px 8px; color: #fbbf24 !important; font-weight: 700; border-radius: 4px; cursor: pointer;" onclick="openSelfPasswordModal('${row.sabun}')"><i class="fa-solid fa-key"></i> 비밀번호 수정</button>` : '';

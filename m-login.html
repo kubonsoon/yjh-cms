@@ -596,20 +596,43 @@
             outline: none;
         }
 
+        /* ========================================================
+   [교정 수정] 4단계: 진짜 파일 첨부 박스 인터랙티브 스킨
+   ======================================================== */
+        .upload-box {
+            border: 1.5px dashed #1E293B;
+            border-radius: 8px;
+            padding: 14px 6px !important;
+            /* 내부 패딩 숨통 확장 */
+            background-color: #07132B;
+            text-align: center;
+            font-size: 11px;
+            color: #94A3B8;
+            cursor: not-allowed;
+            /* 평소에는 금지 표시 */
+            transition: all 0.2s ease;
+        }
+
         .upload-box-wrapper {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 6px;
         }
 
-        .upload-box {
-            border: 1.5px dashed #1E293B;
-            border-radius: 8px;
-            padding: 12px 6px;
-            background-color: #07132B;
-            text-align: center;
-            font-size: 11px;
-            color: #94A3B8;
+        .upload-box.active-click {
+            border-color: #06B6D4 !important;
+            background-color: rgba(6, 182, 212, 0.05) !important;
+            cursor: pointer !important;
+            /* 개방 시 손가락 커서 활성화 */
+        }
+
+        .upload-box.active-click:hover {
+            background-color: rgba(6, 182, 212, 0.12) !important;
+        }
+
+        .upload-box.upload-complete {
+            border-color: #22c55e !important;
+            background-color: rgba(34, 197, 94, 0.08) !important;
         }
 
         .btn-submit-form {
@@ -783,12 +806,16 @@
                         style="height: 34px; background-color: #07132B; border: 1px solid #1E293B; border-radius: 6px; color: #FFF; padding: 0 8px; font-size: 11.5px; outline: none;">
                 </div>
                 <div class="upload-box-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                    <div class="upload-box" id="doc_box_1"
-                        style="border: 1.5px dashed #1E293B; border-radius: 8px; padding: 12px 6px; background-color: #07132B; text-align: center; font-size: 11px; color: #94A3B8;">
+                    <!-- 진짜 파일 인풋 슬롯 매립 결합 (화면엔 숨김 처리 후 클릭 브릿지 연결) -->
+                    <input type="file" id="real_file_id" accept="image/*" style="display: none;"
+                        onchange="handleFileSelect(this, 'id')">
+                    <input type="file" id="real_file_bank" accept="image/*" style="display: none;"
+                        onchange="handleFileSelect(this, 'bank')">
+
+                    <div class="upload-box" id="doc_box_1" onclick="triggerFileInput('id')">
                         <span class="status-text" style="font-weight:700; color:#f87171;">❌ 신분증 미첨부</span>
                     </div>
-                    <div class="upload-box" id="doc_box_2"
-                        style="border: 1.5px dashed #1E293B; border-radius: 8px; padding: 12px 6px; background-color: #07132B; text-align: center; font-size: 11px; color: #94A3B8;">
+                    <div class="upload-box" id="doc_box_2" onclick="triggerFileInput('bank')">
                         <span class="status-text" style="font-weight:700; color:#f87171;">❌ 통장사본 미첨부</span>
                     </div>
                 </div>

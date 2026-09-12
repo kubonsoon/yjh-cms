@@ -413,7 +413,31 @@
         /* ========================================================
    [교정 수정] 4단계: 정산 인프라 상단 고유 스킨 가독성 강화
    ======================================================== */
+        .trial-list-card {
+            border-radius: 16px;
+            background-color: #122442;
+            border: 1px solid #1E293B;
+            padding: 16px 14px !important;
+            display: flex !important;
+            flex-direction: row !important;
+            /* 가로 배열 락인 */
+            justify-content: space-between !important;
+            /* 양 끝 밀착 레이아웃 */
+            align-items: center !important;
+            /* 상하 처짐 현상을 깨부수는 수직 정중앙 정렬 */
+            margin-bottom: 12px;
+            gap: 12px;
+        }
 
+        /* [공간 방어벽]: 텍스트 상자가 가로를 독점하여 배지를 하단으로 튕겨내던 간섭 버그 방어 */
+        .trial-info {
+            flex: 1 !important;
+            min-width: 0 !important;
+            width: calc(100% - 80px) !important;
+            /* 우측 배지용 68px 독립 구역 선제 상시 보장 */
+            display: flex !important;
+            flex-direction: column !important;
+        }
 
         .trial-info span#lblTrialCategory {
             font-size: 11px !important;
@@ -421,7 +445,6 @@
             width: fit-content;
         }
 
-        /* [시험명]: 독보적인 시인성을 확보하는 프리밀엄 네온 에메랄드 연두색(#34D399) 오버라이드 */
         .trial-info h4 {
             font-size: 17px !important;
             margin-top: 5px;
@@ -432,7 +455,6 @@
             line-height: 1.35;
         }
 
-        /* [대상자 정보 라인]: 성별 미니 배지와의 수평 센터 싱크 정렬 */
         .meta-row {
             display: flex;
             flex-direction: column;
@@ -448,7 +470,6 @@
             gap: 6px !important;
         }
 
-        /* [성별 미니 배지 디자인 스펙] */
         .gender-indicator-badge {
             padding: 2px 6px !important;
             border-radius: 4px !important;
@@ -470,18 +491,16 @@
             border: 1px solid rgba(244, 63, 94, 0.3) !important;
         }
 
-        /* [참여소집 배지]: 완벽한 정사각형 라운드 구조 개조 및 폰트 굵기 전격 상향 스펙 */
+        /* 정사각형 배지 규격 최적화 정착 */
         #ui_trial_card span#cms-badge.badge.bg-blue {
             width: 68px !important;
             height: 68px !important;
             min-width: 68px !important;
             min-height: 68px !important;
             border-radius: 12px !important;
-            /* 부드러운 정사각형 라운드 코너 스킨 */
             background: #0056B3 !important;
             color: #ffffff !important;
             font-size: 13.5px !important;
-            /* 내부 글자 크기 시원하게 인상 */
             font-weight: 800 !important;
             display: inline-flex !important;
             flex-direction: column !important;
@@ -490,10 +509,10 @@
             text-align: center !important;
             line-height: 1.4 !important;
             white-space: pre-line !important;
-            /* 내부 줄바꿈 허용 구조 */
             padding: 0 !important;
             margin: 0 !important;
-            box-sizing: border-box !important;
+            flex-shrink: 0 !important;
+            /* 부모 크기에 찌그러지지 않도록 완전 방어 */
         }
 
 

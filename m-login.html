@@ -1235,7 +1235,7 @@
         // 🎯 부모 관리자 시스템 및 m-adm 원격 제어반 글로벌 시그널 폴링 추적 하이브리드 루프
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {
-                // [주파수 동기화]: 본인인증 성공 시점에 캐시 레일에 고정 상주하는 세션 성명을 실시간 호출
+                // 본인인증 통과 시점에 락업된 브라우저 마스터 캐시 세션 성명을 실시간 호출 (주파수 단절 완벽 치료)
                 const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
                 const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
 
@@ -1254,8 +1254,11 @@
                             document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
                         } else if (pushSignal.status === 'FAIL') {
                             if (cmsBadgeSlot) {
+                                // =========================================================================
+                                // 🟢 [정밀 교정 완결]: 누락되었던 탈락 텍스트 치환 지시어를 이식하여 배지 스위칭 마감
+                                // =========================================================================
                                 cmsBadgeSlot.className = "badge bg-blue state-fail";
-                                cmsBadgeSlot.innerText = "탈락\n(정산)"; // 탈락 클릭 시 실시간 변환
+                                cmsBadgeSlot.innerText = "탈락\n(정산)"; // 탈락 신호 포착 즉시 글자 패킷 강제 주입 완결
                             }
                             document.getElementById('history-log').innerHTML = "<span style='color:#F43F5E; font-weight:700;'>심사 탈락 반려</span>";
                         }
@@ -1267,18 +1270,11 @@
                 if (authSignal && authSignal.name) {
                     const cleanAuthName = authSignal.name.toString().replace(/\s/g, "");
 
-                    // 제어반 사출 이름 패킷과 모바일 캐시 로그인 세션 명의가 완전 일치할 때 가드 전격 개방
                     if (cleanAuthName === cleanSessionName) {
                         if (authSignal.isAllow === true) {
-                            // =========================================================================
-                            // 🟢 [최종 정화 완결]: 개방 신호 포착 즉시 계좌번호, 첨부서류, 그리고 하단의
-                            //                      최종 지급 신청하기 버튼까지 일제히 강제 활성화 개방!!
-                            // =========================================================================
                             setMobileFormActive(true);
-
                             document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>지급 신청 개방</span>";
 
-                            // 전역 주파수 매칭 무결성을 최종 유지하기 위해 안전 네임 세팅 동기화
                             myName = currentVerifiedSessionName;
 
                             clearInterval(monitorInterval);

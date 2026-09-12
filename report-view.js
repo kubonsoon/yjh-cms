@@ -189,8 +189,146 @@ function switchReportSubTab(tabKey) {
   if (tabKey === "summary") {
     viewport.innerHTML = RenderSummaryTabContent();
     calculateReportMasterStats();
+
+    //2탭: 시험별 모집/재무 현황
   } else if (tabKey === "recruitment") {
-    viewport.innerHTML = `<div class="report-preparing-box"><i class="fa-solid fa-hourglass-half"></i> 2. 시험별 모집 및 재무 현황 단원은 현재 전산화 표준화 분석 준비중...</div>`;
+    // A. 마스터 데이터스토리지 트랜잭션 스트림 최신화 로드
+    const recruitmentDB =
+      JSON.parse(localStorage.getItem("dataStoreRecruitment")) || [];
+    const applicantDB =
+      JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
+
+    // B. 소집일자 기준 내림차순 정렬 (최신 미래 과제가 위로 오도록 락인)
+    recruitmentDB.sort((a, b) => {
+      const dateA = a.recDate
+        ? a.recDate.replace(/[^0-9-]/g, "").trim()
+        : "0000-00-00";
+      const dateB = b.recDate
+        ? b.recDate.replace(/[^0-9-]/g, "").trim()
+        : "0000-00-00";
+      return dateB.localeCompare(dateA);
+    });
+
+    // C. 동적 데이터 매트릭스 그리드 빌더 가동
+    let htmlBuffer = `
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px;">
+                <h4 style="font-size: 16px; font-weight: 800; color: #ffffff; margin: 0;">
+                    <i class="fa-solid fa-layer-group" style="color: var(--secondary-color); margin-right: 6px;"></i>
+                    전산망 등록 임상시험별 마스터 모집 및 재무 실시간 통제 현황
+                </h4>
+            </div>
+            <div class="table-responsive">
+                <table style="width: 100% !important; table-layout: fixed !important; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%; text-align: left; padding-left: 15px;">임상시험 과제명</th>
+                            <th style="width: 8%;">진행기수</th>
+                            <th style="width: 10%;">담당 CRC</th>
+                            <th style="width: 12%;">소집일자</th>
+                            <th style="width: 15%;">모집 진척도</th>
+                            <th style="width: 30%;">재무 정산 현황 (피험자별 표준 지급 상태)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+    if (recruitmentDB.length === 0) {
+      htmlBuffer += `
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px; font-weight: 700;">
+                        전산망에 마운트된 모집공고 내역이 존재하지 않습니다.
+                    </td>
+                </tr>
+            `;
+    } else {
+      // 문자열 특수기호 소독 포맷터 유틸리티
+      const cleanStr = (str) =>
+        str
+          ? str
+              .toString()
+              .toLowerCase()
+              .replace(/[^a-zA-Z0-9가-힣]/g, "")
+              .trim()
+          : "";
+
+      recruitmentDB.forEach((rec) => {
+        const recTitleClean = cleanStr(rec.title);
+        const recThNum = (rec.th || "").replace(/[^0-9]/g, "");
+
+        // 대상자 대장에서 해당 과제 및 기수와 100% 매칭되는 피험자 풀 필터링
+        const matchedApplicants = applicantDB.filter((app) => {
+          const appTitleClean = cleanStr(app.title);
+          const appThNum = (app.th || "").replace(/[^0-9]/g, "");
+          const isTitleMatched =
+            appTitleClean === recTitleClean ||
+            appTitleClean.includes(recTitleClean) ||
+            recTitleClean.includes(appTitleClean);
+          return isTitleMatched && recThNum === appThNum && recThNum !== "";
+        });
+
+        // 실시간 모집률 연산
+        const goalCount = parseInt(rec.count) || 0;
+        const activeJoined = matchedApplicants.filter(
+          (app) => (app.payStatus || app.result || "참여") === "참여",
+        ).length;
+        const recruitmentPercent =
+          goalCount > 0
+            ? Math.min(Math.round((activeJoined / goalCount) * 100), 100)
+            : 0;
+
+        // 차수별/단계별 재무 상태 스캔 카운터 가동
+        let receivedCount = 0;
+        let processingCount = 0;
+        let completeCount = 0;
+
+        matchedApplicants.forEach((app) => {
+          const payStatus = app.payStatus ? app.payStatus.trim() : "접수";
+          if (payStatus === "접수") receivedCount++;
+          else if (payStatus === "처리중") processingCount++;
+          else if (payStatus === "완료") completeCount++;
+        });
+
+        // 기수 배지 색상 동적 매핑
+        const thNum = parseInt(recThNum) || 1;
+        let thClass = "lvl-1";
+        if (thNum === 2) thClass = "lvl-2";
+        else if (thNum === 3) thClass = "lvl-3";
+        else if (thNum >= 4) thClass = "lvl-4";
+
+        htmlBuffer += `
+                    <tr>
+                        <td style="text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff;">${rec.title || "미지정 과제"}</td>
+                        <td><span class="lvl-badge ${thClass}">${rec.th || "1기"}</span></td>
+                        <td style="color: #38bdf8; font-weight: 600;">${rec.crc || "-"}</td>
+                        <td style="font-weight: 700;"><i class="fa-regular fa-calendar-check" style="color: var(--text-muted); margin-right: 4px;"></i>${rec.recDate || "미정"}</td>
+                        <td>
+                            <div class="report-progress-wrapper">
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; padding: 0 4px;">
+                                    <span>${activeJoined}/${goalCount}명</span>
+                                    <span style="color: var(--secondary-color);">${recruitmentPercent}%</span>
+                                </div>
+                                <div class="mini-bar-bg" style="margin-top: 2px;"><div class="mini-bar-fill" style="width: ${recruitmentPercent}%; background: var(--secondary-color);"></div></div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="report-financial-grid">
+                                <span class="report-financial-badge" style="background: rgba(14, 165, 233, 0.12); border: 1px solid #0ea5e9; color: #38bdf8;">접수: ${receivedCount}건</span>
+                                <span class="report-financial-badge" style="background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; color: #fbbf24;">검토: ${processingCount}건</span>
+                                <span class="report-financial-badge" style="background: rgba(74, 222, 128, 0.12); border: 1px solid #22c55e; color: #4ade80;">완료: ${completeCount}건</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+      });
+    }
+
+    htmlBuffer += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+    viewport.innerHTML = htmlBuffer;
+    // 2탭 : 시험별 모집/재무 현황 끝
   } else if (tabKey === "dropout") {
     viewport.innerHTML = `<div class="report-preparing-box"><i class="fa-solid fa-hourglass-half"></i> 3. 대상자 탈락 사유 통계 대장 단원은 현재 전산화 표준화 분석 준비중...</div>`;
   } else if (tabKey === "ledger") {

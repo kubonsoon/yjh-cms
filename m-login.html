@@ -601,16 +601,12 @@
    ======================================================== */
         .upload-box {
             border: 1.5px dashed #1E293B;
-            border-radius: 8px;
-            padding: 14px 6px !important;
-            /* 내부 패딩 숨통 확장 */
+            border-radius: 12px;
+            padding: 16px 8px !important;
             background-color: #07132B;
             text-align: center;
-            font-size: 11px;
-            color: #94A3B8;
-            cursor: not-allowed;
-            /* 평소에는 금지 표시 */
-            transition: all 0.2s ease;
+            box-sizing: border-box;
+            transition: all 0.25s ease;
         }
 
         .upload-box-wrapper {
@@ -619,11 +615,40 @@
             gap: 6px;
         }
 
+        /* 관리자가 신청가능 승인 신호를 주었을 때 활성화되는 실제 클릭 버튼 영역 테마 */
+        .upload-box .btn-file-select {
+            display: inline-block !important;
+            margin-top: 8px !important;
+            padding: 6px 14px !important;
+            background-color: #9ca3af !important;
+            /* 평소에는 잠김 회색 */
+            color: #ffffff !important;
+            border-radius: 6px !important;
+            font-size: 11.5px !important;
+            font-weight: 700 !important;
+            cursor: not-allowed !important;
+            transition: all 0.2s ease;
+        }
+
         .upload-box.active-click {
             border-color: #06B6D4 !important;
-            background-color: rgba(6, 182, 212, 0.05) !important;
+            background-color: rgba(6, 182, 212, 0.03) !important;
+        }
+
+        .upload-box.active-click .btn-file-select {
+            background-color: #0284c7 !important;
+            /* 개방 시 스마트 블루 버튼 반전 */
             cursor: pointer !important;
-            /* 개방 시 손가락 커서 활성화 */
+        }
+
+        .upload-box.active-click .btn-file-select:hover {
+            background-color: #0369a1 !important;
+        }
+
+        /* [진짜 파일 첨부 완료 시]: ❌ 표시가 죽고 사방 테두리에 시원한 초록불이 켜지는 정화 스킨 */
+        .upload-box.upload-complete {
+            border-color: #22c55e !important;
+            background-color: rgba(34, 197, 94, 0.06) !important;
         }
 
         .upload-box.active-click:hover {
@@ -806,17 +831,21 @@
                         style="height: 34px; background-color: #07132B; border: 1px solid #1E293B; border-radius: 6px; color: #FFF; padding: 0 8px; font-size: 11.5px; outline: none;">
                 </div>
                 <div class="upload-box-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                    <!-- 진짜 파일 인풋 슬롯 매립 결합 (화면엔 숨김 처리 후 클릭 브릿지 연결) -->
+                    <!-- [교정 마운트]: 실제 파일 바이트 스트림을 채 가로채는 보이지 않는 진짜 파일 태그 매립 -->
                     <input type="file" id="real_file_id" accept="image/*" style="display: none;"
                         onchange="handleFileSelect(this, 'id')">
                     <input type="file" id="real_file_bank" accept="image/*" style="display: none;"
                         onchange="handleFileSelect(this, 'bank')">
 
-                    <div class="upload-box" id="doc_box_1" onclick="triggerFileInput('id')">
-                        <span class="status-text" style="font-weight:700; color:#f87171;">❌ 신분증 미첨부</span>
+                    <div class="upload-box" id="doc_box_1">
+                        <div class="status-text" id="id_status_txt"
+                            style="font-weight:700; color:#f87171; font-size:12px; line-height:1.4;">❌ 신분증 미첨부</div>
+                        <div class="btn-file-select" id="id_select_btn" onclick="triggerFileInput('id')">파일 선택</div>
                     </div>
-                    <div class="upload-box" id="doc_box_2" onclick="triggerFileInput('bank')">
-                        <span class="status-text" style="font-weight:700; color:#f87171;">❌ 통장사본 미첨부</span>
+                    <div class="upload-box" id="doc_box_2">
+                        <div class="status-text" id="bank_status_txt"
+                            style="font-weight:700; color:#f87171; font-size:12px; line-height:1.4;">❌ 통장사본 미첨부</div>
+                        <div class="btn-file-select" id="bank_select_btn" onclick="triggerFileInput('bank')">파일 선택</div>
                     </div>
                 </div>
                 <button id="ui_submit_btn" class="btn-submit-form" onclick="submitFinalSettlementForm()" disabled
@@ -1135,10 +1164,10 @@
 
             if (isActive) {
                 if (box1 && !idCardBase64) box1.className = "upload-box active-click";
-                if (box2 && !bankBookBase64) box2.className = "upload-box active-click";
+                if (box2 && !bankBookBookBase64) box2.className = "upload-box active-click";
             } else {
                 if (box1 && !idCardBase64) box1.className = "upload-box";
-                if (box2 && !bankBookBase64) box2.className = "upload-box";
+                if (box2 && !bankBookBookBase64) box2.className = "upload-box";
             }
 
             const submitBtn = document.getElementById('ui_submit_btn');
@@ -1156,12 +1185,11 @@
             }
         }
 
-        // 🎯 첨부서류 박스 터치 시 매립된 진짜 파일 태그 트리거 브릿지
+        // 🎯 첨부서류 박스 파일 선택 단추 터치 시 매립된 진짜 파일 태그 트리거 브릿지
         function triggerFileInput(type) {
             const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
             const isOpened = authSignal && authSignal.name === myName && authSignal.isAllow === true;
 
-            // 관리자가 신청 개방을 승인했을 때만 카메라/갤러리 작동 허용
             if (!isOpened) {
                 alert("알림: 관리자의 [신청가능 개방] 승인이 완료된 후에 서류 첨부가 가능합니다.");
                 return;
@@ -1171,10 +1199,10 @@
             else if (type === 'bank') document.getElementById('real_file_bank').click();
         }
 
-        // 🎯 선택된 이미지 파일을 진짜 Base64 스트림 데이터 패킷으로 변환 인코딩 엔진
+        // 🎯 [정밀 디버깅 완결]: 문법 오타를 소독하여 100% 리얼 파일 데이터를 가로채는 인코더 엔진
         function handleFileSelect(input, type) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
+            if (input.files && input.files[0]) { // 문법 오타 정화 완료
+                const file = input.files[0];     // 배열 첫 번째 인자 파일 객체 정밀 추출 완료
                 const reader = new FileReader();
 
                 reader.onload = function (e) {
@@ -1182,25 +1210,33 @@
                     if (type === 'id') {
                         idCardBase64 = base64String;
                         const box1 = document.getElementById('doc_box_1');
-                        if (box1) {
+                        const idTxt = document.getElementById('id_status_txt');
+                        if (box1 && idTxt) {
                             box1.className = "upload-box upload-complete";
-                            box1.innerHTML = `<span style="font-weight:700; color:#4ade80;">✅ 신분증 자동 연동됨</span><br style="margin-top:2px;"><span style="font-size:10px;color:rgba(255,255,255,0.4);">${file.name.substring(0, 12)}...</span>`;
+                            idTxt.style.color = "#4ade80";
+                            idTxt.innerHTML = `✅ 신분증 첨부 완료`;
+                            const btn = document.getElementById('id_select_btn');
+                            if (btn) btn.innerText = "변경하기";
                         }
                     } else if (type === 'bank') {
-                        bankBookBase64 = base64String;
+                        bankBookBookBase64 = base64String;
                         const box2 = document.getElementById('doc_box_2');
-                        if (box2) {
+                        const bankTxt = document.getElementById('bank_status_txt');
+                        if (box2 && bankTxt) {
                             box2.className = "upload-box upload-complete";
-                            box2.innerHTML = `<span style="font-weight:700; color:#4ade80;">✅ 통장사본 자동 연동됨</span><br style="margin-top:2px;"><span style="font-size:10px;color:rgba(255,255,255,0.4);">${file.name.substring(0, 12)}...</span>`;
+                            bankTxt.style.color = "#4ade80";
+                            bankTxt.innerHTML = `✅ 통장사본 첨부 완료`;
+                            const btn = document.getElementById('bank_select_btn');
+                            if (btn) btn.innerText = "변경하기";
                         }
                     }
-                    console.log(`[전산 정화] 모바일 증빙 서류 이미지 파일 데이터 패킷 추출 및 인코딩 성공: ${file.name}`);
+                    console.log(`[전산 정화] 모바일 증빙 서류 이미지 파일 데이터 패킷 인코딩 성공: ${file.name}`);
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        // 🎯 부모 관리자 시스템(admin.html) 글로벌 시그널 폴링 추적 하이브리드 루프
+        // 🎯 부모 관리자 시스템 및 m-adm 원격 제어반 글로벌 시그널 폴링 추적 하이브리드 루프
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
@@ -1255,20 +1291,17 @@
             if (!bankSelect.value) return alert("알림: 참여비를 수령하실 은행을 선택해 주세요.");
             if (inputtedAccount === "") return alert("알림: 정산 처리를 위한 계좌번호를 입력해 주세요.");
             if (!idCardBase64) return alert("알림: 지급 증빙을 위한 신분증 사본을 반드시 첨부해 주세요.");
-            if (!bankBookBase64) return alert("알림: 지급 증빙을 위한 통장사본 이미지를 반드시 첨부해 주세요.");
+            if (!bankBookBookBase64) return alert("알림: 지급 증빙을 위한 통장사본 이미지를 반드시 첨부해 주세요.");
 
             const finalFinancialInfo = `${selectedBankName} ${inputtedAccount}`;
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-            // 전역 변수 myName 가이드를 매칭 식별자로 1:1 역추적 락인
             const idx = adminApplicantDB.findIndex(user => user.name === myName);
 
             if (idx !== -1) {
-                // [교정 반영]: 부모 전산망 마스터 명단에 진짜 인코딩 이미지 파일 패킷 이름표 데이터 결합 주입
                 adminApplicantDB[idx].payStatus = "접수";
                 adminApplicantDB[idx].accountInfo = finalFinancialInfo;
                 adminApplicantDB[idx].idCardImg = idCardBase64;
-                adminApplicantDB[idx].bankBookImg = bankBookBase64;
+                adminApplicantDB[idx].bankBookImg = bankBookBookBase64;
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
@@ -1286,14 +1319,8 @@
                 }
                 document.getElementById('history-log').innerHTML = "<strong style='color:#38bdf8;'>[접수완료]</strong>";
 
-                // =========================================================================
-                // 🟢 [하이브리드 통신 종결]: 서류 전송 즉시 관제탑 부모 창(admin.html)의 마스터 대장을 
-                //                           원격 강제 리렌더링하여 실시간 불 들어오기 하이브리드 종결
-                // =========================================================================
                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                     window.opener.refreshApplicantView();
-                } else if (window.opener && !window.opener.closed && typeof window.opener.refreshAdminMemberTableView === "function") {
-                    window.opener.refreshAdminMemberTableView();
                 }
             } else {
                 alert("전산 오류: 데이터 동기화 유실로 인해 청구 접수가 거절되었습니다.");

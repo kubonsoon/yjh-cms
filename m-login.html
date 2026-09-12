@@ -515,6 +515,21 @@
             /* 부모 크기에 찌그러지지 않도록 완전 방어 */
         }
 
+        /* ========================================================
+   [교정 추가] 원격 제어 상태별 정사각형 배지 동적 디자인 스킨
+   ======================================================== */
+        #ui_trial_card span#cms-badge.badge.bg-blue.state-pass {
+            background: #10B981 !important;
+            /* 통과 신호 시 석세스 에메랄드 그린 반전 */
+            color: #ffffff !important;
+        }
+
+        #ui_trial_card span#cms-badge.badge.bg-blue.state-fail {
+            background: #F43F5E !important;
+            /* 탈락 신호 시 대인저 로즈 레드 반전 */
+            color: #ffffff !important;
+        }
+
 
         .badge.bg-blue {
             background-color: #0056B3;
@@ -1104,14 +1119,40 @@
         // 🎯 부모 관리자 시스템(admin.html) 글로벌 시그널 폴링 추적 루프 (원본보존)
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {
+                // [A채널 연동]: 관리자 제어반(m-adm)의 실시간 무선 원격 심사 통과/탈락 신호 패킷 가드 가동
+                const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
+                const cmsBadgeSlot = document.getElementById('cms-badge');
+
+                if (pushSignal && pushSignal.name === myName) {
+                    if (pushSignal.status === 'PASS') {
+                        if (cmsBadgeSlot) {
+                            cmsBadgeSlot.className = "badge bg-blue state-pass";
+                            cmsBadgeSlot.innerText = "통과\n(지급)";
+                        }
+                        document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
+                    } else if (pushSignal.status === 'FAIL') {
+                        if (cmsBadgeSlot) {
+                            cmsBadgeSlot.className = "badge bg-blue state-fail";
+                            cmsBadgeSlot.innerText = "탈락\n(정산)";
+                        }
+                        document.getElementById('history-log').innerHTML = "<span style='color:#F43F5E; font-weight:700;'>심사 탈락 반려</span>";
+                    }
+                }
+
+                // [B채널 연동]: 부모창 실시간 정산 양식 권한 원격 락해제 가드
                 if (window.opener && !window.opener.closed && window.opener.currentCertifiedUser) {
                     const currentStatus = window.opener.currentCertifiedUser.payStatus;
                     if (currentStatus === "신청가능") {
                         setMobileFormActive(true);
-                        clearInterval(monitorInterval);
-                        document.getElementById('history-log').innerHTML = "<span style='color:#4ade80;'>승인 신호 포착</span>";
-                        console.log("[모바일] 관리자 승인 신호 감지에 따라 서식 폼 양식 입력 락 해제 완료.");
+                        document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>승인 신호 포착</span>";
+                        console.log("[모바일] 관리자 허브 승인 신호 감지에 따라 서식 폼 양식 입력 락 해제 완료.");
                     }
+                }
+
+                // 관리자가 지급 허가(msg_auth_signal)를 완결하여 최종 접수되면 감시 타이머 클리어 종료
+                const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
+                if (authSignal && authSignal.name === myName && authSignal.isAllow === true) {
+                    clearInterval(monitorInterval);
                 }
             }, 1000);
         }

@@ -1,34 +1,139 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>모바일용 관리자 제어 화면</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: #07132B; color: #FFFFFF; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .panel-box { background-color: #112240; padding: 25px; border-radius: 16px; border: 1px solid #1E293B; width: 100%; max-width: 440px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
-        .panel-title { font-size: 20px; font-weight: 700; color: #06B6D4; margin-bottom: 20px; border-bottom: 2px solid #1E293B; padding-bottom: 10px; }
-        h3 { font-size: 15px; color: #38bdf8; margin-bottom: 12px; font-weight: 700; }
-        .check-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13.5px; color: #E2E8F0; cursor: pointer; }
-        .check-item input { width: 16px; height: 16px; cursor: pointer; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0 20px 0; }
-        .btn { padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; color: #FFF; cursor: pointer; transition: all 0.2s; text-align: center; }
-        .btn-pass { background-color: #10B981; } .btn-pass:hover { background-color: #059669; }
-        .btn-fail { background-color: #F43F5E; } .btn-fail:hover { background-color: #E11D48; }
-        .btn-allow { background-color: #0284c7; } .btn-allow:hover { background-color: #0369a1; }
-        .btn-block { background-color: #475569; } .btn-block:hover { background-color: #334155; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed !important; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+
+        body {
+            background-color: #07132B;
+            color: #FFFFFF;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .panel-box {
+            background-color: #112240;
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid #1E293B;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #06B6D4;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1E293B;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 15px;
+            color: #38bdf8;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 13.5px;
+            color: #E2E8F0;
+            cursor: pointer;
+        }
+
+        .check-item input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0 20px 0;
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #FFF;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn-pass {
+            background-color: #10B981;
+        }
+
+        .btn-pass:hover {
+            background-color: #059669;
+        }
+
+        .btn-fail {
+            background-color: #F43F5E;
+        }
+
+        .btn-fail:hover {
+            background-color: #E11D48;
+        }
+
+        .btn-allow {
+            background-color: #0284c7;
+        }
+
+        .btn-allow:hover {
+            background-color: #0369a1;
+        }
+
+        .btn-block {
+            background-color: #475569;
+        }
+
+        .btn-block:hover {
+            background-color: #334155;
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed !important;
+        }
     </style>
 </head>
+
 <body>
     <div class="panel-box">
         <div class="panel-title">📱 원격 심사 관제탑 (m-adm)</div>
-        
+
         <h3>1단계: 기본 심사 처리 여부</h3>
         <div style="margin-bottom: 12px;">
-            <label class="check-item" style="display:inline-flex; margin-right:15px;"><input type="radio" name="user_type" id="r_normal" checked onclick="switchUserType()"> <span>정규 참여자</span></label>
-            <label class="check-item" style="display:inline-flex;"><input type="radio" name="user_type" id="r_backup" onclick="switchUserType()"> <span>시험 예비자</span></label>
+            <label class="check-item" style="display:inline-flex; margin-right:15px;">
+                <input type="radio" name="user_type" id="r_normal" checked onclick="switchUserType()">
+                <span>정규 대상자</span></label>
+            <label class="check-item" style="display:inline-flex;"><input type="radio" name="user_type" id="r_backup"
+                    onclick="switchUserType()"> <span>시험 예비자</span></label>
         </div>
         <div class="btn-grid">
             <button onclick="sendSignal('PASS')" class="btn btn-pass">통과 처리</button>
@@ -37,11 +142,16 @@
 
         <div id="ui_attendance_section" style="display: none; border-top: 1px solid #1E293B; padding-top: 15px;">
             <h3>2단계: 참여완료 및 탈락 사유 체크</h3>
-            <label class="check-item"><input type="checkbox" id="chk_step1" onclick="handleRules('chk_step1')"> <span>1차 일정 100% 이수 완료</span></label>
-            <label class="check-item"><input type="checkbox" id="chk_step2" onclick="handleRules('chk_step2')"> <span>2차 일정 100% 최종 완료</span></label>
-            <label class="check-item" style="color:#FFD700;"><input type="checkbox" id="chk_first_fail" onclick="handleRules('chk_first_fail')"> <span>소집일(입원) 탈락</span></label>
-            <label class="check-item" style="color:#FB923C;"><input type="checkbox" id="chk_self_out" onclick="handleRules('chk_self_out')"> <span>동의철회 (개인사정)</span></label>
-            <label class="check-item" style="color:#06B6D4;"><input type="checkbox" id="chk_backup_out" onclick="handleRules('chk_backup_out')"> <span>시험 예비자 퇴원 귀가</span></label>
+            <label class="check-item"><input type="checkbox" id="chk_step1" onclick="handleRules('chk_step1')"> <span>1차
+                    일정 100% 이수 완료</span></label>
+            <label class="check-item"><input type="checkbox" id="chk_step2" onclick="handleRules('chk_step2')"> <span>2차
+                    일정 100% 최종 완료</span></label>
+            <label class="check-item" style="color:#FFD700;"><input type="checkbox" id="chk_first_fail"
+                    onclick="handleRules('chk_first_fail')"> <span>소집일(입원) 탈락</span> </label>
+            <label class="check-item" style="color:#FB923C;"><input type="checkbox" id="chk_self_out"
+                    onclick="handleRules('chk_self_out')"> <span>동의철회 (개인사정)</span> </label>
+            <label class="check-item" style="color:#06B6D4;"><input type="checkbox" id="chk_backup_out"
+                    onclick="handleRules('chk_backup_out')"> <span>시험 예비자 퇴원 귀가 </span></label>
 
             <h3 style="margin-top:15px;">3단계: 모바일 지급 신청 인가</h3>
             <div class="btn-grid" style="margin-bottom:0;">
@@ -52,24 +162,40 @@
     </div>
 
     <script>
-        let targetName = "홍길동"; // 시연 연동 타겟 대상자 고정 고리
+        // =========================================================================
+        // 🟢 [정밀 교정]: 하드코딩된 유령 유저를 제거하고, 실제 로그인 대상자 세션 주파수 강제 결합
+        // =========================================================================
+        let targetName = sessionStorage.getItem('certifiedUserName') || "진재영";
+
+        // 실시간 관제 기동 브릿지 유틸리티 가드 (세션 변화 상시 트래킹 오버라이드)
+        function syncTargetSession() {
+            const activeMobileUser = sessionStorage.getItem('certifiedUserName');
+            if (activeMobileUser) {
+                targetName = activeMobileUser;
+            }
+        }
+        syncTargetSession();
 
         function setBoxesDisabled(isD) {
-            ['chk_step1','chk_step2','chk_first_fail','chk_self_out','chk_backup_out'].forEach(id => {
-                document.getElementById(id).disabled = isD;
+            ['chk_step1', 'chk_step2', 'chk_first_fail', 'chk_self_out', 'chk_backup_out'].forEach(id => {
+                if (document.getElementById(id)) document.getElementById(id).disabled = isD;
             });
         }
+
         function sendSignal(status) {
+            syncTargetSession(); // 원격 무선 송신 전 세션 주파수 최종 최신화 리프레시
+
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let user = db.find(u => u.name === targetName);
-            if(user) {
+            if (user) {
                 user.stage = (status === 'PASS') ? '통과' : '탈락';
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
                 localStorage.setItem('msg_push_signal', JSON.stringify({ name: targetName, status: status, time: Date.now() }));
                 document.getElementById('ui_attendance_section').style.display = (status === 'PASS') ? 'block' : 'none';
-                if(status === 'PASS') { setBoxesDisabled(false); switchUserType(); }
+                if (status === 'PASS') { setBoxesDisabled(false); switchUserType(); }
             }
         }
+
         function handleRules(id) {
             let c1 = document.getElementById('chk_step1'), c2 = document.getElementById('chk_step2'), cF = document.getElementById('chk_first_fail'), cB = document.getElementById('chk_backup_out'), cS = document.getElementById('chk_self_out');
             if ((id === 'chk_first_fail' && cF.checked) || (id === 'chk_self_out' && cS.checked)) {
@@ -80,11 +206,12 @@
             } else if (id === 'chk_step2' && c2.checked) {
                 c1.checked = true; cF.checked = false; cB.checked = false; cS.checked = false;
             } else if (id === 'chk_step1' && !c1.checked) { c2.checked = false; }
-            
+
             let anyChecked = c1.checked || c2.checked || cF.checked || cB.checked || cS.checked;
             document.getElementById('btn_allow').disabled = !anyChecked;
             document.getElementById('btn_block').disabled = !anyChecked;
         }
+
         function switchUserType() {
             let isN = document.getElementById('r_normal').checked;
             let c1 = document.getElementById('chk_step1'), c2 = document.getElementById('chk_step2'), cF = document.getElementById('chk_first_fail'), cB = document.getElementById('chk_backup_out'), cS = document.getElementById('chk_self_out');
@@ -92,16 +219,19 @@
             c1.disabled = false; cF.disabled = !isN; cS.disabled = !isN; cB.disabled = isN; c2.disabled = true;
             document.getElementById('btn_allow').disabled = document.getElementById('btn_block').disabled = true;
         }
+
         function toggleAuth(isAllow) {
+            syncTargetSession(); // 원격 무선 송신 전 세션 주파수 최종 최신화 리프레시
+
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let user = db.find(u => u.name === targetName);
-            if(user) {
+            if (user) {
                 let code = 0;
-                if(document.getElementById('chk_step2').checked) code = 2;
-                else if(document.getElementById('chk_step1').checked) code = 1;
-                else if(document.getElementById('chk_first_fail').checked) code = 3;
-                else if(document.getElementById('chk_backup_out').checked) code = 4;
-                else if(document.getElementById('chk_self_out').checked) code = 5;
+                if (document.getElementById('chk_step2').checked) code = 2;
+                else if (document.getElementById('chk_step1').checked) code = 1;
+                else if (document.getElementById('chk_first_fail').checked) code = 3;
+                else if (document.getElementById('chk_backup_out').checked) code = 4;
+                else if (document.getElementById('chk_self_out').checked) code = 5;
 
                 localStorage.setItem('msg_auth_signal', JSON.stringify({ name: targetName, isAllow: isAllow, stageCode: code, time: Date.now() }));
                 alert(isAllow ? "👍 대상자 화면에 참여비 청구서가 실시간 승인 개방되었습니다." : "🔒 참여비 청구 권한을 홀딩 잠금 처리했습니다.");
@@ -109,4 +239,5 @@
         }
     </script>
 </body>
+
 </html>

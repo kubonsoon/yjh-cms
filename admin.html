@@ -2111,7 +2111,19 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
     <input type="text" 
            id="inline-app-count-${masterIndex}" 
            class="inline-input" 
-           value="${(masterIndex + 1) + '/' + (row.count || '60')}" 
+           value="${(function () {
+                            try {
+                                const globalAppDB = (typeof dataStoreApplicant !== "undefined") ? dataStoreApplicant : (JSON.parse(localStorage.getItem('dataStoreApplicant')) || []);
+                                const matchCount = globalAppDB.filter(u =>
+                                    u.title.toString().replace(/\s/g, "") === row.title.toString().replace(/\s/g, "") &&
+                                    u.th.toString().replace(/\s/g, "") === row.th.toString().replace(/\s/g, "")
+                                ).length;
+                                const maxQuota = row.count || "60";
+                                return (matchCount > 0 ? matchCount : 1) + '/' + maxQuota;
+                            } catch (err) {
+                                return row.count || '60';
+                            }
+                        })()}" 
            style="text-align:center; background: var(--card-color) !important;">
     </td>
     <td style="width: 6%; vertical-align: middle; text-align: center;">
@@ -2198,7 +2210,26 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
         <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">
-        ${masterIndex + 1}/${row.count || '60'}명
+        ${(function () {
+                            try {
+                                // 사내 순정 최신 마스터 전역 데이터 어레이를 가져옵니다.
+                                const globalAppDB = (typeof dataStoreApplicant !== "undefined") ? dataStoreApplicant : (JSON.parse(localStorage.getItem('dataStoreApplicant')) || []);
+
+                                // 전역 대장 전체에서 현재 출력 중인 이 행의 [시험명 + 기수] 정보와 공백 없이 완벽하게 일치하는 순수 등록 머릿수만 필터링하여 총합을 구합니다.
+                                const matchCount = globalAppDB.filter(u =>
+                                    u.title.toString().replace(/\s/g, "") === row.title.toString().replace(/\s/g, "") &&
+                                    u.th.toString().replace(/\s/g, "") === row.th.toString().replace(/\s/g, "")
+                                ).length;
+
+                                // 모집 목표 인원수 확보 (기본값 60)
+                                const maxQuota = row.count || "60";
+
+                                // 최종 정답 포맷팅 사출 (결과 예시: 동일 시험인 사람들은 줄 순서와 상관없이 무조건 똑같이 "31/60" 형태로 안착!)
+                                return (matchCount > 0 ? matchCount : 1) + '/' + maxQuota + '명';
+                            } catch (err) {
+                                return (row.count || '60') + '명';
+                            }
+                        })()}
         </td>
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
         

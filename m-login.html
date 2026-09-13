@@ -1067,13 +1067,19 @@
                         // 180일(6개월) 이상 경과 완료된 기존 참여 대상자 격리 가드 발동
                         if (dayDiff >= 180) {
                             alert(`ℹ️ 전산망 보안 안내\n\n대상자 ${matchedPatientData.name} 님은 마지막 시험 참여 후 6개월(현재 ${dayDiff}일 경과)이 지나 새로운 시험에 참여가 가능합니다.\n\n확인을 누르면 모바일 모집공고 캘린더 화면으로 이동합니다.`);
+                            navigateToStep(5);
 
-                            if (window.top) {
-                                window.top.location.href = "m-calendar.html";
-                            } else {
-                                window.location.href = "m-calendar.html";
+                            // 5단계 상황판 상단 라벨에 격리 해제 식별 성명을 실시간 강제 오버라이드 명세
+                            if (document.getElementById('lblSetTargetNew')) {
+                                document.getElementById('lblSetTargetNew').innerText = `${matchedPatientData.name} 대상자님 (6개월 경과 격리해제)`;
                             }
-                            return; // 4단계 정산 신청서 화면으로의 진입을 완벽하게 차단
+
+                            // 매립된 가상 달력 프레임의 진짜 캘린더 렌더러 함수를 무선 호출 가동
+                            const iframe = document.getElementById('mobileCalendarFrame');
+                            if (iframe && iframe.contentWindow && typeof iframe.contentWindow.renderCalendar === "function") {
+                                iframe.contentWindow.renderCalendar();
+                            }
+                            return; // 4단계 정산 신청서 서식 폼으로의 진입을 완벽하게 원천 차단
                         }
                     }
 

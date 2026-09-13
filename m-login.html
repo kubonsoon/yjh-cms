@@ -683,6 +683,19 @@
                 top: 8%;
             }
         }
+
+
+        /* ========================================================
+   [정산 처리중 전용 비활성화 마감 버튼 테마 스킨
+   ======================================================== */
+        .btn-submit-form.bg-slate-lock {
+            background-color: #334155 !important;
+            /* 고대비 슬레이트 다크 그레이 고정 */
+            color: #94a3b8 !important;
+            border: 1px solid #475569 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
 
@@ -1151,6 +1164,35 @@
         // 🎯 4단 스마트 폼 비동기 장벽 원격 해제 스위치 (진짜 파일 업로드 가드 결합 정화)
         function setMobileFormActive(isActive) {
             const isDisable = !isActive;
+
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            const cleanSessionName = (sessionStorage.getItem('certifiedUserName') || myName).toString().replace(/\s/g, "");
+            const currentRecord = adminApplicantDB.find(u => u.name.toString().replace(/\s/g, "") === cleanSessionName);
+            const isProcessingNow = currentRecord && currentRecord.payStatus === "처리중";
+
+            if (isProcessingNow) {
+                if (document.getElementById('ui_bank_select')) document.getElementById('ui_bank_select').disabled = true;
+                if (document.getElementById('ui_bank_input')) document.getElementById('ui_bank_input').disabled = true;
+
+                const box1 = document.getElementById('doc_box_1');
+                const box2 = document.getElementById('doc_box_2');
+                if (box1) box1.className = "upload-box";
+                if (box2) box2.className = "upload-box";
+
+                const fileBtn1 = document.getElementById('id_select_btn');
+                const fileBtn2 = document.getElementById('bank_select_btn');
+                if (fileBtn1) { fileBtn1.innerText = "변경불가"; fileBtn1.style.cursor = "not-allowed"; }
+                if (fileBtn2) { fileBtn2.innerText = "변경불가"; fileBtn2.style.cursor = "not-allowed"; }
+
+                const submitBtn = document.getElementById('ui_submit_btn');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.className = "btn-submit-form bg-slate-lock";
+                    submitBtn.innerText = "✔ 지급 신청 완료 (정산 처리중)";
+                }
+                return;
+            }
+
             if (document.getElementById('ui_bank_select')) document.getElementById('ui_bank_select').disabled = isDisable;
             if (document.getElementById('ui_bank_input')) document.getElementById('ui_bank_input').disabled = isDisable;
 
@@ -1158,8 +1200,8 @@
             const box2 = document.getElementById('doc_box_2');
 
             if (isActive) {
-                if (box1 && !idCardBase64) box1.className = "upload-box active-click";
-                if (box2 && !bankBookBase64) box2.className = "upload-box active-click";
+                if (box1) box1.className = "upload-box active-click";
+                if (box2) box2.className = "upload-box active-click";
             } else {
                 if (box1 && !idCardBase64) box1.className = "upload-box";
                 if (box2 && !bankBookBase64) box2.className = "upload-box";
@@ -1167,12 +1209,22 @@
 
             const submitBtn = document.getElementById('ui_submit_btn');
             if (submitBtn) {
-                submitBtn.disabled = isDisable;
-                if (isActive) {
+                const isAlreadyReceived = currentRecord && currentRecord.payStatus === "접수";
+
+                if (isActive || isAlreadyReceived) {
+                    submitBtn.disabled = false;
+                    submitBtn.className = "btn-submit-form";
                     submitBtn.style.background = "#0284c7";
                     submitBtn.style.cursor = "pointer";
-                    submitBtn.innerText = "지급 신청하기 (관리자 승인 완료)";
+
+                    if (isAlreadyReceived || idCardBase64 || bankBookBase64) {
+                        submitBtn.innerText = "지급 신청하기 (변경하기)";
+                    } else {
+                        submitBtn.innerText = "지급 신청하기 (관리자 승인 완료)";
+                    }
                 } else {
+                    submitBtn.disabled = true;
+                    submitBtn.className = "btn-submit-form";
                     submitBtn.style.background = "#9ca3af";
                     submitBtn.style.cursor = "not-allowed";
                     submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
@@ -1182,10 +1234,20 @@
 
         // 🎯 첨부서류 박스 파일 선택 단추 터치 시 매립된 진짜 파일 태그 트리거 브릿지
         function triggerFileInput(type) {
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            const cleanSessionName = (sessionStorage.getItem('certifiedUserName') || myName).toString().replace(/\s/g, "");
+            const currentRecord = adminApplicantDB.find(u => u.name.toString().replace(/\s/g, "") === cleanSessionName);
+
+            if (currentRecord && currentRecord.payStatus === "처리중") {
+                alert("🔒 정산 처리중 상태이므로 서류를 더 이상 변경할 수 없습니다.");
+                return;
+            }
+
             const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
             const isOpened = authSignal && authSignal.name === myName && authSignal.isAllow === true;
+            const isAlreadyReceived = currentRecord && currentRecord.payStatus === "접수";
 
-            if (!isOpened) {
+            if (!isOpened && !isAlreadyReceived) {
                 alert("알림: 관리자의 [신청가능 개방] 승인이 완료된 후에 서류 첨부가 가능합니다.");
                 return;
             }
@@ -1196,8 +1258,8 @@
 
         // 🎯 [참조 오류 디버깅 완결]: 변수명 주파수를 단일화하여 진짜 이미지 패킷을 가로채는 인코더 엔진 (변경하기 결합)
         function handleFileSelect(input, type) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
+            if (input.files && input.files) {
+                const file = input.files;
                 const reader = new FileReader();
 
                 reader.onload = function (e) {
@@ -1214,7 +1276,7 @@
                             if (btn) btn.innerText = "변경하기";
                         }
                     } else if (type === 'bank') {
-                        // [교정 반영]: 전역 마스터 변수 선언문 철자와 100% 동수 일치화 집계 (ReferenceError 파괴 완료)
+                        // [교정 반영]: 전역 마스터 변수 선언문 철자와 100% 동수 일치화 정화 (ReferenceError 영구 분쇄)
                         bankBookBase64 = base64String;
                         const box2 = document.getElementById('doc_box_2');
                         const bankTxt = document.getElementById('bank_status_txt');
@@ -1226,6 +1288,12 @@
                             if (btn) btn.innerText = "변경하기";
                         }
                     }
+
+                    // 이미지 재업로드 교정 커밋 발생 시점에 하단 메인 단추 문구를 "(변경하기)" 폼으로 즉시 업데이트
+                    const submitBtn = document.getElementById('ui_submit_btn');
+                    if (submitBtn && submitBtn.disabled === false) {
+                        submitBtn.innerText = "지급 신청하기 (변경하기)";
+                    }
                     console.log(`[전산 정화] 모바일 증빙 서류 이미지 파일 데이터 패킷 인코딩 성공: ${file.name}`);
                 };
                 reader.readAsDataURL(file);
@@ -1235,64 +1303,60 @@
         // 🎯 부모 관리자 시스템 및 m-adm 원격 제어반 글로벌 시그널 폴링 추적 하이브리드 루프
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {
-                // 본인인증 통과 시점에 락업된 브라우저 마스터 캐시 세션 성명을 실시간 호출 (주파수 단절 완벽 치료)
                 const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
                 const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
+
+                // =========================================================================
+                // 🟢 [역방향 락킹]: 관리자가 PC창에서 '처리중'으로 바꾸는 순간을 1초 간격 상시 미러링
+                // =========================================================================
+                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                const liveRecord = adminApplicantDB.find(u => u.name.toString().replace(/\s/g, "") === cleanSessionName);
+
+                if (liveRecord && liveRecord.payStatus === "처리중") {
+                    setMobileFormActive(false); // 관리자가 처리중으로 넘기면 즉시 모바일 전체 잠금 역하강 트리거
+                    return;
+                }
 
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
                 const cmsBadgeSlot = document.getElementById('cms-badge');
 
-                // [요구사항 1]: m-adm 제어반에서 통과/탈락 처리 버튼 클릭 타이밍 실시간 감지 분기 스위칭
                 if (pushSignal && pushSignal.name) {
                     const cleanPushName = pushSignal.name.toString().replace(/\s/g, "");
                     if (cleanPushName === cleanSessionName) {
                         if (pushSignal.status === 'PASS') {
                             if (cmsBadgeSlot) {
                                 cmsBadgeSlot.className = "badge bg-blue state-pass";
-                                cmsBadgeSlot.innerText = "통과\n(지급)"; // 통과 클릭 시 실시간 변환
+                                cmsBadgeSlot.innerText = "통과\n(지급)";
                             }
                             document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
                         } else if (pushSignal.status === 'FAIL') {
                             if (cmsBadgeSlot) {
-                                // =========================================================================
-                                // 🟢 [정밀 교정 완결]: 누락되었던 탈락 텍스트 치환 지시어를 이식하여 배지 스위칭 마감
-                                // =========================================================================
                                 cmsBadgeSlot.className = "badge bg-blue state-fail";
-                                cmsBadgeSlot.innerText = "탈락\n(정산)"; // 탈락 신호 포착 즉시 글자 패킷 강제 주입 완결
+                                cmsBadgeSlot.innerText = "탈락\n(정산)";
                             }
                             document.getElementById('history-log').innerHTML = "<span style='color:#F43F5E; font-weight:700;'>심사 탈락 반려</span>";
                         }
                     }
                 }
 
-                // [요구사항 2]: 사유 체크 후 3단계 [신청가능 개방] 클릭 타이밍 무선 패킷 인터셉터 감지
                 const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
                 if (authSignal && authSignal.name) {
                     const cleanAuthName = authSignal.name.toString().replace(/\s/g, "");
-
                     if (cleanAuthName === cleanSessionName) {
                         if (authSignal.isAllow === true) {
                             setMobileFormActive(true);
                             document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>지급 신청 개방</span>";
-
                             myName = currentVerifiedSessionName;
-
-                            clearInterval(monitorInterval);
-                            console.log(`[양방향 연동 종결] m-adm 제어반 승인 개방에 따른 4단계 전체 폼 및 신청하기 버튼 활성화 완료.`);
-                            return;
                         }
                     }
                 }
 
-                // [PC 최고관리자 마스터창(admin.html) 직접 팝업 분기 모드 백업선 유지]
                 if (window.opener && !window.opener.closed && window.opener.currentCertifiedUser) {
                     const currentStatus = window.opener.currentCertifiedUser.payStatus;
                     if (currentStatus === "신청가능") {
                         setMobileFormActive(true);
                         document.getElementById('history-log').innerHTML = "<span style='color:#4ade80; font-weight:700;'>승인 신호 포착</span>";
                         myName = sessionStorage.getItem('certifiedUserName') || myName;
-                        clearInterval(monitorInterval);
-                        console.log("[모바일] 관리자 허브 승인 신호 감지에 따라 서식 폼 양식 입력 락 해제 완료.");
                     }
                 }
             }, 1000);
@@ -1308,54 +1372,43 @@
             if (!bankSelect.value) return alert("알림: 참여비를 수령하실 은행을 선택해 주세요.");
             if (inputtedAccount === "") return alert("알림: 정산 처리를 위한 계좌번호를 입력해 주세요.");
 
-            // [유효성 검증 레이어 디버깅 완결]: 참조 오류 오타 변수명을 순정 레일 변수명(bankBookBase64)으로 완벽히 소독 (1316행 에러 박멸)
-            if (!idCardBase64) return alert("알림: 지급 증빙을 위한 신분증 사본을 반드시 첨부해 주세요.");
-            if (!bankBookBase64) return alert("알림: 지급 증빙을 위한 통장사본 이미지를 반드시 첨부해 주세요.");
-
-            const finalFinancialInfo = `${selectedBankName} ${inputtedAccount}`;
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-            // 로그인 캐시 세션에 바인딩된 마스터 이름을 매칭 식별자로 1:1 정밀 역추적 락인 (인덱스 탐색 단절 완벽 복구)
             const cleanSessionName = (sessionStorage.getItem('certifiedUserName') || myName).toString().replace(/\s/g, "");
-            const idx = adminApplicantDB.findIndex(user => {
-                const cleanDbName = (user.name || '').toString().replace(/\s/g, "");
-                return cleanDbName === cleanSessionName;
-            });
+            const idx = adminApplicantDB.findIndex(user => user.name.toString().replace(/\s/g, "") === cleanSessionName);
+
+            const isReSubmitting = idx !== -1 && adminApplicantDB[idx].payStatus === "접수";
+            const finalIdCardImg = idCardBase64 || (isReSubmitting ? adminApplicantDB[idx].idCardImg : "");
+            const finalBankBookImg = bankBookBase64 || (isReSubmitting ? adminApplicantDB[idx].bankBookImg : "");
+
+            if (!finalIdCardImg) return alert("알림: 지급 증빙을 위한 신분증 사본을 반드시 첨부해 주세요.");
+            if (!finalBankBookImg) return alert("알림: 지급 증빙을 위한 통장사본 이미지를 반드시 첨부해 주세요.");
 
             if (idx !== -1) {
-                // [교정 반영]: 부모 전산망 마스터 명단에 진짜 인코딩 이미지 파일 패킷 이름표 데이터 완전 결합 주입 (통장 오타 데이터 유실 원천 진압)
                 adminApplicantDB[idx].payStatus = "접수";
-                adminApplicantDB[idx].accountInfo = finalFinancialInfo;
-                adminApplicantDB[idx].idCardImg = idCardBase64;
-                adminApplicantDB[idx].bankBookImg = bankBookBase64;
+                adminApplicantDB[idx].accountInfo = `${selectedBankName} ${inputtedAccount}`;
+                adminApplicantDB[idx].idCardImg = finalIdCardImg;
+                adminApplicantDB[idx].bankBookImg = finalBankBookImg; // 오타 수술 및 임베드 매핑 완결
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
-                alert(`[전산 접수 완료]\n\n${adminApplicantDB[idx].name} 대상자님의 참여비 온라인 정산 청구서 및 증빙 서류가 전산 접수 완료되었습니다.`);
+                alert(`[전산 정산 교정 완료]\n\n${adminApplicantDB[idx].name} 대상자님의 참여비 정산 청구서 및 변경 서류가 안전하게 재접수 완결되었습니다.`);
 
                 const targetBtn = document.getElementById('ui_submit_btn');
                 if (targetBtn) {
-                    targetBtn.disabled = true;
-                    targetBtn.innerText = "✔ 지급 신청 완료 (전산 전송됨)";
-                    targetBtn.style.background = "#475569";
-                    targetBtn.style.cursor = "not-allowed";
+                    targetBtn.innerText = "지급 신청하기 (변경하기)";
                 }
                 if (document.getElementById('cms-badge')) {
                     document.getElementById('cms-badge').innerText = "접수";
                     document.getElementById('cms-badge').className = "badge bg-blue";
                 }
-                document.getElementById('history-log').innerHTML = "<strong style='color:#38bdf8;'>[접수완료]</strong>";
+                document.getElementById('history-log').innerHTML = "<strong style='color:#38bdf8;'>[재접수완료]</strong>";
 
-                // =========================================================================
-                // 🟢 [양방향 하이브리드 통신 완결]: 서류 전송 즉시 최고관리자 마스터 대장창(admin.html)의 
-                //                                   그리드를 원격 강제 리렌더링하여 실시간 불 들어오기 완결
-                // =========================================================================
+                // 진짜 서류 이미지 업로드 완료 직후 부모 관제탑창(admin.html) 명단을 원격 실시간 동적 리렌더링 불 켜기 처리 종결
                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                     window.opener.refreshApplicantView();
                 } else if (window.opener && !window.opener.closed && typeof window.opener.refreshAdminMemberTableView === "function") {
                     window.opener.refreshAdminMemberTableView();
                 }
-                console.log(`[금융 신청 허브] ${adminApplicantDB[idx].name} 대상자 청구서 및 인코딩 서류 패킷 마스터 대장 적재 후 원격 불 켜기 시그널 전송 완결.`);
             } else {
                 alert("전산 오류: 데이터 동기화 유실로 인해 청구 접수가 거절되었습니다. 다시 로그인해 주세요.");
             }
@@ -1377,28 +1430,21 @@
             }
         }
 
-        // 🎯 [전산 무결성 완결]: 제어반 무선 패킷을 실시간 동기화하여 차수별 상태 대장을 최종 커밋하는 서브 시스템
+        // 🎯 [최종 연동 완결]: 제어반 무선 패킷 코드를 상시 역파싱하여 차수별 상세 정산 상태를 데이터베이스 대장에 최종 PUSH 커밋
         function commitFinalSettlement() {
-            // 1. 제어반(m-adm)이 방출한 원격 인가 신호 패킷을 최종 실시간 가로채기 파싱
             const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
 
-            // [참조 오류 소독 가드 이식]: 유실되었던 targetStageCode 변수를 제어반 패킷의 stageCode와 완벽 직렬 연결!!
+            // [정의선 누수 소독]: 참조 오류 폭발을 방어하기 위해 무선 인가 신호 패킷의 stageCode를 실시간 변수 바인딩 주입 완료
             const targetStageCode = (authSignal && authSignal.stageCode) ? parseInt(authSignal.stageCode, 10) : 0;
 
-            // 2. 로그인 캐시 세션 성명을 실시간 강제 호출하여 명의 단절 버그 원천 진압
             const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
             const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
 
             let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-            // 가상 DB 스캔 매칭 조건문 포맷 소독 일치화
-            let row = applicantDB.find(u => {
-                const cleanDbName = (u.name || '').toString().replace(/\s/g, "");
-                return cleanDbName === cleanSessionName;
-            });
+            let row = applicantDB.find(u => u.name.toString().replace(/\s/g, "") === cleanSessionName);
 
             if (row) {
-                // 관리자 제어반 m-adm 스펙과 호환되도록 차수별 정산완료/탈락정산 상태값 분기 매칭 완결
+                // 관리자 제어반 m-adm 스펙과 완벽하게 호환되도록 차수별 정산완료/탈락정산 상태값 분기 매칭 완결
                 if (targetStageCode === 1) {
                     row.payStatus1 = "완료";
                 } else if (targetStageCode === 2) {
@@ -1413,18 +1459,17 @@
                     row.payStatus1 = "중도정산";
                 }
 
-                // 부모창 admin.html 명단의 첨부서류 슬롯과 실시간 주파수를 일치시키는 리얼 데이터 바인딩 주입
                 row.idCardImg = idCardBase64;
-                row.bankBookImg = bankBookBase64;
+                row.bankBookImg = bankBookBase64; // 변수명 철자 오타 전수 청소 세척 완료
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
 
-                // 서류 전송 즉시 관제탑 부모 창(admin.html)의 마스터 대장을 원격 리렌더링하여 실시간 불 들어오기 하이브리드 종결
+                // 관제탑 부모 창(admin.html)의 마스터 대장을 새로고침 없이 원격 리렌더링하여 실시간 불 들어오기 하이브리드 종결
                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                     window.opener.refreshApplicantView();
                 }
 
-                // 구형 용어 완전 소독 정화 ('피험자' -> '대상자', '사례비' -> '참여비' 철저 사수)
+                // 표준 전산화 규격 용어 완벽 엄수 지정 사출 ('피험자' -> '대상자' 완전 소독)
                 alert(`🎉 접수 완료\n\n귀하의 참여비 온라인 금융 정산 청구서 및 증빙 서류가 마스터 대장 전산망으로 안전하게 전송되었습니다.`);
 
                 const moBtn = document.getElementById('mo_submit_btn');
@@ -1433,9 +1478,7 @@
                     moBtn.innerText = "지급 신청 접수 완료";
                     moBtn.style.opacity = "0.5";
                 }
-                console.log(`[백엔드 데이터 최종 종결] 대상자 ${row.name} 님의 차수별 정산 레코드 코딩 적재 완결. (스테이지 코드: ${targetStageCode})`);
-            } else {
-                console.log(`[전산 누수 경고] 대장 업데이트 거절: 현재 로그인 세션 명의와 일치하는 대상자 행이 가상 DB에 없습니다.`);
+                console.log(`[백엔드 데이터 최종 종결] 대상자 ${row.name} 님의 차수별 정산 레코드 코딩 적재 완결.`);
             }
         }
     </script>

@@ -3101,22 +3101,21 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         let extractedTitle = "과제명 미정";
                         let extractedTh = "1기";
                         let extractedPeriod = "0";
-                        let extractedNCount = "0"; // 인원수 (N뒤의 숫자만 수집)
+                        let extractedNCount = 0; // ⚠️ 순수 숫자 형태로 초기화
 
                         if (metaText) {
-                            // 기수 추출 (\d+기) -> 숫자만 매칭
                             const thMatch = metaText.match(/(\d+)기/);
-                            if (thMatch) extractedTh = thMatch[0];
+                            if (thMatch) extractedTh = thMatch[1] + "기";
 
-                            // 기간 추출 (\d+시간) -> 숫자만 매칭
                             const periodMatch = metaText.match(/(\d+)시간/);
                             if (periodMatch) extractedPeriod = periodMatch[1];
 
-                            // 인원수 오류 해결: (N44) 에서 N 뒤의 순수 숫자만 그룹([1])으로 정밀 추출
+                            // ⚠️ [최종 보정] (N44)에서 N 뒤의 순수 숫자만 매칭하여 가져오고 나머지는 버림
                             const nMatch = metaText.match(/\(N(\d+)\)/);
-                            if (nMatch && nMatch[1]) extractedNCount = nMatch[1];
+                            if (nMatch && nMatch[1]) {
+                                extractedNCount = parseInt(nMatch[1], 10) || 0; // 문자열을 '44' 숫자로 완벽 변환
+                            }
 
-                            // 순수 시험명 파싱 (기수, 인원수, 시간, 담당 정보 공백화 제거)
                             let cleanTitle = metaText;
                             cleanTitle = cleanTitle.replace(/\d+기/g, "");
                             cleanTitle = cleanTitle.replace(/\(N\d+\)/g, "");
@@ -3125,10 +3124,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             extractedTitle = titleParts[0].replace(/\s+/g, " ").trim();
                         }
 
-                        console.log(`▶ [메타 추출 성공] 시험명: ${extractedTitle} | 기수: ${extractedTh} | 인원수: ${extractedNCount}명 | 기간: ${extractedPeriod}시간`);
+                        console.log(`▶ [메타 추출 성공] 시험명: ${extractedTitle} | 기수: ${extractedTh} | 인원수: ${extractedNCount} (숫자만) | 기간: ${extractedPeriod}시간`);
 
                         let currentApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                        const currentYear = new Date().getFullYear(); // 2026년 기준 실시간 동적 계산
+                        const currentYear = new Date().getFullYear();
 
                         // ================================================================
                         // [2단계] 4행(인덱스 3)부터 반복 돌며 인적사항 정제 및 데이터 조립
@@ -3137,7 +3136,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
 
-                            // ⚠️ 이미지 기반 고정 인덱스 맵핑 (D열=인덱스 3: 성명, E열=인덱스 4: 성별/나이, F열=인덱스 5: 생년월일, G열=인덱스 6: 연락처)
                             let rawName = row[3] ? row[3].toString().trim() : "";
                             const rawGenderAge = row[4] ? row[4].toString().trim() : "";
                             let rawSsn = row[5] ? row[5].toString().trim() : "";
@@ -3145,33 +3143,39 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 
-                            // ① 이름 정제: 괄호 식별자 파괴 (예: 김민석(01) -> 김민석)
-                            const excelName = rawName.replace(/\(.*?\)/g, "").trim();
+                            // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
+                            const excelName = rawName.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
 
-                            // ② ⚠️ 성별 배지 대응 보정: '남자/여자'가 아닌 '남/여' 단축어로 치환 고정
+                            // ② 성별 및 나이 추출 (특수 개행공백 숙청 및 '남/여' 단축어 고정)
+                            const cleanGenderAge = rawGenderAge.replace(/[\r\n\s]/g, "");
+
                             let gender = "미정";
                             let age = 0;
-                            if (rawGenderAge && rawGenderAge.includes("/")) {
-                                const parts = rawGenderAge.split("/");
-                                const gLetter = parts[0].toString().replace(/\s/g, "").toUpperCase(); // 공백 제거 및 대문자화
 
-                                if (gLetter === "M") gender = "남";
-                                else if (gLetter === "F") gender = "여";
+                            if (cleanGenderAge && cleanGenderAge.includes("/")) {
+                                const parts = cleanGenderAge.split("/");
+                                const gLetter = parts[0].toUpperCase();
+
+                                if (gLetter === "M" || gLetter.includes("M")) gender = "남";
+                                else if (gLetter === "F" || gLetter.includes("F")) gender = "여";
                                 else gender = gLetter;
 
-                                age = parseInt(parts[1].toString().trim(), 10) || 0;
+                                age = parseInt(parts[1], 10) || 0;
                             }
 
-                            // ③ 깨진 생년월일 포맷팅 보정 (60215, 215 -> 나이 기준 연도 채우기 역산)
-                            if (rawSsn && rawSsn.length < 6 && age > 0) {
-                                const birthYear = currentYear - age + 1; // 한국식 나이 역산 규칙 적용
-                                const shortYearStr = birthYear.toString().substring(2, 4); // 연도 뒤 2자리 (예: 99, 00)
-
-                                let shortDateStr = rawSsn;
-                                while (shortDateStr.length < 4) {
-                                    shortDateStr = "0" + shortDateStr;
+                            // ③ 생년월일 6자리 보정 (예: 60215 -> 060215)
+                            let finalSsn = "정보없음";
+                            if (rawSsn) {
+                                let cleanSsn = rawSsn.replace(/[^0-9]/g, "");
+                                if (cleanSsn.length === 5) {
+                                    finalSsn = "0" + cleanSsn;
+                                } else if (cleanSsn.length === 6) {
+                                    finalSsn = cleanSsn;
+                                } else if (cleanSsn.length > 6) {
+                                    finalSsn = cleanSsn.substring(0, 6);
+                                } else {
+                                    finalSsn = cleanSsn;
                                 }
-                                rawSsn = shortYearStr + shortDateStr; // 결과: "990215" 형태로 세팅
                             }
 
                             const cleanExcelName = excelName.replace(/\s/g, "");
@@ -3181,14 +3185,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const mergedRecord = {
                                 uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : `EXCEL_${Date.now()}_${Math.floor(Math.random() * 1000)}_${i}`,
                                 name: excelName,
-                                ssn: rawSsn || (targetIdx !== -1 ? currentApplicantDB[targetIdx].ssn : "정보없음"),
+                                ssn: finalSsn,
                                 phone: phoneVal || (targetIdx !== -1 ? currentApplicantDB[targetIdx].phone : "정보없음"),
-                                gender: gender, // 변경: '남' 또는 '여'로 바인딩 완료
+                                gender: gender,
                                 age: age,
                                 title: targetIdx !== -1 ? currentApplicantDB[targetIdx].title : extractedTitle,
                                 th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,
                                 period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod,
-                                nCount: extractedNCount,
+                                nCount: extractedNCount, // ⚠️ 괄호와 문자가 완전히 버려진 순수 숫자 '44' 저장
                                 payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
                                 stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "대기",
                                 regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')[0]
@@ -3206,19 +3210,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         // ================================================================
                         localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
 
-                        console.log("▶ [엔진 디버깅] 최종 정제 완료 동기화 배열 데이터:", currentApplicantDB);
+                        console.log("▶ [엔진 디버깅] 최종 동기화 완료 데이터 배열:", currentApplicantDB);
 
-                        alert(`📊 [통합 데이터베이스 동기화 완료]\n\n• 시험명: ${extractedTitle}\n• 기수: ${extractedTh}\n• 배정 인원수: ${extractedNCount}명\n• 기간: ${extractedPeriod}시간\n\n성별 데이터가 '남/여' 배지 규격에 맞춰 정상 반영되었습니다.`);
+                        alert(`📊 [통합 데이터베이스 동기화 완료]\n\n• 시험명: ${extractedTitle}\n• 기수: ${extractedTh}\n• 배정 인원수: ${extractedNCount}명 (순수 숫자 추출 완료)\n\n데이터 정밀 필터링 및 자동 복원 가동이 완벽하게 완료되었습니다.`);
 
-                        // 웹 UI 갱신 함수 기동
                         if (typeof window.refreshApplicantView === "function") window.refreshApplicantView();
                         if (typeof window.calculateLiveDashboardStats === "function") window.calculateLiveDashboardStats();
 
-                        // 인풋 오브젝트 비우기
                         if (evt && evt.target) evt.target.value = '';
 
                     } catch (err) {
-                        alert("전산 오류: 정형식 빅데이터 텍스트 정밀 복원 과정 중 예외가 발생했습니다.");
+                        alert("전산 오류: 최종 인원수 데이터 타입 빌드 도중 예외가 발생했습니다.");
                         console.error("🚨 [실제 에러 발생 원인]:", err);
                     }
                 };

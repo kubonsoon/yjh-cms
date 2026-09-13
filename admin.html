@@ -2193,7 +2193,29 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     tr.innerHTML = `
         <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
-        <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${row.count}명</td>
+        <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">
+    ${(function () {
+                            try {
+                                // 1. 현재 대장(dataStoreApplicant)에서 현재 행의 [시험명 + 기수]가 완벽히 일치하는 피험자들만 순수하게 필터링합니다.
+                                //    (이를 통해 디폴트등록, 수동등록, 모바일인증, 파일등록 등 유입 경로와 상관없이 같은 시험이면 하나의 그룹으로 묶입니다.)
+                                const totalGroup = dataStoreApplicant.filter(u =>
+                                    u.title.toString().trim() === row.title.toString().trim() &&
+                                    u.th.toString().trim() === row.th.toString().trim()
+                                );
+
+                                // 2. 묶인 그룹 내부에서 '현재 대상자의 고유 식별자(uid)' 또는 '성명'을 추적하여 이 사람이 그룹 내에서 누적 몇 번째 순서에 위치해 있는지 정확한 인덱스를 찾습니다.
+                                const currentOrder = totalGroup.findIndex(u => (u.uid && row.uid && u.uid === row.uid) || u.name === row.name) + 1;
+
+                                // 3. 만약 어떤 예외로 순번 색인이 안 잡힌다면 기본 줄 번호(masterIndex + 1)로 안전하게 폴백 처리합니다.
+                                const finalOrder = currentOrder > 0 ? currentOrder : (masterIndex + 1);
+
+                                // 4. 최종 사출 양식 조립 (예: 김수지 님이 1/60이면 그 다음 신규 등록자는 알아서 2/60, 3/60으로 실시간 변경되어 표출됩니다.)
+                                return finalOrder + '/' + (row.count || '60') + '명';
+                            } catch (e) {
+                                return (masterIndex + 1) + '/' + (row.count || '60') + '명';
+                            }
+                        })()}
+</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
         
         <!-- 🟢 [수정 완료]: 이름 칸은 원래 설계 서식대로 깨끗하게 텍스트 정돈 원복 처리 -->

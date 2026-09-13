@@ -676,37 +676,29 @@
             if (!cardBoard) return;
             cardBoard.innerHTML = '';
 
+            // 마스터 관리 대시보드(admin.html)에서 빌드된 진짜 모집공고 원본 데이터 원격 스트림 로드
             const records = getMasterData();
             let applicantDB = getApplicantData();
 
-            // 1. 글로벌 로그인 공유 버퍼에서 현재 접속한 대상자의 무선 인적 세션 성명 역가로채기
+            // 글로벌 공유 버퍼(localStorage)에서 로그인에 성공해 진입한 대상자의 실시간 성명 포착
             let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || {};
             if (!loggedInUser.name) {
                 loggedInUser = { name: "홍길동", isNew: false };
                 localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
             }
             const currentSessionName = loggedInUser.name.toString().trim();
-            const cleanSessionName = currentSessionName.replace(/\s/g, "");
-
-            // 2. 대장 내부에서 현재 로그인한 대상자의 원본 레코드를 스캔하여 배정 과제 타이틀을 추출
-            const myMatchRecord = applicantDB.find(app => (app.name || '').toString().replace(/\s/g, "") === cleanSessionName);
-            const myAssignedTitle = myMatchRecord ? (myMatchRecord.title || '') : '';
 
             // =========================================================================
-            // 🟢 [정밀 교정 완결]: 대괄호, 공백, 하이픈 등 특수문자 간섭을 제로화시키는 문자열 이중 소독 포맷터
-            //                      (이 처리를 통해 김태희 및 다중 대상자의 배정 과제 카드가 100% 무조건 실시간 사출)
+            // 🟢 [정밀 교정]: 하이픈(-), 도트(.), 공백 등 날짜 서식 찌꺼기를 완전 증발시키는 날짜 정합 유틸리티
+            //                  (선택한 주간 바 날짜와 모집공고 대장의 날짜 주파수를 순수 숫자 체계로 100% 완전 동기화)
             // =========================================================================
-            const cleanAssignedTitle = myAssignedTitle.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+            const cleanSelectedDateStr = selectedDateStr.toString().replace(/[^0-9]/g, "");
 
-            // 3. 상단 주간 바에서 선택한 날짜(selectedDateStr)와 일치하는 전체 공고 필터링
-            const dateMatchedRecords = records.filter(item => item.recDate && item.recDate.trim() === selectedDateStr);
-
-            // 4. [주파수 최종 결합]: 날짜 매칭 데이터 중, 현재 로그인 유저의 진짜 배정 과제명과 일치하는 공고 패킷만 최종 사출
-            const targetRecords = dateMatchedRecords.filter(item => {
-                const cleanTargetTitle = (item.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                // 만약 가상 회원권 최초 인증 유저이거나 매칭할 타이틀이 비어있다면 당일 공고 전체를 열람 개방
-                if (!cleanAssignedTitle || cleanAssignedTitle === "") return true;
-                return cleanTargetTitle === cleanAssignedTitle;
+            // 📱 [명의 장벽 완전 해제]: 대상자가 자유롭게 새 과제를 선택할 수 있도록 날짜가 일치하는 당일 공고 전체를 필터링 사출!
+            const targetRecords = records.filter(item => {
+                if (!item.recDate) return false;
+                const cleanRecDate = item.recDate.toString().replace(/[^0-9]/g, "");
+                return cleanRecDate === cleanSelectedDateStr;
             });
 
             if (targetRecords.length === 0) {
@@ -727,7 +719,6 @@
                 const card = document.createElement('div');
                 card.className = 'trial-manifest-card';
 
-                // [오타 완치 반영]: 문자열 보간 시 불필요하게 꼬여있던 내부 특수기호 단추 아이디 규격을 완전히 단일화 수정
                 card.innerHTML = `
         <div class="card-top-row">
         <div class="card-title-text">${item.title || '임상 과제명 미지정'}</div>

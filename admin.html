@@ -3049,10 +3049,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const d = document.getElementById('selected-file-name');
             if (!file || file.length === 0) { if (d) d.innerText = ''; return; }
 
-            // 1. 업로드 파일의 최하단 확장자 포맷 식별자 안전 캡처 (file[0] 정밀 지칭 유지)
+            // 1. 업로드 파일의 최하단 확장자 포맷 식별자 안전 캡처
             const ext = file[0].name.split('.').pop().toLowerCase();
 
-            // 2. 🎯 [필터링 수리 마감]: 허용 확장자 매트릭스 배열 내부에 'csv' 포맷을 완전히 락인 개방
+            // 2. 허용 확장자 매트릭스 배열 내부에 대형 엑셀 및 텍스트 규격 락인 검증
             if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt', 'csv'].includes(ext)) {
                 alert('지원하지 않는 형식입니다.');
                 e.target.value = '';
@@ -3060,17 +3060,79 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             }
             if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file[0].name}`;
 
-            // 3. 텍스트 버퍼 인스턴스 스트림 가동
             const r = new FileReader();
-            r.onload = function (evt) {
-                if (typeof parseRawTextDump === 'function') {
-                    parseRawTextDump(evt.target.result);
-                }
-            };
 
-            // 4. 🎯 [치명적 단선 오류 영구 소멸 조치]: 기존의 잘못된 'file' 지칭을 'file[0]'으로 정밀 정정 수리 완료!
-            // 이 수리를 통해 파일 분석기가 단선되지 않고 메모리를 EUC-KR 한글 완성형으로 온전히 로드합니다.
-            r.readAsText(file[0], 'EUC-KR');
+            // =========================================================================
+            // 🟢 [정밀 교정 완결]: 하이브리드 확장자 분기 라우터를 이식하여, .xlsx 파일 인입 시
+            //                      SheetJS 바이너리 디코더 엔진과 어레이 버퍼 통신선을 1:1 직렬 결합!!
+            // =========================================================================
+            if (ext === 'xlsx' || ext === 'xls') {
+                r.onload = function (evt) {
+                    try {
+                        // 압축 파일 내부의 순수 바이너리 데이터 버퍼 어레이 안전 가로채기
+                        const bufferArray = evt.target.result;
+                        const workbook = XLSX.read(bufferArray, { type: 'array' });
+
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+
+                        // 시트 내부의 한글 행렬 데이터를 가상 DB JSON 형식으로 고속 변환 사출
+                        const excelRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                        let currentApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+                        excelRows.forEach(row => {
+                            const excelName = (row["성명"] || row["이름"] || row["대상자명"] || "").toString().trim();
+                            if (!excelName) return;
+
+                            const cleanExcelName = excelName.replace(/\s/g, "");
+                            const targetIdx = currentApplicantDB.findIndex(u => u.name.toString().replace(/\s/g, "") === cleanExcelName);
+
+                            const mergedRecord = {
+                                uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : `EXCEL_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                                name: excelName,
+                                ssn: (row["주민등록번호"] || row["주민번호"] || row["생년월일"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].ssn : "850101-1")),
+                                phone: (row["연락처"] || row["전화번호"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].phone : "010-0000-0000")),
+                                title: (row["임상과제명"] || row["과제명"] || row["시험명"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].title : "과제 기수 미정")),
+                                th: (row["기수"] || row["차수"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].th : "1기")),
+                                period: (row["인정시간"] || row["시험시간"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].period : "0")),
+                                payStatus: (row["지급상태"] || row["정산상태"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기")),
+                                stage: (row["참여상태"] || row["심사단계"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "대기")),
+                                regDate: (row["등록일자"] || row["신청일"] || new Date().toISOString().split('T')[0])
+                            };
+
+                            if (targetIdx !== -1) {
+                                currentApplicantDB[targetIdx] = Object.assign({}, currentApplicantDB[targetIdx], mergedRecord);
+                            } else {
+                                currentApplicantDB.push(mergedRecord);
+                            }
+                        });
+
+                        localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
+                        alert(`📊 [엑셀 데이터베이스 통합 완료]\n\n총 ${excelRows.length}건의 엑셀 통합 문서 데이터가 한글 깨짐 없이 정상 반영되었습니다.`);
+
+                        if (typeof window.refreshApplicantView === "function") window.refreshApplicantView();
+                        if (typeof window.calculateLiveDashboardStats === "function") window.calculateLiveDashboardStats();
+
+                        e.target.value = '';
+                    } catch (err) {
+                        alert("전산 오류: 엑셀 파일 해독 엔진 가동에 실패했습니다.");
+                        console.error(err);
+                    }
+                };
+                // 2진 바이너리 어레이 버퍼 파이프라인 전격 기동 (구문 오류 격파선)
+                r.readAsArrayBuffer(file[0]);
+
+            } else {
+                // 3. 순수 구형 CSV 및 TXT 파일용 기존 텍스트 버퍼 인스턴스 스트림 백업 유지 트랙
+                r.onload = function (evt) {
+                    if (typeof parseRawTextDump === 'function') {
+                        parseRawTextDump(evt.target.result);
+                    }
+                };
+                // 텍스트 파일형 완성형 한글 인코딩 로드선 유지
+                r.readAsText(file[0], 'EUC-KR');
+            }
         }
 
         function handleExamFileImport(event) {

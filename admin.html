@@ -3075,77 +3075,122 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     try {
                         const bufferArray = evt.target.result;
 
-                        // 글로벌 라이브러리 객체를 호출하여 .xlsx 압축 패킷 해독 프로세스 다이렉트 통과
-                        const workbook = XLSX.read(bufferArray, { type: 'array' });
+                        // ================================================================
+                        // [보정] CSV 한글 깨짐(ANSI/EUC-KR) 방지를 위한 텍스트 전환 테스트
+                        // ================================================================
+                        let workbook;
+                        try {
+                            // 1차 시도: 표준 array 타입으로 자동 판독하여 파일 해독 시도
+                            workbook = XLSX.read(bufferArray, { type: 'array' });
+                        } catch (e) {
+                            // 2차 시도: 1차 실패 시 CSV 한글 폰트 강제 디코딩 옵션(CP949) 우회 처리
+                            const decoder = new TextDecoder('euc-kr');
+                            const csvText = decoder.decode(bufferArray);
+                            workbook = XLSX.read(csvText, { type: 'string' });
+                        }
 
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
 
-                        const excelRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                        // 2차원 배열 데이터로 추출 (1, 2행 제목 간섭 및 헤더 꼬임 완벽 차단)
+                        const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
-                        // 1. 디버깅용: 엑셀에서 뽑아낸 원본 데이터가 제대로 생겼는지 콘솔에 강제 출력
-                        console.log("▶ [디버깅] 엑셀에서 파싱된 원본 행 데이터:", excelRows);
+                        console.log("▶ [디버깅] 파일 데이터 로드 성공 (2차원 배열):", rawRows);
+
+                        // ================================================================
+                        // [1단계] 1행 A1 셀 메타 정보에서 과제 정보 정밀 추출
+                        // ================================================================
+                        const metaText = (rawRows && rawRows[0] && rawRows[0][0]) ? rawRows[0][0].toString().trim() : "";
+
+                        let extractedTitle = "과제명 미정";
+                        let extractedTh = "1기";
+                        let extractedPeriod = "0";
+
+                        if (metaText) {
+                            // 기수 추출 (예: '3기' 또는 '12기')
+                            const thMatch = metaText.match(/(\d+)기/);
+                            if (thMatch) extractedTh = thMatch[0];
+
+                            // 인정시간 추출 (예: '60시간' 또는 '120시간')
+                            const periodMatch = metaText.match(/(\d+)시간/);
+                            if (periodMatch) extractedPeriod = periodMatch[1]; // 숫자만 추출 ('60')
+
+                            // 담당 CRC 앞부분까지를 깔끔한 과제명으로 추출
+                            const titleMatch = metaText.split("담당");
+                            if (titleMatch && titleMatch[0]) {
+                                extractedTitle = titleMatch[0].trim();
+                            } else {
+                                extractedTitle = metaText;
+                            }
+                        }
 
                         let currentApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                        excelRows.forEach(row => {
-                            const excelName = (row["성명"] || row["이름"] || row["대상자명"] || "").toString().trim();
-                            if (!excelName) return;
+                        // ================================================================
+                        // [2단계] 4번째 행(인덱스 3)부터 돌며 실제 타겟 데이터만 정밀 추출
+                        // ================================================================
+                        for (let i = 3; i < rawRows.length; i++) {
+                            const row = rawRows[i];
+                            if (!row || row.length === 0) continue;
+
+                            // 정해진 열 위치(Index)에서 데이터 콕 집어 가져오기
+                            // D열(인덱스 3): 성명 / F열(인덱스 5): 생년월일 / G열(인덱스 6): 연락처
+                            const excelName = row[3] ? row[3].toString().trim() : "";
+                            const ssnVal = row[5] ? row[5].toString().trim() : "";
+                            const phoneVal = row[6] ? row[6].toString().trim() : "";
+
+                            // 성명 데이터가 비어있거나, 헤더 행("성명") 글자가 중복 감지되면 스킵
+                            if (!excelName || excelName === "성명" || excelName === "ID") continue;
 
                             const cleanExcelName = excelName.replace(/\s/g, "");
                             const targetIdx = currentApplicantDB.findIndex(u => u.name.toString().replace(/\s/g, "") === cleanExcelName);
 
+                            // 필요한 규격 항목만 정제해서 맵핑 (불필요한 이니셜, ID 등은 수집 대상에서 자동 제외)
                             const mergedRecord = {
-                                uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : `EXCEL_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
-                                name: excelName,
-                                ssn: (row["주민등록번호"] || row["주민번호"] || row["생년월일"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].ssn : "850101-1")),
-                                phone: (row["연락처"] || row["전화번호"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].phone : "010-0000-0000")),
-                                title: (row["임상과제명"] || row["과제명"] || row["시험명"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].title : "과제 기수 미정")),
-                                th: (row["기수"] || row["차수"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].th : "1기")),
-                                period: (row["인정시간"] || row["시험시간"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].period : "0")),
-                                payStatus: (row["지급상태"] || row["정산상태"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기")),
-                                stage: (row["참여상태"] || row["심사단계"] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "대기")),
-                                regDate: (row["등록일자"] || row["신청일"] || new Date().toISOString().split('T')[0])
+                                uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : `EXCEL_${Date.now()}_${Math.floor(Math.random() * 1000)}_${i}`,
+                                name: excelName,                                                     // 추출 항목 1: 성명
+                                ssn: ssnVal || (targetIdx !== -1 ? currentApplicantDB[targetIdx].ssn : "정보없음"),      // 추출 항목 2: 생년월일
+                                phone: phoneVal || (targetIdx !== -1 ? currentApplicantDB[targetIdx].phone : "정보없음"), // 추출 항목 3: 연락처
+                                title: targetIdx !== -1 ? currentApplicantDB[targetIdx].title : extractedTitle,
+                                th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,
+                                period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod,
+                                payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
+                                stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "대기",
+                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')[0]
                             };
 
+                            // 기등록된 사용자(성명 일치)인 경우 덮어쓰고(Update), 없으면 신규 추가(Insert)
                             if (targetIdx !== -1) {
                                 currentApplicantDB[targetIdx] = Object.assign({}, currentApplicantDB[targetIdx], mergedRecord);
                             } else {
                                 currentApplicantDB.push(mergedRecord);
                             }
-                        });
-
-                        // LocalStorage에 최종 데이터 저장
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
-
-                        // 2. 디버깅용: 로컬스토리지에 최종 합쳐진 데이터 상태 확인
-                        console.log("▶ [디버깅] LocalStorage에 저장된 최종 데이터 배열:", currentApplicantDB);
-
-                        alert(`📊 [엑셀 데이터베이스 통합 완료]\n\n글로벌 엔진을 통해 총 ${excelRows.length}건의 대장 데이터가 한글 깨짐 없이 정상 반영되었습니다.`);
-
-                        // 3. 화면 갱신 함수 점검 및 강제 실행 시도
-                        if (typeof window.refreshApplicantView === "function") {
-                            console.log("▶ [디버깅] window.refreshApplicantView 함수를 실행합니다.");
-                            window.refreshApplicantView();
-                        } else if (typeof refreshApplicantView === "function") {
-                            console.log("▶ [디버깅] 전역 refreshApplicantView 함수를 실행합니다.");
-                            refreshApplicantView();
-                        } else {
-                            console.warn("❌ [경고] 화면을 새로고침하는 'refreshApplicantView' 함수를 찾을 수 없습니다. 목록이 안 바뀌는 원인입니다.");
                         }
 
+                        // ================================================================
+                        // [3단계] 브라우저 데이터베이스(LocalStorage) 저장 및 UI 리렌더링
+                        // ================================================================
+                        localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
+
+                        console.log("▶ [디버깅] 최종 동기화 완료 데이터 배열:", currentApplicantDB);
+
+                        alert(`📊 [통합 데이터베이스 동기화 완료]\n\n추출 과제: ${extractedTitle}\n기수/시간: ${extractedTh} (${extractedPeriod}시간)\n\n업로드된 파일에서 필요한 대장 항목(성명, 생년월일, 연락처)만 깨끗하게 분석되어 화면 목록에 반영되었습니다.`);
+
+                        // 웹 화면 리스트 갱신 함수 트리거
+                        if (typeof window.refreshApplicantView === "function") window.refreshApplicantView();
                         if (typeof window.calculateLiveDashboardStats === "function") window.calculateLiveDashboardStats();
 
-                        // 4. 오류 수정: 변수 e가 없어 에러 나던 부분을 파일 input 태그를 추적해 정상 초기화하도록 수정
+                        // 파일 선택 컴포넌트 비우기
                         const fileInput = document.querySelector('input[type="file"]');
                         if (fileInput) fileInput.value = '';
 
                     } catch (err) {
-                        alert("전산 오류: 엑셀 파일 처리 중 오류가 발생했습니다. 개발자 도구(F12) 콘솔을 확인하세요.");
+                        alert("전산 오류: 정형식 CSV/XLSX 레이아웃 분석 및 타겟 구조화 도중 실패했습니다.");
                         console.error("🚨 [실제 에러 발생 원인]:", err);
                     }
                 };
                 r.readAsArrayBuffer(file);
+
             } else {
                 r.onload = function (evt) {
                     if (typeof parseRawTextDump === 'function') {

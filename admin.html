@@ -3232,7 +3232,22 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                             // 기존 기등록 대상자 색인 기능 보존 (순정 원본)
                             const cleanExcelName = excelName.replace(/\s/g, "");
-                            const targetIdx = currentApplicantDB.findIndex(u => u.name.toString().replace(/\s/g, "") === cleanExcelName);
+
+                            // ⚠️ [전화번호 비교용 특수문자 세척 특약]: 하이픈(-) 유무로 인한 미스매칭 방지
+                            const cleanCurrentPhone = phoneVal ? phoneVal.toString().replace(/[^0-9]/g, "") : "정보없음";
+
+                            // ================================================================
+                            // 🔒 [최종 대종결] 이름 + 생년월일 + 전화번호 3중 매칭 마스터 식별 엔진 교체 완료
+                            // ================================================================
+                            const targetIdx = currentApplicantDB.findIndex(u => {
+                                const dbName = u.name ? u.name.toString().replace(/\s/g, "") : "";
+                                const dbSsn = u.ssn ? u.ssn.toString().trim() : "";
+                                const dbPhone = u.phone ? u.phone.toString().replace(/[^0-9]/g, "") : "";
+
+                                return dbName === cleanExcelName &&
+                                    dbSsn === finalSsn.toString().trim() &&
+                                    dbPhone === cleanCurrentPhone;
+                            });
 
                             // ================================================================
                             // 🎯 [버그 완전 파괴] 정순 단선형 카운트 매핑 스케줄러 

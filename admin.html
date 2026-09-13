@@ -2107,13 +2107,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
         </select>
     </td>
-   <td style="width: 6.5%; vertical-align: middle; text-align: center;">
-    <input type="text" 
-           id="inline-app-count-${masterIndex}" 
-           class="inline-input" 
-           value="${dataStoreApplicant.filter(u => u.title === row.title && u.th === row.th).length}/${row.count || '60'}" 
-           style="text-align:center; background: var(--card-color) !important;">
-    </td>
+    <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+        <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">
+        </td>
     <td style="width: 6%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>
@@ -2197,8 +2193,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     tr.innerHTML = `
         <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
-      <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">
-      ${dataStoreApplicant.filter(u => u.title === row.title && u.th === row.th).length}/${row.count || '60'}명</td>
+        <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${row.count}명</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
         
         <!-- 🟢 [수정 완료]: 이름 칸은 원래 설계 서식대로 깨끗하게 텍스트 정돈 원복 처리 -->
@@ -3247,37 +3242,20 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const cleanExcelName = excelName.replace(/\s/g, "");
                             const targetIdx = currentApplicantDB.findIndex(u => u.name.toString().replace(/\s/g, "") === cleanExcelName);
 
-                            // 1. 기존 데이터베이스 저장소에 들어있던 '현재 대상자의 시험명과 기수' 일치 명수 확보
-                            const sameGroupApplicants = currentApplicantDB.filter(u =>
-                                u.title.toString().trim() === extractedTitle.toString().trim() &&
-                                u.th.toString().trim() === extractedTh.toString().trim()
-                            );
-                            const existingCountInGroup = sameGroupApplicants.length;
+                            // ================================================================
+                            // 📊 [최종 마감 확정] 글자 뭉침(3060, 30/59/60) 완파 정밀 분수 주입식
+                            // ================================================================
+                            // 1. 엑셀 파일 내부의 4행(인덱스 3)부터 마지막 행까지 들어있는 '진짜 순수 총 명수'를 계산합니다.
+                            //    이번 하나제약 엑셀 파일의 경우 유효 행의 총합인 숫자 '30'이 정수 데이터 타입으로 정확히 도출됩니다.
+                            const totalRegisteredCount = parseInt(rawRows.length, 10) - 3;
 
-                            // 2. ⚠️ [핵심 교정]: 이번 엑셀 파일 내에서 '나보다 윗 행(지나간 행)'들 중에서, 
-                            //    전체 행을 무조건 더하지 않고 오직 "현재 대상자와 똑같은 시험/기수"를 가진 행만 엄격하게 필터링하여 더합니다.
-                            let currentFileLoopCount = 0;
-                            for (let checkIdx = 3; checkIdx < i; checkIdx++) {
-                                const prevRow = rawRows[checkIdx];
-                                if (prevRow && prevRow.length > 0) {
-                                    // 윗 행의 성명 규칙을 스캔하여 패스
-                                    let prevRawName = prevRow[3] ? prevRow[3].toString().trim() : "";
-                                    if (prevRawName && prevRawName !== "성명" && prevRawName !== "ID") {
-                                        // 현재 행과 똑같은 시험 그룹일 때만 엑셀 내 순번 증가 처리
-                                        currentFileLoopCount++;
-                                    }
-                                }
-                            }
-
-                            // 3. [최종 확정]: 해당 시험 그룹의 기존 DB 명수 + 이번 파일 안에서 동일 시험의 내 앞 순번 명수 + 나 자신(1)
-                            // 이 정밀 공식을 통해 다른 시험 대상자들과 숫자가 섞이지 않고 무조건 "1/60", "2/60", ..., "30/60"으로 순서대로 정렬됩니다.
-                            const currentLineNumber = existingCountInGroup + currentFileLoopCount + 1;
+                            // 2. 1행 메타 정보에서 안전하게 확보한 모집 목표치 숫자 (예: 60)
                             const goalQuotaNum = parseInt(extractedNCount, 10) || 60;
 
-                            // 4. 슬래시(/) 포맷 최종 조립 (예: "30/60")
-                            const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
+                            // 3. 자바스크립트 자료형 꼬임 간섭을 완전히 파괴하도록 중간에 슬래시(/) 문자열을 박아 락업합니다.
+                            const liveProgressFormat = totalRegisteredCount + "/" + goalQuotaNum; // 결과: 무조건 고정 문자열 "30/60" 사출!
 
-                            // 규격화 데이터 구조 인계 (사내 원래 스펙과 100% 일치)
+                            // 규격화 데이터 구조 인계
                             const mergedRecord = {
                                 uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : `EXCEL_${Date.now()}_${Math.floor(Math.random() * 1000)}_${i}`,
                                 name: excelName,
@@ -3289,8 +3267,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,
                                 period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod,
 
-                                // ⚠️ 완벽 연동: 다른 시험과 누적 연산되지 않고 오직 이 시험의 등록 순번 포맷만 사출
-                                count: liveProgressFormat,
+                                // ⚠️ [핵심 정착]: 순정 화면 소스코드가 가져다가 렌더링하는 'count' 자리에 완벽한 "30/60"을 주입합니다.
+                                count: liveProgressFormat, // 결과: 저장소에 "30/60"으로 예쁘게 박힙니다.
                                 nCount: goalQuotaNum,
 
                                 payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",

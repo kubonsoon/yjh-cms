@@ -3045,12 +3045,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         // =========================================================================
 
         function handleSmartFileImport(e) {
-            const file = e.target.files;
+            // [교정 반영]: FileList 배열 덩어리가 아닌 0번째 단일 파일 객체(Blob)를 정밀 추출하여 이식 (해독화 오류 원천 진압)
+            const file = e.target.files[0];
             const d = document.getElementById('selected-file-name');
-            if (!file || file.length === 0) { if (d) d.innerText = ''; return; }
+            if (!file) { if (d) d.innerText = ''; return; }
 
-            // 1. 업로드 파일의 최하단 확장자 포맷 식별자 안전 캡처
-            const ext = file[0].name.split('.').pop().toLowerCase();
+            // 1. 단일 파일 명세로부터 최하단 확장자 포맷 식별자 안전 캡처 (undefined 누수 차단 완결)
+            const ext = file.name.split('.').pop().toLowerCase();
 
             // 2. 허용 확장자 매트릭스 배열 내부에 대형 엑셀 및 텍스트 규격 락인 검증
             if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt', 'csv'].includes(ext)) {
@@ -3058,14 +3059,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 e.target.value = '';
                 return;
             }
-            if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file[0].name}`;
+            if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file.name}`;
 
             const r = new FileReader();
 
-            // =========================================================================
-            // 🟢 [정밀 교정 완결]: 하이브리드 확장자 분기 라우터를 이식하여, .xlsx 파일 인입 시
-            //                      SheetJS 바이너리 디코더 엔진과 어레이 버퍼 통신선을 1:1 직렬 결합!!
-            // =========================================================================
+            // 하이브리드 확장자 분기 라우터를 이식하여, .xlsx 파일 인입 시 SheetJS 바이너리 디코더 가동
             if (ext === 'xlsx' || ext === 'xls') {
                 r.onload = function (evt) {
                     try {
@@ -3120,18 +3118,18 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.error(err);
                     }
                 };
-                // 2진 바이너리 어레이 버퍼 파이프라인 전격 기동 (구문 오류 격파선)
-                r.readAsArrayBuffer(file[0]);
+                // 2진 바이너리 어레이 버퍼 파이프라인 전격 기동 (해독화 오류 완전 파쇄선)
+                r.readAsArrayBuffer(file);
 
             } else {
-                // 3. 순수 구형 CSV 및 TXT 파일용 기존 텍스트 버퍼 인스턴스 스트림 백업 유지 트랙
+                // 순수 구형 CSV 및 TXT 파일용 기존 텍스트 버퍼 인스턴스 스트림 백업 유지 트랙
                 r.onload = function (evt) {
                     if (typeof parseRawTextDump === 'function') {
                         parseRawTextDump(evt.target.result);
                     }
                 };
                 // 텍스트 파일형 완성형 한글 인코딩 로드선 유지
-                r.readAsText(file[0], 'EUC-KR');
+                r.readAsText(file, 'EUC-KR');
             }
         }
 

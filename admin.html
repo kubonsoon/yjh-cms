@@ -3171,7 +3171,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                             // ② 성별 및 나이 추출 (특수 개행공백 숙청 및 '남/여' 단축어 고정)
                             const cleanGenderAge = rawGenderAge.replace(/[\r\n\s]/g, "");
-
                             let gender = "미정";
                             let age = 0;
 
@@ -3186,26 +3185,61 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 age = parseInt(parts[1], 10) || 0;
                             }
 
-                            // ③ 생년월일 6자리 보정 및 뒤집힘 자동 스왑 정화
+                            // ③ [오타 고도화 복원]: 3자리, 4자리, 5자리 등 깨진 생년월일 자동 복구 엔진
                             let finalSsn = "정보없음";
                             if (rawSsn) {
-                                let cleanSsn = rawSsn.replace(/[^0-9]/g, "");
-                                if (cleanSsn.length === 5) {
-                                    cleanSsn = "0" + cleanSsn;
+                                let cleanSsn = rawSsn.toString().replace(/[^0-9]/g, "");
+
+                                // 6자리가 안 되는 오타(216, 1128, 60215 등)가 포착되면 나이(age) 기반 역산 가동
+                                if (cleanSsn.length > 0 && cleanSsn.length < 6) {
+                                    try {
+                                        // 1. 나이와 현재 연도(2026년)를 기준으로 출생 연도 구하기
+                                        const currentYear = new Date().getFullYear(); // 2026
+                                        let birthYear = currentYear - age + 1; // 한국 나이 셈법 적용 역산
+
+                                        // 2. 출생 연도의 뒤 2자리 확보 (예: 2000년 ➡️ "00", 2006년 ➡️ "06")
+                                        let yyPrefix = String(birthYear).substring(2, 4);
+
+                                        // 3. 뒤에 소실된 월일(MMDD) 채우기 (깨진 숫자에서 뒤의 4자리를 취하거나 남은 자릿수 패딩)
+                                        let mmddPart = cleanSsn;
+                                        if (cleanSsn.length === 3) {
+                                            // 216 ➡️ 0216 변환용
+                                            mmddPart = cleanSsn.padStart(4, '0');
+                                        } else if (cleanSsn.length === 5) {
+                                            // 60215 같은 경우 앞의 한 자리가 연도의 일부(06년의 6)일 수 있으므로 월일만 추출
+                                            // 안전하게 뒤에서 4자리를 잘라 월일로 인정합니다.
+                                            mmddPart = cleanSsn.substring(cleanSsn.length - 4);
+                                        } else if (cleanSsn.length === 4) {
+                                            // 1128 ➡️ 그대로 월일 인정
+                                            mmddPart = cleanSsn;
+                                        }
+
+                                        // 4. 출생연도(2자리) + 정제된 월일(4자리) 조합하여 완벽한 6자리 강제 생성
+                                        cleanSsn = yyPrefix + mmddPart;
+                                    } catch (err) {
+                                        console.error("날짜 오타 역산 복원 실패:", err);
+                                    }
                                 }
 
-                                if (cleanSsn.length === 6) {
-                                    const yy = cleanSsn.substring(0, 2);
-                                    const mm = parseInt(cleanSsn.substring(2, 4), 10);
-                                    const dd = parseInt(cleanSsn.substring(4, 6), 10);
-                                    // 월 자리에 12를 초과하는 비정상 숫자 포착 시 월/일 자리를 복원 스왑
-                                    if (mm > 12 && dd <= 12) {
-                                        finalSsn = `${yy}${String(dd).padStart(2, '0')}${String(mm).padStart(2, '0')}`;
-                                    } else {
-                                        finalSsn = cleanSsn;
-                                    }
+                                // 복원 완료된 6자리 번호를 규격 확정 안전핀 적용
+                                if (cleanSsn.length === 5) {
+                                    finalSsn = "0" + cleanSsn;
+                                } else if (cleanSsn.length === 6) {
+                                    finalSsn = cleanSsn;
+                                } else if (cleanSsn.length > 6) {
+                                    finalSsn = cleanSsn.substring(0, 6);
                                 } else {
                                     finalSsn = cleanSsn;
+                                }
+                            }
+
+                            // ⚠️ [월/일 뒤집힘 오류 최종 정화]: (예: 032012 ➡️ 031202로 스왑)
+                            if (finalSsn.length === 6) {
+                                const yy = finalSsn.substring(0, 2);
+                                const mm = parseInt(finalSsn.substring(2, 4), 10);
+                                const dd = parseInt(finalSsn.substring(4, 6), 10);
+                                if (mm > 12 && dd <= 12) {
+                                    finalSsn = `${yy}${String(dd).padStart(2, '0')}${String(mm).padStart(2, '0')}`;
                                 }
                             }
 

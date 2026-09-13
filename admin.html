@@ -3529,19 +3529,21 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().trim() : "";
                         if (!ssnRaw || ssnRaw === "undefined" || ssnRaw === "") continue;
 
-                        const genderAgeCell = cells[idxGenderAge] ? cells[idxGenderAge].toString().trim().toUpperCase() : "";
+                        const genderAgeCell = cells[idxGenderAge] ? cells[idxGenderAge].toString().trim() : "";
                         let csvGender = "미정";
                         let csvAge = 0;
 
                         if (genderAgeCell && genderAgeCell.includes("/")) {
                             const parts = genderAgeCell.split("/");
-                            const gLetter = parts.toUpperCase();
+                            // ⚠️ 배열 자체가 아닌, 0번째 원소(M 또는 F)를 명확히 문자열로 가져와 대문자 변환합니다.
+                            const gLetter = parts[0] ? parts[0].toString().trim().toUpperCase() : "";
 
                             if (gLetter === "M" || gLetter.includes("M")) csvGender = "남";
                             else if (gLetter === "F" || gLetter.includes("F")) csvGender = "여";
                             else csvGender = gLetter;
 
-                            csvAge = parseInt(parts, 10) || 0;
+                            // 1번째 원소(나이 숫자)를 정수로 안전하게 파싱합니다.
+                            csvAge = parseInt(parts[1], 10) || 0;
                         }
 
                         // ⚠️ [오타 가드]: 3자리, 4자리, 5자리 날짜 포맷 주민번호 나이 기반 자동 복원 세척

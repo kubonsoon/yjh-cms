@@ -328,7 +328,24 @@ function switchReportSubTab(tabKey) {
     viewport.innerHTML = htmlBuffer;
     // 2탭 : 시험별 모집/재무 현황 끝
   } else if (tabKey === "dropout") {
-    viewport.innerHTML = `<div class="report-preparing-box"><i class="fa-solid fa-hourglass-half"></i> 3. 대상자 탈락 사유 통계 대장 단원은 현재 전산화 표준화 분석 준비중...</div>`;
+    viewport.innerHTML = `
+    <div id="report-tab-panel-dropout" class="report-panel-wrapper" style="display: none; width: 100%; flex-direction: column; gap: 20px;">
+    <!-- [1층]: 4대 통계 미니 지표 스코어 보드 -->
+    <div style="display: flex; gap: 14px; width: 100%;">
+        <!-- 총 탈락 건수, 스크리닝 탈락, 규정위반 탈락, 평균 탈락률 카드 세팅 -->
+    </div>
+    
+    <!-- [2층]: 랭킹 보드(좌)와 과제별 그리드(우)의 가로 2단 분할 레이아웃 -->
+    <div style="display: flex; gap: 20px; width: 100%;">
+        <div style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px;">
+            <h3>📊 탈락 사유 종합 순위</h3>
+        </div>
+        <div style="flex: 1.5; background: var(--card-color); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px;">
+            <h3>📋 시험별 중도 탈락 통계 대장</h3>
+        </div>
+    </div>
+</div>
+    `;
   } else if (tabKey === "ledger") {
     viewport.innerHTML = RenderLedgerTabContent();
   } else if (tabKey === "crc") {

@@ -2214,7 +2214,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             </span>
         </td>
         <td style="width: 11%; vertical-align: middle; text-align: center;">${formatPhone(row.phone)}</td>
-        <td style="width: 6.5%; vertical-align: middle; text-align: center;"><span class="doc-badge ${row.stage === '참여' ? 'status-id' : 'status-none'}">${row.stage || '참여'}</span></td>
+        <td style="width: 6.5%; vertical-align: middle; text-align: center; pointer-events: none !important;">
+        <span class="doc-badge ${row.stage === '참여' ? 'status-id' : 'status-none'}" style="cursor: default !important;">
+        ${row.stage || '참여'}</span>
+        </td>
         <td style="width: 9%; vertical-align: middle; text-align: center;">
             <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">
                 ${buildMiniBadgeHTML('1차', row.payStatus1)}

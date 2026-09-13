@@ -1057,7 +1057,8 @@
                     <a class="exam-title-link" onclick="openIndependentEditorModal(${index}, 'title')">${row.title}</a>
                 </td>
                 <td><span class="text-bold">${row.th}</span></td>
-                <td>${row.count}명</td>
+                <td style="text-align: center; color: #eeeeee; font-weight: 700;">
+                ${index + 1}/${row.count || '60'}명</td>
                 <td>${row.period}시간</td>
                 <td>${row.crc}</td>
                 <td>${row.recDate || '미정'}</td>

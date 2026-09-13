@@ -3154,6 +3154,18 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         let currentApplicantDB = dataStoreApplicant || JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
                         // ================================================================
+                        // 🔒 [배수 폭발 완파 핵심]: 파일 업로드 루프를 돌기 "직전" 
+                        //    기존 대장에 이미 등록되어 있던 이 시험+기수의 오리지널 머릿수를 "딱 한 번만" 구합니다.
+                        //    (김수지 님이 이미 1명 존재하므로, 기존 명수 고정값 '1'이 명확하게 확보됩니다.)
+                        // ================================================================
+                        const baseExistingCount = currentApplicantDB.filter(u =>
+                            u.title.toString().replace(/\s/g, "") === extractedTitle.toString().replace(/\s/g, "") &&
+                            u.th.toString().replace(/\s/g, "") === extractedTh.toString().replace(/\s/g, "")
+                        ).length;
+
+                        console.log(`📊 [기준 데이터 연산] 기존 기등록 인원: ${baseExistingCount}명`);
+
+                        // ================================================================
                         // [2단계] 4행(인덱스 3)부터 반복 돌며 인적사항 정제 및 데이터 조립
                         // ================================================================
                         for (let i = 3; i < rawRows.length; i++) {
@@ -3167,10 +3179,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 
-                            // ① 이름 정제: 괄호 식별자 및 영문 성별 괄호 완전 청소 (예: 이민지(F) -> 이민지)
+                            // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
                             const excelName = rawName.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
 
-                            // ② 성별 및 나이 추출 (특수 개행공백 숙청 및 '남/여' 단축어 고정)
+                            // ② 성별 및 나이 추출
                             const cleanGenderAge = rawGenderAge.replace(/[\r\n\s]/g, "");
                             let gender = "미정";
                             let age = 0;
@@ -3186,96 +3198,53 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 age = parseInt(parts[1], 10) || 0;
                             }
 
-                            // ③ [오타 고도화 복원]: 3자리, 4자리, 5자리 등 깨진 생년월일 자동 복구 엔진
+                            // ③ 생년월일 3자리, 5자리 나이 기반 역산 가드 가동 복원 엔진
                             let finalSsn = "정보없음";
                             if (rawSsn) {
                                 let cleanSsn = rawSsn.toString().replace(/[^0-9]/g, "");
 
-                                // 6자리가 안 되는 오타(216, 1128, 60215 등)가 포착되면 나이(age) 기반 역산 가동
                                 if (cleanSsn.length > 0 && cleanSsn.length < 6) {
                                     try {
-                                        // 1. 나이와 현재 연도(2026년)를 기준으로 출생 연도 구하기
                                         const currentYear = new Date().getFullYear(); // 2026
-                                        let birthYear = currentYear - age + 1; // 한국 나이 셈법 적용 역산
-
-                                        // 2. 출생 연도의 뒤 2자리 확보 (예: 2000년 ➡️ "00", 2006년 ➡️ "06")
+                                        let birthYear = currentYear - age + 1;
                                         let yyPrefix = String(birthYear).substring(2, 4);
-
-                                        // 3. 뒤에 소실된 월일(MMDD) 채우기 (깨진 숫자에서 뒤의 4자리를 취하거나 남은 자릿수 패딩)
                                         let mmddPart = cleanSsn;
-                                        if (cleanSsn.length === 3) {
-                                            // 216 ➡️ 0216 변환용
-                                            mmddPart = cleanSsn.padStart(4, '0');
-                                        } else if (cleanSsn.length === 5) {
-                                            // 60215 같은 경우 앞의 한 자리가 연도의 일부(06년의 6)일 수 있으므로 월일만 추출
-                                            // 안전하게 뒤에서 4자리를 잘라 월일로 인정합니다.
-                                            mmddPart = cleanSsn.substring(cleanSsn.length - 4);
-                                        } else if (cleanSsn.length === 4) {
-                                            // 1128 ➡️ 그대로 월일 인정
-                                            mmddPart = cleanSsn;
-                                        }
-
-                                        // 4. 출생연도(2자리) + 정제된 월일(4자리) 조합하여 완벽한 6자리 강제 생성
+                                        if (cleanSsn.length === 3) mmddPart = cleanSsn.padStart(4, '0');
+                                        else if (cleanSsn.length === 5) mmddPart = cleanSsn.substring(cleanSsn.length - 4);
                                         cleanSsn = yyPrefix + mmddPart;
-                                    } catch (err) {
-                                        console.error("날짜 오타 역산 복원 실패:", err);
-                                    }
+                                    } catch (err) { }
                                 }
 
-                                // 복원 완료된 6자리 번호를 규격 확정 안전핀 적용
-                                if (cleanSsn.length === 5) {
-                                    finalSsn = "0" + cleanSsn;
-                                } else if (cleanSsn.length === 6) {
-                                    finalSsn = cleanSsn;
-                                } else if (cleanSsn.length > 6) {
-                                    finalSsn = cleanSsn.substring(0, 6);
-                                } else {
-                                    finalSsn = cleanSsn;
-                                }
+                                if (cleanSsn.length === 5) finalSsn = "0" + cleanSsn;
+                                else if (cleanSsn.length === 6) finalSsn = cleanSsn;
+                                else if (cleanSsn.length > 6) finalSsn = cleanSsn.substring(0, 6);
+                                else finalSsn = cleanSsn;
                             }
 
-                            // ⚠️ [월/일 뒤집힘 오류 최종 정화]: (예: 032012 ➡️ 031202로 스왑)
                             if (finalSsn.length === 6) {
                                 const yy = finalSsn.substring(0, 2);
                                 const mm = parseInt(finalSsn.substring(2, 4), 10);
                                 const dd = parseInt(finalSsn.substring(4, 6), 10);
                                 if (mm > 12 && dd <= 12) {
-                                    finalSsn = `${yy}${String(dd).padStart(2, '0')}${String(mm).padStart(2, '0')}`;
+                                    finalSsn = `${yy}${String(dd).padStart(2, '0 Karth')}${String(mm).padStart(2, '0')}`;
                                 }
                             }
 
-                            // 기존 기등록 대상자 색인 기능 보존 (삭제 금지)
+                            // 기존 기등록 대상자 색인 기능 보존 (순정 원본)
                             const cleanExcelName = excelName.replace(/\s/g, "");
                             const targetIdx = currentApplicantDB.findIndex(u => u.name.toString().replace(/\s/g, "") === cleanExcelName);
 
                             // ================================================================
-                            // 🚀 [최종 마감 확정] 김수지 1/60 ➡️ 신규 인원 2/60, 3/60 누적 순번 연산 엔진
+                            // 🎯 [버그 완전 파괴] 정순 단선형 카운트 매핑 스케줄러 
                             // ================================================================
-                            // 1. 현재 저장소 대장 전체에서 '이번 업로드 시험명 + 기수'와 일치하는 기존 인원수를 확보합니다.
-                            //    (김수지 님이 이미 1명 등록되어 있으므로 기존 명수 '1'이 명확하게 연산됩니다.)
-                            const existingCountInGroup = currentApplicantDB.filter(u =>
-                                u.title.toString().replace(/\s/g, "") === extractedTitle.toString().replace(/\s/g, "") &&
-                                u.th.toString().replace(/\s/g, "") === extractedTh.toString().replace(/\s/g, "")
-                            ).length;
+                            // 1. i가 3부터 시작하므로 (i - 2)를 수행하면 이번 엑셀 내에서의 순번(1, 2, 3, 4..., 30)이 오차 없이 1씩 정직하게 올라갑니다.
+                            const excelOrder = parseInt(i, 10) - 2;
 
-                            // 2. 이번 엑셀 파일 내에서 '나보다 윗 행(먼저 파싱되어 지나간 행)'의 명수를 구합니다.
-                            //    (이를 통해 엑셀 내부의 30명이 1번, 2번, 3번... 순서대로 숫자가 증가하게 됩니다.)
-                            let currentFileLoopCount = 0;
-                            for (let checkIdx = 3; checkIdx < i; checkIdx++) {
-                                if (rawRows[checkIdx] && rawRows[checkIdx].length > 0) {
-                                    let prevRawName = rawRows[checkIdx].toString().trim();
-                                    if (prevRawName && prevRawName !== "성명" && prevRawName !== "ID") {
-                                        currentFileLoopCount++;
-                                    }
-                                }
-                            }
-
-                            // 3. [최종 순번 결합]: 기존 저장소에 있던 인원수 + 이번 엑셀 파일 내 내 앞의 순번 + 나 자신(1)
-                            //    김수지 님(1명)이 먼저 있으니, 엑셀 첫 번째 사람은 자동으로 1 + 0 + 1 = '2'가 부여됩니다!
-                            const currentLineNumber = existingCountInGroup + currentFileLoopCount + 1;
+                            // 2. 루프 외부의 고정 기존 명수(1) + 현재 엑셀 순번(1, 2, 3...) = 완벽한 최종 정순 번호 확보!
+                            const currentLineNumber = baseExistingCount + excelOrder;
                             const goalQuotaNum = parseInt(extractedNCount, 10) || 60;
 
-                            // 4. 슬래시(/) 최종 주량 포맷팅 조립 (결과: "2/60", "3/60", "31/60")
+                            // 3. 최종 슬래시 포맷 문자열 생성 (결과: "2/60", "3/60", "4/60"..., "31/60" 고정!)
                             const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
 
                             // 규격화 데이터 구조 인계
@@ -3290,13 +3259,12 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,
                                 period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod,
 
-                                // ⚠️ [완벽 안착]: 가공 엔진이 완벽하게 빌드해 낸 "순번/목표치"를 직접 저장소에 새겨넣습니다.
-                                count: liveProgressFormat, // 결과: "2/60", "3/60" 등으로 개별 기록되어 뭉침 현상 영구 소멸!
+                                count: liveProgressFormat, // 저장소에 개별 고유 분수로 정확히 새김
                                 nCount: goalQuotaNum,
 
                                 payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
                                 stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "대기",
-                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')
+                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')[0]
                             };
 
                             if (targetIdx !== -1) {

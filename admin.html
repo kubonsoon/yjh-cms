@@ -1052,7 +1052,7 @@
             let htmlBuffer = "";
             dataStoreRecruitment.forEach((row, index) => {
                 htmlBuffer += `
-            <tr data-uid="${row.uid}">
+            <tr data-uid="${row.uid}" style="border-bottom: 1px solid var(--border-color) !important;">
                 <td style="text-align: left; padding-left: 15px;">
                     <a class="exam-title-link" onclick="openIndependentEditorModal(${index}, 'title')">${row.title}</a>
                 </td>

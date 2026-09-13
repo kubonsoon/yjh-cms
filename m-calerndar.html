@@ -448,6 +448,42 @@
         }
 
 
+
+        /* ========================================================
+   . 과거 참여 이력조회 독립 모달 하단 버튼 전용 스킨
+   ======================================================== */
+        .modal-btn-group-row {
+            display: flex !important;
+            width: 100% !important;
+            margin-top: 14px !important;
+            gap: 8px !important;
+            box-sizing: border-box !important;
+        }
+
+        .modal-act-btn {
+            width: 100% !important;
+            padding: 12px 10px !important;
+            /* 📱 모바일 터치 반경 최적화를 위한 넉넉한 세로폭 배정 */
+            border: none !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            text-align: center !important;
+            cursor: pointer !important;
+            transition: background 0.15s ease;
+        }
+
+        .modal-act-btn.btn-close {
+            background: #334155 !important;
+            color: #ffffff !important;
+            border: 1px solid #475569 !important;
+        }
+
+        .modal-act-btn.btn-close:active {
+            background: #1e293b !important;
+        }
+
+
         /* ========================================================
    [교정 추가] 2. 연월 가이드 바 컨트롤러 모바일 플렉스 정렬 스킨
    ======================================================== */

@@ -245,7 +245,7 @@
 
                 <!-- 모집공고 목록 -->
                 <div class="table-responsive">
-                    <table style="width: 100%; border-collapse: collapse !important; margin-top: 10px;">
+                    <table>
                         <thead>
                             <tr>
                                 <!-- 대표님이 지정해주신 12대 항목 구조 스펙 정확히 매칭 마감 -->
@@ -266,7 +266,7 @@
                                 <th style="width: 140px; text-align: center; padding-right: 15px;">작업</th>
                             </tr>
                         </thead>
-                        <tbody id="dom-recruitment-table" style="border-collapse: collapse !important;"></tbody>
+                        <tbody id="dom-recruitment-table"></tbody>
                     </table>
                 </div>
             </div>
@@ -1052,11 +1052,9 @@
             let htmlBuffer = "";
             dataStoreRecruitment.forEach((row, index) => {
 
-                const tdBottomLineStyle = `border-bottom: 1px solid var(--border-color) !important; vertical-align: middle; border-collapse: collapse !important;`;
-
                 htmlBuffer += `
-                <tr data-uid="${row.uid}" style="border-collapse: collapse !important;">
-                <td style="text-align: left; padding-left: 15px; ${tdBottomLineStyle}">
+            <tr data-uid="${row.uid}">
+                <td style="text-align: left; padding-left: 15px;">
                     <a class="exam-title-link" onclick="openIndependentEditorModal(${index}, 'title')">${row.title}</a>
                 </td>
                 <td><span class="text-bold">${row.th}</span></td>

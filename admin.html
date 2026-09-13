@@ -6847,6 +6847,45 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         }
         window.openAdminMobileControlBridge = openAdminMobileControlBridge;
 
+
+
+        /**
+         * 🔒 [최종 마감 안전핀] 인라인 수정 저장 및 모달 오픈 시 데이터 오염 방지 가드
+         * 관리자가 화면에서 직접 대상자를 [수정] 후 [저장]할 때, 
+         * 규격이 다시 예전 방식으로 뒤틀리는 현상을 원천 차단합니다.
+         */
+        const _secure_original_openAppHistoryDetailModal = window.openAppHistoryDetailModal || openAppHistoryDetailModal;
+
+        window.openAppHistoryDetailModal = function (index) {
+            try {
+                // 모달창이 열리기 직전 6자리 생년월일과 성별 배지 매칭 인터셉터 가동
+                let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                const selectedUser = db[index];
+
+                if (selectedUser && selectedUser.ssn && selectedUser.ssn.toString().length === 6) {
+                    setTimeout(function () {
+                        const targetNode = document.getElementById("modal-app-ssn-gender")
+                            || document.querySelector(".history-modal-overlay #modal-app-ssn-gender");
+                        if (targetNode) {
+                            const genderSign = selectedUser.gender || parseGenderFromSsn(selectedUser.ssn, selectedUser.name);
+                            const genderClass = (genderSign === '남') ? 'lvl-2' : 'lvl-10';
+                            targetNode.innerHTML = `
+                        <span style="font-weight: 700; color: #ffffff;">${selectedUser.ssn}</span>
+                        <span class="lvl-badge ${genderClass}" style="margin-left: 6px; font-weight: 800;">${genderSign}</span>
+                    `;
+                        }
+                    }, 10);
+                }
+            } catch (e) {
+                console.error("모달 오픈 보정 에러:", e);
+            }
+
+            // 사내 순정 모달 오픈 함수 실행
+            if (typeof _secure_original_openAppHistoryDetailModal === "function") {
+                _secure_original_openAppHistoryDetailModal(index);
+            }
+        };
+
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

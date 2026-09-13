@@ -3114,7 +3114,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                         localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
                         alert(`📊 [엑셀 데이터베이스 통합 완료]\n\n글로벌 엔진을 통해 총 ${excelRows.length}건의 대장 데이터가 한글 깨짐 없이 정상 반영되었습니다.`);
-
+                        console.log("변환된 데이터 내용:", jsonData);
                         if (typeof window.refreshApplicantView === "function") window.refreshApplicantView();
                         if (typeof window.calculateLiveDashboardStats === "function") window.calculateLiveDashboardStats();
 

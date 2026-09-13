@@ -8,7 +8,7 @@
     <!-- 엑셀 및 외부 파일 파싱을 위한 라이브러리 -->
     <link rel="icon"
         href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
-    <script src="https://cloudflare.com"></script>
+    <script src="https://jsdelivr.net"></script>
     <script src="report-view.js"></script>
 
     <link rel="stylesheet" href="admin.css">
@@ -3045,15 +3045,12 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         // =========================================================================
 
         function handleSmartFileImport(e) {
-            // [교정 반영]: FileList 배열 덩어리가 아닌 0번째 단일 파일 객체(Blob)를 정밀 추출하여 이식 (해독화 오류 원천 진압)
-            const file = e.target.files[0];
+            const file = e.target.files[0]; // 0번째 단일 파일 개체 바인딩 락인
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
-            // 1. 단일 파일 명세로부터 최하단 확장자 포맷 식별자 안전 캡처 (undefined 누수 차단 완결)
             const ext = file.name.split('.').pop().toLowerCase();
 
-            // 2. 허용 확장자 매트릭스 배열 내부에 대형 엑셀 및 텍스트 규격 락인 검증
             if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt', 'csv'].includes(ext)) {
                 alert('지원하지 않는 형식입니다.');
                 e.target.value = '';
@@ -3061,20 +3058,26 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             }
             if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file.name}`;
 
+            // [보안 크로스 체킹]: 헤더의 XLSX 객체가 브라우저 메모리에 정상 안착했는지 0초 타이밍 예외 가드 가동
+            if ((ext === 'xlsx' || ext === 'xls') && typeof XLSX === "undefined") {
+                alert("전산망 내부 차단 경고: 최상단 헤더의 엑셀 파싱 라이브러리(SheetJS) 로딩 주파수가 단절되었습니다. 시스템 관리자에게 문의하세요.");
+                console.error("[Fatal Error] XLSX library core link is broken.");
+                return;
+            }
+
             const r = new FileReader();
 
-            // 하이브리드 확장자 분기 라우터를 이식하여, .xlsx 파일 인입 시 SheetJS 바이너리 디코더 가동
             if (ext === 'xlsx' || ext === 'xls') {
                 r.onload = function (evt) {
                     try {
-                        // 압축 파일 내부의 순수 바이너리 데이터 버퍼 어레이 안전 가로채기
                         const bufferArray = evt.target.result;
+
+                        // 글로벌 라이브러리 객체를 호출하여 .xlsx 압축 패킷 해독 프로세스 다이렉트 통과 (ReferenceError 완전 분쇄)
                         const workbook = XLSX.read(bufferArray, { type: 'array' });
 
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
 
-                        // 시트 내부의 한글 행렬 데이터를 가상 DB JSON 형식으로 고속 변환 사출
                         const excelRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
                         let currentApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
@@ -3107,7 +3110,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         });
 
                         localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
-                        alert(`📊 [엑셀 데이터베이스 통합 완료]\n\n총 ${excelRows.length}건의 엑셀 통합 문서 데이터가 한글 깨짐 없이 정상 반영되었습니다.`);
+                        alert(`📊 [엑셀 데이터베이스 통합 완료]\n\n글로벌 엔진을 통해 총 ${excelRows.length}건의 대장 데이터가 한글 깨짐 없이 정상 반영되었습니다.`);
 
                         if (typeof window.refreshApplicantView === "function") window.refreshApplicantView();
                         if (typeof window.calculateLiveDashboardStats === "function") window.calculateLiveDashboardStats();
@@ -3118,20 +3121,18 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.error(err);
                     }
                 };
-                // 2진 바이너리 어레이 버퍼 파이프라인 전격 기동 (해독화 오류 완전 파쇄선)
                 r.readAsArrayBuffer(file);
 
             } else {
-                // 순수 구형 CSV 및 TXT 파일용 기존 텍스트 버퍼 인스턴스 스트림 백업 유지 트랙
                 r.onload = function (evt) {
                     if (typeof parseRawTextDump === 'function') {
                         parseRawTextDump(evt.target.result);
                     }
                 };
-                // 텍스트 파일형 완성형 한글 인코딩 로드선 유지
                 r.readAsText(file, 'EUC-KR');
             }
         }
+
 
         function handleExamFileImport(event) {
             const file = event.target.files;

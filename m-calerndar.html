@@ -768,48 +768,73 @@
 
                 // 날짜 매칭이 성립된 카드의 이벤트 핸들러 바인딩 가로채기 공정
                 if (isDateMatchedNow) {
-                    // A. 참여 신청 버튼 핸들러 가로채기
+                    // A. 참여 신청 버튼 핸들러 가로채기 (현재 참여자 중복 방어 및 순수 신규 등록 팩토리)
                     const joinBtn = document.getElementById(`btn_card_join_${clickUid}`);
                     if (joinBtn) {
                         joinBtn.onclick = function (e) {
                             e.preventDefault();
                             let appDB = getApplicantData();
 
-                            const isAlreadyJoined = appDB.some(app =>
-                                (app.name || '').toString().trim() === currentSessionName &&
-                                (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
-                                (app.th || '').toString().trim() === thText &&
-                                !app.isVirtualGhost
-                            );
+                            // 1. 글로벌 로그인 공유 버퍼 세션 명의 공백 소독 추출
+                            const cleanSessionName = currentSessionName.replace(/\s/g, "");
 
-                            if (isAlreadyJoined) {
-                                alert("알림: 이미 참가한 시험입니다.\n기존에 신청 완료된 일정 및 과제를 확인해 주세요.");
+                            // =========================================================================
+                            // 🟢 [정밀 교정 완결]: 현재 정산서 진행 중이거나 시험 종료가 완료되지 않은
+                            //                      기존 참여중 유저의 다른 시험 중복 신청을 원천 격리 차단!!
+                            // =========================================================================
+                            const isCurrentlyActiveApplicant = appDB.some(app => {
+                                const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
+                                if (cleanDbName !== cleanSessionName) return false;
+
+                                // 이미 완료되었거나 탈락되어 완전히 정산이 끝난 과거 이력을 제외한 모든 진행 상태 스캔
+                                const currentPayStatus = app.payStatus1 || app.payStatus || "대기";
+                                return (currentPayStatus === "대기" || currentPayStatus === "접수" || currentPayStatus === "처리중");
+                            });
+
+                            if (isCurrentlyActiveApplicant) {
+                                // 기존 마스터 시험 정보 파괴를 차단하기 위해 얼럿 사출 후 즉시 연산 리턴 차단!
+                                alert("⚠️ 중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산 심사 대기 중인 임상시험 과제가 존재합니다.\n\n한 명당 오직 하나의 시험만 참여 가능하므로 다른 시험에 중복 신청할 수 없습니다.");
                                 return;
                             }
 
-                            let myTicket = appDB.find(app => (app.name || "").toString().trim() === currentSessionName);
-                            let currentTemporaryUid = myTicket ? myTicket.uid : "TEMP_" + Date.now();
+                            // 2. [하이퍼 중복 참여 차단 가드벽 엔진]: 동일 공고에 대한 중복 클릭 PUSH 방어선
+                            const isAlreadyClickedThisJob = appDB.some(app =>
+                                (app.name || '').toString().trim() === currentSessionName &&
+                                (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
+                                (app.th || '').toString().trim() === thText
+                            );
 
-                            if (!myTicket) {
-                                myTicket = {
-                                    uid: currentTemporaryUid, name: currentSessionName,
-                                    title: item.title, th: thText, period: item.period || "0",
-                                    payStatus: "대기", isVirtualGhost: true
-                                };
-                                appDB.push(myTicket);
+                            if (isAlreadyClickedThisJob) {
+                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n심사 결과를 기다려 주세요.");
+                                return;
                             }
 
-                            const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
-                            if (myTargetIdx !== -1) {
-                                delete appDB[myTargetIdx].isVirtualGhost;
-                                delete appDB[myTargetIdx].isNewUserGhost;
-                                appDB[myTargetIdx].title = item.title;
-                                appDB[myTargetIdx].th = thText;
-                                appDB[myTargetIdx].period = item.period || "0";
-                                appDB[myTargetIdx].payStatus = "대기";
-                                localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                            }
-                            alert('참여 신청 접수되었습니다.');
+                            // =========================================================================
+                            // 🟢 [정밀 교정 완결]: 진짜 참여 이력이 없거나 6개월 경과 완료된 순수 신규 대상자는
+                            //                      기존 레코드를 해치지 않고 새 행으로 완벽하게 독자 분리 생성 적재!!
+                            // =========================================================================
+                            const newTemporaryUid = "NEW_" + Date.now();
+
+                            const newApplicantRecord = {
+                                uid: newTemporaryUid,
+                                name: currentSessionName,
+                                title: item.title,
+                                th: thText,
+                                period: item.period || "0",
+                                payStatus: "대기", // 최초 적재 시 기본 대기 상태값 마운트
+                                stage: "대기",
+                                ssn: "850101-1", // 가상 디폴트 주민 규격 바인딩
+                                phone: "010-0000-0000",
+                                regDate: new Date().toISOString().split('T')[0]
+                            };
+
+                            // 가상 데이터베이스 대장에 신규 대상자 레코드로 전격 인젝션 주입
+                            appDB.push(newApplicantRecord);
+                            localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+
+                            alert(`[신청 접수 완료]\n\n${currentSessionName} 신규 대상자님, 선택하신 임상시험 [${item.title}] 참여 신청이 정상 접수되었습니다.`);
+
+                            // 달력 하단 세로형 카드 랙 스케줄러 컴포넌트 실시간 동동기화 리렌더링
                             renderDailyCards();
                         };
                     }

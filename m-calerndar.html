@@ -720,26 +720,19 @@
             const records = getMasterData();
             let applicantDB = getApplicantData();
 
-            // 글로벌 공유 버퍼(localStorage)에서 로그인에 성공해 진입한 대상자의 실시간 성명 포착
             let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || {};
             if (!loggedInUser.name) {
                 loggedInUser = { name: "홍길동", isNew: false };
                 localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
             }
             const currentSessionName = loggedInUser.name.toString().trim();
+            const cleanSessionName = currentSessionName.replace(/\s/g, "");
 
-            // 터치 선택된 포인터 날짜 순수 숫자 포맷 세척
             const cleanSelectedDateStr = selectedDateStr.toString().replace(/[^0-9]/g, "");
 
-            // =========================================================================
-            // 🟢 [정밀 교정 완결]: 하루치 날짜 락 장벽을 철거하고, 상단 바에 표출된 7일간의 주간 배열풀 전체를
-            //                      동시 스캔 타겟으로 선언!! (해당 주간에 등록된 모든 시험이 목록에 무조건 전수 노출됨)
-            // =========================================================================
             const targetRecords = records.filter(item => {
                 if (!item.recDate) return false;
                 const cleanRecDate = item.recDate.toString().replace(/[^0-9]/g, "");
-
-                // 현재 공고의 소집 일자가 이번 주 7일 배열 풀 내부에 실존 상주하는지 전체 대조 교차 매칭
                 return window.currentWeeklyDateKeys.some(weeklyKey => weeklyKey.replace(/[^0-9]/g, "") === cleanRecDate);
             });
 
@@ -752,21 +745,13 @@
                 return;
             }
 
-            // 📱 당일 매칭 완결 과제 스트림 루프 구동 -> 가로 찌그러짐 없는 단독 세로 카드 주입 기믹
             targetRecords.forEach(item => {
                 const thText = (item.th || "1기").trim();
                 const clickUid = item.uid ? item.uid : item.title;
                 const dynamicColorClass = `th-color-${thText}`;
-
                 const cleanRecDate = item.recDate.toString().replace(/[^0-9]/g, "");
 
-                // =========================================================================
-                // 🟢 [정밀 교정 완결]: 상단 주간 바에서 터치 선택한 요일 날짜와 현재 과제의 소집 일자가 
-                //                      정확하게 일치할 때만 [참여/미참여/이력] 3대 단추 레일을 개방!!
-                // =========================================================================
                 const isDateMatchedNow = (cleanRecDate === cleanSelectedDateStr);
-
-                // 날짜 미매칭 카드는 서식 신청 오작동을 완천 봉쇄하기 위해 버튼 바를 숨기고 상세 가이드라인을 미러링 인화
                 const actionDisplayStatus = isDateMatchedNow ? "grid" : "none";
                 const guideDisplayStatus = isDateMatchedNow ? "none" : "block";
                 const borderHighlightStyle = isDateMatchedNow ? "border: 1px solid var(--secondary-color); box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);" : "";
@@ -775,6 +760,10 @@
                 card.className = 'trial-manifest-card';
                 card.setAttribute("style", borderHighlightStyle);
 
+                // =========================================================================
+                // 🟢 [정밀 교정 완결]: 숨어있던 유령 토큰(\uFFFE)을 완전히 청소 소독 세척하고,
+                //                      웹 표준 언더바 식별 규격(id="btn_card_join_")으로 전격 전산화 마감
+                // =========================================================================
                 card.innerHTML = `
         <div class="card-top-row">
         <div class="card-title-text">${item.title || '임상 과제명 미지정'}</div>
@@ -787,12 +776,10 @@
         <div>소집 일자: <span style="color: var(--secondary-color); font-weight: 800;">${item.recDate || '-'}</span></div>
         </div>
         
-        <!-- 💡 [상세 가이드 알림판]: 터치되지 않은 다른 일자 과제용 우회 안내망 레이어 -->
         <div style="display: ${guideDisplayStatus}; background-color: #0f172a; border: 1px dashed #334155; padding: 8px; border-radius: 8px; font-size: 11px; color: var(--warning-color); text-align: center; margin-top: 6px;">
         ℹ️ 상세 청구 및 신청은 상단 주간 바에서 <strong>[${item.recDate.substring(5)}]</strong> 요일을 터치하세요.
         </div>
 
-        <!-- 💡 [조건부 액션 바]: 요일 일치 성립 순간 무선 활성화 개방 프로토콜 기동 -->
         <div class="card-action-bar" id="ui_action_bar_${clickUid}" style="display: ${actionDisplayStatus};">
         <button type="button" class="card-btn join" id="btn_card_join_${clickUid}">참여</button>
         <button type="button" class="card-btn reject" id="btn_card_reject_${clickUid}">미참여</button>
@@ -802,38 +789,24 @@
 
                 cardBoard.appendChild(card);
 
-                // 날짜 매칭이 성립된 카드의 이벤트 핸들러 바인딩 가로채기 공정
                 if (isDateMatchedNow) {
-                    // A. 참여 신청 버튼 핸들러 가로채기 (현재 참여자 중복 방어 및 순수 신규 등록 팩토리)
                     const joinBtn = document.getElementById(`btn_card_join_${clickUid}`);
                     if (joinBtn) {
                         joinBtn.onclick = function (e) {
                             e.preventDefault();
                             let appDB = getApplicantData();
 
-                            // 1. 글로벌 로그인 공유 버퍼 세션 명의 공백 소독 추출
-                            const cleanSessionName = currentSessionName.replace(/\s/g, "");
-
-                            // =========================================================================
-                            // 🟢 [정밀 교정 완결]: 현재 정산서 진행 중이거나 시험 종료가 완료되지 않은
-                            //                      기존 참여중 유저의 다른 시험 중복 신청을 원천 격리 차단!!
-                            // =========================================================================
                             const isCurrentlyActiveApplicant = appDB.some(app => {
                                 const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
-                                if (cleanDbName !== cleanSessionName) return false;
-
-                                // 이미 완료되었거나 탈락되어 완전히 정산이 끝난 과거 이력을 제외한 모든 진행 상태 스캔
-                                const currentPayStatus = app.payStatus1 || app.payStatus || "대기";
-                                return (currentPayStatus === "대기" || currentPayStatus === "접수" || currentPayStatus === "처리중");
+                                return cleanDbName === cleanSessionName;
                             });
 
                             if (isCurrentlyActiveApplicant) {
-                                // 기존 마스터 시험 정보 파괴를 차단하기 위해 얼럿 사출 후 즉시 연산 리턴 차단!
+                                // [교정 완결]: 문법 오류를 일으키던 큰따옴표 물리적 줄바꿈 명세를 표준 역슬래시 개행(\n) 포맷으로 단일행 교정
                                 alert("⚠️ 중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산 심사 대기 중인 임상시험 과제가 존재합니다.\n\n한 명당 오직 하나의 시험만 참여 가능하므로 다른 시험에 중복 신청할 수 없습니다.");
                                 return;
                             }
 
-                            // 2. [하이퍼 중복 참여 차단 가드벽 엔진]: 동일 공고에 대한 중복 클릭 PUSH 방어선
                             const isAlreadyClickedThisJob = appDB.some(app =>
                                 (app.name || '').toString().trim() === currentSessionName &&
                                 (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
@@ -841,41 +814,32 @@
                             );
 
                             if (isAlreadyClickedThisJob) {
-                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n심사 결과를 기다려 주세요.");
+                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n마스터 대장의 심사 결과를 기다려 주세요.");
                                 return;
                             }
 
-                            // =========================================================================
-                            // 🟢 [정밀 교정 완결]: 진짜 참여 이력이 없거나 6개월 경과 완료된 순수 신규 대상자는
-                            //                      기존 레코드를 해치지 않고 새 행으로 완벽하게 독자 분리 생성 적재!!
-                            // =========================================================================
                             const newTemporaryUid = "NEW_" + Date.now();
-
                             const newApplicantRecord = {
                                 uid: newTemporaryUid,
                                 name: currentSessionName,
                                 title: item.title,
                                 th: thText,
                                 period: item.period || "0",
-                                payStatus: "대기", // 최초 적재 시 기본 대기 상태값 마운트
+                                payStatus: "대기",
                                 stage: "대기",
-                                ssn: "850101-1", // 가상 디폴트 주민 규격 바인딩
+                                ssn: "850101-1",
                                 phone: "010-0000-0000",
-                                regDate: new Date().toISOString().split('T')[0]
+                                regDate: new Date().toISOString().split('T')
                             };
 
-                            // 가상 데이터베이스 대장에 신규 대상자 레코드로 전격 인젝션 주입
                             appDB.push(newApplicantRecord);
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
 
-                            alert(`[신청 접수 완료]\n\n${currentSessionName} 신규 대상자님, 선택하신 임상시험 [${item.title}] 참여 신청이 정상 접수되었습니다.`);
-
-                            // 달력 하단 세로형 카드 랙 스케줄러 컴포넌트 실시간 동동기화 리렌더링
+                            alert(`[신청 접수 완료]\n\n${currentSessionName} 신규 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
                             renderDailyCards();
                         };
                     }
 
-                    // B. 미참여 버튼 핸들러 가로채기
                     const rejectBtn = document.getElementById(`btn_card_reject_${clickUid}`);
                     if (rejectBtn) {
                         rejectBtn.onclick = function (e) {
@@ -884,7 +848,6 @@
                         };
                     }
 
-                    // C. 과거 마스터 참여 누적 이력조회 독립 모달 열기 핸들러 브릿지
                     const histBtn = document.getElementById(`btn_card_hist_${clickUid}`);
                     if (histBtn) {
                         histBtn.onclick = function (e) {

@@ -3610,7 +3610,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                             isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
                             category: "내분비내과 / 엑셀 레이아웃 파싱",
-                            stage: `${fileExtractedTh} 참여`, idCard: true, bankbook: true
+                            stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "참여",
+                            idCard: true,
+                            bankbook: true
                         };
 
                         if (targetIdx !== -1) {

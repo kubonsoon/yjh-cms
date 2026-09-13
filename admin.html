@@ -3488,19 +3488,33 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         }
                     }
 
+
+
+
+
                     const headerCells = rows[headerRowIndex].split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
 
-                    // 💡 [정밀 타격 가드]: '코드'나 'ID'에 현혹되지 않고, 오직 "생년월일" 또는 "생년" 글자가 일치하는 칸의 순서만 정확히 뽑아냅니다.
+                    // 💡 [정밀 탐색]: '코드'나 'ID'에 현혹되지 않고, 오직 "성명", "생년월일", "성별/나이", "연락처" 고유 명칭 탐색
                     let idxName = headerCells.findIndex(h => h === "성명" || h === "이름");
                     let idxSsn = headerCells.findIndex(h => h === "생년월일" || h === "생년");
                     let idxGenderAge = headerCells.findIndex(h => h === "성별/나이" || h === "성별" || h === "나이");
                     let idxPhone = headerCells.findIndex(h => h === "연락처" || h === "전화번호" || h === "전화");
 
-                    // 글자 매칭이 안 되었을 때를 대비한 최후의 보루 엑셀 실물 위치 수동 매핑 가드
                     if (idxName === -1) idxName = 3;
                     if (idxGenderAge === -1) idxGenderAge = 4;
-                    if (idxSsn === -1) idxSsn = 5; // 이미지상 6번째 열(인덱스 5)이 확실한 생년월일 칸입니다.
+                    if (idxSsn === -1) idxSsn = 5;
                     if (idxPhone === -1) idxPhone = 6;
+
+                    // ⚠️ [순정 데이터 대장 체인 메모리 상속 바인딩선 주입]
+                    let currentApplicantDB = dataStoreApplicant || JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+                    // ⚠️ [배수 폭발 및 꼬임 완파]: CSV 데이터 루프 진입 "직전", 대장 내 선행 기등록된 동일 시험 그룹 인원수 딱 한 번 고정 계측
+                    const baseExistingCount = currentApplicantDB.filter(u =>
+                        u.title.toString().replace(/\s/g, "") === fileExtractedTitle.toString().replace(/\s/g, "") &&
+                        u.th.toString().replace(/\s/g, "") === fileExtractedTh.toString().replace(/\s/g, "")
+                    ).length;
+
+                    console.log(`📊 [CSV 기준선 연산] 기존 기등록 인원: ${baseExistingCount}명`);
 
                     // 3. [대상자 명단 데이터 루프 적재 구역]
                     for (let i = headerRowIndex + 1; i < rows.length; i++) {
@@ -3510,54 +3524,113 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         const cells = rowText.split(delimiter).map(cell => cell.trim().replace(/"/g, ''));
                         if (cells.length < idxSsn) continue;
 
-                        let extractedName = cells[idxName] ? cells[idxName].replace(/\(F\)|\(M\)/gi, '').trim() : "미정";
+                        let extractedName = cells[idxName] ? cells[idxName].replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim() : "미정";
 
-                        // 🎯 [정정 완수]: 코드(260268~ 등)를 완전히 거부하고, 생년월일 칸(990329, 1128 등)에 적혀있는 데이터만 원본 문자열 그대로 정확하게 추출합니다!
                         let ssnRaw = cells[idxSsn] ? cells[idxSsn].toString().trim() : "";
                         if (!ssnRaw || ssnRaw === "undefined" || ssnRaw === "") continue;
 
-                        // 성별/나이 열(M/27 등)에서 첫 글자인 성별 식별자(M, F)를 추출하여 주민번호 뒤에 결합
                         const genderAgeCell = cells[idxGenderAge] ? cells[idxGenderAge].toString().trim().toUpperCase() : "";
-                        if (genderAgeCell) {
-                            const genChar = genderAgeCell.charAt(0);
-                            if (["M", "F", "1", "2", "3", "4"].includes(genChar)) {
-                                ssnRaw = ssnRaw + "-" + genChar; // 예: 990329-M, 1128-M, 216-M 형태로 완벽 보존 조립
+                        let csvGender = "미정";
+                        let csvAge = 0;
+
+                        if (genderAgeCell && genderAgeCell.includes("/")) {
+                            const parts = genderAgeCell.split("/");
+                            const gLetter = parts.toUpperCase();
+
+                            if (gLetter === "M" || gLetter.includes("M")) csvGender = "남";
+                            else if (gLetter === "F" || gLetter.includes("F")) csvGender = "여";
+                            else csvGender = gLetter;
+
+                            csvAge = parseInt(parts, 10) || 0;
+                        }
+
+                        // ⚠️ [오타 가드]: 3자리, 4자리, 5자리 날짜 포맷 주민번호 나이 기반 자동 복원 세척
+                        let cleanSsn = ssnRaw.replace(/[^0-9]/g, "");
+                        if (cleanSsn.length > 0 && cleanSsn.length < 6) {
+                            try {
+                                const currentYear = new Date().getFullYear(); // 2026
+                                let birthYear = currentYear - csvAge + 1;
+                                let yyPrefix = String(birthYear).substring(2, 4);
+                                let mmddPart = cleanSsn;
+                                if (cleanSsn.length === 3) mmddPart = cleanSsn.padStart(4, '0');
+                                else if (cleanSsn.length === 5) mmddPart = cleanSsn.substring(cleanSsn.length - 4);
+                                cleanSsn = yyPrefix + mmddPart;
+                            } catch (err) { }
+                        }
+
+                        let finalSsn = cleanSsn;
+                        if (cleanSsn.length === 5) finalSsn = "0" + cleanSsn;
+
+                        // 월/일 뒤집힘 오류 최종 교정 스왑
+                        if (finalSsn.length === 6) {
+                            const yy = finalSsn.substring(0, 2);
+                            const mm = parseInt(finalSsn.substring(2, 4), 10);
+                            const dd = parseInt(finalSsn.substring(4, 6), 10);
+                            if (mm > 12 && dd <= 12) {
+                                finalSsn = `${yy}${String(dd).padStart(2, '0')}${String(mm).padStart(2, '0')}`;
                             }
                         }
-                        const extractedSsn = ssnRaw.toUpperCase();
-                        const extractedPhone = cells[idxPhone] ? getOnlyNumbers(cells[idxPhone]) : "";
 
-                        if (extractedName === "미정" || !extractedSsn) continue;
+                        // 연락처 공백 및 하이픈 완전 세척 비교선 마련
+                        const extractedPhone = cells[idxPhone] ? cells[idxPhone].toString().replace(/[^0-9]/g, "") : "";
+                        if (extractedName === "미정" || !finalSsn) continue;
 
-                        if (dataStoreApplicant.some(user => user.name === extractedName && user.ssn === extractedSsn)) {
-                            duplicateCount++;
-                            continue;
-                        }
+                        // ⚠️ [동명이인 삭제 차단 핵심]: 성명 + 생년월일 + 연락처 3중 크로스 마스터 무결성 식별 엔진 락인
+                        const cleanExcelName = extractedName.replace(/\s/g, "");
+                        const targetIdx = currentApplicantDB.findIndex(u => {
+                            const dbName = u.name ? u.name.toString().replace(/\s/g, "") : "";
+                            const dbSsn = u.ssn ? u.ssn.toString().trim() : "";
+                            const dbPhone = u.phone ? u.phone.toString().replace(/[^0-9]/g, "") : "";
+                            return dbName === cleanExcelName && dbSsn === finalSsn && dbPhone === extractedPhone;
+                        });
 
-                        // 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드 (ID, S_ID, 코드, 이니셜 제외 수립 완료)
-                        dataStoreApplicant.unshift({
-                            uid: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                            title: fileExtractedTitle,
-                            th: fileExtractedTh,
-                            count: fileExtractedCount,
-                            period: fileExtractedPeriod,
+                        // ⚠️ [인원수 증가 누락 분쇄 스케줄러]: 루프 외부의 고정 기존 명수 + 현재 CSV 파싱 성공 행 순번 증가분 결합
+                        const currentLineNumber = baseExistingCount + (importCount + 1);
+                        const goalQuotaNum = parseInt(fileExtractedCount, 10) || 60;
+                        const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
+
+                        // 가상 DB 마스터 대장 저장소 주입 인스턴스 빌드
+                        const csvMergedRecord = {
+                            uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : `${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${i}`,
+                            title: targetIdx !== -1 ? currentApplicantDB[targetIdx].title : fileExtractedTitle,
+                            th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : fileExtractedTh,
+
+                            // 🎯 [핵심 정착]: 깨진 하드코딩 n수를 전면 거부하고 정품 분수 진척도 주입 (인원수 누락 완전 영구 박멸)
+                            count: liveProgressFormat,
+                            nCount: goalQuotaNum,
+
+                            period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : fileExtractedPeriod,
                             name: extractedName,
-                            ssn: extractedSsn, // 오직 생년월일 열 데이터만 안전하게 보존 안착
-                            phone: extractedPhone,
+                            ssn: finalSsn,
+                            phone: cells[idxPhone] || (targetIdx !== -1 ? currentApplicantDB[targetIdx].phone : "정보없음"),
+                            gender: csvGender,
+                            age: csvAge,
                             result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                             isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
                             category: "내분비내과 / 엑셀 레이아웃 파싱",
                             stage: `${fileExtractedTh} 참여(소집)`, idCard: true, bankbook: true
-                        });
-                        importCount++;
+                        };
+
+                        if (targetIdx !== -1) {
+                            // 3중 매칭 충족 시 기존 레코드에 데이터 안전하게 업데이트 처리
+                            currentApplicantDB[targetIdx] = Object.assign({}, currentApplicantDB[targetIdx], csvMergedRecord);
+                            duplicateCount++;
+                        } else {
+                            // 완전히 새로운 인원일 때 새로운 행으로 분리 누적 처리
+                            currentApplicantDB.push(csvMergedRecord);
+                            importCount++;
+                        }
                     }
 
+                    // 최종 동기화 커밋 트랜잭션 가동
+                    dataStoreApplicant = currentApplicantDB;
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                     if (typeof commitToLocalStorage === "function") commitToLocalStorage();
 
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
 
+                    // ⚠️ [알림창 완수]: 요구하신 굵은 겹선 레이아웃 정합성 및 임상 기간 다음 줄 소집일자 노출 락인
                     return alert(`📢 지능형 문장 분리 파싱 일괄 등록 성공!\n━━━━━━━━━━━━━━━━━━━━━━\n● 적용 시험명: ${fileExtractedTitle}\n● 적용 기수: ${fileExtractedTh}\n● 모집 인원: ${fileExtractedCount}명\n● 임상 기간: ${fileExtractedPeriod}시간\n● 소집 일자: ${typeof fileExtractedDate !== "undefined" ? fileExtractedDate : (typeof extractedDate !== "undefined" ? extractedDate : "미정")}\n━━━━━━━━━━━━━━━━━━━━━━\n- 정상 적재 완료: 총 [${importCount}건]\n- 중복 제외 데이터: 총 [${duplicateCount}건]`);
                 } catch (err) {
                     console.error("파일 대량 파싱 에러:", err);
@@ -3565,20 +3638,28 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 }
             }
 
-            // [기존 단일 줄글 텍스트 분석 분기 채널 보존]
+            // =========================================================================
+            // 4. [기존 단일 줄글 텍스트 분석 분기 채널 보존 구역]
+            // =========================================================================
             const nameMatch = rawText.match(/(?:이름|성명)(?:\s*[:=➔]\s*|\s+)([가-힣]{2,5})/);
             const ssnMatch = rawText.match(/(?:생년월일|주민번호|SSN)?(?:\s*[:=➔]\s*|\s+)?\b(\d{6}[-.\s]?[0-9A-Z]{1,7}|\d{6})\b/i);
             const phoneMatch = rawText.match(/(?:연락처|전화번호|휴대폰|HP)?(?:\s*[:=➔]\s*|\s+)?\b(010[-.\s]?\d{3,4}[-.\s]?\d{4})\b/);
             if (!nameMatch || !ssnMatch || !phoneMatch) return alert("❌ 문서 내에서 필수 패턴을 찾을 수 없습니다.");
 
-            // 원본의 정규식 매칭 그룹 인덱스 [1] 원형 보존
             const en = nameMatch[1].trim(), es = ssnMatch[1].trim().toUpperCase(), ep = phoneMatch[1].replace(/[^0-9]/g, '');
 
-            // 💡 [형님 지시 사양 핵심 락인]: 패턴 매칭된 주민번호 원본(es)에서 성별 기호와 서식을 전면 제거하여 순수 날짜로 변환
             const finalizedSsn = typeof cleanSsnToBirthDate === "function" ? cleanSsnToBirthDate(es) : es.replace(/[^0-9]/g, '');
 
-            // 🎯 [무결성 중복 체크 교정]: 대장 데이터가 정제되어 저장되므로, 중복 검사도 정제된 생년월일(finalizedSsn)로 정밀 대조 [INDEX]
-            if (dataStoreApplicant.some(user => user.name === en && user.ssn === finalizedSsn)) {
+            // 🎯 [무결성 단일 중복 체크 교정]: 수동 단일 줄글 입력 시에도 성명+생년월일+연락처 3중 크로스 스캔 가드 가동
+            const cleanSinglePhone = ep.replace(/[^0-9]/g, "");
+            const hasSingleDuplicate = dataStoreApplicant.some(user => {
+                const dName = user.name ? user.name.toString().replace(/\s/g, "") : "";
+                const dSsn = user.ssn ? user.ssn.toString().trim() : "";
+                const dPhone = user.phone ? user.phone.toString().replace(/[^0-9]/g, "") : "";
+                return dName === en.replace(/\s/g, "") && dSsn === finalizedSsn && dPhone === cleanSinglePhone;
+            });
+
+            if (hasSingleDuplicate) {
                 return alert('알림: 이미 존재하는 대상자입니다.');
             }
 
@@ -3586,35 +3667,24 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 uid: Date.now(),
                 title: "[임상] 수동 과제",
                 th: "1기",
-                count: "1",
+                count: "1/60",
                 period: "72",
                 name: en,
-
-                // 대장 스토리지에는 성별 기호가 완벽 세척된 순수 날짜 숫자만 기록 보존 [INDEX]
                 ssn: finalizedSsn,
-
                 phone: ep,
-                result: "대기",
-                payStatus: "대기",
-                payStatus1: "대기",
-                payStatus2: "대기",
-                payStatus3: "대기",
-                isDutyAgreed: "대기",
-                isCallAgreed: "대기",
-                isAgreed: "대기",
+                result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
+                isDutyAgreed: "대기", isCallAgreed: "대기", isAgreed: "대기",
                 category: "내분비내과 / 스마트 업로드",
-                stage: "1기 참여(소집)",
-                idCard: true,
-                bankbook: true
+                stage: "1기 참여(소집)", idCard: true, bankbook: true
             });
 
             localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             if (typeof commitToLocalStorage === "function") commitToLocalStorage();
             if (typeof refreshApplicantView === "function") refreshApplicantView();
 
-            // 🎯 알림창 피드백 문구에도 기호가 제외된 깨끗한 생년월일 앞자리만 투사 출력
             alert(`📢 등록 성공!\n● 성명: ${en}\n● 생년월일: ${finalizedSsn}`);
         }
+
 
 
         // 💥 [독립 확장] 새창이 아닌 기존 비밀번호 수정창과 동일한 내장형 모달 시스템 가동

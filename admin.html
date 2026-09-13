@@ -3075,13 +3075,16 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     try {
                         const bufferArray = evt.target.result;
 
-                        // 글로벌 라이브러리 객체를 호출하여 .xlsx 압축 패킷 해독 프로세스 다이렉트 통과 (ReferenceError 완전 분쇄)
+                        // 글로벌 라이브러리 객체를 호출하여 .xlsx 압축 패킷 해독 프로세스 다이렉트 통과
                         const workbook = XLSX.read(bufferArray, { type: 'array' });
 
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
 
                         const excelRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                        // 1. 디버깅용: 엑셀에서 뽑아낸 원본 데이터가 제대로 생겼는지 콘솔에 강제 출력
+                        console.log("▶ [디버깅] 엑셀에서 파싱된 원본 행 데이터:", excelRows);
 
                         let currentApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
@@ -3112,20 +3115,37 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             }
                         });
 
+                        // LocalStorage에 최종 데이터 저장
                         localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
+
+                        // 2. 디버깅용: 로컬스토리지에 최종 합쳐진 데이터 상태 확인
+                        console.log("▶ [디버깅] LocalStorage에 저장된 최종 데이터 배열:", currentApplicantDB);
+
                         alert(`📊 [엑셀 데이터베이스 통합 완료]\n\n글로벌 엔진을 통해 총 ${excelRows.length}건의 대장 데이터가 한글 깨짐 없이 정상 반영되었습니다.`);
-                        console.log("변환된 데이터 내용:", jsonData);
-                        if (typeof window.refreshApplicantView === "function") window.refreshApplicantView();
+
+                        // 3. 화면 갱신 함수 점검 및 강제 실행 시도
+                        if (typeof window.refreshApplicantView === "function") {
+                            console.log("▶ [디버깅] window.refreshApplicantView 함수를 실행합니다.");
+                            window.refreshApplicantView();
+                        } else if (typeof refreshApplicantView === "function") {
+                            console.log("▶ [디버깅] 전역 refreshApplicantView 함수를 실행합니다.");
+                            refreshApplicantView();
+                        } else {
+                            console.warn("❌ [경고] 화면을 새로고침하는 'refreshApplicantView' 함수를 찾을 수 없습니다. 목록이 안 바뀌는 원인입니다.");
+                        }
+
                         if (typeof window.calculateLiveDashboardStats === "function") window.calculateLiveDashboardStats();
 
-                        e.target.value = '';
+                        // 4. 오류 수정: 변수 e가 없어 에러 나던 부분을 파일 input 태그를 추적해 정상 초기화하도록 수정
+                        const fileInput = document.querySelector('input[type="file"]');
+                        if (fileInput) fileInput.value = '';
+
                     } catch (err) {
-                        alert("전산 오류: 엑셀 파일 해독 엔진 가동에 실패했습니다.");
-                        console.error(err);
+                        alert("전산 오류: 엑셀 파일 처리 중 오류가 발생했습니다. 개발자 도구(F12) 콘솔을 확인하세요.");
+                        console.error("🚨 [실제 에러 발생 원인]:", err);
                     }
                 };
                 r.readAsArrayBuffer(file);
-
             } else {
                 r.onload = function (evt) {
                     if (typeof parseRawTextDump === 'function') {

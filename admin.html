@@ -2108,7 +2108,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         </select>
     </td>
     <td style="width: 6.5%; vertical-align: middle; text-align: center;">
-        <input type="text" id="inline-app-count-${masterIndex}" class="inline-input" value="${row.count || ''}" style="text-align:center; background: var(--card-color) !important;">
+    <input type="text" 
+           id="inline-app-count-${masterIndex}" 
+           class="inline-input" 
+           value="${row.count && row.count.toString().includes('/') ? row.count : (globalIndex + 1) + '/' + (row.count || '60')}" 
+           style="text-align:center; background: var(--card-color) !important;">
     </td>
     <td style="width: 6%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">
@@ -2193,7 +2197,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     tr.innerHTML = `
         <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
-        <td style="width: 6.5%; vertical-align: middle; text-align: center;">${formatCount(row.count)}</td>
+        <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">
+        ${row.count && row.count.toString().includes('/') ? row.count + '명' : (globalIndex + 1) + '/' + (row.count || '60') + '명'}</td>
         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
         
         <!-- 🟢 [수정 완료]: 이름 칸은 원래 설계 서식대로 깨끗하게 텍스트 정돈 원복 처리 -->

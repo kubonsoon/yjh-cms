@@ -603,6 +603,9 @@
         let currentActiveModalJob = null;
         let currentTemporaryUid = "";
 
+        // 🎯 [신설]: 주간 7일간의 날짜 컬렉션을 하단 카드 팩토리와 실시간 공유하기 위한 글로벌 전산망 레일
+        window.currentWeeklyDateKeys = [];
+
         /**
          * 6. [대개혁 코어] 상단 1행 고정형 주간(7일) 타임라인 바 동적 빌더 함수
          */
@@ -625,16 +628,20 @@
 
             const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
 
+            // 주간 배열 버퍼 초기화 세척
+            window.currentWeeklyDateKeys = [];
+
             // 📱 일요일부터 토요일까지 딱 7일간의 상단 날짜 단추 레일 생성 루프
             for (let i = 0; i < 7; i++) {
                 const loopDate = new Date(startOfWeek);
                 loopDate.setDate(startOfWeek.getDate() + i);
 
-                // ⚡ [여기서부터 날짜 포맷 분리 버그 전격 수정 및 정밀 대체 주입 구간]
                 // 한국 시차(UTC+9) 보정 오프셋 반영 후 완벽한 YYYY-MM-DD 10자리 표준 규격 문자열 정밀 추출
                 const kstOffset = loopDate.getTime() - (loopDate.getTimezoneOffset() * 60000);
                 const formattedDateKey = new Date(kstOffset).toISOString().split('T')[0];
-                // ⚡ [여기까지 날짜 포맷 분리 버그 전격 수정 및 정밀 대체 주입 완료]
+
+                // 하단 카드 팩토리 스캔용 공유 버퍼 풀에 7일치 주간 날짜 전수 적재
+                window.currentWeeklyDateKeys.push(formattedDateKey);
 
                 // 최초 로딩 시 오늘 일자를 디폴트 활성화 타겟으로 지정
                 if (!selectedDateStr && i === currentDayOfWeek) {
@@ -642,41 +649,38 @@
                 }
 
                 const dayBtn = document.createElement('div');
-                // 현재 피험자가 터치해 선택한 날짜에 고대비 하이라이트(.active) 주입
                 dayBtn.className = `weekly-day-btn ${selectedDateStr === formattedDateKey ? 'active' : ''}`;
                 dayBtn.innerHTML = `
-            <div class="day-name">${dayNamesShort[i]}</div>
-            <div class="day-date">${loopDate.getDate()}</div>
+        <div class="day-name">${dayNamesShort[i]}</div>
+        <div class="day-date">${loopDate.getDate()}</div>
         `;
 
-                // 요일 단추 터치 시 실시간 포인터를 스위칭하고 하단 세로형 과제 카드 목록을 강제 리프레시
+                // 요일 단추 터치 시 실시간 포인터를 스위칭하고 하단 상세 제어 권한을 릴레이 스위칭 리프레시
                 dayBtn.onclick = function () {
                     selectedDateStr = formattedDateKey;
 
                     document.querySelectorAll('.weekly-day-btn').forEach(btn => btn.classList.remove('active'));
                     dayBtn.classList.add('active');
 
-                    // 하단 대형 세로형 카드 사출 팩토리 구동
+                    // 하단 대형 세로형 카드 목록의 신청 제어 장벽을 실시간 갱신
                     renderDailyCards();
                 };
 
                 timelineBoard.appendChild(dayBtn);
             }
 
-            // 주간 바 배치가 마감되면 당일 등록된 카드를 하단에 자동 정렬 사출
+            // 주간 바 배치 마감 즉시 전체 카드를 리스트에 상시 유지 자동 사출
             renderDailyCards();
         }
 
         /**
-         * 7. [구조 대개혁 코어] 선택된 날짜의 시험 과제들을 세로형 대형 카드로 분사하는 팩토리 함수
-         *    - 하루 최대 5개 이상의 복잡 과제가 중첩되어도 구겨짐 없이 아래로 끝없이 쾌적한 스크롤 수용
-         */
+   * 7. [구조 대개혁 코어]: 주간 전체 모집공고 전수 선제 공개 및 선택 일자별 참여 단추 레일 조건부 개방 엔진
+   */
         function renderDailyCards() {
             const cardBoard = document.getElementById('dailyCardBoard');
             if (!cardBoard) return;
             cardBoard.innerHTML = '';
 
-            // 마스터 관리 대시보드(admin.html)에서 빌드된 진짜 모집공고 원본 데이터 원격 스트림 로드
             const records = getMasterData();
             let applicantDB = getApplicantData();
 
@@ -688,24 +692,26 @@
             }
             const currentSessionName = loggedInUser.name.toString().trim();
 
-            // =========================================================================
-            // 🟢 [정밀 교정]: 하이픈(-), 도트(.), 공백 등 날짜 서식 찌꺼기를 완전 증발시키는 날짜 정합 유틸리티
-            //                  (선택한 주간 바 날짜와 모집공고 대장의 날짜 주파수를 순수 숫자 체계로 100% 완전 동기화)
-            // =========================================================================
+            // 터치 선택된 포인터 날짜 순수 숫자 포맷 세척
             const cleanSelectedDateStr = selectedDateStr.toString().replace(/[^0-9]/g, "");
 
-            // 📱 [명의 장벽 완전 해제]: 대상자가 자유롭게 새 과제를 선택할 수 있도록 날짜가 일치하는 당일 공고 전체를 필터링 사출!
+            // =========================================================================
+            // 🟢 [정밀 교정 완결]: 하루치 날짜 락 장벽을 철거하고, 상단 바에 표출된 7일간의 주간 배열풀 전체를
+            //                      동시 스캔 타겟으로 선언!! (해당 주간에 등록된 모든 시험이 목록에 무조건 전수 노출됨)
+            // =========================================================================
             const targetRecords = records.filter(item => {
                 if (!item.recDate) return false;
                 const cleanRecDate = item.recDate.toString().replace(/[^0-9]/g, "");
-                return cleanRecDate === cleanSelectedDateStr;
+
+                // 현재 공고의 소집 일자가 이번 주 7일 배열 풀 내부에 실존 상주하는지 전체 대조 교차 매칭
+                return window.currentWeeklyDateKeys.some(weeklyKey => weeklyKey.replace(/[^0-9]/g, "") === cleanRecDate);
             });
 
             if (targetRecords.length === 0) {
                 cardBoard.innerHTML = `
         <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
         <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
-        해당 날짜에는 배정된 임상시험 소집 일정이 없습니다.
+        이번 주간에는 배정된 임상시험 소집 일정이 없습니다.
         </div>`;
                 return;
             }
@@ -716,8 +722,22 @@
                 const clickUid = item.uid ? item.uid : item.title;
                 const dynamicColorClass = `th-color-${thText}`;
 
+                const cleanRecDate = item.recDate.toString().replace(/[^0-9]/g, "");
+
+                // =========================================================================
+                // 🟢 [정밀 교정 완결]: 상단 주간 바에서 터치 선택한 요일 날짜와 현재 과제의 소집 일자가 
+                //                      정확하게 일치할 때만 [참여/미참여/이력] 3대 단추 레일을 개방!!
+                // =========================================================================
+                const isDateMatchedNow = (cleanRecDate === cleanSelectedDateStr);
+
+                // 날짜 미매칭 카드는 서식 신청 오작동을 완천 봉쇄하기 위해 버튼 바를 숨기고 상세 가이드라인을 미러링 인화
+                const actionDisplayStatus = isDateMatchedNow ? "grid" : "none";
+                const guideDisplayStatus = isDateMatchedNow ? "none" : "block";
+                const borderHighlightStyle = isDateMatchedNow ? "border: 1px solid var(--secondary-color); box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);" : "";
+
                 const card = document.createElement('div');
                 card.className = 'trial-manifest-card';
+                card.setAttribute("style", borderHighlightStyle);
 
                 card.innerHTML = `
         <div class="card-top-row">
@@ -728,9 +748,16 @@
         <div>배정 정원: <span>${item.count ? item.count + '명' : '-'}</span></div>
         <div>임상 기간: <span>${item.period ? item.period + '시간' : '-'}</span></div>
         <div>담당 CRC: <span>${item.crc || '-'}</span></div>
-        <div>소집 일자: <span style="color: var(--secondary-color);">${item.recDate || '-'}</span></div>
+        <div>소집 일자: <span style="color: var(--secondary-color); font-weight: 800;">${item.recDate || '-'}</span></div>
         </div>
-        <div class="card-action-bar">
+        
+        <!-- 💡 [상세 가이드 알림판]: 터치되지 않은 다른 일자 과제용 우회 안내망 레이어 -->
+        <div style="display: ${guideDisplayStatus}; background-color: #0f172a; border: 1px dashed #334155; padding: 8px; border-radius: 8px; font-size: 11px; color: var(--warning-color); text-align: center; margin-top: 6px;">
+        ℹ️ 상세 청구 및 신청은 상단 주간 바에서 <strong>[${item.recDate.substring(5)}]</strong> 요일을 터치하세요.
+        </div>
+
+        <!-- 💡 [조건부 액션 바]: 요일 일치 성립 순간 무선 활성화 개방 프로토콜 기동 -->
+        <div class="card-action-bar" id="ui_action_bar_${clickUid}" style="display: ${actionDisplayStatus};">
         <button type="button" class="card-btn join" id="btn_card_join_${clickUid}">참여</button>
         <button type="button" class="card-btn reject" id="btn_card_reject_${clickUid}">미참여</button>
         <button type="button" class="card-btn close" id="btn_card_hist_${clickUid}"><i class="fa-solid fa-clock-history"></i> 이력</button>
@@ -739,68 +766,71 @@
 
                 cardBoard.appendChild(card);
 
-                // A. 참여 신청 버튼 핸들러 가로채기 (중복 참여 차단 가드벽 정상 가동)
-                const joinBtn = document.getElementById(`btn_card_join_${clickUid}`);
-                if (joinBtn) {
-                    joinBtn.onclick = function (e) {
-                        e.preventDefault();
-                        let appDB = getApplicantData();
+                // 날짜 매칭이 성립된 카드의 이벤트 핸들러 바인딩 가로채기 공정
+                if (isDateMatchedNow) {
+                    // A. 참여 신청 버튼 핸들러 가로채기
+                    const joinBtn = document.getElementById(`btn_card_join_${clickUid}`);
+                    if (joinBtn) {
+                        joinBtn.onclick = function (e) {
+                            e.preventDefault();
+                            let appDB = getApplicantData();
 
-                        const isAlreadyJoined = appDB.some(app =>
-                            (app.name || '').toString().trim() === currentSessionName &&
-                            (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
-                            (app.th || '').toString().trim() === thText &&
-                            !app.isVirtualGhost
-                        );
+                            const isAlreadyJoined = appDB.some(app =>
+                                (app.name || '').toString().trim() === currentSessionName &&
+                                (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
+                                (app.th || '').toString().trim() === thText &&
+                                !app.isVirtualGhost
+                            );
 
-                        if (isAlreadyJoined) {
-                            alert("알림: 이미 참가한 시험입니다.\n기존에 신청 완료된 일정 및 과제를 확인해 주세요.");
-                            return;
-                        }
+                            if (isAlreadyJoined) {
+                                alert("알림: 이미 참가한 시험입니다.\n기존에 신청 완료된 일정 및 과제를 확인해 주세요.");
+                                return;
+                            }
 
-                        let myTicket = appDB.find(app => (app.name || "").toString().trim() === currentSessionName);
-                        let currentTemporaryUid = myTicket ? myTicket.uid : "TEMP_" + Date.now();
+                            let myTicket = appDB.find(app => (app.name || "").toString().trim() === currentSessionName);
+                            let currentTemporaryUid = myTicket ? myTicket.uid : "TEMP_" + Date.now();
 
-                        if (!myTicket) {
-                            myTicket = {
-                                uid: currentTemporaryUid, name: currentSessionName,
-                                title: item.title, th: thText, period: item.period || "0",
-                                payStatus: "대기", isVirtualGhost: true
-                            };
-                            appDB.push(myTicket);
-                        }
+                            if (!myTicket) {
+                                myTicket = {
+                                    uid: currentTemporaryUid, name: currentSessionName,
+                                    title: item.title, th: thText, period: item.period || "0",
+                                    payStatus: "대기", isVirtualGhost: true
+                                };
+                                appDB.push(myTicket);
+                            }
 
-                        const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
-                        if (myTargetIdx !== -1) {
-                            delete appDB[myTargetIdx].isVirtualGhost;
-                            delete appDB[myTargetIdx].isNewUserGhost;
-                            appDB[myTargetIdx].title = item.title;
-                            appDB[myTargetIdx].th = thText;
-                            appDB[myTargetIdx].period = item.period || "0";
-                            appDB[myTargetIdx].payStatus = "대기";
-                            localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                        }
-                        alert('참여 신청 접수되었습니다.');
-                        renderDailyCards();
-                    };
-                }
+                            const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
+                            if (myTargetIdx !== -1) {
+                                delete appDB[myTargetIdx].isVirtualGhost;
+                                delete appDB[myTargetIdx].isNewUserGhost;
+                                appDB[myTargetIdx].title = item.title;
+                                appDB[myTargetIdx].th = thText;
+                                appDB[myTargetIdx].period = item.period || "0";
+                                appDB[myTargetIdx].payStatus = "대기";
+                                localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                            }
+                            alert('참여 신청 접수되었습니다.');
+                            renderDailyCards();
+                        };
+                    }
 
-                // B. 미참여 버튼 핸들러 가로채기
-                const rejectBtn = document.getElementById(`btn_card_reject_${clickUid}`);
-                if (rejectBtn) {
-                    rejectBtn.onclick = function (e) {
-                        e.preventDefault();
-                        alert('미참여 신청 되었습니다.');
-                    };
-                }
+                    // B. 미참여 버튼 핸들러 가로채기
+                    const rejectBtn = document.getElementById(`btn_card_reject_${clickUid}`);
+                    if (rejectBtn) {
+                        rejectBtn.onclick = function (e) {
+                            e.preventDefault();
+                            alert('미참여 신청 되었습니다.');
+                        };
+                    }
 
-                // C. 과거 마스터 참여 누적 이력조회 독립 모달 열기 핸들러 브릿지
-                const histBtn = document.getElementById(`btn_card_hist_${clickUid}`);
-                if (histBtn) {
-                    histBtn.onclick = function (e) {
-                        e.preventDefault();
-                        openIndividualHistoryModalInMobile(currentSessionName, item.title, thText);
-                    };
+                    // C. 과거 마스터 참여 누적 이력조회 독립 모달 열기 핸들러 브릿지
+                    const histBtn = document.getElementById(`btn_card_hist_${clickUid}`);
+                    if (histBtn) {
+                        histBtn.onclick = function (e) {
+                            e.preventDefault();
+                            openIndividualHistoryModalInMobile(currentSessionName, item.title, thText);
+                        };
+                    }
                 }
             });
         }

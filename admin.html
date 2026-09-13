@@ -6848,43 +6848,113 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         window.openAdminMobileControlBridge = openAdminMobileControlBridge;
 
 
-
         /**
-         * 🔒 [최종 마감 안전핀] 인라인 수정 저장 및 모달 오픈 시 데이터 오염 방지 가드
-         * 관리자가 화면에서 직접 대상자를 [수정] 후 [저장]할 때, 
-         * 규격이 다시 예전 방식으로 뒤틀리는 현상을 원천 차단합니다.
+         * 🔒 [ReferenceError 완전 분쇄 안전 패치]
+         * 브라우저 로딩 타이밍과 상관없이 기존 함수를 안전하게 가로채고 상속하는 2중 방어벽입니다.
          */
-        const _secure_original_openAppHistoryDetailModal = window.openAppHistoryDetailModal || openAppHistoryDetailModal;
+        (function () {
+            // 1. 성별 추출 함수 가로채기 안전핀 설정
+            const originParseGender = window.parseGenderFromSsn || (typeof parseGenderFromSsn === "function" ? parseGenderFromSsn : null);
 
-        window.openAppHistoryDetailModal = function (index) {
-            try {
-                // 모달창이 열리기 직전 6자리 생년월일과 성별 배지 매칭 인터셉터 가동
-                let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                const selectedUser = db[index];
+            window.parseGenderFromSsn = function (ssnVal, nameVal) {
+                if (!ssnVal) return "미정";
+                const cleanSsn = ssnVal.toString().trim().toUpperCase();
 
-                if (selectedUser && selectedUser.ssn && selectedUser.ssn.toString().length === 6) {
-                    setTimeout(function () {
-                        const targetNode = document.getElementById("modal-app-ssn-gender")
-                            || document.querySelector(".history-modal-overlay #modal-app-ssn-gender");
-                        if (targetNode) {
-                            const genderSign = selectedUser.gender || parseGenderFromSsn(selectedUser.ssn, selectedUser.name);
-                            const genderClass = (genderSign === '남') ? 'lvl-2' : 'lvl-10';
-                            targetNode.innerHTML = `
-                        <span style="font-weight: 700; color: #ffffff;">${selectedUser.ssn}</span>
-                        <span class="lvl-badge ${genderClass}" style="margin-left: 6px; font-weight: 800;">${genderSign}</span>
-                    `;
-                        }
-                    }, 10);
+                // 엑셀 가공 단계에서 이미 '남' / '여'를 구한 경우 구형 로직을 우회하여 즉시 살립니다.
+                if (cleanSsn === "남" || cleanSsn === "M") return "남";
+                if (cleanSsn === "여" || cleanSsn === "F") return "여";
+
+                if (cleanSsn.length === 6) {
+                    try {
+                        const db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                        const cleanName = nameVal ? nameVal.toString().replace(/\s/g, "") : "";
+                        const found = db.find(u => u.name.toString().replace(/\s/g, "") === cleanName && u.ssn === ssnVal);
+                        if (found && (found.gender === "남" || found.gender === "여")) return found.gender;
+                    } catch (e) { }
                 }
-            } catch (e) {
-                console.error("모달 오픈 보정 에러:", e);
-            }
 
-            // 사내 순정 모달 오픈 함수 실행
-            if (typeof _secure_original_openAppHistoryDetailModal === "function") {
-                _secure_original_openAppHistoryDetailModal(index);
-            }
-        };
+                // 기존 함수가 전역 메모리에 존재할 때만 실행하고, 없으면 자체 폴백 처리로 에러를 방지합니다.
+                if (typeof originParseGender === "function") {
+                    return originParseGender(ssnVal, nameVal);
+                }
+
+                // 원본 함수가 안 보일 때의 최후 방어벽 (M/F 단독 문자 판별)
+                if (cleanSsn.includes("M") || cleanSsn.endsWith("1") || cleanSsn.endsWith("3")) return "남";
+                if (cleanSsn.includes("F") || cleanSsn.endsWith("2") || cleanSsn.endsWith("4")) return "여";
+                return "미정";
+            };
+
+            // 2. 화면 출력 함수 가로채기 안전핀 설정
+            const originRefreshView = window.refreshApplicantView || (typeof refreshApplicantView === "function" ? refreshApplicantView : null);
+
+            window.refreshApplicantView = function () {
+                try {
+                    let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                    let isModified = false;
+
+                    db.forEach(row => {
+                        // 인원수 undefined 해결 (nCount -> count 복사)
+                        if ((row.nCount !== undefined && row.nCount !== null) && !row.count) {
+                            row.count = row.nCount.toString();
+                            isModified = true;
+                        }
+
+                        // 생년월일 뒤집힘 정화 (예: 032012 -> 031202)
+                        if (row.ssn && row.ssn.toString().length === 6) {
+                            const ssnStr = row.ssn.toString();
+                            const yy = ssnStr.substring(0, 2);
+                            const mm = parseInt(ssnStr.substring(2, 4), 10);
+                            const dd = parseInt(ssnStr.substring(4, 6), 10);
+
+                            if (mm > 12 && dd <= 12) {
+                                row.ssn = `${yy}${String(dd).padStart(2, '0')}${String(mm).padStart(2, '0')}`;
+                                isModified = true;
+                            }
+                        }
+                    });
+
+                    if (isModified) {
+                        localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
+                        if (typeof dataStoreApplicant !== "undefined") dataStoreApplicant = db;
+                    }
+                } catch (err) {
+                    console.error("보정 레이어 예외 처리:", err);
+                }
+
+                if (typeof originRefreshView === "function") {
+                    originRefreshView();
+                }
+            };
+
+            // 3. 개인 이력 상세 모달창 오픈 가로채기 안전핀 설정
+            const originOpenModal = window.openAppHistoryDetailModal || (typeof openAppHistoryDetailModal === "function" ? openAppHistoryDetailModal : null);
+
+            window.openAppHistoryDetailModal = function (index) {
+                try {
+                    let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                    const selectedUser = db[index];
+
+                    if (selectedUser && selectedUser.ssn && selectedUser.ssn.toString().length === 6) {
+                        setTimeout(function () {
+                            const targetNode = document.getElementById("modal-app-ssn-gender")
+                                || document.querySelector(".history-modal-overlay #modal-app-ssn-gender");
+                            if (targetNode) {
+                                const genderSign = selectedUser.gender || window.parseGenderFromSsn(selectedUser.ssn, selectedUser.name);
+                                const genderClass = (genderSign === '남') ? 'lvl-2' : 'lvl-10';
+                                targetNode.innerHTML = `
+                            <span style="font-weight: 700; color: #ffffff;">${selectedUser.ssn}</span>
+                            <span class="lvl-badge ${genderClass}" style="margin-left: 6px; font-weight: 800;">${genderSign}</span>
+                        `;
+                            }
+                        }, 10);
+                    }
+                } catch (e) { }
+
+                if (typeof originOpenModal === "function") {
+                    originOpenModal(index);
+                }
+            };
+        })();
 
     </script>
 

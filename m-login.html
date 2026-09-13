@@ -1258,8 +1258,10 @@
 
         // 🎯 [참조 오류 디버깅 완결]: 변수명 주파수를 단일화하여 진짜 이미지 패킷을 가로채는 인코더 엔진 (변경하기 결합)
         function handleFileSelect(input, type) {
-            if (input.files && input.files) {
-                const file = input.files;
+            // 다중 파일 배열 컬렉션의 첫 번째 슬롯 인덱스에 리얼 파일 데이터가 존재하는지 정밀 스캔 가드
+            if (input.files && input.files[0]) {
+                // [교정 반영]: input.files 배열 전체가 아닌 0번째 단일 파일 개체(Blob/File)를 정확히 추출하여 이식
+                const file = input.files[0];
                 const reader = new FileReader();
 
                 reader.onload = function (e) {
@@ -1276,7 +1278,6 @@
                             if (btn) btn.innerText = "변경하기";
                         }
                     } else if (type === 'bank') {
-                        // [교정 반영]: 전역 마스터 변수 선언문 철자와 100% 동수 일치화 정화 (ReferenceError 영구 분쇄)
                         bankBookBase64 = base64String;
                         const box2 = document.getElementById('doc_box_2');
                         const bankTxt = document.getElementById('bank_status_txt');
@@ -1289,13 +1290,15 @@
                         }
                     }
 
-                    // 이미지 재업로드 교정 커밋 발생 시점에 하단 메인 단추 문구를 "(변경하기)" 폼으로 즉시 업데이트
+                    // 이미지 교정 변경 처리 완료 즉시 하단 메인 신청 단추 스킨을 변경하기 모드로 동적 리렌더링
                     const submitBtn = document.getElementById('ui_submit_btn');
                     if (submitBtn && submitBtn.disabled === false) {
                         submitBtn.innerText = "지급 신청하기 (변경하기)";
                     }
                     console.log(`[전산 정화] 모바일 증빙 서류 이미지 파일 데이터 패킷 인코딩 성공: ${file.name}`);
                 };
+
+                // 정밀 세척된 순수 단일 Blob 이미지 개체 파라미터를 FileReader 파이프라인으로 안전하게 바이패스 통과
                 reader.readAsDataURL(file);
             }
         }

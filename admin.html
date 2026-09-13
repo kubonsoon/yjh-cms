@@ -3196,21 +3196,21 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 }
                             }
 
-                            // ⚠️ 기존 기등록 대상자 색인 기능 보존 (삭제 금지)
+                            // ⚠️ 기존 기등록 대상자 색인 기능 보존 (절대 삭제 금지)
                             const cleanExcelName = excelName.replace(/\s/g, "");
                             const targetIdx = currentApplicantDB.findIndex(u => u.name.toString().replace(/\s/g, "") === cleanExcelName);
 
                             // ================================================================
-                            // 📊 [버그 완파] 숫자로 강제 변환 후 슬래시(/) 문자열 조립
+                            // 📊 [최종 정공법] 대상자 관리 탭의 슬래시(/) 표기 버그 완파
                             // ================================================================
-                            // i(인덱스)에서 2를 빼서 순수 현재 등록인원 숫자를 구합니다.
-                            const currentRegisterCount = parseInt(i, 10) - 2;
+                            // 현재 행이 몇 번째 등록 대상자인지 순수 숫자로 계산합니다. (i가 3부터 시작하므로 i-2)
+                            const currentLineNum = parseInt(i, 10) - 2;
 
-                            // 추출된 목표 인원수도 순수 숫자로 정제합니다. (예: "44" -> 44)
-                            const pureGoalQuota = parseInt(extractedNCount, 10) || 44;
+                            // 1행 메타 정보에서 추출한 목표 인원수(60)를 숫자로 확정합니다.
+                            const goalQuotaNum = parseInt(extractedNCount, 10) || 60;
 
-                            // 최종 조립 양식 결정 (예: "1/44", "31/44")
-                            const liveCountProgress = currentRegisterCount + "/" + pureGoalQuota;
+                            // 화면단이 원하는 슬래시 완벽 결합 양식을 만듭니다. (예: "30/60")
+                            const liveCountFormat = currentLineNum + "/" + goalQuotaNum;
 
                             // 규격화 데이터 구조 인계
                             const mergedRecord = {
@@ -3224,9 +3224,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,
                                 period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod,
 
-                                // ⚠️ 최종 매핑: 글자가 붙지 않고 "현재인원/목표인원" 포맷으로 정확히 사출됩니다.
-                                count: liveCountProgress,   // 결과: "1/44", "31/44" 형태로 안착
-                                nCount: pureGoalQuota,      // 순수 목표 인원수 숫자 보존 (44)
+                                // ⚠️ [해결 핵심]: 대상자 관리 화면 함수가 가져가는 원래 변수명인 'count' 자리에 "현재순번/목표"를 직접 꽂아줍니다!
+                                count: liveCountFormat,   // ◀ 결과: "30/60"이 그대로 들어가서 화면에 "30/60명"으로 안착!
+                                nCount: goalQuotaNum,      // ◀ 기존에 보존하던 변수명도 안전하게 동시 유지
 
                                 payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
                                 stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "대기",

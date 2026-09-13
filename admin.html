@@ -3075,7 +3075,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     try {
                         const bufferArray = evt.target.result;
 
-                        // 엑셀 및 CSV 통합 패킷 해독 프로세스 가동
+                        // 엑셀 및 CSV 패킷 디코딩 프로세스 가동
                         let workbook;
                         try {
                             workbook = XLSX.read(bufferArray, { type: 'array' });
@@ -3088,52 +3088,56 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
 
-                        // 2차원 배열 형태로 데이터를 강제 전환 (상단 제목 행 간섭 영구 차단)
+                        // 2차원 배열 형태로 전환하여 상단 레이아웃 간섭 차단
                         const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
-                        console.log("▶ [엔진 디버깅] 파일 로드 성공 (2차원 배열 구조):", rawRows);
+                        console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
 
                         // ================================================================
-                        // [1단계] 1행 메타 텍스트에서 시험명, 기수, 인원수, 기간 정규식 추출 (유실 복원)
+                        // [1단계] 1행 메타 텍스트에서 시험명, 기수, 인원수, 기간 정밀 분리
                         // ================================================================
                         const metaText = (rawRows && rawRows[0] && rawRows[0][0]) ? rawRows[0][0].toString().trim() : "";
 
                         let extractedTitle = "과제명 미정";
                         let extractedTh = "1기";
                         let extractedPeriod = "0";
-                        let extractedNCount = "0";
+                        let extractedNCount = "0"; // 인원수 (N뒤의 숫자만 수집)
 
                         if (metaText) {
+                            // 기수 추출 (\d+기) -> 숫자만 매칭
                             const thMatch = metaText.match(/(\d+)기/);
-                            if (thMatch) extractedTh = thMatch[1] + "기";
+                            if (thMatch) extractedTh = thMatch[0];
 
+                            // 기간 추출 (\d+시간) -> 숫자만 매칭
                             const periodMatch = metaText.match(/(\d+)시간/);
                             if (periodMatch) extractedPeriod = periodMatch[1];
 
+                            // 인원수 오류 해결: (N44) 에서 N 뒤의 순수 숫자만 그룹([1])으로 정밀 추출
                             const nMatch = metaText.match(/\(N(\d+)\)/);
-                            if (nMatch) extractedNCount = nMatch[1];
+                            if (nMatch && nMatch[1]) extractedNCount = nMatch[1];
 
+                            // 순수 시험명 파싱 (기수, 인원수, 시간, 담당 정보 공백화 제거)
                             let cleanTitle = metaText;
-                            cleanTitle = cleanTitle.replace(/\d+기/, "");
-                            cleanTitle = cleanTitle.replace(/\(N\d+\)/, "");
-                            cleanTitle = cleanTitle.replace(/\d+시간/, "");
+                            cleanTitle = cleanTitle.replace(/\d+기/g, "");
+                            cleanTitle = cleanTitle.replace(/\(N\d+\)/g, "");
+                            cleanTitle = cleanTitle.replace(/\d+시간/g, "");
                             const titleParts = cleanTitle.split("담당");
                             extractedTitle = titleParts[0].replace(/\s+/g, " ").trim();
                         }
 
-                        console.log(`▶ [메타 추출 결과] 시험명: ${extractedTitle} | 기수: ${extractedTh} | 인원수: ${extractedNCount}명 | 기간: ${extractedPeriod}시간`);
+                        console.log(`▶ [메타 추출 성공] 시험명: ${extractedTitle} | 기수: ${extractedTh} | 인원수: ${extractedNCount}명 | 기간: ${extractedPeriod}시간`);
 
                         let currentApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                        const currentYear = new Date().getFullYear(); // 2026년 동적 반영
+                        const currentYear = new Date().getFullYear(); // 2026년 기준 실시간 동적 계산
 
                         // ================================================================
-                        // [2단계] 4행(인덱스 3)부터 반복하며 깨진 인적사항 데이터 정밀 복원 (유실 복원)
+                        // [2단계] 4행(인덱스 3)부터 반복 돌며 인적사항 정제 및 데이터 조립
                         // ================================================================
                         for (let i = 3; i < rawRows.length; i++) {
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
 
-                            // 엑셀의 열 고정 매칭 (D: 성명[3], E: 성별/나이[4], F: 생년월일[5], G: 연락처[6])
+                            // ⚠️ 이미지 기반 고정 인덱스 맵핑 (D열=인덱스 3: 성명, E열=인덱스 4: 성별/나이, F열=인덱스 5: 생년월일, G열=인덱스 6: 연락처)
                             let rawName = row[3] ? row[3].toString().trim() : "";
                             const rawGenderAge = row[4] ? row[4].toString().trim() : "";
                             let rawSsn = row[5] ? row[5].toString().trim() : "";
@@ -3141,41 +3145,45 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 
-                            // ① 이름 정제: 괄호 및 내부 식별 기호 완전 탈락 (예: 김민석(01) -> 김민석)
+                            // ① 이름 정제: 괄호 식별자 파괴 (예: 김민석(01) -> 김민석)
                             const excelName = rawName.replace(/\(.*?\)/g, "").trim();
 
-                            // ② 성별 및 나이 추출 (E열 'F/26' 형태 해체 및 성별 매칭)
+                            // ② ⚠️ 성별 배지 대응 보정: '남자/여자'가 아닌 '남/여' 단축어로 치환 고정
                             let gender = "미정";
                             let age = 0;
                             if (rawGenderAge && rawGenderAge.includes("/")) {
                                 const parts = rawGenderAge.split("/");
-                                const gLetter = parts[0].trim().toUpperCase();
-                                gender = (gLetter === "M") ? "남자" : (gLetter === "F") ? "여자" : gLetter;
-                                age = parseInt(parts[1], 10) || 0;
+                                const gLetter = parts[0].toString().replace(/\s/g, "").toUpperCase(); // 공백 제거 및 대문자화
+
+                                if (gLetter === "M") gender = "남";
+                                else if (gLetter === "F") gender = "여";
+                                else gender = gLetter;
+
+                                age = parseInt(parts[1].toString().trim(), 10) || 0;
                             }
 
-                            // ③ 깨진 생년월일 역산 보정 (60215, 215 등 규격 파괴 데이터 나이 기반 복원)
+                            // ③ 깨진 생년월일 포맷팅 보정 (60215, 215 -> 나이 기준 연도 채우기 역산)
                             if (rawSsn && rawSsn.length < 6 && age > 0) {
-                                const birthYear = currentYear - age + 1; // 한국식 나이 역산 연도 계산
-                                const shortYearStr = birthYear.toString().substring(2, 4); // 뒤 2자리 (예: 99 또는 00)
+                                const birthYear = currentYear - age + 1; // 한국식 나이 역산 규칙 적용
+                                const shortYearStr = birthYear.toString().substring(2, 4); // 연도 뒤 2자리 (예: 99, 00)
 
                                 let shortDateStr = rawSsn;
                                 while (shortDateStr.length < 4) {
                                     shortDateStr = "0" + shortDateStr;
                                 }
-                                rawSsn = shortYearStr + shortDateStr; // 깨진 데이터 완벽 결합 (예: 990215)
+                                rawSsn = shortYearStr + shortDateStr; // 결과: "990215" 형태로 세팅
                             }
 
                             const cleanExcelName = excelName.replace(/\s/g, "");
                             const targetIdx = currentApplicantDB.findIndex(u => u.name.toString().replace(/\s/g, "") === cleanExcelName);
 
-                            // 규격화된 최종 데이터 오브젝트 생성
+                            // 규격화 데이터 구조 인계
                             const mergedRecord = {
                                 uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : `EXCEL_${Date.now()}_${Math.floor(Math.random() * 1000)}_${i}`,
                                 name: excelName,
                                 ssn: rawSsn || (targetIdx !== -1 ? currentApplicantDB[targetIdx].ssn : "정보없음"),
                                 phone: phoneVal || (targetIdx !== -1 ? currentApplicantDB[targetIdx].phone : "정보없음"),
-                                gender: gender,
+                                gender: gender, // 변경: '남' 또는 '여'로 바인딩 완료
                                 age: age,
                                 title: targetIdx !== -1 ? currentApplicantDB[targetIdx].title : extractedTitle,
                                 th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,
@@ -3194,19 +3202,19 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         }
 
                         // ================================================================
-                        // [3단계] 브라우저 DB 저장 및 연동 화면 리렌더링 (ReferenceError 전면 수리)
+                        // [3단계] LocalStorage 브라우저 저장소 인계 및 화면 리뉴얼 함수 트리거
                         // ================================================================
                         localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
 
-                        console.log("▶ [엔진 디버깅] 최종 정제 동기화 데이터:", currentApplicantDB);
+                        console.log("▶ [엔진 디버깅] 최종 정제 완료 동기화 배열 데이터:", currentApplicantDB);
 
-                        alert(`📊 [통합 데이터베이스 동기화 완료]\n\n• 시험명: ${extractedTitle}\n• 기수/기간: ${extractedTh} (${extractedPeriod}시간)\n• 목표 배정인원: ${extractedNCount}명\n\n유실되었던 데이터 복원 엔진 가동이 완료되어 리스트에 즉시 반영되었습니다.`);
+                        alert(`📊 [통합 데이터베이스 동기화 완료]\n\n• 시험명: ${extractedTitle}\n• 기수: ${extractedTh}\n• 배정 인원수: ${extractedNCount}명\n• 기간: ${extractedPeriod}시간\n\n성별 데이터가 '남/여' 배지 규격에 맞춰 정상 반영되었습니다.`);
 
-                        // 기존 원본 화면 새로고침 함수 트리거
+                        // 웹 UI 갱신 함수 기동
                         if (typeof window.refreshApplicantView === "function") window.refreshApplicantView();
                         if (typeof window.calculateLiveDashboardStats === "function") window.calculateLiveDashboardStats();
 
-                        // 오타 수정: evt 객체를 정상 추적하여 파일 컴포넌트 값 초기화
+                        // 인풋 오브젝트 비우기
                         if (evt && evt.target) evt.target.value = '';
 
                     } catch (err) {

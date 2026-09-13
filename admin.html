@@ -3535,14 +3535,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                         if (genderAgeCell && genderAgeCell.includes("/")) {
                             const parts = genderAgeCell.split("/");
-                            // ⚠️ 배열 자체가 아닌, 0번째 원소(M 또는 F)를 명확히 문자열로 가져와 대문자 변환합니다.
+                            // ⚠️ 배열(parts) 자체가 아닌, 0번째 방에 든 성별(M/F) 문자열만 정확히 타격하여 대문자로 전환합니다.
                             const gLetter = parts[0] ? parts[0].toString().trim().toUpperCase() : "";
 
                             if (gLetter === "M" || gLetter.includes("M")) csvGender = "남";
                             else if (gLetter === "F" || gLetter.includes("F")) csvGender = "여";
                             else csvGender = gLetter;
 
-                            // 1번째 원소(나이 숫자)를 정수로 안전하게 파싱합니다.
+                            // 나이 숫자가 들어있는 1번째 방의 원소를 숫자로 파싱합니다.
                             csvAge = parseInt(parts[1], 10) || 0;
                         }
 

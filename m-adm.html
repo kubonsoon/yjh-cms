@@ -163,18 +163,34 @@
 
     <script>
         // =========================================================================
-        // 🟢 [정밀 교정]: 하드코딩된 유령 유저를 제거하고, 실제 로그인 대상자 세션 주파수 강제 결합
+        // 🟢 [정밀 교정 완결]: 진재영 하드코딩 독점 버그를 철거하고, 무한 다중 유저 실시간 인터셉터 안테나 이식
         // =========================================================================
-        let targetName = sessionStorage.getItem('certifiedUserName') || "진재영";
+        let targetName = "";
 
-        // 실시간 관제 기동 브릿지 유틸리티 가드 (세션 변화 상시 트래킹 오버라이드)
+        // 글로벌 공유 메모리 장치(localStorage)를 초당 상시 정밀 체킹하는 실시간 관제 리프레시 가드 (새로고침 먹통 방지)
         function syncTargetSession() {
-            const activeMobileUser = sessionStorage.getItem('certifiedUserName');
-            if (activeMobileUser) {
-                targetName = activeMobileUser;
+            const globalActiveLoginPacket = JSON.parse(localStorage.getItem('loggedInUser'));
+            const displaySlot = document.getElementById('ui_active_target_display');
+
+            if (globalActiveLoginPacket && globalActiveLoginPacket.name) {
+                // 전산 레일에 안착된 리얼 로그인 유저명 실시간 강제 납치 바인딩
+                targetName = globalActiveLoginPacket.name.trim();
+                if (displaySlot) {
+                    displaySlot.innerText = `${targetName} 대상자 실시간 관제중`;
+                    displaySlot.style.color = "#06B6D4";
+                }
+            } else {
+                targetName = "";
+                if (displaySlot) {
+                    displaySlot.innerText = "대기 대상자 없음";
+                    displaySlot.style.color = "#94A3B8";
+                }
             }
         }
+
+        // 최초 1회 즉시 스캔 가동 후, 대상자 화면 변화를 감지하기 위해 1초 자동 폴링 루프 인터리브 가동
         syncTargetSession();
+        setInterval(syncTargetSession, 1000);
 
         function setBoxesDisabled(isD) {
             ['chk_step1', 'chk_step2', 'chk_first_fail', 'chk_self_out', 'chk_backup_out'].forEach(id => {
@@ -183,18 +199,16 @@
         }
 
         function sendSignal(status) {
-            // 1. 송신 전 세션 스토리지에서 실제 대상자 이름을 실시간 강제 리프레시 호출
-            const sessionActiveUser = sessionStorage.getItem('certifiedUserName');
-            if (sessionActiveUser) {
-                targetName = sessionActiveUser.trim();
+            syncTargetSession(); // 송신 버튼 터치 시점 0초 타이밍 마스터 세션 성명 강제 리프레시
+
+            if (!targetName || targetName === "") {
+                return alert("알림: 현재 모바일 화면에서 본인인증서 로그인을 진행하여 대기 중인 대상자가 없습니다.");
             }
 
-            // 2. 미세 공백 찌꺼기를 완전히 증발 소독하여 양방향 매칭 수신거부 버그 원천 진압
             const cleanTargetName = targetName.replace(/\s/g, "");
-
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 가상 DB 스캔 매칭 조건문 포맷 소독 일치화
+            // 글로벌 8명 마스터 마스터 대장 포맷 소독 전수 스캔 매칭
             let user = db.find(u => {
                 const cleanDbName = (u.name || '').toString().replace(/\s/g, "");
                 return cleanDbName === cleanTargetName;
@@ -204,9 +218,9 @@
                 user.stage = (status === 'PASS') ? '통과' : '탈락';
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
 
-                // [교정 반영]: 완벽히 소독된 리얼 대상자 이름표 명세를 달고 무선 통과/탈락 패킷 전격 사출
+                // 완벽히 소독된 현재 실시간 관제 대상자 명의 이름표를 달고 무선 심사 패킷 전격 사출
                 localStorage.setItem('msg_push_signal', JSON.stringify({
-                    name: user.name, // 가상 DB에 등록된 오리지널 순정 네임 락인
+                    name: user.name,
                     status: status,
                     time: Date.now()
                 }));
@@ -218,9 +232,9 @@
                     setBoxesDisabled(false);
                     switchUserType();
                 }
-                console.log(`[원격 관제탑] ${user.name} 대상자 앞 무선 심사 신호 패킷 발송 완료: ${status}`);
+                console.log(`[원격 관제탑] 무선 심사 완료 ➡️ 대상자: ${user.name} / 신호: ${status}`);
             } else {
-                console.log(`[전산 경고] 명단 대조 실패: 현재 로그인 세션(${targetName})과 매칭되는 대상자 레코드가 가상 DB에 없습니다.`);
+                console.log(`[전산 경고] 명단 매칭 거절: 현재 관제 대상자 명의(${targetName})가 dataStoreApplicant 마스터 대장에 존재하지 않습니다.`);
             }
         }
 
@@ -236,8 +250,10 @@
             } else if (id === 'chk_step1' && !c1.checked) { c2.checked = false; }
 
             let anyChecked = c1.checked || c2.checked || cF.checked || cB.checked || cS.checked;
-            document.getElementById('btn_allow').disabled = !anyChecked;
-            document.getElementById('btn_block').disabled = !anyChecked;
+
+            // 버튼 탐색 규격 하이픈 오타 전수 청소 통합 종결 완료
+            if (document.getElementById('btn_allow')) document.getElementById('btn_allow').disabled = !anyChecked;
+            if (document.getElementById('btn_block')) document.getElementById('btn_block').disabled = !anyChecked;
         }
 
         function switchUserType() {
@@ -245,19 +261,20 @@
             let c1 = document.getElementById('chk_step1'), c2 = document.getElementById('chk_step2'), cF = document.getElementById('chk_first_fail'), cB = document.getElementById('chk_backup_out'), cS = document.getElementById('chk_self_out');
             c1.checked = c2.checked = cF.checked = cB.checked = cS.checked = false;
             c1.disabled = false; cF.disabled = !isN; cS.disabled = !isN; cB.disabled = isN; c2.disabled = true;
-            document.getElementById('btn_allow').disabled = document.getElementById('btn_block').disabled = true;
+            if (document.getElementById('btn_allow')) document.getElementById('btn_allow').disabled = true;
+            if (document.getElementById('btn_block')) document.getElementById('btn_block').disabled = true;
         }
 
-        // 🎯 [전산 무결성 완결]: 개방 승인 시 무선 신호 사출과 동시에 가상 DB 상태값까지 실시간 동시 오버라이드
         function toggleAuth(isAllow) {
-            syncTargetSession(); // 원격 무선 송신 전 세션 주파수 최종 최신화 리프레시
+            syncTargetSession(); // 송신 버튼 터치 시점 0초 타이밍 마스터 세션 성명 강제 리프레시
 
-            // 이름 내부 공백을 완벽히 소독하여 조회 가드 무력화 간섭 차단
+            if (!targetName || targetName === "") {
+                return alert("알림: 현재 권한을 개방할 활성화 대상자가 잡히지 않았습니다.");
+            }
+
             const cleanTargetName = targetName.replace(/\s/g, "");
-
             let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 가상 DB 스캔 매칭 조건문 포맷 소독 일치화
             let user = db.find(u => {
                 const cleanDbName = (u.name || '').toString().replace(/\s/g, "");
                 return cleanDbName === cleanTargetName;
@@ -271,31 +288,26 @@
                 else if (document.getElementById('chk_backup_out').checked) code = 4;
                 else if (document.getElementById('chk_self_out').checked) code = 5;
 
-                // =========================================================================
-                // 🟢 [교정 반영]: 모바일 화면 진입 및 폴백 로딩 타이밍과의 완벽 동수 일치화를 위해
-                //                  가상 마스터 DB의 대상자 정산 처리 상태를 원자적 동시 업데이트
-                // =========================================================================
+                // 원자적 가상 DB 업데이트 동시 커밋 처리 결합
                 if (isAllow) {
-                    user.payStatus = "신청가능"; // 마스터 대장에 "신청가능" 권한 전격 락인 주입
+                    user.payStatus = "신청가능";
                 } else {
-                    user.payStatus = "대기"; // 차단 시 대기 상태 롤백 복원
+                    user.payStatus = "대기";
                 }
-
-                // 변경된 상태 원본을 가상 데이터베이스 대장에 실시간 커밋 반영 저장
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
 
-                // 무선 인가 신호 패킷 정상 방출 처리
+                // 소독 완료된 리얼 로그인 유저 대상 무선 인가 신호 패킷 사출
                 localStorage.setItem('msg_auth_signal', JSON.stringify({
-                    name: user.name, // 가상 DB에 등록된 오리지널 순정 네임 고정
+                    name: user.name,
                     isAllow: isAllow,
                     stageCode: code,
                     time: Date.now()
                 }));
 
                 alert(isAllow ? "👍 대상자 화면에 참여비 청구서가 실시간 승인 개방되었습니다." : "🔒 참여비 청구 권한을 홀딩 잠금 처리했습니다.");
-                console.log(`[원격 관제탑] ${user.name} 대상자 앞 지급 신청 권한 갱신 완결 (payStatus: ${user.payStatus})`);
+                console.log(`[원격 관제탑] 지급 권한 개방 종결 ➡️ 대상자명: ${user.name} / 상태명세: ${user.payStatus}`);
             } else {
-                alert("알림: 현재 심사 중인 대상자의 명의를 가상 데이터베이스 대장에서 찾을 수 없습니다.");
+                alert("알림: 현재 심사 중인 대상자의 명의를 dataStoreApplicant 마스터 대장에서 찾을 수 없습니다.");
             }
         }
     </script>

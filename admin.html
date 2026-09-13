@@ -1051,6 +1051,9 @@
 
             let htmlBuffer = "";
             dataStoreRecruitment.forEach((row, index) => {
+
+                const tdBottomLineStyle = `border-bottom: 1px solid var(--border-color) !important; vertical-align: middle;`;
+
                 htmlBuffer += `
             <tr data-uid="${row.uid}" style="border-bottom: 1px solid var(--border-color) !important;">
                 <td style="text-align: left; padding-left: 15px; ${tdBottomLineStyle}">

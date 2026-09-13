@@ -345,7 +345,9 @@
 
                         <!-- 🌟 우측 구역: 셀렉트 박스 옆으로 바짝 붙여 우측 정렬한 [대상자 파일 업로드 버튼] -->
                         <div class="upload-zone" onclick="document.getElementById('fileParser').click()"
-                            style="border: 1px dashed #10b981; padding: 6px 16px; text-align: center; background-color: rgba(16, 185, 129, 0.04); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 10px; margin-top: 0; height: 36px; white-space: nowrap;">
+                            style="border: 1px dashed #10b981; padding: 6px 16px; text-align: center; background-color: rgba(16, 185, 129, 0.04); border-radius: 6px; cursor: pointer; transition: all 0.25s ease-in-out; display: flex; align-items: center; gap: 10px; margin-top: 0; height: 36px; white-space: nowrap;"
+                            onmouseover="this.style.borderColor='#34d399'; this.style.backgroundColor='rgba(16, 185, 129, 0.12)'; this.style.boxShadow='0 0 10px rgba(16, 185, 129, 0.15)'; this.querySelector('strong').style.color='#67e8f9'; this.querySelector('i').style.color='#34d399';"
+                            onmouseout="this.style.borderColor='#10b981'; this.style.backgroundColor='rgba(16, 185, 129, 0.04)'; this.style.boxShadow='none'; this.querySelector('strong').style.color='#4ade80'; this.querySelector('i').style.color='#10b981';">
                             <strong
                                 style="font-size: 13px; color: #4ade80; display: flex; align-items: center; gap: 4px; margin: 0;">
                                 <i class="fa-solid fa-file-excel" style="color: #10b981;"></i> 대상자 파일 업로드

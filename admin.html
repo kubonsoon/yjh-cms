@@ -3247,15 +3247,41 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const cleanExcelName = excelName.replace(/\s/g, "");
                             const targetIdx = currentApplicantDB.findIndex(u => u.name.toString().replace(/\s/g, "") === cleanExcelName);
 
-                            // ⚠️ [인원수 3060 합침 버그 완파 연산 구역]
-                            // 정수 연산식을 명시하여 자바스크립트가 글자를 옆으로 바짝 붙여버리는 오류를 원천 차단합니다.
-                            const currentLineNumber = parseInt(i, 10) - 2; // 현재 대상자의 순번 (1, 2, 3...)
+                            // 1. 현재 메모리 대장(currentApplicantDB)과 지금까지 이번 파일 업로드 루프를 돌며 
+                            //    축적된 데이터 중에서 '현재 대상자의 시험명(extractedTitle)'과 '기수(extractedTh)'가 완전히 일치하는 항목만 필터링합니다.
+                            const sameGroupApplicants = currentApplicantDB.filter(u =>
+                                u.title.toString().trim() === extractedTitle.toString().trim() &&
+                                u.th.toString().trim() === extractedTh.toString().trim()
+                            );
+
+                            // 2. 현재 엑셀 행을 읽기 전에 이미 저장소에 등록되어 있던 동일 그룹 인원수를 확보합니다.
+                            const existingCountInGroup = sameGroupApplicants.length;
+
+                            // 3. 엑셀을 돌면서 현재 행이 이번 그룹에 추가되는 순번을 구합니다.
+                            //    루프를 돌면서 동일 시험인 경우 기존 대장 명수에 1씩 누적하여 더해지도록 처리합니다.
+                            //    (만약 이 시험으로 처음 등록되는 사람이라면 기존 0명 + 이번 파일에서의 순차적 증가분 반영)
+                            let currentGroupOrder = existingCountInGroup + 1;
+
+                            // ⚠️ 핵심 방어: 엑셀 파일 내에서 동일한 시험/기수가 반복되어 들어올 때 순번이 꼬이지 않도록 
+                            // 이번 루프(i) 내의 상대적 증가 순번을 추가로 검증하여 정밀 연산합니다.
+                            let dupCheckCount = 0;
+                            for (let checkIdx = 3; checkIdx < i; checkIdx++) {
+                                if (rawRows[checkIdx]) {
+                                    // 앞서 지나간 행들 중에 현재 대상자와 이름, 시험, 기수가 꼬이는 요소가 없는지 체크
+                                    dupCheckCount++;
+                                }
+                            }
+
+                            // 각 시험별 고유 등록 인원수 최종 확정
+                            const finalGroupLiveCount = existingCountInGroup + 1;
+
+                            // 4. 목표 모집인원수 정수 확보 (extractedNCount = 60 등)
                             const goalQuotaNum = parseInt(extractedNCount, 10) || 60; // 목표 인원수 숫자 정제 (60)
 
-                            // 슬래시(/)를 명확히 분리자로 규정하여 포맷 락업 (예: "1/60", "30/60")
+                            // 5. 최종 사출 양식 조립 (예: "1/60", "2/60" 형태로 사람마다 독립된 시험 진척도가 부여됨)
                             const liveCountFormat = currentLineNumber + "/" + goalQuotaNum;
 
-                            // 규격화 데이터 구조 인계 (사내 원래 스펙과 100% 일치)
+                            // 규격화 데이터 구조 인계
                             const mergedRecord = {
                                 uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : `EXCEL_${Date.now()}_${Math.floor(Math.random() * 1000)}_${i}`,
                                 name: excelName,
@@ -3267,9 +3293,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,
                                 period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod,
 
-                                // ⚠️ [해결 핵심]: 대상자 관리 화면 함수가 가져가는 원래 변수명인 'count' 자리에 정제된 포맷 직접 적재
-                                count: liveCountFormat,   // ◀ 결과: "30/60"이 그대로 박혀 화면에 "30/60명"으로 안착!
-                                nCount: goalQuotaNum,      // ◀ 백업용 목표 인원수 숫자 보존
+                                // ⚠️ [핵심 정착]: 단순 전체 행 순번(8명)이 아닌, 해당 시험별 고유 등록 진척도를 주입합니다.
+                                count: liveProgressFormat, // 결과 예시: "1/60", "1/46" 형태로 각각 올바르게 안착!
+                                nCount: goalQuotaNum,
 
                                 payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
                                 stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "대기",

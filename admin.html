@@ -3199,6 +3199,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const cleanExcelName = excelName.replace(/\s/g, "");
                             const targetIdx = currentApplicantDB.findIndex(u => u.name.toString().replace(/\s/g, "") === cleanExcelName);
 
+                            // i가 3부터 시작하므로 (i - 2)를 수행하면 현재 데이터가 몇 번째 사람인지 정확히 연산합니다.
+                            const currentRegisterCount = i - 2;
+                            const liveCountProgress = `${currentRegisterCount}/${extractedNCount}`;
+
                             // 규격화 데이터 구조 인계
                             const mergedRecord = {
                                 uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : `EXCEL_${Date.now()}_${Math.floor(Math.random() * 1000)}_${i}`,
@@ -3211,13 +3215,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,
                                 period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod,
 
-                                // ⚠️ [수정 핵심]: 사내 순정 출력 화면이 인식하는 원본 변수명 'count' 필드를 추가 연동합니다!
-                                count: extractedNCount.toString(), // ◀ 순정 화면 매핑용 (undefined 완전 해결)
-                                nCount: extractedNCount,           // ◀ 데이터 수집 보존용
+                                // ⚠️ 핵심 보정: 기존 화면 매핑용 'count' 변수명에 진척도 양식 주입
+                                count: liveCountProgress,   // 결과: "1/44", "2/44" 형태로 사출
+                                nCount: extractedNCount,    // 순수 목표 인원수 숫자 보존용 (44)
 
                                 payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
                                 stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "대기",
-                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')[0]
+                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')
                             };
 
                             if (targetIdx !== -1) {

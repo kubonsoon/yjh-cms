@@ -3302,7 +3302,18 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                         console.log("▶ [엔진 디버깅] 최종 동기화 완료 데이터 배열:", currentApplicantDB);
 
-                        alert(`📊 [통합 데이터베이스 동기화 완료]\n\n• 시험명: ${extractedTitle}\n• 기수: ${extractedTh}\n• 모집목표: ${extractedNCount}명 수리 완료\n\n글자 뭉침 오류가 해결되어 대상자 관리 탭의 인원수가 정상 연동되었습니다.`);
+                        alert(
+                            `📢 지능형 문장 분리 파싱 일괄 등록 성공!\n` +
+                            `──────────────────────────────\n` +
+                            `● 적용 시험명: ${extractedTitle}\n` +
+                            `● 적용 기수: ${extractedTh}\n` +
+                            `● 모집 인원: ${extractedNCount}명\n` +
+                            `● 임상 기간: ${extractedPeriod}시간\n` +
+                            `● 소집 일자: ${extractedTh || '미정'}\n` +
+                            `──────────────────────────────\n` +
+                            `- 정상 적재 완료: 총 [${rawRows.length - 3}건]\n` +
+                            `- 중복 제외 데이터: 총 [0건]\n\n`
+                        );
 
                         // 순정 UI 새로고침 작동
                         if (typeof window.refreshApplicantView === "function") window.refreshApplicantView();
@@ -3547,7 +3558,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
 
-                    return alert(`📢 지능형 문장 분리 파싱 일괄 등록 성공!\n━━━━━━━━━━━━━━━━━━━━━━\n● 적용 시험명: ${fileExtractedTitle}\n● 적용 기수: ${fileExtractedTh}\n● 모집 인원: ${fileExtractedCount}명\n● 임상 기간: ${fileExtractedPeriod}시간\n━━━━━━━━━━━━━━━━━━━━━━\n- 정상 적재 완료: 총 [${importCount}건]\n- 중복 제외 데이터: 총 [${duplicateCount}건]`);
+                    return alert(`📢 지능형 문장 분리 파싱 일괄 등록 성공!\n━━━━━━━━━━━━━━━━━━━━━━\n● 적용 시험명: ${fileExtractedTitle}\n● 적용 기수: ${fileExtractedTh}\n● 모집 인원: ${fileExtractedCount}명\n● 임상 기간: ${fileExtractedPeriod}시간\n● 소집 일자: ${typeof fileExtractedDate !== "undefined" ? fileExtractedDate : (typeof extractedDate !== "undefined" ? extractedDate : "미정")}\n━━━━━━━━━━━━━━━━━━━━━━\n- 정상 적재 완료: 총 [${importCount}건]\n- 중복 제외 데이터: 총 [${duplicateCount}건]`);
                 } catch (err) {
                     console.error("파일 대량 파싱 에러:", err);
                     alert("알림: 파일 데이터 구조 해석에 실패했습니다.");

@@ -350,3 +350,44 @@
   font-size: 13px !important; /* 참여비 지급현황 3단 배지 글자 13px 고정 */
   font-weight: 700 !important;
 }
+
+/* =========================================================================
+   📊 [3번 탭 전용] report-view.css 대상자 탈락 통계 프로그레스바 무결성 디자인 시스템
+   ========================================================================= */
+.dropout-container-card {
+  background: #0f172a !important; /* 사내 표준 카드 다크 배경 */
+  border: 1px solid #1e293b !important;
+  padding: 24px;
+  border-radius: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dropout-rank-badge {
+  color: #ffffff;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.dropout-track-bg {
+  width: 100%;
+  height: 10px;
+  background: #1e293b;
+  border-radius: 100px;
+  overflow: hidden;
+  position: relative;
+  margin-top: 4px;
+}
+
+.dropout-fill-bar {
+  height: 100%;
+  border-radius: 100px;
+  width: 0; /* JS 초기 구동을 위해 0으로 대기 후 동적 확장 */
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}

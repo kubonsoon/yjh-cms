@@ -327,25 +327,172 @@ function switchReportSubTab(tabKey) {
         `;
     viewport.innerHTML = htmlBuffer;
     // 2탭 : 시험별 모집/재무 현황 끝
+    // 3탭 : 대상자 탈락 사유 통계 시작
   } else if (tabKey === "dropout") {
-    viewport.innerHTML = `
-    <div id="report-tab-panel-dropout" class="report-panel-wrapper" style="display: none; width: 100%; flex-direction: column; gap: 20px;">
-    <!-- [1층]: 4대 통계 미니 지표 스코어 보드 -->
-    <div style="display: flex; gap: 14px; width: 100%;">
-        <!-- 총 탈락 건수, 스크리닝 탈락, 규정위반 탈락, 평균 탈락률 카드 세팅 -->
-    </div>
-    
-    <!-- [2층]: 랭킹 보드(좌)와 과제별 그리드(우)의 가로 2단 분할 레이아웃 -->
-    <div style="display: flex; gap: 20px; width: 100%;">
-        <div style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px;">
-            <h3>📊 탈락 사유 종합 순위</h3>
+    try {
+      // 1. 최신 가상 데이터베이스 원장 배열 실시간 로드
+      const appDB =
+        JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
+
+      // 2. 사내 표준 7대 중도 탈락 항목 카운터 매트릭스 세팅
+      const dropoutCounters = {
+        예비귀가: { count: 0, color: "#64748b" },
+        검사탈락: { count: 0, color: "#ef4444" },
+        개인사정: { count: 0, color: "#38bdf8" },
+        규정위반: { count: 0, color: "#f59e0b" },
+        임의행동: { count: 0, color: "#a855f7" },
+        욕설폭행: { count: 0, color: "#ec4899" },
+        기타탈락: { count: 0, color: "#6b7280" },
+      };
+
+      let totalDropoutCount = 0;
+      let screeningCount = 0; // 예비귀가 + 검사탈락
+      let ruleViolationCount = 0; // 규격위반 + 임의행동 + 욕설폭행
+
+      // 3. 실시간 탈락 지표 전수 연산 조사
+      appDB.forEach((user) => {
+        const currentStage = user.stage ? user.stage.toString().trim() : "";
+        for (const key in dropoutCounters) {
+          if (currentStage.includes(key)) {
+            dropoutCounters[key].count++;
+            totalDropoutCount++;
+
+            if (key === "예비귀가" || key === "검사탈락") screeningCount++;
+            if (key === "규정위반" || key === "임의행동" || key === "욕설폭행")
+              ruleViolationCount++;
+            break;
+          }
+        }
+      });
+
+      // 4. 평균 탈락률 계산 (참여 상태 전체 인원 대비 탈락자 비율 연산, 기본값 방어)
+      const totalApplicants = appDB.length || 1;
+      const avgDropoutRate = (
+        (totalDropoutCount / totalApplicants) *
+        100
+      ).toFixed(1);
+
+      // 5. 📊 [기획 사양 완벽 보존]: 1층 미니 스코어 보드 및 2층 가로 2단 분할 레이아웃 조립
+      let htmlBuffer = `
+        <div id="report-tab-panel-dropout" class="report-panel-wrapper" style="display: flex; width: 100%; flex-direction: column; gap: 20px; box-sizing: border-box;">
+            
+            <!-- 📥 [1층]: 4대 통계 미니 지표 스코어 보드 구역 -->
+            <div style="display: flex; gap: 14px; width: 100%;">
+                <div style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">총 탈락 건수</div>
+                    <div style="font-size: 22px; font-weight: 800; color: #ffffff;">${totalDropoutCount}명</div>
+                </div>
+                <div style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">스크리닝 탈락 (귀가포함)</div>
+                    <div style="font-size: 22px; font-weight: 800; color: var(--danger-color);">${screeningCount}명</div>
+                </div>
+                <div style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">규정위반 탈락 조치</div>
+                    <div style="font-size: 22px; font-weight: 800; color: var(--warning-color);">${ruleViolationCount}명</div>
+                </div>
+                <div style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">임상 원장 평균 탈락률</div>
+                    <div style="font-size: 22px; font-weight: 800; color: #38bdf8;">${avgDropoutRate}%</div>
+                </div>
+            </div>
+            
+            <!-- 📥 [2층]: 랭킹 보드(좌)와 과제별 그리드(우)의 가로 2단 분할 레이아웃 -->
+            <div style="display: flex; gap: 20px; width: 100%; align-items: flex-start;">
+                
+                <!-- 🎯 2층 왼쪽: 탈락 사유 종합 순위 카드 (프로그레스 바 렌더링 컨테이너) -->
+                <div style="flex: 1; background: var(--card-color); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; box-sizing: border-box;">
+                    <h3 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 700; color: var(--secondary-color); border-bottom: 1px solid #1e293b; padding-bottom: 10px;">
+                        <i class="fa-solid fa-chart-bar" style="margin-right: 6px;"></i> 📊 탈락 사유 종합 순위 (Drop-out)
+                    </h3>
+                    <div id="dom-dropout-rank-zone" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+        `;
+
+      // 6. 왼쪽 순위 카드 내부에 프로그레스 바 스트림 주입
+      if (totalDropoutCount === 0) {
+        htmlBuffer += `<div style="text-align: center; padding: 30px 0; color: var(--text-muted); font-size: 13px;">탈락 데이터가 존재하지 않습니다.</div>`;
+      } else {
+        const sortedArray = Object.keys(dropoutCounters).map((key) => {
+          return {
+            name: key,
+            count: dropoutCounters[key].count,
+            color: dropoutCounters[key].color,
+          };
+        });
+        sortedArray.sort((a, b) => b.count - a.count);
+
+        sortedArray.forEach((item, index) => {
+          const percentage = ((item.count / totalDropoutCount) * 100).toFixed(
+            1,
+          );
+          const rankBg =
+            index === 0
+              ? "var(--danger-color)"
+              : index === 1
+                ? "var(--warning-color)"
+                : "#334155";
+          const rankText = index === 0 ? "#000" : "#fff";
+
+          htmlBuffer += `
+                <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span class="dropout-rank-badge" style="background: ${rankBg}; color: ${rankText};">${index + 1}</span>
+                            <span style="color: #ffffff; font-size: 12px;">${item.name}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 12px;">
+                            <span style="color: ${item.color}; font-weight: 800;">${item.count}명</span>
+                            <span style="color: var(--text-muted); font-size: 11px;">(${percentage}%)</span>
+                        </div>
+                    </div>
+                    <div class="dropout-track-bg">
+                        <div id="dropout-progress-bar-line-${index}" class="dropout-fill-bar" style="background: ${item.color};" data-percent="${percentage}"></div>
+                    </div>
+                </div>
+                `;
+        });
+      }
+
+      // 7. 🎯 2층 오른쪽: 시험별 중도 탈락 통계 대장 뼈대 락인 결합
+      htmlBuffer += `
+                    </div>
+                </div>
+                
+                <!-- 🎯 2층 오른쪽: 시험별 중도 탈락 통계 대장 카드 (그리드 테이블 슬롯) -->
+                <div style="flex: 1.5; background: var(--card-color); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; box-sizing: border-box;">
+                    <h3 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 700; color: var(--secondary-color); border-bottom: 1px solid #1e293b; padding-bottom: 10px;">
+                        <i class="fa-solid fa-table-list" style="margin-right: 6px;"></i> 📋 시험별 중도 탈락 통계 대장
+                    </h3>
+                    <div id="dom-dropout-grid-zone" style="width: 100%; color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 0;">
+                        <!-- 다음 단계에서 연동할 시험별 그리드 테이블이 들어설 정품 자산 자리입니다 -->
+                        준비 대기 중...
+                    </div>
+                </div>
+
+            </div>
         </div>
-        <div style="flex: 1.5; background: var(--card-color); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px;">
-            <h3>📋 시험별 중도 탈락 통계 대장</h3>
-        </div>
-    </div>
-</div>
-    `;
+        `;
+
+      // 8. 최종 교정 완료된 복층 뷰포트 마크업 스트레이트 사출
+      viewport.innerHTML = htmlBuffer;
+
+      // 9. 가로 게이지 바 은은하게 차오르는 0.05초 미세 타이밍 릴레이 애니메이션 기믹 가동
+      if (totalDropoutCount > 0) {
+        setTimeout(function () {
+          for (let m = 0; m < 7; m++) {
+            const bar = document.getElementById(
+              `dropout-progress-bar-line-${m}`,
+            );
+            if (bar) {
+              const targetWidth = bar.getAttribute("data-percent");
+              bar.style.width = targetWidth + "%";
+            }
+          }
+        }, 50);
+      }
+    } catch (err) {
+      console.error("탈락 통계 복층 레이아웃 렌더링 실패:", err);
+      viewport.innerHTML = `<div style="padding: 20px; color: var(--danger-color); font-weight: 700;">🚨 탈락 통계 엔진 연산 중 구조체 붕괴 장애가 발생했습니다.</div>`;
+    } //3탭 탈락사유 끝.
   } else if (tabKey === "ledger") {
     viewport.innerHTML = RenderLedgerTabContent();
   } else if (tabKey === "crc") {

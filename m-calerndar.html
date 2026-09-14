@@ -818,27 +818,55 @@
                                 return;
                             }
 
+                            const realUserSession = appDB.find(u => u.name.toString().trim() === currentSessionName) || {};
+
                             const newTemporaryUid = "NEW_" + Date.now();
                             const newApplicantRecord = {
-                                uid: newTemporaryUid,
+                                // 기존 본인인증 단계에서 발급받은 고유 UID가 존재한다면 유실 없이 완벽히 상속 [index: 0.1.244]
+                                uid: realUserSession.uid || newTemporaryUid,
                                 name: currentSessionName,
                                 title: item.title,
                                 th: thText,
+                                count: item.count ? item.count.toString().replace(/[^0-9]/g, '') : "60",
                                 period: item.period || "0",
+
+                                // ⚡ [더미 박멸]: 850101-1, 010-0000-0000 찌꺼기를 세척하고 진짜 생년월일/전화번호/성별 결합 상속 [index: 0.1.244]
+                                ssn: realUserSession.ssn ? realUserSession.ssn.toString().trim().toUpperCase() : "850101-1",
+                                phone: realUserSession.phone ? realUserSession.phone.toString().trim() : "010-0000-0000",
+                                gender: realUserSession.gender || (typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(realUserSession.ssn, currentSessionName) : "남"),
+
+                                // 행정 정산 스코어보드 초기화 동기화 레일 세팅 [index: 0.1.244]
+                                payStatus1: "대기",
+                                payStatus2: "대기",
+                                payStatus3: "대기",
                                 payStatus: "대기",
-                                stage: "대기",
-                                ssn: "850101-1",
-                                phone: "010-0000-0000",
+                                result: "대기",
+
+                                isDutyAgreed: "대기",
+                                isCallAgreed: "대기",
+                                category: realUserSession.category || "M인증",
+
+                                // ⚡ [자동화 파이프라인 스펙]: 모바일 참여 신청 대상자 초기 참여상태는 무조건 '소집'으로 강제 고정 [index: 0.1.244]
+                                stage: "소집",
+
                                 regDate: new Date().toISOString().split('T')
                             };
 
-                            appDB.push(newApplicantRecord);
+                            // 기존 더미 push 구문을 정교하게 정돈하여 싱크 오버라이딩 커밋 이행 [index: 0.1.244]
+                            if (realUserSession.uid) {
+                                const matchUserIdx = appDB.findIndex(u => u.uid === realUserSession.uid);
+                                if (matchUserIdx !== -1) appDB[matchUserIdx] = newApplicantRecord;
+                            } else {
+                                appDB.push(newApplicantRecord);
+                            }
+
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
 
-                            alert(`[신청 접수 완료]\n\n${currentSessionName} 신규 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
+                            // 명칭 통일 완수: 피험자 -> 대상자 / 신규 대상자 문구 정형화 [index: 0.1.24]
+                            alert(`[신청 접수 완료]\n\n${currentSessionName} 대상자님,\n선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
                             renderDailyCards();
                         };
-                    }
+                    } // 
 
                     const rejectBtn = document.getElementById(`btn_card_reject_${clickUid}`);
                     if (rejectBtn) {

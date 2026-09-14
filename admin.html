@@ -450,7 +450,9 @@
                         <div class="form-group">
                             <label>참여상태</label>
                             <select id="form-app-stage">
-                                <option value="참여" selected>참여</option>
+                                <option value="소집" selected>소집</option>
+                                <option value="투약" selected>투약</option>
+                                <option value="종료" selected>종료</option>
                                 <option value="예비귀가">예비귀가</option>
                                 <option value="검사탈락">검사탈락</option>
                                 <option value="개인사정">개인사정</option>
@@ -2000,6 +2002,46 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
 
+                // 1. 참여비 1~3차 지급 정산 일정이 모두 채워졌다면 참여상태를 '종료'로 자동 변환 [index: 0.1.57]
+                const hasPay1 = row.payDate1 && row.payDate1.trim() !== "";
+                const hasPay2 = row.payDate2 && row.payDate2.trim() !== "";
+                const hasPay3 = row.payDate3 && row.payDate3.trim() !== "";
+
+                if (hasPay1 && hasPay2 && hasPay3) {
+                    row.stage = "종료";
+                }
+
+                const currentStage = row.stage ? row.stage.toString().trim() : "소집";
+
+                // 2. 피드백 사양 반영: 4대 배지 스타일 및 소집 상태 시 이름 링크 클릭 완전 봉쇄 [index: 0.1.1, 0.1.33]
+                let stageBadgeStyle = "";
+                let nameLinkActionHTML = "";
+
+                if (currentStage === "소집") {
+                    // 🔵 소집: 파란색 배지 + 이름 클릭 완전 잠금 (pointer-events 및 회색 최적화) [index: 0.1.1]
+                    stageBadgeStyle = "color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important; padding: 4px 8px; font-size:11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = `<a style="pointer-events: none !important; opacity: 0.65; cursor: not-allowed; text-decoration: none; color: #94a3b8;">${row.name || '-'}</a>`;
+                }
+                else if (currentStage === "투약") {
+                    // 🟢 투약: 연두색 배지 [index: 0.1.1]
+                    stageBadgeStyle = "color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important; padding: 4px 8px; font-size:11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+                }
+                else if (currentStage === "종료") {
+                    // ⚪ 종료: 회색 배지 [index: 0.1.1]
+                    stageBadgeStyle = "color: #cbd5e1 !important; background: rgba(148, 163, 184, 0.15) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; padding: 4px 8px; font-size:11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+                }
+                else {
+                    // 🔴 나머지 중도탈락 사유 전체: 고대비 빨간색 배지 일괄 적용 [index: 0.1.1, 0.1.33]
+                    stageBadgeStyle = "color: #f87171 !important; background: rgba(239, 68, 68, 0.15) !important; border: 1px solid #ef4444 !important; font-weight: 800 !important; padding: 4px 8px; font-size:11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+                }
+
+                const renderGender = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(row.ssn, row.name) : "미정";
+                const birthString = row.ssn ? row.ssn.toString().substring(0, 6) : "------";
+
+
                 // 인라인 수정 모드 활성화 시 가변 행 강조 인디케이터 장착
                 if (currentEditingUid === row.uid) {
                     tr.className = 'editing-row';
@@ -2134,9 +2176,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
     <td style="width: 11%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>
-        <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+       <td style="width: 6.5%; vertical-align: middle; text-align: center;">
         <select id="inline-app-stage-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important; font-weight: 700; color: #ffffff !important; text-align: center; cursor: pointer;">
-            <option value="참여" ${row.stage === '참여' || !row.stage ? 'selected' : ''}>참여</option>
+            <!-- 정상 진행 프로세스 표준 단계 옵션 매핑 (기존 '참여' 탈피) -->
+            <option value="소집" ${row.stage === '소집' || !row.stage ? 'selected' : ''}>소집</option>
+            <option value="투약" ${row.stage === '투약' ? 'selected' : ''}>투약</option>
+            <option value="종료" ${row.stage === '종료' ? 'selected' : ''}>종료</option>
+            
+            <!-- 중도탈락군 표준 사유 사양 유지 -->
             <option value="예비귀가" ${row.stage === '예비귀가' ? 'selected' : ''}>예비귀가</option>
             <option value="검사탈락" ${row.stage === '검사탈락' ? 'selected' : ''}>검사탈락</option>
             <option value="개인사정" ${row.stage === '개인사정' ? 'selected' : ''}>개인사정</option>
@@ -2217,10 +2264,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             </span>
         </td>
         <td style="width: 11%; vertical-align: middle; text-align: center;">${formatPhone(row.phone)}</td>
-        <td style="width: 6.5%; vertical-align: middle; text-align: center; pointer-events: none !important;">
-        <span class="doc-badge ${row.stage === '참여' ? 'status-id' : 'status-none'}" style="cursor: default !important;">
-        ${row.stage || '참여'}</span>
-        </td>
+         <td style="width: 6.5%; vertical-align: middle; text-align: center; pointer-events: none !important;">
+          <span class="doc-badge" style="${stageBadgeStyle} cursor: default !important;">
+              ${currentStage}
+          </span>
+      </td>
         <td style="width: 9%; vertical-align: middle; text-align: center;">
             <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">
                 ${buildMiniBadgeHTML('1차', row.payStatus1)}
@@ -2507,9 +2555,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const elName = document.getElementById('form-app-name');
             const elSsn = document.getElementById('form-app-ssn');
             const elPhone = document.getElementById('form-app-phone');
-            const editIndex = document.getElementById("editIndex").value; // 수정용 인덱스 포인터
+            const editIndex = document.getElementById("editIndex").value; // 수정용 인덱스 포인터 [index: 0.1.33]
 
-            // ⚡ [신설 2대 필드 신규 등록 돔 수집 포인터 정밀 인젝션]
+            // ⚡ [신설 2대 필드 신규 등록 돔 수집 포인터 정밀 인젝션] [index: 0.1.33]
             const elCategory = document.getElementById('form-app-category');
             const elStage = document.getElementById('form-app-stage');
 
@@ -2525,16 +2573,16 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 return alert('알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.');
             }
 
-            // 🎯 신설 가변 드롭다운에서 선택된 실무 데이터 옵션값 확보
+            // 🎯 신설 가변 드롭다운에서 선택된 실무 데이터 옵션값 확보 [index: 0.1.33]
             const cat = elCategory.value;
             const stg = elStage.value;
 
-            // [오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다.
+            // [오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다. [index: 0.1.33]
             const payload = {
                 uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
-                // 신규 등록 시 리스트 최상단 배치를 유발하는 타임스탬프 속성을 정밀 주입
+                // 신규 등록 시 리스트 최상단 배치를 유발하는 타임스탬프 속성을 정밀 주입 [index: 0.1.33]
                 regTimestamp: editIndex === "" ? Date.now() : (dataStoreApplicant[editIndex].regTimestamp || 0),
-                // 기존 프리셋 유저(isDefault)들과 명확히 격리하기 위해 false 값 락인
+                // 기존 프리셋 유저(isDefault)들과 명확히 격리하기 위해 false 값 락인 [index: 0.1.33]
                 isDefault: editIndex === "" ? false : (dataStoreApplicant[editIndex].isDefault || false),
 
                 title: t,
@@ -2542,14 +2590,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 count: getOnlyNumbers(c),
                 period: getOnlyNumbers(p),
                 name: n,
-                ssn: s,  // 🎯 목록 및 모달 허브 슬롯으로 출력될 순정 생년월일 날짜만 보존 적재
+                ssn: s,  // 🎯 목록 및 모달 허브 슬롯으로 출력될 순정 생년월일 날짜만 보존 적재 [index: 0.1.33]
                 phone: getOnlyNumbers(ph),
 
-                // 최초 등록 모드(editIndex === "") 일 때 무조건 초기값을 "대기"로 락인 컴입합니다.
+                // 최초 등록 모드(editIndex === "") 일 때 무조건 초기값을 "대기"로 락인 컴입합니다. [index: 0.1.33]
                 result: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].result || "대기"),
                 payStatus: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus || "대기"),
 
-                // 🎯 [3단 분할 참여비 독립 채널]: 1차 정산 배지도 예외 없이 완전히 "대기" 상태로 탄생시킵니다.
+                // 🎯 [3단 분할 참여비 독립 채널]: 1차 정산 배지도 예외 없이 완전히 "대기" 상태로 탄생시킵니다. [index: 0.1.33]
                 payStatus1: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus1 || "대기"),
                 payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
                 payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
@@ -2558,9 +2606,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 isCallAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isCallAgreed || "대기"),
                 isAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isAgreed || "대기"),
 
-                // ⚡ [교정 지점]: 구형 하드코딩 문구 자리에 관리자가 선택한 가변 참여경로와 참여상태를 직격 락인 주입
-                category: cat, // 선택된 참여경로(알바몬, M인증 등) 가상 DB 바인딩 완착
-                stage: stg,    // 선택된 참여상태(참여, 예비귀가, 검사탈락 등) 가상 DB 바인딩 완착
+                // 선택된 참여경로(알바몬, M인증 등) 및 가변 상태 주입 [index: 0.1.33]
+                category: cat,
+
+                // ⚡ [수정 교정점]: 신규 폼 등록 유입자는 수동 선택값을 무시하고 무조건 초기값 "소집"으로 락업 인젝션
+                stage: editIndex === "" ? "소집" : stg,
 
                 idCard: editIndex === "" ? true : (dataStoreApplicant[editIndex].idCard !== undefined ? dataStoreApplicant[editIndex].idCard : true),
                 bankbook: editIndex === "" ? true : (dataStoreApplicant[editIndex].bankbook !== undefined ? dataStoreApplicant[editIndex].bankbook : true),
@@ -2570,33 +2620,38 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 bankBookUrl: editIndex === "" ? "" : (dataStoreApplicant[editIndex].bankBookUrl || "")
             };
 
+            // =========================================================================
+            // [앞부분 통합 소스 파트 1 데이터 객체(payload) 빌드에 연속해서 이어지는 구역]
+            // =========================================================================
             try {
                 if (editIndex === "") {
-                    // [신규 등록 모드] 강제 오버라이드 락
+                    // [A. 신규 등록 모드]: 무조건 초기값을 "대기"로 격리 락업 [index: 0.1.33]
                     payload.result = "대기";
                     payload.payStatus = "대기";
-                    payload.payStatus1 = "대기"; // 1차 추가 락
+                    payload.payStatus1 = "대기";
 
-                    // 신규 등록자는 기존의 구형 '동의' 흔적을 전면 소멸시키고 무조건 "대기"로 탄생시킵니다.
                     payload.isDutyAgreed = "대기";
                     payload.isCallAgreed = "대기";
                     payload.isAgreed = "대기";
 
-                    // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용 (원형 유지)
+                    // ⚡ [자동화 파이프라인 규칙]: 폼 등록 유입자는 강제로 무조건 '소집' 상태로 락인
+                    payload.stage = "소집";
+
+                    // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용 (순정 원형 유지) [index: 0.1.33]
                     dataStoreApplicant.unshift(payload);
                     alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
 
                 } else {
-                    // [수정 완료 모드] (기존 데이터 구조 유실 방지 가드 상속 원형 유지)
+                    // [B. 수정 완료 모드]: 기존 데이터 구조 유실 방지 가드 상속 원형 유지 [index: 0.1.33]
                     if (!payload.payStatus1) {
                         payload.payStatus1 = dataStoreApplicant[editIndex].payStatus1 || '대기';
                     }
 
-                    // 마스터 결과값 변수(result)와 정산 상태(payStatus)를 최신 1차 참여비 단어와 100% 한 몸으로 묶어 상속
+                    // 대표 정산 상태(result, payStatus)를 1차 참여비 단어와 100% 싱크 상속 [index: 0.1.33]
                     payload.payStatus = payload.payStatus1;
                     payload.result = payload.payStatus1;
 
-                    // 수정 시에는 관리자가 선택해둔 기존 상태를 그대로 유지 및 상속
+                    // 수정 처리 시에는 관리자가 선택해둔 기존 상태를 그대로 유지 및 상속 [index: 0.1.33]
                     payload.isDutyAgreed = dataStoreApplicant[editIndex].isDutyAgreed || "대기";
                     payload.isCallAgreed = dataStoreApplicant[editIndex].isCallAgreed || "대기";
                     payload.isAgreed = dataStoreApplicant[editIndex].isAgreed || "대기";
@@ -2605,13 +2660,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     alert(`📋 정보 갱신 완료: [${n}] 대상자의 마스터 레코드가 업데이트되었습니다.`);
                 }
 
+                // 로컬스토리지 영구 커밋 및 전역 메모리 싱크 일치화 [index: 0.1.33]
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                window.dataStoreApplicant = dataStoreApplicant; // 전역 메모리 싱크 일치화
+                window.dataStoreApplicant = dataStoreApplicant;
 
                 if (typeof commitToLocalStorage === "function") {
                     commitToLocalStorage();
                 }
 
+                // ----------------======================================================
+                // ⚡ 내부 입력 폼 초기화 헬퍼 함수 구역 (소집 기본값 세척 기능 이식) [index: 0.1.33]
+                // ----------------======================================================
                 function resetForm() {
                     const elTitle = document.getElementById('form-app-title');
                     const elTh = document.getElementById('form-app-th');
@@ -2621,12 +2680,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     const elSsn = document.getElementById('form-app-ssn');
                     const elPhone = document.getElementById('form-app-phone');
 
-                    // ⚡ [신설 2대 필드 초기화 돔 수집 포인터 정밀 인젝션]
                     const elCategory = document.getElementById('form-app-category');
                     const elStage = document.getElementById('form-app-stage');
                     const editIndex = document.getElementById("editIndex");
 
-                    // 폼 입력 문자열 데이터 깨끗하게 소독 세척 [INDEX: 0.1.36]
+                    // 폼 입력 문자열 데이터 깨끗하게 소독 세척
                     if (elTitle) elTitle.value = "";
                     if (elTh) elTh.value = "1기"; // 기본 대표석 1기로 프리셋
                     if (elCount) elCount.value = "";
@@ -2636,12 +2694,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     if (elPhone) elPhone.value = "";
 
                     // 🎯 [대표님 지시안 연동]: 신설 드롭다운 2대 필드 실무 가이드라인 기본값 복구 가동
-                    if (elCategory) elCategory.value = "수동등록"; // 참여경로는 기본 "수동등록"으로 원형 회귀
-                    if (elStage) elStage.value = "참여";          // 참여상태는 기본 "참여"로 원형 회귀
+                    if (elCategory) elCategory.value = "수동등록";
+
+                    // ⚡ [오류 원천 분쇄 교정]: 구형 '참여' 옵션을 지우고 표준 진입점인 '소집'으로 원형 회귀 초기화
+                    if (elStage) elStage.value = "소집";
 
                     if (editIndex) editIndex.value = "";
 
-                    // 화면 패널 가이드 타이틀 및 취소 버튼 시각 위상 원상복구 제어
+                    // 화면 패널 가이드 타이틀 및 취소 버튼 시각 위상 원상복구 제어 [index: 0.1.33]
                     const modeTitle = document.getElementById("form-mode-title");
                     if (modeTitle) modeTitle.innerText = "[신규 대상자 등록]";
 
@@ -2654,13 +2714,15 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     console.log("[시스템] 초긴축 입력 폼 인터페이스 전체 구역이 무결하게 리셋 소독되었습니다.");
                 }
 
+                // 폼 리셋 유틸리티 실행
+                resetForm();
 
-                // ⚡ [대표님 최적화 스케줄러 동기화 완착]: 물리 파일 세이브 안착 즉시 원본 소스 필터 및 렌더러 연쇄 구동!
+                // ⚡ [대표님 최적화 스케줄러 동기화 완착]: 물리 파일 세이브 안착 즉시 원본 소스 필터 및 렌더러 연쇄 구동! [index: 0.1.33]
                 setTimeout(() => {
                     const filterTitle = document.getElementById('dashboard-filter-title');
                     const filterTh = document.getElementById('dashboard-filter-th');
 
-                    // 필터 가드를 전체보기로 복구하여 신규 데이터가 강제 마운트되어 뿜어지도록 제어
+                    // 필터 가드를 전체보기로 복구하여 신규 데이터가 강제 마운트되어 뿜어지도록 제어 [index: 0.1.33]
                     if (filterTitle) filterTitle.value = "ALL";
                     if (filterTh) filterTh.innerHTML = `<option value="ALL">— 전체 기수 —</option>`;
                     if (filterTh) filterTh.value = "ALL";
@@ -2669,7 +2731,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
                     if (typeof calculateReportMasterStats === "function") calculateReportMasterStats();
 
-                    // 대표님이 설계해두신 기존 대장 출력 원본 소스를 깨워 양식 훼손 없이 완벽하게 출력
+                    // 대표님이 설계해두신 기존 대장 출력 원본 소스를 깨워 양식 훼손 없이 완벽하게 출력 [index: 0.1.33]
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
                 }, 150);
 
@@ -2814,7 +2876,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
         /** 💡 [마스터] 인라인 수정 데이터를 로컬 스토리지에 영구 커밋하는 트랜잭션 함수 */
         function saveInlineApplicantRecord(index) {
-            // index 기반으로 원본 레코드 역추적 및 고유 ID(uid) 확보
+            // index 기반으로 원본 레코드 역추적 및 고유 ID(uid) 확보 [index: 0.1.33]
             const targetRecord = dataStoreApplicant[index];
             if (!targetRecord) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
             const id = targetRecord.uid;
@@ -2822,7 +2884,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const idx = dataStoreApplicant.findIndex(d => d.uid === id);
             if (idx === -1) return;
 
-            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크 (3단 멀티 참여비 셀렉트 박스 전수 색인 완료)
+            // 1. 모든 인라인 화면 필드 엘리먼트 안전 체크 (3단 멀티 참여비 셀렉트 박스 전수 색인 완료) [index: 0.1.33]
             const elTitle = document.getElementById(`inline-app-title-${index}`);
             const elTh = document.getElementById(`inline-app-th-${index}`);
             const elCount = document.getElementById(`inline-app-count-${index}`);
@@ -2831,7 +2893,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const elSsn = document.getElementById(`inline-app-ssn-${index}`);
             const elPhone = document.getElementById(`inline-app-phone-${index}`);
 
-            // 🎯 [교정 완수]: 단일 구형 박스 대신 1차, 2차, 3차 멀티 셀렉트 박스 요소를 정확히 타겟팅 색인합니다.
+            // 🎯 [3단 분할 정산 채널 멀티 셀렉트 박스 요소 타겟팅 색인] [index: 0.1.33]
             const elPay1 = document.getElementById(`inline-app-pay1-${index}`);
             const elPay2 = document.getElementById(`inline-app-pay2-${index}`);
             const elPay3 = document.getElementById(`inline-app-pay3-${index}`);
@@ -2839,11 +2901,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const elDuty = document.getElementById(`inline-app-duty-${index}`);
             const elCall = document.getElementById(`inline-app-call-${index}`);
 
-            // 가변 입력 데이터 텍스트 전처리 확보
+            // ----------------======================================================
+            // ⚡ [신규 추가]: 인라인 창 수동 선택 상태 엘리먼트 동적 스캔 노드 주입
+            // ----------------======================================================
+            const elStage = document.getElementById(`inline-app-stage-${index}`);
+            const nextStage = elStage ? elStage.value.trim() : (dataStoreApplicant[idx].stage || "소집");
+
+            // 가변 입력 데이터 텍스트 전처리 확보 [index: 0.1.33]
             const currentSsnVal = elSsn ? elSsn.value.trim().toUpperCase() : (dataStoreApplicant[idx].ssn || "");
             const currentNameVal = elName ? elName.value.trim() : (dataStoreApplicant[idx].name || "");
 
-            // 수집된 참여비 상태값 정화 가이드 (4대 순정 단어 보장)
+            // 수집된 참여비 상태값 정화 가이드 (4대 순정 단어 보장) [index: 0.1.33]
             const cleanPayVal = (v, fallback) => {
                 if (!v) return fallback || "대기";
                 return v.toString().trim();
@@ -2853,9 +2921,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const nextPay2 = elPay2 ? cleanPayVal(elPay2.value, "대기") : (dataStoreApplicant[idx].payStatus2 || "대기");
             const nextPay3 = elPay3 ? cleanPayVal(elPay3.value, "대기") : (dataStoreApplicant[idx].payStatus3 || "대기");
 
-            // 2. 가상 데이터베이스 구조에 안전한 값 주입 (성별 실시간 추적 엔진 연동 완비)
+            // 2. 가상 데이터베이스 구조에 안전한 값 주입 (성별 실시간 추적 엔진 연동 완비) [index: 0.1.33]
             dataStoreApplicant[idx] = {
-                ...dataStoreApplicant[idx], // 기존 첨부 이미지 주소 등 핵심 원본 데이터 누락 없이 완벽 상속 가드
+                ...dataStoreApplicant[idx], // 기존 첨부 이미지 주소 등 핵심 원본 데이터 누락 없이 완벽 상속 가드 [index: 0.1.33]
                 uid: id,
                 title: elTitle ? elTitle.value.trim() : (dataStoreApplicant[idx].title || ""),
                 th: elTh ? elTh.value : (dataStoreApplicant[idx].th || ""),
@@ -2863,17 +2931,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 period: elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0"),
                 name: currentNameVal,
 
-                // 생년월일 원형 보존 적재 및 성별 실시간 재연산 동기화
+                // 생년월일 원형 보존 적재 및 성별 실시간 재연산 동기화 [index: 0.1.33]
                 ssn: currentSsnVal,
                 gender: typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(currentSsnVal, currentNameVal) : "미정",
                 phone: elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || ""),
 
-                // 🎯 [3단 분할 정산 채널 독립 싱크 및 마스터 스코어보드 락인 완수]
+                // 🎯 [3단 분할 정산 채널 독립 싱크 및 마스터 스코어보드 락인 완수] [index: 0.1.33]
                 payStatus1: nextPay1,
                 payStatus2: nextPay2,
                 payStatus3: nextPay3,
 
-                // 상단 통계판(25페이지 스코어보드) 연동을 위해 대표 정산 상태(result, payStatus)를 1차 참여비와 100% 다이렉트 싱크
+                // 상단 통계판(25페이지 스코어보드) 연동을 위해 대표 정산 상태(result, payStatus)를 1차 참여비와 100% 다이렉트 싱크 [index: 0.1.33]
                 result: nextPay1,
                 payStatus: nextPay1,
 
@@ -2882,10 +2950,12 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 isAgreed: dataStoreApplicant[idx].isAgreed || "대기",
 
                 category: dataStoreApplicant[idx].category || "내분비내과 / 대장 수동 등록",
-                stage: `${elTh ? elTh.value : (dataStoreApplicant[idx].th || "1기")} 참여(소집)`
+
+                // ⚡ [오류 원천 분쇄 교정]: 구형 하드코딩 문자열을 청소하고 수동 수정한 값을 정품 반영 [index: 0.1.33]
+                stage: nextStage
             };
 
-            // 3. 로컬스토리지 영구 커밋 및 인라인 에디팅 수정 포인터 포기 해제
+            // 3. 로컬스토리지 영구 커밋 및 인라인 에디팅 수정 포인터 포기 해제 [index: 0.1.33]
             commitToLocalStorage();
 
             window.currentAppEditingIndex = null;
@@ -2894,11 +2964,12 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             }
             currentEditingUid = null;
 
-            // 등록된 렌더러 함수 안전 호출 및 라이브 통계 대시보드 강제 새로고침 동기화
+            // 등록된 렌더러 함수 안전 호출 및 라이브 통계 대시보드 강제 새로고침 동기화 [index: 0.1.33]
             if (typeof calculateLiveDashboardStats === 'function') { calculateLiveDashboardStats(); }
             if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
             if (typeof drawApplicantTable === 'function') { drawApplicantTable(); }
 
+            // 명칭 통일 완수: 피험자 -> 대상자 반영 마감 [index: 0.1.24, 0.1.33]
             alert(`📋 목록 정보 수정 완료: [${dataStoreApplicant[idx].name}] 대상자의 변경 사항이 목록에 즉시 반영되었습니다.`);
         }
 

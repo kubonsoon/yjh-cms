@@ -2801,12 +2801,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 ssn: s.toUpperCase(), // 입력한 성별 식별 기호 실시간 보존
                 phone: getOnlyNumbers(ph),
 
+               // ⚡ [버그 해결 핵심]: 수정을 진행할 때 생년월일(ssn)과 이름에 맞춰 성별 엔진을 가동하여 박제 [index: 0.1.33, 0.1.38]
+                gender: typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(s.toUpperCase(), n) : (origin.gender || "미정"),
+                
+                phone: getOnlyNumbers(ph),
+
                 // 💡 [참여비 엔진 전면 수리]: 3단 분화된 셀렉트 박스에서 실시간 선택값 개별 스캔 바인딩
                 payStatus1: elPay1 ? elPay1.value : (origin.payStatus1 || "대기"),
                 payStatus2: elPay2 ? elPay2.value : (origin.payStatus2 || "대기"),
                 payStatus3: elPay3 ? elPay3.value : (origin.payStatus3 || "대기"),
 
-                // 💡 [무결성 연동 가드]: 대표님 정산 기준 스코어보드 통계 계산용 메인 상태는 '1차 참여비 지급 상태'와 완벽 동기화 [index: 0.1.30]
+                // 💡 [무결성 연동 가드]: 메인 상태는 '1차 참여비 지급 상태'와 완벽 동기화
                 result: elPay1 ? elPay1.value : (origin.result || "대기"),
                 payStatus: elPay1 ? elPay1.value : (origin.payStatus || "대기"),
 
@@ -2815,9 +2820,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                 // ⚡ [여기서부터 신설 2대 필드 가변 데이터 원천 락인 주입 및 교정 구간]
                 category: elCategory ? elCategory.value : (origin.category || "수동등록"),
-                // 구형 하드코딩 양식인 stage: `${th} 참여(소집)` 문구를 전면 철단하고, 관리자가 선택한 가변 상태값으로 대체
-                stage: elStage ? elStage.value : (origin.stage || "참여")
-                // ⚡ [여기까지 신설 2대 필드 가변 데이터 원천 락인 주입 및 교정 완료]
+                stage: elStage ? elStage.value : (origin.stage || "소집") // 수정에 맞춰 '소집' 베이스 연동 보존 [index: 0.1.33]
             };
 
             try {

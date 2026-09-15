@@ -702,14 +702,29 @@ function getClientIpAddress() {
 function insertSystemAuditLog(action, desc) {
   try {
     let logDB = JSON.parse(localStorage.getItem("dataStoreSystemLogs")) || [];
-    const currentSabun = sessionStorage.getItem("adminLoginSabun") || "unknown";
 
+    // 🎯 [버그 해결 핵심 가드]: 세션 바인딩 타이밍 공백으로 인해 사번이 "undefined"나 "null" 문자열로 오염되는 현상을 원천 차단합니다.
+    let currentSabun = sessionStorage.getItem("adminLoginSabun");
+    if (
+      !currentSabun ||
+      currentSabun === "undefined" ||
+      currentSabun === "null" ||
+      currentSabun.trim() === ""
+    ) {
+      currentSabun = "SYSTEM"; // 최초 시스템 기동 및 로그인 전 상태일 때 표준 식별자로 강제 치환 정제
+    }
+
+    // 🎯 [연동 분기 교정]: 정제된 사번이 SYSTEM일 경우와 일반 사원일 때의 성명 매칭선 분리 상속
     let currentAdminName = "임시관리자";
-    const adminMembersJSON = localStorage.getItem("dataStoreAdminMembers");
-    if (adminMembersJSON) {
-      const members = JSON.parse(adminMembersJSON);
-      const adminUser = members.find((m) => m.sabun === currentSabun);
-      if (adminUser) currentAdminName = adminUser.name;
+    if (currentSabun === "SYSTEM") {
+      currentAdminName = "관리시스템";
+    } else {
+      const adminMembersJSON = localStorage.getItem("dataStoreAdminMembers");
+      if (adminMembersJSON) {
+        const members = JSON.parse(adminMembersJSON);
+        const adminUser = members.find((m) => m.sabun === currentSabun);
+        if (adminUser) currentAdminName = adminUser.name;
+      }
     }
 
     const now = new Date();

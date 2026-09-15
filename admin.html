@@ -2165,14 +2165,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
     <td style="width: 6%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-name-${masterIndex}" class="inline-input" value="${row.name || ''}" style="text-align:center; font-weight:700; background: var(--card-color) !important;">
     </td>
-     <td style="width: 8.5%; vertical-align: middle; text-align: center;">
-        <input type="text" id="inline-app-ssn-${masterIndex}" class="inline-input" value="${row.ssn ? row.ssn.toString().trim().substring(0, 6) : ''}" placeholder="721127" style="text-align:center; background: var(--card-color) !important; font-weight:700; color: #ffffff !important; height: 30px;">
-    </td>
-    <td style="width: 4.5%; vertical-align: middle; text-align: center;">
-        <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
-            ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
-        </span>
-    </td>
+   <td style="width: 8.5%; vertical-align: middle; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500;">
+    ${row.ssn ? row.ssn.toString().trim().substring(0, 6) : '-'}
+</td>
+<td style="width: 4.5%; vertical-align: middle; text-align: center;">
+    <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === '남' ? 'lvl-2' : 'lvl-10'}">
+        ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
+    </span>
+</td>
     <td style="width: 11%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>

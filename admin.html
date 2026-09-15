@@ -2808,8 +2808,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         */
         function saveInlineApplicantRecord(index) {
 
+            if (typeof index === 'undefined' && typeof masterIndex !== 'undefined') {
+                index = masterIndex;
+            }
             // 💡 방어벽: 마스터 인덱스 컨텍스트가 유실되었거나 가상 DB가 비어있으면 트랜잭션을 원천 차단합니다
-            if (typeof masterIndex === 'undefined' || !db || !db[masterIndex]) {
+            if (typeof index === 'undefined' || !db || !db[index]) {
                 alert("수정 대상자 데이터의 메모리 인덱스를 포착하지 못했습니다.");
                 return;
             }
@@ -2899,6 +2902,12 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 // 5. 로컬스토리지 파일 시스템 영구 저장 커밋 트랜잭션 구동 [index: 0.1.30]
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                 window.dataStoreApplicant = dataStoreApplicant; // 메모리 컨텍스트 일치화
+
+                if (typeof insertSystemAuditLog === "function") {
+                    insertSystemAuditLog("수정", `대상자 [${n}] 참여비 지급 설정 및 상태 변경 처리 (차수별 스케줄러 동기화)`);
+                } else if (typeof window.insertSystemAuditLog === "function") {
+                    window.insertSystemAuditLog("수정", `대상자 [${n}] 참여비 지급 설정 및 상태 변경 처리 (차수별 스케줄러 동기화)`);
+                }
 
                 if (typeof commitToLocalStorage === "function") {
                     commitToLocalStorage();

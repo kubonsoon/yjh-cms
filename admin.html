@@ -3976,9 +3976,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     // 이미 매칭 완료된 account 객체의 이름 정보와 입력된 사번(id)을 바인딩하여 로그 기록
                     if (typeof insertSystemAuditLog === "function") {
-                        insertSystemAuditLog("로그인", `관리자 [${account.name}] 전산망 시스템 접속 인증 성공`);
+                        insertSystemAuditLog("로그인", `관리자 [${account.name}] 전산망 시스템 접속 인증 성공`, id);
                     } else if (typeof window.insertSystemAuditLog === "function") {
-                        window.insertSystemAuditLog("로그인", `관리자 [${account.name}] 전산망 시스템 접속 인증 성공`);
+                        window.insertSystemAuditLog("로그인", `관리자 [${account.name}] 전산망 시스템 접속 인증 성공`, id);
                     }
 
                     // 대시보드 화면 전환 처리

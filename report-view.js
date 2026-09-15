@@ -699,12 +699,16 @@ function getClientIpAddress() {
  * @param {string} action - 행위 대분류 (등록/수정/삭제/로그인/로그아웃)
  * @param {string} desc - 정밀 감사 작업 내용 컨텍스트 문구
  */
-function insertSystemAuditLog(action, desc) {
+function insertSystemAuditLog(action, desc, forcedSabun = null) {
   try {
     let logDB = JSON.parse(localStorage.getItem("dataStoreSystemLogs")) || [];
 
-    // 🎯 [버그 해결 핵심 가드]: 세션 바인딩 타이밍 공백으로 인해 사번이 "undefined"나 "null" 문자열로 오염되는 현상을 원천 차단합니다.
-    let currentSabun = sessionStorage.getItem("adminLoginSabun");
+    // 🎯 [버그 해결 핵심 가드]: 로그인 함수에서 진짜 사번(id)을 밀어넣어 주었다면 세션을 열지 않고 즉시 락인(Lock-in)합니다.
+    // 매개변수가 비어있을 때만 기존 세션 스토리지를 열어 탐색하므로 기존 상속 스펙과 100% 완벽 호환됩니다.
+    let currentSabun = forcedSabun
+      ? forcedSabun.toString().trim()
+      : sessionStorage.getItem("adminLoginSabun");
+
     if (
       !currentSabun ||
       currentSabun === "undefined" ||

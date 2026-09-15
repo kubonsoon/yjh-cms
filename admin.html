@@ -2979,13 +2979,18 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             // ----------------======================================================
             // ⚡ [신규 추가]: 인라인 창 수동 선택 상태 엘리먼트 동적 스캔 노드 주입
-            // ----------------======================================================
+            // --------------------------------======================================
             const elStage = document.getElementById(`inline-app-stage-${index}`);
             const nextStage = elStage ? elStage.value.trim() : (dataStoreApplicant[idx].stage || "소집");
 
             // 가변 입력 데이터 텍스트 전처리 확보 [index: 0.1.33]
-            const currentSsnVal = elSsn ? elSsn.value.trim().toUpperCase() : (dataStoreApplicant[idx].ssn || "");
+            const currentTitleVal = elTitle ? elTitle.value.trim() : (dataStoreApplicant[idx].title || "");
+            const currentThVal = elTh ? elTh.value : (dataStoreApplicant[idx].th || "");
+            const currentCountVal = elCount ? getOnlyNumbers(elCount.value) : (dataStoreApplicant[idx].count || "0");
+            const currentPeriodVal = elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0");
             const currentNameVal = elName ? elName.value.trim() : (dataStoreApplicant[idx].name || "");
+            const currentSsnVal = elSsn ? elSsn.value.trim().toUpperCase() : (dataStoreApplicant[idx].ssn || "");
+            const currentPhoneVal = elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || "");
 
             // 수집된 참여비 상태값 정화 가이드 (4대 순정 단어 보장) [index: 0.1.33]
             const cleanPayVal = (v, fallback) => {
@@ -2997,20 +3002,49 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const nextPay2 = elPay2 ? cleanPayVal(elPay2.value, "대기") : (dataStoreApplicant[idx].payStatus2 || "대기");
             const nextPay3 = elPay3 ? cleanPayVal(elPay3.value, "대기") : (dataStoreApplicant[idx].payStatus3 || "대기");
 
+            const nextDuty = elDuty ? elDuty.value : (dataStoreApplicant[idx].isDutyAgreed || "대기");
+            const nextCall = elCall ? elCall.value : (dataStoreApplicant[idx].isCallAgreed || "대기");
+
+            /* 수정 유형: [추가] 12대 필드 중 기존 원본(targetRecord)과 대조하여 변동이 일어난 항목명만 조각 수집 */
+            let changedItems = [];
+            if (targetRecord.title !== currentTitleVal) changedItems.push("시험명");
+            if (targetRecord.th !== currentThVal) changedItems.push("기수");
+            if (getOnlyNumbers(targetRecord.count) !== currentCountVal) changedItems.push("인원수");
+            if (getOnlyNumbers(targetRecord.period) !== currentPeriodVal) changedItems.push("시간");
+            if (targetRecord.name !== currentNameVal) changedItems.push("이름");
+            if (targetRecord.ssn !== currentSsnVal) changedItems.push("생년월일");
+            if (getOnlyNumbers(targetRecord.phone) !== currentPhoneVal) changedItems.push("전화번호");
+            if (targetRecord.stage !== nextStage) changedItems.push("참여상태");
+            if (targetRecord.payStatus1 !== nextPay1) changedItems.push("참여비 1차");
+            if (targetRecord.payStatus2 !== nextPay2) changedItems.push("참여비 2차");
+            if (targetRecord.payStatus3 !== nextPay3) changedItems.push("참여비 3차");
+            if (targetRecord.isDutyAgreed !== nextDuty) changedItems.push("당직동의");
+            if (targetRecord.isCallAgreed !== nextCall) changedItems.push("소집동의");
+
+            // 수정 변동사항이 최소 한 개라도 존재할 때만 무결성 실시간 백엔드 감사 호출
+            if (changedItems.length > 0) {
+                const logMsg = `대상자 [${currentNameVal}] 정보 수정 처리 (변경항목: ${changedItems.join(", ")})`;
+                if (typeof insertSystemAuditLog === "function") {
+                    insertSystemAuditLog("수정", logMsg);
+                } else if (typeof window.insertSystemAuditLog === "function") {
+                    window.insertSystemAuditLog("수정", logMsg);
+                }
+            }
+
             // 2. 가상 데이터베이스 구조에 안전한 값 주입 (성별 실시간 추적 엔진 연동 완비) [index: 0.1.33]
             dataStoreApplicant[idx] = {
                 ...dataStoreApplicant[idx], // 기존 첨부 이미지 주소 등 핵심 원본 데이터 누락 없이 완벽 상속 가드 [index: 0.1.33]
                 uid: id,
-                title: elTitle ? elTitle.value.trim() : (dataStoreApplicant[idx].title || ""),
-                th: elTh ? elTh.value : (dataStoreApplicant[idx].th || ""),
-                count: elCount ? getOnlyNumbers(elCount.value) : (dataStoreApplicant[idx].count || "0"),
-                period: elPeriod ? getOnlyNumbers(elPeriod.value) : (dataStoreApplicant[idx].period || "0"),
+                title: currentTitleVal,
+                th: currentThVal,
+                count: currentCountVal,
+                period: currentPeriodVal,
                 name: currentNameVal,
 
                 // 생년월일 원형 보존 적재 및 성별 실시간 재연산 동기화 [index: 0.1.33]
                 ssn: currentSsnVal,
                 gender: typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(currentSsnVal, currentNameVal) : "미정",
-                phone: elPhone ? getOnlyNumbers(elPhone.value) : (dataStoreApplicant[idx].phone || ""),
+                phone: currentPhoneVal,
 
                 // 🎯 [3단 분할 정산 채널 독립 싱크 및 마스터 스코어보드 락인 완수] [index: 0.1.33]
                 payStatus1: nextPay1,
@@ -3021,8 +3055,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 result: nextPay1,
                 payStatus: nextPay1,
 
-                isDutyAgreed: elDuty ? elDuty.value : (dataStoreApplicant[idx].isDutyAgreed || "대기"),
-                isCallAgreed: elCall ? elCall.value : (dataStoreApplicant[idx].isCallAgreed || "대기"),
+                isDutyAgreed: nextDuty,
+                isCallAgreed: nextCall,
                 isAgreed: dataStoreApplicant[idx].isAgreed || "대기",
 
                 category: dataStoreApplicant[idx].category || "내분비내과 / 대장 수동 등록",

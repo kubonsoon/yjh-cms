@@ -628,6 +628,9 @@
                     <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('budget')">
                         <i class="fa-solid fa-calendar-days"></i>차수별 참여비 스케줄러
                     </button>
+                    <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('auditLog')">
+                        <i class="fa-solid fa-user-shield"></i>보안 로그 기록
+                    </button>
                 </div>
 
                 <!-- 📥 [실실시간 가변형 뷰포트]: 선택한 서브 탭 메뉴 본문이 안착되는 데이터 마운트 구역 -->
@@ -940,6 +943,18 @@
                 if (!m.pw) { m.pw = m.sabun ? m.sabun : "1234"; isUpdated = true; }
             });
 
+            // 데이터베이스가 아예 소멸해 있는 런타임 최초 기동 분기 방어벽 가동
+            if (!localStorage.getItem("dataStoreSystemLogs")) {
+                localStorage.setItem("dataStoreSystemLogs", JSON.stringify([]));
+
+                // 외부 report-view.js 엔진이 준비되어 연동선이 개방된 상태라면 초기 구동 로그를 즉시 박제합니다.
+                if (typeof insertSystemAuditLog === "function") {
+                    insertSystemAuditLog("시스템", "임상시험 전산망 통합 보안 로그 기록 파일 시스템 초기 가동 성공");
+                } else if (typeof window.insertSystemAuditLog === "function") {
+                    window.insertSystemAuditLog("시스템", "임상시험 전산망 통합 보안 로그 기록 파일 시스템 초기 가동 성공");
+                }
+            }
+
             if (isUpdated) commitToLocalStorage();
         }
 
@@ -1087,32 +1102,63 @@
         // 🔒 [순정 완전 보존] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진
         // =========================================================================
         function applyReportLedgerPermissionGate(currentSabun) {
+            // [순정 100% 상속]: 사용자 제공 원본 데이터 4대 구성 요소 실시간 캡처 락인
             const searchInput = document.getElementById('ledger-search-input');
             const btnSearch = document.getElementById('btn-ledger-search');
             const btnPrint = document.getElementById('btn-ledger-print');
             const btnSave = document.getElementById('btn-ledger-save');
 
-            // 요소 존재 여부 방어 검증
-            if (!searchInput || !btnSearch || !btnPrint || !btnSave) return;
+            // 🎯 [무결성 연동 가드 추가]: 신설된 5번째 '보안 로그 기록' 서브 탭 메뉴 버튼 추적 스캔
+            const auditTabBtn = document.querySelector(`button[onclick="switchReportSubTab('auditLog')"]`);
 
             if (currentSabun === 'admin') {
+                // =========================================================================
                 // A. 최고 관리자(admin) 계정: 모든 입력 및 클릭 권한 정상 개방
-                searchInput.disabled = false;
-                btnSearch.disabled = false;
-                btnPrint.disabled = false;
-                btnSave.disabled = false;
-                console.log('[보안 체인] admin 계정 확인 - 통합 원장 편집 및 액션 권한 완벽 승인.');
-            } else {
-                // B. 비관리자 일반 계정: 입력창 락다운 및 버튼 3종 회색 처리 + 클릭 원천 봉쇄
-                searchInput.disabled = true;
-                btnSearch.disabled = true;
-                btnPrint.disabled = true;
-                btnSave.disabled = true;
+                // =========================================================================
 
-                // 메모리 상의 이벤트 리스너 우회 방지를 위한 2중 안전 장치
-                btnSearch.onclick = null;
-                btnPrint.onclick = null;
-                btnSave.onclick = null;
+                // 🎯 [무결성 연동 가드 추가]: 최고 관리자 확인 즉시 5번째 보안 로그 기록 메뉴 무결 개방
+                if (auditTabBtn) {
+                    auditTabBtn.style.display = "inline-flex";
+                }
+
+                // 💡 [런타임 크래시 교정]: 4번 탭 전용 엘리먼트들이 화면에 완전히 렌더링되어 존재할 때만 안전하게 개방 처리 집행
+                if (searchInput && btnSearch && btnPrint && btnSave) {
+                    searchInput.disabled = false;
+                    btnSearch.disabled = false;
+                    btnPrint.disabled = false;
+                    btnSave.disabled = false;
+                }
+                console.log('[보안 체인] admin 계정 확인 - 통합 원장 편집 및 액션 권한 완벽 승인.');
+
+            } else {
+                // =========================================================================
+                // B. 비관리자 일반 계정: 입력창 락다운 및 버튼 3종 회색 처리 + 클릭 원천 봉쇄
+                // =========================================================================
+
+                // 🎯 [무결성 연동 가드 추가]: 일반 사원 계정 감지 시 5번째 보안 로그 기록 버튼 자체를 전산망에서 은폐 차단
+                if (auditTabBtn) {
+                    auditTabBtn.style.display = "none";
+
+                    // 만약 현재 메뉴 캐시 포인터가 감사 로그 구역에 머물러 있다면 1번 탭(종합 통계)으로 강제 리다이렉트 튕겨내기 수행
+                    if (localStorage.getItem('adminActiveViewportId') === 'reportView') {
+                        if (typeof switchReportSubTab === "function") {
+                            switchReportSubTab('summary');
+                        }
+                    }
+                }
+
+                // 💡 [런타임 크래시 교정]: 4번 탭 전용 엘리먼트들이 화면에 안착되어 존재하는 상태일 때만 안전하게 잠금 처리 실행
+                if (searchInput && btnSearch && btnPrint && btnSave) {
+                    searchInput.disabled = true;
+                    btnSearch.disabled = true;
+                    btnPrint.disabled = true;
+                    btnSave.disabled = true;
+
+                    // 메모리 상의 이벤트 리스너 우회 방지를 위한 2중 안전 장치
+                    btnSearch.onclick = null;
+                    btnPrint.onclick = null;
+                    btnSave.onclick = null;
+                }
                 console.log('[보안 체인] 일반 사원 계정 감지 - 통합 원장 조회/인쇄/저장 제어 요소 완전 잠금 완료.');
             }
         }
@@ -2639,6 +2685,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용 (순정 원형 유지) [index: 0.1.33]
                     dataStoreApplicant.unshift(payload);
+
+                    /* ==================== 🎯 [A분기] 보안 로그 실시간 추가 ==================== */
+                    /* 수정 유형: [추가] 신규 대상자 생성 트랜잭션 성공 시점에 등록 책임 소집로그 마운트 */
+                    if (typeof insertSystemAuditLog === "function") {
+                        insertSystemAuditLog("등록", `대상자 [${n}] 신규등록처리 (참여경로: ${payload.category || "수동등록"})`);
+                    }
+
                     alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
 
                 } else {
@@ -2657,6 +2710,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     payload.isAgreed = dataStoreApplicant[editIndex].isAgreed || "대기";
 
                     dataStoreApplicant[editIndex] = payload;
+
+                    /* ==================== 🎯 [B분기] 보안 로그 실시간 추가 ==================== */
+                    /* 수정 유형: [추가] 인풋 폼을 통한 기존 대상자 마스터 레코드 업데이트 성공 로그 마운트 */
+                    if (typeof insertSystemAuditLog === "function") {
+                        insertSystemAuditLog("수정", `대상자 [${n}] 인풋 폼 정보 갱신 처리 (상태: ${payload.stage || "소집"})`);
+                    }
+                    /* ========================================================================= */
+
                     alert(`📋 정보 갱신 완료: [${n}] 대상자의 마스터 레코드가 업데이트되었습니다.`);
                 }
 
@@ -2669,7 +2730,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 }
 
                 // ----------------======================================================
-                // ⚡ 내부 입력 폼 초기화 헬퍼 함수 구역 (소집 기본값 세척 기능 이식) [index: 0.1.33]
+                // ⚡ 내부 입력 폼 초기화 헬퍼 함수 구역 (소집 기본값 세척 기능 이식) 
                 // ----------------======================================================
                 function resetForm() {
                     const elTitle = document.getElementById('form-app-title');
@@ -2999,7 +3060,18 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
         // 🎯 [삭제 파기 트랜잭션 함수]: 기존 원형 로직 사양 100% 무결 보존
         function removeApplicantRecord(id) {
-            if (confirm('대상자를 완전히 파기하겠습니까?')) {
+            if (confirm('선택하신 대상자의 임상 기록을 전산망에서 완전히 파기하겠습니까?')) {
+
+                /* ==================== 🎯 보안 로그 추적 및 인젝션 구역 ==================== */
+                /* 수정 유형: [추가] 데이터 파괴 전 원장에서 대상자 성명을 역추적하여 삭제 책임 로그 박제 */
+                const targetRow = dataStoreApplicant.find(row => row.uid == id);
+                const targetName = targetRow ? targetRow.name : "미상";
+
+                if (typeof insertSystemAuditLog === "function") {
+                    insertSystemAuditLog("삭제", `대상자 [${targetName}] 전산망 명단 정보 영구 삭제 처리`);
+                }
+                /* ========================================================================= */
+
                 dataStoreApplicant = dataStoreApplicant.filter(d => d.uid !== id);
                 commitToLocalStorage();
 
@@ -3902,6 +3974,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     sessionStorage.setItem('adminLoginSession', 'isAuthorizedSecureToken');
                     sessionStorage.setItem('adminLoginSabun', id);
 
+                    // 이미 매칭 완료된 account 객체의 이름 정보와 입력된 사번(id)을 바인딩하여 로그 기록
+                    if (typeof insertSystemAuditLog === "function") {
+                        insertSystemAuditLog("로그인", `관리자 [${account.name}] 전산망 시스템 접속 인증 성공`);
+                    } else if (typeof window.insertSystemAuditLog === "function") {
+                        window.insertSystemAuditLog("로그인", `관리자 [${account.name}] 전산망 시스템 접속 인증 성공`);
+                    }
+
                     // 대시보드 화면 전환 처리
                     if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'none';
                     if (document.getElementById('mainDashboard')) document.getElementById('mainDashboard').style.display = 'flex';
@@ -3919,6 +3998,21 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         /** 2. [복구] 안전 로그아웃 처리 함수 - 세션 파기 */
         function executeSystemLogout() {
             if (confirm('세션을 파기하고 안전 로그아웃 하시겠습니까?')) {
+
+                // 현재 세션을 점유하고 있는 사번을 역추적하여 안전하게 이탈 로그 기록
+                const currentSabun = sessionStorage.getItem("adminLoginSabun") || "unknown";
+                let currentAdminName = "임시관리자";
+                if (typeof dataStoreAdminMembers !== "undefined") {
+                    const adminUser = dataStoreAdminMembers.find(m => m.sabun === currentSabun);
+                    if (adminUser) currentAdminName = adminUser.name;
+                }
+
+                if (typeof insertSystemAuditLog === "function") {
+                    insertSystemAuditLog("로그아웃", `관리자 [${currentAdminName}] 전산망 세션 파기 및 안전 로그아웃 완료`);
+                } else if (typeof window.insertSystemAuditLog === "function") {
+                    window.insertSystemAuditLog("로그아웃", `관리자 [${currentAdminName}] 전산망 세션 파기 및 안전 로그아웃 완료`);
+                }
+
                 sessionStorage.clear();
                 if (document.getElementById('mainDashboard')) document.getElementById('mainDashboard').style.display = 'none';
                 if (document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'flex';

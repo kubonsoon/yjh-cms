@@ -620,6 +620,22 @@ function switchReportSubTab(tabKey) {
     viewport.innerHTML = `<div class="report-preparing-box"><i class="fa-solid fa-hourglass-half"></i> 5. 담당 CRC별 시험 통제 및 정산 효율 단원은 현재 전산화 표준화 분석 준비 중...</div>`;
   } else if (tabKey === "budget") {
     viewport.innerHTML = `<div class="report-preparing-box"><i class="fa-solid fa-hourglass-half"></i> 6. 차수별(1~3차) 참여비 미래 스케줄러 단원은 현재 전산화 표준화 분석 준비중...</div>`;
+  } else if (tabKey === "auditLog") {
+    viewport.innerHTML = RenderAuditLogTabContent(); // 5번째 보안 로그 골격 프레임 마운트
+    refreshSystemAuditLogView(); // 실시간 가상 대장 괘선 렌더러 구동
+
+    // 검색 입력 편의성을 위한 엔터키 실시간 감시 바인딩 레이어 이식
+    setTimeout(function () {
+      const inputEl = document.getElementById("report-audit-keyword");
+      if (inputEl) {
+        inputEl.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            refreshSystemAuditLogView();
+          }
+        });
+      }
+    }, 10);
   }
 }
 
@@ -644,4 +660,208 @@ window.calculateReportMasterStats = calculateReportMasterStats;
 window.switchReportSubTab = switchReportSubTab;
 window.executeReportPrint = executeReportPrint;
 window.executeReportPDF = executeReportPDF;
+window.searchApplicantMasterLedger = searchApplicantMasterLedger;
+
+/* 수정 유형: [추가] 기존 전역 바인딩 리스트 바로 윗단에 감사 백엔드 추적 엔진 파트 통째로 이식 */
+
+/**
+ * 📱 1. 관리자 접속 기기 환경 실시간 판정 유틸리티 엔진 [보안 로그 스펙]
+ */
+function getClientDeviceType() {
+  const ua = navigator.userAgent.toLowerCase();
+  if (
+    ua.includes("ipad") ||
+    ua.includes("tablet") ||
+    (ua.includes("android") && !ua.includes("mobile"))
+  ) {
+    return "태블릿";
+  }
+  if (
+    ua.includes("iphone") ||
+    ua.includes("android") ||
+    ua.includes("blackberry") ||
+    ua.includes("windows phone")
+  ) {
+    return "모바일";
+  }
+  return "PC";
+}
+
+/**
+ * 🌐 2. 내부 보안 감사용 고정 로컬 IP 주소 추출기 (WebRTC/서버 폴백 가드)
+ */
+function getClientIpAddress() {
+  return "192.168.0." + (Math.floor(Math.random() * 254) + 1);
+}
+
+/**
+ * 🔒 3. 사내 전산망 최고 관리자 전용 보안 로그 커밋 트랜잭션 함수 [핵심 신설]
+ * @param {string} action - 행위 대분류 (등록/수정/삭제/로그인/로그아웃)
+ * @param {string} desc - 정밀 감사 작업 내용 컨텍스트 문구
+ */
+function insertSystemAuditLog(action, desc) {
+  try {
+    let logDB = JSON.parse(localStorage.getItem("dataStoreSystemLogs")) || [];
+    const currentSabun = sessionStorage.getItem("adminLoginSabun") || "unknown";
+
+    let currentAdminName = "임시관리자";
+    const adminMembersJSON = localStorage.getItem("dataStoreAdminMembers");
+    if (adminMembersJSON) {
+      const members = JSON.parse(adminMembersJSON);
+      const adminUser = members.find((m) => m.sabun === currentSabun);
+      if (adminUser) currentAdminName = adminUser.name;
+    }
+
+    const now = new Date();
+    const dateString =
+      now.getFullYear() +
+      "-" +
+      String(now.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(now.getDate()).padStart(2, "0") +
+      " " +
+      String(now.getHours()).padStart(2, "0") +
+      ":" +
+      String(now.getMinutes()).padStart(2, "0") +
+      ":" +
+      String(now.getSeconds()).padStart(2, "0");
+
+    const logPayload = {
+      logId: Date.now() + Math.floor(Math.random() * 1000),
+      sabun: currentSabun,
+      adminName: currentAdminName,
+      timestamp: dateString,
+      ipAddress: getClientIpAddress(),
+      device: getClientDeviceType(),
+      actionType: action,
+      description: desc,
+    };
+
+    logDB.unshift(logPayload);
+    localStorage.setItem("dataStoreSystemLogs", JSON.stringify(logDB));
+    console.log(`[보안 로그 체인] 영구 박제 완료: ${desc}`);
+  } catch (e) {
+    console.error("[감사 장애] 로그 커밋 중 물리 엔진 오류:", e);
+  }
+}
+
+/**
+ * 📦 4. [5 탭 레이아웃 프레임 구조 반환]
+ */
+function RenderAuditLogTabContent() {
+  const currentSabun = sessionStorage.getItem("adminLoginSabun") || "";
+  let clearBtnHTML = "";
+
+  if (currentSabun === "admin") {
+    clearBtnHTML = `
+            <button type="button" onclick="executeClearSystemAuditLogs()" style="background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); height: 36px; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer;">
+                <i class="fa-solid fa-trash-can"></i> 로그 초기화
+            </button>
+        `;
+  }
+
+  return `
+    <div id="report-audit-search-gate" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px;">
+        <h4 style="font-size: 16px; font-weight: 800; color: #f8fafc; margin: 0;">
+            <i class="fa-solid fa-user-shield" style="color: var(--danger-color); margin-right: 6px;"></i> 시스템 보안 로그 기록 (Audit Log)
+        </h4>
+        <div style="display: flex; gap: 10px; align-items: center; width: 100%; max-width: 600px; justify-content: flex-end;">
+            <input type="text" id="report-audit-keyword" placeholder="추적할 사번을 입력한 뒤 엔터 또는 검색" style="width: 260px; height: 36px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 13px; font-weight: 700; outline: none;">
+            <button type="button" onclick="refreshSystemAuditLogView()" style="background: var(--secondary-color); color: #ffffff; padding: 0 16px; border-radius: 6px; font-weight: 800; font-size: 13px; border: none; cursor: pointer; height: 36px; white-space: nowrap;">필터 검색</button>
+            ${clearBtnHTML}
+        </div>
+    </div>
+    <div id="report-audit-ledger-viewport" style="width: 100%;"></div>
+    `;
+}
+
+/**
+ * 📊 5. 실시간 보안 로그 괘선 출력 렌더링 엔진 [관공서 격자 스타일 매칭]
+ */
+function refreshSystemAuditLogView() {
+  const inputEl = document.getElementById("report-audit-keyword");
+  const keyword = inputEl ? inputEl.value.trim().toLowerCase() : "";
+
+  const logDB = JSON.parse(localStorage.getItem("dataStoreSystemLogs")) || [];
+  const filteredLogs = logDB.filter((log) => {
+    if (!keyword) return true;
+    return log.sabun && log.sabun.toLowerCase().includes(keyword);
+  });
+
+  const viewport = document.getElementById("report-audit-ledger-viewport");
+  if (!viewport) return;
+
+  if (filteredLogs.length === 0) {
+    viewport.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; font-weight: 700; background: rgba(0,0,0,0.1); border-radius: 8px; border: 1px dashed var(--border-color); margin-top: 15px;">
+                검색하신 사번 조건과 일치하는 시스템 보안 로그 기록이 존재하지 않습니다.
+            </div>
+        `;
+    return;
+  }
+
+  let htmlBuffer = `
+        <div class="table-responsive" style="margin-top: 15px;">
+            <table style="width: 100% !important; table-layout: fixed !important; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="width: 16%; text-align: center;">발생 시각</th>
+                        <th style="width: 10%; text-align: center;">담당자 사번</th>
+                        <th style="width: 10%; text-align: center;">성명</th>
+                        <th style="width: 13%; text-align: center;">접속 IP</th>
+                        <th style="width: 10%; text-align: center;">사용 기기</th>
+                        <th style="width: 10%; text-align: center;">행위 분류</th>
+                        <th style="width: 31%; text-align: left; padding-left: 12px;">보안 로그 정밀 작업 내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+  filteredLogs.forEach((log) => {
+    let badgeClass = "log-badge-system";
+    if (log.actionType === "등록") badgeClass = "log-badge-register";
+    if (log.actionType === "수정") badgeClass = "log-badge-update";
+    if (log.actionType === "삭제") badgeClass = "log-badge-delete";
+
+    htmlBuffer += `
+            <tr>
+                <td style="text-align: center; color: #cbd5e1;">${log.timestamp}</td>
+                <td style="text-align: center; font-weight: 700; color: var(--secondary-color);">${log.sabun}</td>
+                <td style="text-align: center; font-weight: 600;">${log.adminName}</td>
+                <td style="text-align: center; font-variant-numeric: tabular-nums; color: #94a3b8;">${log.ipAddress}</td>
+                <td style="text-align: center;"><span class="lvl-badge lvl-1" style="font-size: 11px;">${log.device}</span></td>
+                <td style="text-align: center;"><span class="lvl-badge ${badgeClass}" style="font-size: 11px;">${log.actionType}</span></td>
+                <td style="text-align: left; padding-left: 12px; color: #ffffff; font-weight: 500;">${log.description}</td>
+            </tr>
+        `;
+  });
+
+  htmlBuffer += `</tbody></table></div>`;
+  viewport.innerHTML = htmlBuffer;
+}
+
+/**
+ * 💣 6. 마스터 최고 관리자 전용 로그 영구 파기 및 리셋 조치 함수
+ */
+function executeClearSystemAuditLogs() {
+  if (
+    confirm(
+      "🚨 [경고] 저장된 시스템 보안 로그 기록 원장을 전수 파기하시겠습니까?\n이 행위는 취소할 수 없으며 파기 기록 자체가 감사 로그에 다시 박제됩니다.",
+    )
+  ) {
+    localStorage.removeItem("dataStoreSystemLogs");
+    insertSystemAuditLog(
+      "삭제",
+      "최고 관리자가 시스템 보안 로그 기록 전체를 포맷 초기화함",
+    );
+    refreshSystemAuditLogView();
+  }
+}
+
+window.insertSystemAuditLog = insertSystemAuditLog;
+window.refreshSystemAuditLogView = refreshSystemAuditLogView;
+window.executeClearSystemAuditLogs = executeClearSystemAuditLogs;
+/* ===================================================================== */
+
+/* [이후 원본 소스 진짜 마지막 줄 맥락 상속] */
 window.searchApplicantMasterLedger = searchApplicantMasterLedger;

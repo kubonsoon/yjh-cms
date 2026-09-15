@@ -167,7 +167,6 @@ function RenderLedgerTabContent() {
 }
 
 function searchApplicantMasterLedger() {
-  // 1. 입력창으로부터 검색 키워드 정밀 캡처
   const inputEl = document.getElementById("report-search-keyword");
   if (!inputEl) return alert("오류: 검색창 엘리먼트를 추적할 수 없습니다.");
 
@@ -176,14 +175,12 @@ function searchApplicantMasterLedger() {
     return alert("알림: 대상자의 성명 또는 생년월일 6자리를 입력해 주세요.");
   }
 
-  // 2. 가상 데이터베이스 대장 스트림 로드
+  // 로컬스토리지 대상자 가상 대장 동적 확보
   const applicantDB =
     JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
-
-  // 공백을 원천 제거하고 비교하기 위한 소독 포맷터
   const cleanKey = keyword.replace(/\s/g, "").toLowerCase();
 
-  // 3. 성명 또는 생년월일이 일치하는 대상자 전수 매칭 필터링
+  // 성명 비교선 및 생년월일 대조 매칭 가동
   const matched = applicantDB.filter((app) => {
     const appName = app.name
       ? app.name.toString().replace(/\s/g, "").toLowerCase()
@@ -195,31 +192,34 @@ function searchApplicantMasterLedger() {
   const viewport = document.getElementById("report-master-ledger-viewport");
   if (!viewport) return alert("오류: 데이터 출력 뷰포트를 찾을 수 없습니다.");
 
-  // 4. 검색 결과가 없을 때의 폴백 구조 가드
+  // 검색 내역 부재 시 폴백 메시지 출력
   if (matched.length === 0) {
     viewport.innerHTML = `
             <div style="text-align: center; padding: 40px 20px; color: var(--danger-color); font-weight: 700; background: rgba(0,0,0,0.1); border-radius: 8px; border: 1px dashed var(--border-color);">
                 <i class="fa-solid fa-circle-exclamation" style="font-size: 20px; margin-bottom: 10px; display: block;"></i>
-                검색하신 조건과 일치하는 대상자 원장 기록을 찾을 수 없습니다. 대장 등록 상태를 확인하세요.
+                검색하신 조건과 일치하는 대상자 원장 기록을 찾을 수 없습니다.
             </div>
         `;
     return;
   }
 
-  // 5. 괘선 마스터 원장 테이블 구조체 빌드 (report-view.css 인쇄 스펙과 100% 매칭)
+  // 🎯 [기획 사양 확장]: 등록번호, 소집일자, 참여경로를 조화롭게 결합한 가로 12열 괘선 테이블 빌드
   let htmlBuffer = `
         <table style="width: 100% !important; table-layout: fixed !important; border-collapse: collapse; margin-top: 15px; background: #111827;">
             <thead>
                 <tr>
-                    <th style="width: 18%;">참여 과제과목</th>
-                    <th style="width: 7%;">기수</th>
-                    <th style="width: 8%;">성명</th>
-                    <th style="width: 11%;">생년월일</th>
-                    <th style="width: 13%;">전화번호</th>
-                    <th style="width: 9%;">참여상태</th>
-                    <th style="width: 11%;">참여비 1차</th>
-                    <th style="width: 11%;">참여비 2차</th>
-                    <th style="width: 11%;">참여비 3차</th>
+                    <th style="width: 6%; text-align: center;">등록번호</th>
+                    <th style="width: 18%; text-align: left; padding-left: 10px;">참여 과제명</th>
+                    <th style="width: 5%; text-align: center;">기수</th>
+                    <th style="width: 9%; text-align: center;">소집일자</th>
+                    <th style="width: 7%; text-align: center;">성명</th>
+                    <th style="width: 8%; text-align: center;">생년월일</th>
+                    <th style="width: 11%; text-align: center;">전화번호</th>
+                    <th style="width: 8%; text-align: center;">참여경로</th>
+                    <th style="width: 7%; text-align: center;">참여상태</th>
+                    <th style="width: 7%; text-align: center;">참여비 1차</th>
+                    <th style="width: 7%; text-align: center;">참여비 2차</th>
+                    <th style="width: 7%; text-align: center;">참여비 3차</th>
                 </tr>
             </thead>
             <tbody>
@@ -228,15 +228,18 @@ function searchApplicantMasterLedger() {
   matched.forEach((row) => {
     htmlBuffer += `
             <tr>
+                <td style="text-align: center; color: var(--text-muted); font-size: 12px;">${row.uid || "-"}</td>
                 <td style="text-align: left; padding-left: 10px; font-weight: 700; color: #ffffff;">${row.title || "-"}</td>
-                <td><span class="lvl-badge lvl-1">${row.th || "1기"}</span></td>
-                <td><strong>${row.name || "-"}</strong></td>
-                <td>${row.ssn ? row.ssn.substring(0, 6) : "-"}</td>
-                <td style="font-variant-numeric: tabular-nums;">${row.phone || "-"}</td>
-                <td><span class="lvl-badge lvl-2">${row.stage || row.result || "소집"}</span></td>
-                <td style="color: #fbbf24; font-weight: 700;">${row.payStatus1 || "대기"}</td>
-                <td style="color: #fbbf24; font-weight: 700;">${row.payStatus2 || "대기"}</td>
-                <td style="color: #fbbf24; font-weight: 700;">${row.payStatus3 || "대기"}</td>
+                <td style="text-align: center;"><span class="lvl-badge lvl-1">${row.th || "1기"}</span></td>
+                <td style="text-align: center; font-size: 13px; color: #cbd5e1;"><i class="fa-regular fa-calendar" style="font-size: 11px; margin-right: 4px; color: var(--text-muted);"></i>${row.recDate || "-"}</td>
+                <td style="text-align: center;"><strong>${row.name || "-"}</strong></td>
+                <td style="text-align: center;">${row.ssn ? row.ssn.substring(0, 6) : "-"}</td>
+                <td style="text-align: center; font-variant-numeric: tabular-nums;">${row.phone || "-"}</td>
+                <td style="text-align: center;"><span class="lvl-badge lvl-1" style="font-size: 11px;">${row.category || "수동등록"}</span></td>
+                <td style="text-align: center;"><span class="lvl-badge lvl-2">${row.stage || row.result || "소집"}</span></td>
+                <td style="text-align: center; color: #fbbf24; font-weight: 700; font-size: 13px;">${row.payStatus1 || "대기"}</td>
+                <td style="text-align: center; color: #fbbf24; font-weight: 700; font-size: 13px;">${row.payStatus2 || "대기"}</td>
+                <td style="text-align: center; color: #fbbf24; font-weight: 700; font-size: 13px;">${row.payStatus3 || "대기"}</td>
             </tr>
         `;
   });
@@ -246,7 +249,6 @@ function searchApplicantMasterLedger() {
         </table>
     `;
 
-  // 6. 가상 데이터 뷰포트에 최종 테이블 스트림 안착
   viewport.innerHTML = htmlBuffer;
 }
 

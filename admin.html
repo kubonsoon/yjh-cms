@@ -1771,6 +1771,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 initDashboardFilter();
             }
 
+            // 🎯 [실시간 보안 로그 기록 연동]: 오염 없는 정품 값 가이드 수립 시점에 즉시 박제
+            if (typeof insertSystemAuditLog === "function") {
+                insertSystemAuditLog("수정", `모집공고 [${nextTitle} ${nextTh}] 가변 차수별 참여비 일정 편집 완료`);
+            } else if (typeof window.insertSystemAuditLog === "function") {
+                window.insertSystemAuditLog("수정", `모집공고 [${nextTitle} ${nextTh}] 가변 차수별 참여비 일정 편집 완료`);
+            }
+
             alert(" 해당 줄(Line)의 모집공고 가변 참여비 일정이 완벽하게 수정 저장되었습니다.");
 
             // 🌟 [수정 제어자 싱크 처리]: 혼용되던 제어 플래그 변수를 둘 다 안전하게 초기화 릴레이합니다. [원형 보존]
@@ -1778,6 +1785,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             if (typeof currentEditingRecruitmentIndex !== 'undefined') currentEditingRecruitmentIndex = null;
             window.currentRecruitmentEditingIndex = null;
             if (typeof currentRecruitmentEditingIndex !== 'undefined') currentRecruitmentEditingIndex = null;
+
+            // 🎯 [실시간 화면 싱크 종결 안전핀]: 저장 완료 즉시 보안 로그 기록 뷰포트까지 실시간 연쇄 동시 리프레시 실행
+            if (typeof refreshSystemAuditLogView === "function") {
+                refreshSystemAuditLogView();
+            } else if (typeof window.refreshSystemAuditLogView === "function") {
+                window.refreshSystemAuditLogView();
+            }
 
             refreshRecruitmentView(); // 원래 세로 복층형 테이블 형태로 안전 복원 리렌더링
         }
@@ -1793,7 +1807,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             refreshRecruitmentView();
         }
-        //// 8-18 추가 위...
 
 
         /**

@@ -167,7 +167,87 @@ function RenderLedgerTabContent() {
 }
 
 function searchApplicantMasterLedger() {
-  alert("가상 DB 마스터 원장 조회를 가동합니다.");
+  // 1. 입력창으로부터 검색 키워드 정밀 캡처
+  const inputEl = document.getElementById("report-search-keyword");
+  if (!inputEl) return alert("오류: 검색창 엘리먼트를 추적할 수 없습니다.");
+
+  const keyword = inputEl.value.trim();
+  if (!keyword) {
+    return alert("알림: 대상자의 성명 또는 생년월일 6자리를 입력해 주세요.");
+  }
+
+  // 2. 가상 데이터베이스 대장 스트림 로드
+  const applicantDB =
+    JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
+
+  // 공백을 원천 제거하고 비교하기 위한 소독 포맷터
+  const cleanKey = keyword.replace(/\s/g, "").toLowerCase();
+
+  // 3. 성명 또는 생년월일이 일치하는 대상자 전수 매칭 필터링
+  const matched = applicantDB.filter((app) => {
+    const appName = app.name
+      ? app.name.toString().replace(/\s/g, "").toLowerCase()
+      : "";
+    const appSsn = app.ssn ? app.ssn.toString().replace(/\s/g, "") : "";
+    return appName.includes(cleanKey) || appSsn.includes(cleanKey);
+  });
+
+  const viewport = document.getElementById("report-master-ledger-viewport");
+  if (!viewport) return alert("오류: 데이터 출력 뷰포트를 찾을 수 없습니다.");
+
+  // 4. 검색 결과가 없을 때의 폴백 구조 가드
+  if (matched.length === 0) {
+    viewport.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: var(--danger-color); font-weight: 700; background: rgba(0,0,0,0.1); border-radius: 8px; border: 1px dashed var(--border-color);">
+                <i class="fa-solid fa-circle-exclamation" style="font-size: 20px; margin-bottom: 10px; display: block;"></i>
+                검색하신 조건과 일치하는 대상자 원장 기록을 찾을 수 없습니다. 대장 등록 상태를 확인하세요.
+            </div>
+        `;
+    return;
+  }
+
+  // 5. 괘선 마스터 원장 테이블 구조체 빌드 (report-view.css 인쇄 스펙과 100% 매칭)
+  let htmlBuffer = `
+        <table style="width: 100% !important; table-layout: fixed !important; border-collapse: collapse; margin-top: 15px; background: #111827;">
+            <thead>
+                <tr>
+                    <th style="width: 18%;">참여 과제과목</th>
+                    <th style="width: 7%;">기수</th>
+                    <th style="width: 8%;">성명</th>
+                    <th style="width: 11%;">생년월일</th>
+                    <th style="width: 13%;">전화번호</th>
+                    <th style="width: 9%;">참여상태</th>
+                    <th style="width: 11%;">참여비 1차</th>
+                    <th style="width: 11%;">참여비 2차</th>
+                    <th style="width: 11%;">참여비 3차</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+  matched.forEach((row) => {
+    htmlBuffer += `
+            <tr>
+                <td style="text-align: left; padding-left: 10px; font-weight: 700; color: #ffffff;">${row.title || "-"}</td>
+                <td><span class="lvl-badge lvl-1">${row.th || "1기"}</span></td>
+                <td><strong>${row.name || "-"}</strong></td>
+                <td>${row.ssn ? row.ssn.substring(0, 6) : "-"}</td>
+                <td style="font-variant-numeric: tabular-nums;">${row.phone || "-"}</td>
+                <td><span class="lvl-badge lvl-2">${row.stage || row.result || "소집"}</span></td>
+                <td style="color: #fbbf24; font-weight: 700;">${row.payStatus1 || "대기"}</td>
+                <td style="color: #fbbf24; font-weight: 700;">${row.payStatus2 || "대기"}</td>
+                <td style="color: #fbbf24; font-weight: 700;">${row.payStatus3 || "대기"}</td>
+            </tr>
+        `;
+  });
+
+  htmlBuffer += `
+            </tbody>
+        </table>
+    `;
+
+  // 6. 가상 데이터 뷰포트에 최종 테이블 스트림 안착
+  viewport.innerHTML = htmlBuffer;
 }
 
 function switchReportSubTab(tabKey) {
@@ -176,20 +256,25 @@ function switchReportSubTab(tabKey) {
 
   var tabs = ["summary", "recruitment", "dropout", "ledger", "crc", "budget"];
   tabs.forEach(function (key) {
-    var btn = document.querySelector(`button[onclick="switchReportSubTab('${key}')"]`);
+    var btn = document.querySelector(
+      `button[onclick="switchReportSubTab('${key}')"]`,
+    );
     if (btn) btn.classList.remove("active");
   });
-  var activeBtn = document.querySelector(`button[onclick="switchReportSubTab('${tabKey}')"]`);
+  var activeBtn = document.querySelector(
+    `button[onclick="switchReportSubTab('${tabKey}')"]`,
+  );
   if (activeBtn) activeBtn.classList.add("active");
 
   if (tabKey === "summary") {
     viewport.innerHTML = RenderSummaryTabContent();
     calculateReportMasterStats();
-
   } else if (tabKey === "recruitment") {
-    const recruitmentDB = JSON.parse(localStorage.getItem("dataStoreRecruitment")) || [];
-    const applicantDB = JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
-    
+    const recruitmentDB =
+      JSON.parse(localStorage.getItem("dataStoreRecruitment")) || [];
+    const applicantDB =
+      JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
+
     // B. 소집일자 기준 내림차순 정렬 (최신 미래 과제가 위로 오도록 락인)
     recruitmentDB.sort((a, b) => {
       const dateA = a.recDate
@@ -320,27 +405,28 @@ function switchReportSubTab(tabKey) {
     viewport.innerHTML = htmlBuffer;
     // 2탭 : 시험별 모집/재무 현황 끝
     // 3탭 : 대상자 탈락 사유 통계 시작
- // =========================================================================
-// [수정 및 추가 작업 구역] 3탭: 대상자 탈락 사유 통계 원형/막대 그래프 완전 이식
-// =========================================================================
+    // =========================================================================
+    // [수정 및 추가 작업 구역] 3탭: 대상자 탈락 사유 통계 원형/막대 그래프 완전 이식
+    // =========================================================================
   } else if (tabKey === "dropout") {
     try {
       // 1. 최신 가상 데이터베이스 원장 배열 실시간 로드
-      const appDB = JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
+      const appDB =
+        JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
 
       // 2. 사내 표준 7대 중도 탈락 항목 카운터 매트릭스 세팅
       const dropoutCounters = {
-        "예비귀가": { count: 0, color: "#94a3b8" }, // 그레이 변수 매핑
-        "검사탈락": { count: 0, color: "#f87171" }, // 고명도 레드
-        "개인사정": { count: 0, color: "#38bdf8" }, // 시그니처 스카이 블루
-        "규정위반": { count: 0, color: "#fbbf24" }, // 고명도 옐로우
-        "임의행동": { count: 0, color: "#a855f7" }, // 퍼플
-        "욕설폭행": { count: 0, color: "#ec4899" }, // 핑크
-        "기타탈락": { count: 0, color: "#6b7280" }  // 다크 그레이
+        예비귀가: { count: 0, color: "#94a3b8" }, // 그레이 변수 매핑
+        검사탈락: { count: 0, color: "#f87171" }, // 고명도 레드
+        개인사정: { count: 0, color: "#38bdf8" }, // 시그니처 스카이 블루
+        규정위반: { count: 0, color: "#fbbf24" }, // 고명도 옐로우
+        임의행동: { count: 0, color: "#a855f7" }, // 퍼플
+        욕설폭행: { count: 0, color: "#ec4899" }, // 핑크
+        기타탈락: { count: 0, color: "#6b7280" }, // 다크 그레이
       };
 
       let totalDropoutCount = 0;
-      let screeningCount = 0;     // 예비귀가 + 검사탈락
+      let screeningCount = 0; // 예비귀가 + 검사탈락
       let ruleViolationCount = 0; // 규정위반 + 임의행동 + 욕설폭행
 
       // 3. 실시간 탈락 지표 전수 연산 조사
@@ -352,7 +438,8 @@ function switchReportSubTab(tabKey) {
             totalDropoutCount++;
 
             if (key === "예비귀가" || key === "검사탈락") screeningCount++;
-            if (key === "규정위반" || key === "임의행동" || key === "욕설폭행") ruleViolationCount++;
+            if (key === "규정위반" || key === "임의행동" || key === "욕설폭행")
+              ruleViolationCount++;
             break;
           }
         }
@@ -360,7 +447,10 @@ function switchReportSubTab(tabKey) {
 
       // 4. 평균 탈락률 계산 (기본값 방어)
       const totalApplicants = appDB.length || 1;
-      const avgDropoutRate = ((totalDropoutCount / totalApplicants) * 100).toFixed(1);
+      const avgDropoutRate = (
+        (totalDropoutCount / totalApplicants) *
+        100
+      ).toFixed(1);
 
       // 5. 📊 2층 그리드 조립을 위한 정렬 배열 생성
       const sortedArray = Object.keys(dropoutCounters).map((key) => {
@@ -387,7 +477,7 @@ function switchReportSubTab(tabKey) {
           const strokeDashArray = `${circumference}`;
           const strokeDashOffset = circumference * (1 - itemPercent);
           // 이전 조각의 누적 회전각을 구하여 원형 링 끊김을 원천 방어
-          const rotateAngle = (accumulatedPercent * 360) - 90; 
+          const rotateAngle = accumulatedPercent * 360 - 90;
 
           svgCirclesBuffer += `
             <circle cx="100" cy="100" r="${radius}" fill="none" stroke="${item.color}"
@@ -458,8 +548,15 @@ function switchReportSubTab(tabKey) {
         htmlBuffer += `<div style="text-align: center; padding: 50px 0; color: var(--text-muted); font-size: 13px;">탈락 데이터가 존재하지 않습니다.</div>`;
       } else {
         sortedArray.forEach((item, index) => {
-          const percentage = ((item.count / totalDropoutCount) * 100).toFixed(1);
-          const rankBg = index === 0 ? "var(--danger-color)" : index === 1 ? "var(--warning-color)" : "#334155";
+          const percentage = ((item.count / totalDropoutCount) * 100).toFixed(
+            1,
+          );
+          const rankBg =
+            index === 0
+              ? "var(--danger-color)"
+              : index === 1
+                ? "var(--warning-color)"
+                : "#334155";
           const rankText = index === 0 ? "#070a12" : "#ffffff";
 
           htmlBuffer += `
@@ -497,7 +594,9 @@ function switchReportSubTab(tabKey) {
       if (totalDropoutCount > 0) {
         setTimeout(function () {
           for (let m = 0; m < sortedArray.length; m++) {
-            const bar = document.getElementById(`dropout-progress-bar-line-${m}`);
+            const bar = document.getElementById(
+              `dropout-progress-bar-line-${m}`,
+            );
             if (bar) {
               const targetWidth = bar.getAttribute("data-percent");
               bar.style.width = targetWidth + "%";
@@ -509,10 +608,10 @@ function switchReportSubTab(tabKey) {
       console.error("탈락 통계 복층 레이아웃 렌더링 실패:", err);
       viewport.innerHTML = `<div style="padding: 20px; color: var(--danger-color); font-weight: 700;">🚨 탈락 통계 엔진 연산 중 구조체 붕괴 장애가 발생했습니다.</div>`;
     }
-    
-  // =========================================================================
-  // [뒷부분 원본 소스 맥락 보존]
-  // =========================================================================
+
+    // =========================================================================
+    // [뒷부분 원본 소스 맥락 보존]
+    // =========================================================================
   } else if (tabKey === "ledger") {
     viewport.innerHTML = RenderLedgerTabContent();
   } else if (tabKey === "crc") {

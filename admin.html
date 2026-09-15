@@ -1711,7 +1711,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const nextCrc = elCrc.value.trim();
             const nextDate = elDate.value;
 
-            // 🎯 [핵심 교정 구역]: 인라인 행 내부에 임베딩된 미니 3단 데이트 피커 요소로부터 수정된 데이터 실시간 개별 스캔 (row.uid 매핑 규격)
+            // 🎯 [핵심 교정 완료]: 인라인 행 내부에 임베딩된 미니 3단 데이트 피커 요소로부터 수정된 데이터 실시간 index 기반 정밀 스캔
             const nextPay1 = document.getElementById(`inline-rec-pay1-${index}`)?.value || "";
             const nextPay2 = document.getElementById(`inline-rec-pay2-${index}`)?.value || "";
             const nextPay3 = document.getElementById(`inline-rec-pay3-${index}`)?.value || "";
@@ -1737,6 +1737,24 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             }
 
             const nextPayText = nextPayArray.join(' / ');
+
+            /* 수정 유형: [추가] 데이터 원본이 새 값으로 파괴 덮어쓰기 되기 직전 타이밍에 실시간 변경 필드명 가로채기 스캔 */
+            let changedRecItems = [];
+            if (targetRecord.title !== nextTitle) changedRecItems.push("시험명");
+            if (targetRecord.th !== nextTh) changedRecItems.push("기수");
+            if (getOnlyNumbers(targetRecord.count) !== getOnlyNumbers(nextCount)) changedRecItems.push("인원수");
+            if (getOnlyNumbers(targetRecord.period) !== getOnlyNumbers(nextPeriod)) changedRecItems.push("시간");
+            if (targetRecord.crc !== nextCrc) changedRecItems.push("담당CRC");
+            if (targetRecord.recDate !== nextDate) changedRecItems.push("소집일자");
+            if (targetRecord.payDate1 !== nextPay1) changedRecItems.push("참여비 1차");
+            if (targetRecord.payDate2 !== nextPay2) changedRecItems.push("참여비 2차");
+            if (targetRecord.payDate3 !== nextPay3) changedRecItems.push("참여비 3차");
+
+            // 변경 내역 수집 결과에 따른 조건부 동적 감사 메시지 셋업
+            let auditLogMessage = `모집공고 [${nextTitle} ${nextTh}] 가변 차수별 참여비 일정 편집 완료`;
+            if (changedRecItems.length > 0) {
+                auditLogMessage = `모집공고 [${nextTitle} ${nextTh}] 정보 수정 완료 (변경항목: ${changedRecItems.join(", ")})`;
+            }
 
             // 🎯 마스터 데이터베이스 대장의 실제 타겟 레코드 객체에 가변 릴레이션 스펙 최종 오버라이드 갱신
             targetRecord.title = nextTitle;
@@ -1771,11 +1789,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 initDashboardFilter();
             }
 
-            // 🎯 [실시간 보안 로그 기록 연동]: 오염 없는 정품 값 가이드 수립 시점에 즉시 박제
+            // 🎯 [실시간 보안 로그 기록 연동]: 정밀하게 디프 연산이 끝난 동적 요약 메시지 구조체 바인딩 개방
             if (typeof insertSystemAuditLog === "function") {
-                insertSystemAuditLog("수정", `모집공고 [${nextTitle} ${nextTh}] 가변 차수별 참여비 일정 편집 완료`);
+                insertSystemAuditLog("수정", auditLogMessage);
             } else if (typeof window.insertSystemAuditLog === "function") {
-                window.insertSystemAuditLog("수정", `모집공고 [${nextTitle} ${nextTh}] 가변 차수별 참여비 일정 편집 완료`);
+                window.insertSystemAuditLog("수정", auditLogMessage);
             }
 
             alert(" 해당 줄(Line)의 모집공고 가변 참여비 일정이 완벽하게 수정 저장되었습니다.");
@@ -1810,7 +1828,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
 
         /**
-     * 🎯 [대안 1 전용] 복층 폼 1~3차 분할 일정 통합 바인딩 및 저장소 커밋 엔진
+     *  복층 폼 1~3차 분할 일정 통합 바인딩 및 저장소 커밋 엔진
      */
         function insertRecruitmentRecord() {
             // 1. 1층 기본 정보 필드 스캔 추출

@@ -1688,12 +1688,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             }
 
             // 🎯 [오류 원천 분쇄 가드]: 테이블 돔 요소를 안전하게 스캔하기 위해 값 존재 여부 가드 장착 (row.uid 매핑 규격 변환 완료)
-            const elTitle = document.getElementById(`inline-rec-title-${currentTargetUid}`);
-            const elTh = document.getElementById(`inline-rec-th-${currentTargetUid}`);
-            const elCount = document.getElementById(`inline-rec-count-${currentTargetUid}`);
-            const elPeriod = document.getElementById(`inline-rec-period-${currentTargetUid}`);
-            const elCrc = document.getElementById(`inline-rec-crc-${currentTargetUid}`);
-            const elDate = document.getElementById(`inline-rec-date-${currentTargetUid}`);
+            const elTitle = document.getElementById(`inline-rec-title-${index}`);
+            const elTh = document.getElementById(`inline-rec-th-${index}`);
+            const elCount = document.getElementById(`inline-rec-count-${index}`);
+            const elPeriod = document.getElementById(`inline-rec-period-${index}`);
+            const elCrc = document.getElementById(`inline-rec-crc-${index}`);
+            const elDate = document.getElementById(`inline-rec-date-${index}`);
+
+            // 차수별 미ni 데이트 피커 요소 추적선도 index 규격으로 정렬 싱크 완료
+            const elPay1 = document.getElementById(`inline-rec-pay1-${index}`);
+            const elPay2 = document.getElementById(`inline-app-pay2-${index}`) || document.getElementById(`inline-rec-pay2-${index}`);
+            const elPay3 = document.getElementById(`inline-app-pay3-${index}`) || document.getElementById(`inline-rec-pay3-${index}`);
 
             if (!elTitle || !elTh || !elCount || !elPeriod || !elCrc || !elDate) {
                 return alert("시스템 알림: 인라인 수정 필드 엘리먼트를 추적할 수 없습니다.");
@@ -1707,9 +1712,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const nextDate = elDate.value;
 
             // 🎯 [핵심 교정 구역]: 인라인 행 내부에 임베딩된 미니 3단 데이트 피커 요소로부터 수정된 데이터 실시간 개별 스캔 (row.uid 매핑 규격)
-            const nextPay1 = document.getElementById(`inline-rec-pay1-${currentTargetUid}`)?.value || "";
-            const nextPay2 = document.getElementById(`inline-rec-pay2-${currentTargetUid}`)?.value || "";
-            const nextPay3 = document.getElementById(`inline-rec-pay3-${currentTargetUid}`)?.value || "";
+            const nextPay1 = document.getElementById(`inline-rec-pay1-${index}`)?.value || "";
+            const nextPay2 = document.getElementById(`inline-rec-pay2-${index}`)?.value || "";
+            const nextPay3 = document.getElementById(`inline-rec-pay3-${index}`)?.value || "";
 
             // 시험 기본 정보 및 소집일 필수 유효성 검증 [원형 보존]
             if (!nextTitle || !nextCount || !nextPeriod || !nextDate) {

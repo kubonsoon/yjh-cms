@@ -2775,20 +2775,22 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const elStage = document.getElementById(`inline-app-stage-${index}`);
             // ⚡ [여기까지 신설 2대 필드 인라인 돔 수집 포인터 정밀 인젝션 완료]
 
-            if (!elTitle || !elTh || !elCount || !elPeriod || !elName || !elSsn || !elPhone) {
-                return alert("오류: 인라인 수정 필드 요소를 로드하지 못했습니다.");
-            }
+            // 2. 기존 마스터 데이터베이스에서 불변 키값(UID, 카테고리 등) 상속 보존 가드 [index: 0.1.30]
+            const origin = dataStoreApplicant[index];
+            if (!origin) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
 
-            const t = elTitle.value.trim(), th = elTh.value.trim(), c = elCount.value.trim();
-            const p = elPeriod.value.trim(), n = elName.value.trim(), s = elSsn.value.trim(), ph = elPhone.value.trim();
+            // 🎯 [무결성 보정 구조 선언]: 화면에 존재하지 않는 인풋 컴포넌트가 있을 때 원본 데이터를 안전 보존 상속합니다.
+            const t = elTitle ? elTitle.value.trim() : origin.title;
+            const th = elTh ? elTh.value.trim() : origin.th;
+            const c = elCount ? elCount.value.trim() : origin.count;
+            const p = elPeriod ? elPeriod.value.trim() : origin.period;
+            const n = elName ? elName.value.trim() : origin.name;
+            const s = elSsn ? elSsn.value.trim() : origin.ssn;
+            const ph = elPhone ? elPhone.value.trim() : origin.phone;
 
             if (!t || !th || !c || !p || !n || !s || !ph) {
                 return alert("알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.");
             }
-
-            // 2. 기존 마스터 데이터베이스에서 불변 키값(UID, 카테고리 등) 상속 보존 가드 [index: 0.1.30]
-            const origin = dataStoreApplicant[index];
-            if (!origin) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
 
             // 3. 인라인 가변 페이로드 조립 (성별 기호 영문 대문자 락인 가드 장착) [index: 0.1.30]
             const updatedPayload = {
@@ -2798,12 +2800,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 count: getOnlyNumbers(c),
                 period: getOnlyNumbers(p),
                 name: n,
-                ssn: s.toUpperCase(), // 입력한 성별 식별 기호 실시간 보존
+                ssn: s ? s.toUpperCase() : origin.ssn, // 입력한 성별 식별 기호 실시간 보존
                 phone: getOnlyNumbers(ph),
 
-               // ⚡ [버그 해결 핵심]: 수정을 진행할 때 생년월일(ssn)과 이름에 맞춰 성별 엔진을 가동하여 박제 [index: 0.1.33, 0.1.38]
-                gender: typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(s.toUpperCase(), n) : (origin.gender || "미정"),
-                
+                // ⚡ [성별 미정 변환 버그 진압]: 화면에 실제 ssn 인풋 돔이 로드되어 주민번호를 변경한 조건 하에서만 엔진을 작동합니다.
+                // 단순히 참여상태 셀렉터만 제어할 때는 기존에 잘 보관되어 있던 성별(origin.gender)을 철저히 고정 유지합니다.
+                gender: (elSsn && s !== origin.ssn && typeof parseGenderFromSsn === "function") ? parseGenderFromSsn(s.toUpperCase(), n) : (origin.gender || "미정"),
+
                 phone: getOnlyNumbers(ph),
 
                 // 💡 [참여비 엔진 전면 수리]: 3단 분화된 셀렉트 박스에서 실시간 선택값 개별 스캔 바인딩

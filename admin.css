@@ -420,7 +420,7 @@ tr:hover {
 #applicantView table tbody td {
   padding: 8px 6px !important; /* 패딩을 세밀하게 제어하여 컴팩트한 행 높이 마감 */
   min-height: 38px !important; /* height 고정 간섭을 해제하여 참여비 3단 글자 겹침 현상 원천 차단 */
-  vertical-align: muddke !important; /* 세로축 정중앙 위상 센터 집중 */
+  vertical-align: middle !important; /* 세로축 정중앙 위상 센터 집중 */
 }
 
 /* 대상자 관리 작업 컬럼 (마지막 셀): 나란히 가로 배열 강제 사수 */
@@ -1025,15 +1025,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* =========================================================================
    [CSS 교정] 대시보드 상단 우측 탑바(사용자 인증 존) 레이아웃 격리 복원
    ========================================================================= */
-
-/* 🟢 [신규 추가] 탑바 정렬 유저 존: 내부 컴포넌트들을 완벽하게 수평 센터 정렬 */
+/* 수정 유형: [추가] 탑바 유저 존 컴포넌트 수평 센터 정렬 */
 .top-bar-user-zone {
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
+  justify-content: flex-end !important;
   gap: 14px !important;
 }
 
-/* 🟢 [신규 추가] 탑바 전용 비밀번호수정 버튼: 테이블 내부 버튼의 간섭을 완전히 걷어내고 순정 규격 복원 */
+/* 탑바 전용 비밀번호수정 버튼: 테이블 내부 버튼의 간섭을 완전히 걷어내고 순정 규격 복원 */
 .top-bar-user-zone .btn-inline.password-reset-btn {
   height: 32px !important; /* 26px 압착 서식을 해제하고 32px 순정 높이 락인 */
   line-height: 30px !important;

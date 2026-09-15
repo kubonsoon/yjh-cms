@@ -256,7 +256,16 @@ function switchReportSubTab(tabKey) {
   const viewport = document.getElementById("report-tab-panel-summary");
   if (!viewport) return;
 
-  var tabs = ["summary", "recruitment", "dropout", "ledger", "crc", "budget"];
+  var tabs = [
+    "summary",
+    "recruitment",
+    "dropout",
+    "ledger",
+    "auditLog",
+    "crc",
+    "budget",
+  ];
+
   tabs.forEach(function (key) {
     var btn = document.querySelector(
       `button[onclick="switchReportSubTab('${key}')"]`,

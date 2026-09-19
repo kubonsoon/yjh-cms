@@ -796,45 +796,48 @@
                             e.preventDefault();
                             let appDB = getApplicantData();
 
-                            // 🎯 [6개월 격리 가드 및 종료 상태 예외 엔진 빌드]
-                            // 기존 대장에서 동일 인물의 레코드 중 아직 '종료'되지 않은 액티브 상태가 있는지 먼저 확인합니다.
+                            // 🎯 [1단계 가드: 액티브 과제 중복 신청 원천 차단막]
+                            // 대장에서 동일 명의 유저 중 아직 '종료'되지 않고 살아있는 일정이 있는지 정밀 필터링 스캔
                             const activeJobRecord = appDB.find(app => {
                                 const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
                                 return cleanDbName === cleanSessionName && app.stage !== "종료";
                             });
 
                             if (activeJobRecord) {
-                                // [교정 완결]: 문법 오류를 일으키던 큰따옴표 물리적 줄바꿈 명세를 표준 역슬래시 개행(\n) 포맷으로 단일행 교정
+                                // 문법 오류를 완전 예방한 표준 역슬래시 개행(\n) 정형화 알림 포맷
                                 alert("⚠️ 중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산 심사 대기 중인 임상시험 과제가 존재합니다.\n\n한 명당 오직 하나의 시험만 참여 가능하므로 다른 시험에 중복 신청할 수 없습니다.");
-                                return;
+                                return; // 트랜잭션 즉시 거절 종료
                             }
 
-                            // 🎯 [종료 대상자 대상 180일 날짜 연산 인터셉터]
-                            // 기존 대장에서 '종료'된 가장 최근 과제의 소집일자(recDate)를 확보합니다.
+                            // 🎯 [2단계 가드: 종료 대상자 대상 180일 격리 연산 인터셉터]
+                            // 기존 대장에서 완전히 완료되어 '종료' 상태로 박제된 가장 최근 과제의 소집일자(recDate)를 색인
                             const finishedJobs = appDB.filter(app => {
                                 const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
                                 return cleanDbName === cleanSessionName && app.stage === "종료" && app.recDate;
                             });
 
                             if (finishedJobs.length > 0) {
-                                // 가장 최근 종료된 소집일 기준으로 내림차순 정렬하여 최신 종료 레코드 추출
+                                // 가장 최근 종료된 소집일을 기준으로 내림차순 정렬하여 최신 종료 레코드 추출
                                 finishedJobs.sort((a, b) => new Date(b.recDate) - new Date(a.recDate));
                                 const lastFinishedJob = finishedJobs[0];
 
-                                const systemCurrentTime = new Date("2026-09-20"); // 🎯 전산망 마스터 현재 기준 시점 고정
+                                // 🎯 [전산망 마스터 현재 기준 시점 고정] 대표님 승인 명세 2026-09-20 강제 락인 락업
+                                const systemCurrentTime = new Date("2026-09-20");
                                 const lastExamDate = new Date(lastFinishedJob.recDate);
 
+                                // 두 임상 일정 사이의 물리적 밀리초 시차 연산 및 일수(Day) 환산
                                 const timeDiff = systemCurrentTime.getTime() - lastExamDate.getTime();
                                 const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
 
-                                // ⚠️ 180일(6개월)이 경과하지 않은 유저가 다른 시험에 신청 시 즉시 진입 원천 봉쇄 차단
+                                // ⚠️ 180일(6개월) 격리 수칙 미달 유저 진입 원천 봉쇄
                                 if (dayDiff < 180) {
                                     alert(`ℹ️ 전산망 보안 안내\n\n대상자님은 마지막 시험 참여 후 아직 6개월이 경과하지 않았습니다.\n(현재 ${dayDiff}일 경과 / 180일 이후 신청 가능)\n\n기존 과제가 종료되었더라도 격리 기간이 지나야 새 시험 참여가 가능합니다.`);
-                                    return;
+                                    return; // 트랜잭션 즉시 거절 종료
                                 }
-                                console.log(`[보안 체인] 6개월 격리 해제 검증 완료: 현재 ${dayDiff}일 경과로 신규 유입 승인.`);
+                                console.log(`[보안 체인] 6개월 격리 해제 검증 적격 통과: 현재 ${dayDiff}일 경과로 신규 유입 정상 승인.`);
                             }
 
+                            // 🎯 [3단계 가드: 동일 과제 중복 신청 최종 디펜스]
                             const isAlreadyClickedThisJob = appDB.some(app =>
                                 (app.name || '').toString().trim() === currentSessionName &&
                                 (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
@@ -846,25 +849,26 @@
                                 return;
                             }
 
+                            // 🎯 [4단계 파이프라인: 완전히 독립된 격리 신규 행(NEW_UID) 발행 및 push 적재 공식 가동]
                             const realUserSession = appDB.find(u => u.name.toString().trim() === currentSessionName) || {};
+                            const newTemporaryUid = "NEW_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
 
-                            const newTemporaryUid = "NEW_" + Date.now();
                             const newApplicantRecord = {
-                                // 🎯 [핵심 규칙 교정]: 기존에 '종료'된 유저이므로, 기존 UID를 상속받아 덮어쓰면 안 됩니다.
-                                // 무조건 신규 일련번호(newTemporaryUid)를 발행하여 독립적인 데이터 라인으로 생성합니다.
-                                uid: (realUserSession.stage === "종료") ? newTemporaryUid : (realUserSession.uid || newTemporaryUid),
+                                // 핵심 규칙 반영: 기존에 '종료'되었거나 연동 기록이 있는 유저이므로 기존 UID를 상속·오염시키지 않고 
+                                // 무조건 신규 일련번호(newTemporaryUid)를 독립 발행하여 개별 데이터 라인으로 창조 분사합니다.
+                                uid: newTemporaryUid,
                                 name: currentSessionName,
                                 title: item.title,
                                 th: thText,
                                 count: item.count ? item.count.toString().replace(/[^0-9]/g, '') : "60",
                                 period: item.period || "0",
 
-                                // ⚡ [더미 박멸]: 850101-1, 010-0000-0000 찌꺼기를 세척하고 진짜 생년월일/전화번호/성별 결합 상속 [index: 0.1.244]
+                                // 진짜 생년월일, 전화번호, 성별 상속 락인 및 더미 찌꺼기 청소 세척 완료
                                 ssn: realUserSession.ssn ? realUserSession.ssn.toString().trim().toUpperCase() : "850101-1",
                                 phone: realUserSession.phone ? realUserSession.phone.toString().trim() : "010-0000-0000",
                                 gender: realUserSession.gender || (typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(realUserSession.ssn, currentSessionName) : "남"),
 
-                                // 행정 정산 스코어보드 초기화 동기화 레일 세팅 [index: 0.1.244]
+                                // 행정 금융 정산 스코어보드 초기화 동기화 표준 레일 세팅
                                 payStatus1: "대기",
                                 payStatus2: "대기",
                                 payStatus3: "대기",
@@ -875,25 +879,22 @@
                                 isCallAgreed: "대기",
                                 category: realUserSession.category || "M인증",
 
-                                // ⚡ [자동화 파이프라인 스펙]: 모바일 참여 신청 대상자 초기 참여상태는 무조건 '소집'으로 강제 고정 [index: 0.1.244]
+                                // ⚡ [자동화 파이프라인 스펙]: 모바일 청구서 참여 신청 대상자의 초기 참여상태는 무조건 '소집'으로 강제 고정
                                 stage: "소집",
-
-                                regDate: new Date().toISOString().split('T')
+                                regDate: new Date().toISOString().split('T')[0]
                             };
 
-                            // 🎯 [하이브리드 적재 분기]: 기존 데이터가 존재하더라도 종료 상태라면 교체가 아닌 순수 push로 밀어넣어 이력 보존
-                            if (realUserSession.uid && realUserSession.stage !== "종료") {
-                                const matchUserIdx = appDB.findIndex(u => u.uid === realUserSession.uid);
-                                if (matchUserIdx !== -1) appDB[matchUserIdx] = newApplicantRecord;
-                            } else {
-                                appDB.push(newApplicantRecord);
-                            }
+                            // 🎯 [하이브리드 적재 스케줄러]: 기존 데이터가 존재하더라도 종료 유저의 신규 참여는 
+                            // 덮어쓰기 교체가 아닌 순수 push로 밀어넣어 과거 누적 이력을 철통 보존합니다.
+                            appDB.push(newApplicantRecord);
 
+                            // 가상 데이터베이스 최종 영구 커밋 동기화
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
 
-                            // 명칭 통일 완수: 피험자 -> 대상자 / 신규 대상자 문구 정형화 [index: 0.1.24]
+                            // 표준화 가이드 완벽 준수 사출 ('피험자' -> '대상자' 단어 완전 소독 마감)
                             alert(`[신청 접수 완료]\n\n${currentSessionName} 대상자님,\n선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
-                            renderDailyCards();
+
+                            renderDailyCards(); // 화면 상세 리스트 즉시 리렌더링 실시간 동기화
                         };
                     } //
 

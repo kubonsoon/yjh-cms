@@ -1088,8 +1088,21 @@
 
                     // 정사각형 라운드 배지 텍스트 개행 매핑 안전 이식 완결
                     const cmsBadgeSlot = document.getElementById('cms-badge');
-                    if (cmsBadgeSlot) {
-                        cmsBadgeSlot.innerText = "참여\n(소집)";
+                    if (cmsBadgeSlot && matchedPatientData) {
+                        // 로컬 DB 마스터 대장의 최신 참여상태 필드 실시간 확보
+                        const currentStage = (matchedPatientData.stage || "소집").toString().trim();
+
+                        if (currentStage === "종료") {
+                            // 🎯 관리자가 대장에서 '종료'로 수정해둔 상태라면 즉시 모바일 배지 리스킨
+                            cmsBadgeSlot.innerText = "정산\n(종료)";
+                            cmsBadgeSlot.style.background = "#475569"; // 신뢰감을 주는 슬레이트 다크 실버 스킨
+                        } else if (currentStage === "투약") {
+                            cmsBadgeSlot.innerText = "진행\n(투약)";
+                            cmsBadgeSlot.style.background = "#0ea5e9";
+                        } else {
+                            cmsBadgeSlot.innerText = `참여\n(${currentStage})`;
+                            cmsBadgeSlot.style.background = "#0056B3"; // 순정 소집 블루 테마 보존
+                        }
                     }
 
                     // 1. 실제 연동 시험 공고의 진짜 기수(th) 실시간 치환 주입
@@ -1326,9 +1339,26 @@
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
                 const liveRecord = adminApplicantDB.find(u => u.name.toString().replace(/\s/g, "") === cleanSessionName);
 
-                if (liveRecord && liveRecord.payStatus === "처리중") {
-                    setMobileFormActive(false); // 관리자가 처리중으로 넘기면 즉시 모바일 전체 잠금 역하강 트리거
-                    return;
+                if (liveRecord) {
+                    const mobileBadge = document.getElementById('cms-badge');
+                    const stageTxtSlot = document.getElementById('ui_stage_text');
+
+                    // 🎯 [실시간 원격 리스킨 인터셉터]: 관리자가 PC에서 상태를 '종료'로 수정하는 즉시 모바일 연쇄 동기화
+                    if (liveRecord.stage === "종료") {
+                        if (mobileBadge) {
+                            mobileBadge.innerText = "정산\n(종료)";
+                            mobileBadge.style.setProperty("background", "#475569", "important");
+                        }
+                        if (stageTxtSlot) {
+                            stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 과제의 정산 청구 및 금융 지급 심사가 정상 완료되었습니다.</span>`;
+                        }
+                    }
+
+                    // 순정 원형 로직 상속 연동
+                    if (liveRecord.payStatus === "처리중") {
+                        setMobileFormActive(false);
+                        return;
+                    }
                 }
 
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));

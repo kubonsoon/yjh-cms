@@ -2673,6 +2673,34 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const cat = elCategory.value;
             const stg = elStage.value;
 
+
+            // 신규 등록 모드(editIndex === "")일 때만 이름/생년월일/전화번호 중복 검사 가드를 가동합니다.
+            if (editIndex === "") {
+                let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+                const isCurrentlyActiveApplicant = adminApplicantDB.some(app => {
+                    const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
+                    const cleanInputName = n.replace(/\s/g, "");
+                    const cleanDbPhone = (app.phone || '').toString().replace(/[^0-9]/g, "");
+                    const cleanInputPhone = ph.replace(/[^0-9]/g, "");
+
+                    const cleanDbBirth6 = (app.ssn || '').toString().replace(/[^0-9]/g, "").substring(0, 6);
+                    const cleanInputBirth6 = s.replace(/[^0-9]/g, "").substring(0, 6);
+
+                    // 💡 [핵심 규칙 반영]: 식별 정보가 같더라도 기존 데이터의 참여상태(stage)가 '종료'라면 
+                    // 액티브 임상시험이 없는 것으로 간주하여 중복 체크 대상(Active)에서 과감히 제외합니다.
+                    if (app.stage === "종료" || app.result === "종료") {
+                        return false;
+                    }
+
+                    return cleanDbName === cleanInputName && cleanDbPhone === cleanInputPhone && cleanDbBirth6 === cleanInputBirth6;
+                });
+
+                if (isCurrentlyActiveApplicant) {
+                    return alert(`⚠️ 중복 등록 불가 안내\n\n대상자 [${n}]님은 현재 참여 중이거나 심사 대기 중인 임상시험 과제가 존재하므로 중복 등록할 수 없습니다.`);
+                }
+            }
+
             // [오리지널 마스터 규격 복구 조립]: 기존 원본 소스가 요구하는 데이터 키값을 100% 일치시킵니다. [index: 0.1.33]
             const payload = {
                 uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,

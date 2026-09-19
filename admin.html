@@ -1690,86 +1690,100 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 🎯 [오류 원천 분쇄 가드]: 테이블 돔 요소를 안전하게 스캔하기 위해 값 존재 여부 가드 장착 (row.uid 매핑 규격 변환 완료)
             const elTitle = document.getElementById(`inline-rec-title-${index}`);
             const elTh = document.getElementById(`inline-rec-th-${index}`);
-            const elCount = document.getElementById(`inline-rec-count-${index}`);
-            const elPeriod = document.getElementById(`inline-rec-period-${index}`);
             const elCrc = document.getElementById(`inline-rec-crc-${index}`);
             const elDate = document.getElementById(`inline-rec-date-${index}`);
 
-            // 차수별 미ni 데이트 피커 요소 추적선도 index 규격으로 정렬 싱크 완료
+            // 🎯 [교정 완결]: 타 탭(inline-app-) 간섭 원인을 원천 차단하고 순정 모집공고용 ID로만 깔끔하게 단일화 스캔
             const elPay1 = document.getElementById(`inline-rec-pay1-${index}`);
-            const elPay2 = document.getElementById(`inline-app-pay2-${index}`) || document.getElementById(`inline-rec-pay2-${index}`);
-            const elPay3 = document.getElementById(`inline-app-pay3-${index}`) || document.getElementById(`inline-rec-pay3-${index}`);
+            const elPay2 = document.getElementById(`inline-rec-pay2-${index}`);
+            const elPay3 = document.getElementById(`inline-rec-pay3-${index}`);
 
-            if (!elTitle || !elTh || !elCount || !elPeriod || !elCrc || !elDate) {
+            if (!elTitle || !elTh || !elCrc || !elDate) {
                 return alert("시스템 알림: 인라인 수정 필드 엘리먼트를 추적할 수 없습니다.");
             }
 
             const nextTitle = elTitle.value.trim();
             const nextTh = elTh.value;
-            const nextCount = elCount.value.trim();
-            const nextPeriod = elPeriod.value.trim();
             const nextCrc = elCrc.value.trim();
             const nextDate = elDate.value;
 
-            // 🎯 [핵심 교정 완료]: 인라인 행 내부에 임베딩된 미니 3단 데이트 피커 요소로부터 수정된 데이터 실시간 index 기반 정밀 스캔
-            const nextPay1 = document.getElementById(`inline-rec-pay1-${index}`)?.value || "";
-            const nextPay2 = document.getElementById(`inline-rec-pay2-${index}`)?.value || "";
-            const nextPay3 = document.getElementById(`inline-rec-pay3-${index}`)?.value || "";
+            // 🧠 [지능형 오타 수정 및 복귀 방지 가드 엔진 이식]
+            // 기본값은 로컬 DB 원본에 저장되어 있던 진짜 스펙(예: 60)을 디폴트로 탑재하여 보호합니다.
+            let finalCount = targetRecord.count || "60";
+            const elCount = document.getElementById(`inline-rec-count-${index}`);
+            if (elCount) {
+                const inputCountValue = elCount.value.trim();
+                // 슬래시(/) 문자열이 섞인 오염 데이터가 "아니며", 사용자가 오타 교정을 위해 순수 숫자를 직접 입력한 경우에만 수락합니다.
+                if (inputCountValue !== "" && !inputCountValue.includes("/") && !isNaN(inputCountValue.replace(/[^0-9]/g, ''))) {
+                    finalCount = inputCountValue;
+                }
+            }
 
-            // 시험 기본 정보 및 소집일 필수 유효성 검증 [원형 보존]
-            if (!nextTitle || !nextCount || !nextPeriod || !nextDate) {
+            // 기간 필드도 화면 엘리먼트 오염 대비 안전 락업 스케줄 동일 적용
+            let finalPeriod = targetRecord.period || "72";
+            const elPeriod = document.getElementById(`inline-rec-period-${index}`);
+            if (elPeriod) {
+                const inputPeriodValue = elPeriod.value.trim();
+                if (inputPeriodValue !== "" && !inputPeriodValue.includes("/") && !isNaN(inputPeriodValue.replace(/[^0-9]/g, ''))) {
+                    finalPeriod = inputPeriodValue;
+                }
+            }
+
+            // 🎯 [순정 100% 보존]: 미니 3단 데이트 피커 벨류 추출부
+            const nextPay1 = elPay1?.value || "";
+            const nextPay2 = elPay2?.value || "";
+            const nextPay3 = elPay3?.value || "";
+
+            // 필수 유효성 검증 (정제된 finalCount 값 기반으로 우회 방어)
+            if (!nextTitle || !finalCount || !finalPeriod || !nextDate) {
                 alert("알림: 시험명, 인원수, 기간, 소집일 데이터는 필수 항목이므로 빈칸으로 둘 수 없습니다.");
                 return;
             }
 
-            // 🌟 [버그 킬러 핵심]: 가상 DB에서 색인한 진짜 원본 타겟 객체(`targetRecord`)로부터 기존 주의사항 및 당직공지 원본 값을 안전하게 유지 보존합니다.
+            // 🌟 [버그 킬러 핵심]: 기존 주의사항 및 당직공지 원본 값 유지
             const savedNotice = targetRecord.notice || "";
             const savedCustomDutyText = targetRecord.customDutyText || "";
 
-            // 🎯 [지능형 동적 리스트 파싱 엔진]: 수정 모드에서 관리자가 날짜를 남겨둔 차수만 선별 조립합니다. [원형 보존]
+            // 🎯 [지능형 동적 리스트 파싱 엔진]
             let nextPayArray = [];
             if (nextPay1) nextPayArray.push(`1차: ${nextPay1}`);
             if (nextPay2) nextPayArray.push(`2차: ${nextPay2}`);
             if (nextPay3) nextPayArray.push(`3차: ${nextPay3}`);
-
             if (nextPayArray.length === 0) {
                 nextPayArray.push("추후공지");
             }
-
             const nextPayText = nextPayArray.join(' / ');
 
-            /* 수정 유형: [추가] 데이터 원본이 새 값으로 파괴 덮어쓰기 되기 직전 타이밍에 실시간 변경 필드명 가로채기 스캔 */
+            /* 실시간 변경 필드명 디프 연산 스캔 구역 */
             let changedRecItems = [];
-            if (targetRecord.title !== nextTitle) changedRecItems.push("시험명");
+            if (targetRecord.title !== nextTitle) changedRecItems.push("試験명");
             if (targetRecord.th !== nextTh) changedRecItems.push("기수");
-            if (getOnlyNumbers(targetRecord.count) !== getOnlyNumbers(nextCount)) changedRecItems.push("인원수");
-            if (getOnlyNumbers(targetRecord.period) !== getOnlyNumbers(nextPeriod)) changedRecItems.push("시간");
+            if (getOnlyNumbers(targetRecord.count) !== getOnlyNumbers(finalCount)) changedRecItems.push("인원수");
+            if (getOnlyNumbers(targetRecord.period) !== getOnlyNumbers(finalPeriod)) changedRecItems.push("시간");
             if (targetRecord.crc !== nextCrc) changedRecItems.push("담당CRC");
             if (targetRecord.recDate !== nextDate) changedRecItems.push("소집일자");
             if (targetRecord.payDate1 !== nextPay1) changedRecItems.push("참여비 1차");
             if (targetRecord.payDate2 !== nextPay2) changedRecItems.push("참여비 2차");
             if (targetRecord.payDate3 !== nextPay3) changedRecItems.push("참여비 3차");
 
-            // 변경 내역 수집 결과에 따른 조건부 동적 감사 메시지 셋업
             let auditLogMessage = `모집공고 [${nextTitle} ${nextTh}] 가변 차수별 참여비 일정 편집 완료`;
             if (changedRecItems.length > 0) {
                 auditLogMessage = `모집공고 [${nextTitle} ${nextTh}] 정보 수정 완료 (변경항목: ${changedRecItems.join(", ")})`;
             }
 
-            // 🎯 마스터 데이터베이스 대장의 실제 타겟 레코드 객체에 가변 릴레이션 스펙 최종 오버라이드 갱신
+            // 🎯 마스터 데이터베이스 대장(로컬스토리지 복사본)에 가변 오버라이드 커밋 실행
             targetRecord.title = nextTitle;
             targetRecord.th = nextTh;
-            targetRecord.count = typeof getOnlyNumbers === "function" ? getOnlyNumbers(nextCount) : nextCount.replace(/[^0-9]/g, '');
-            targetRecord.period = typeof getOnlyNumbers === "function" ? getOnlyNumbers(nextPeriod) : nextPeriod.replace(/[^0-9]/g, '');
+            targetRecord.count = typeof getOnlyNumbers === "function" ? getOnlyNumbers(finalCount) : finalCount.replace(/[^0-9]/g, '');
+            targetRecord.period = typeof getOnlyNumbers === "function" ? getOnlyNumbers(finalPeriod) : finalPeriod.replace(/[^0-9]/g, '');
             targetRecord.crc = nextCrc;
             targetRecord.recDate = nextDate;
-            targetRecord.notice = savedNotice; // 원본 주의사항 안전 락업
-            targetRecord.customDutyText = savedCustomDutyText; // 수정 완료된 당직공지 텍스트도 안전 보존
+            targetRecord.notice = savedNotice;
+            targetRecord.customDutyText = savedCustomDutyText;
 
-            // 🎯 가변 축소 수정된 차수별 날짜 데이터를 맵 필드에 정밀 전격 박제 기록
             targetRecord.paySchedule = nextPayText;
             targetRecord.payDate = nextPayText;
-            targetRecord.payDate1 = nextPay1; // 💡 비워진 칸은 빈 문자열("")로 덮어써져 영구 청소됩니다.
+            targetRecord.payDate1 = nextPay1;
             targetRecord.payDate2 = nextPay2;
             targetRecord.payDate3 = nextPay3;
 
@@ -1789,7 +1803,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 initDashboardFilter();
             }
 
-            // 🎯 [실시간 보안 로그 기록 연동]: 정밀하게 디프 연산이 끝난 동적 요약 메시지 구조체 바인딩 개방
+            // 🎯 [실시간 보안 로그 기록 연동]
             if (typeof insertSystemAuditLog === "function") {
                 insertSystemAuditLog("수정", auditLogMessage);
             } else if (typeof window.insertSystemAuditLog === "function") {
@@ -1798,13 +1812,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             alert(" 해당 줄(Line)의 모집공고 가변 참여비 일정이 완벽하게 수정 저장되었습니다.");
 
-            // 🌟 [수정 제어자 싱크 처리]: 혼용되던 제어 플래그 변수를 둘 다 안전하게 초기화 릴레이합니다. [원형 보존]
+            // 🌟 [수정 제어자 싱크 처리]
             window.currentEditingRecruitmentIndex = null;
             if (typeof currentEditingRecruitmentIndex !== 'undefined') currentEditingRecruitmentIndex = null;
             window.currentRecruitmentEditingIndex = null;
             if (typeof currentRecruitmentEditingIndex !== 'undefined') currentRecruitmentEditingIndex = null;
 
-            // 🎯 [실시간 화면 싱크 종결 안전핀]: 저장 완료 즉시 보안 로그 기록 뷰포트까지 실시간 연쇄 동시 리프레시 실행
+            // 🎯 [실시간 화면 싱크 종결 안전핀]
             if (typeof refreshSystemAuditLogView === "function") {
                 refreshSystemAuditLogView();
             } else if (typeof window.refreshSystemAuditLogView === "function") {

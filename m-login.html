@@ -860,6 +860,13 @@
                 <button id="ui_submit_btn" class="btn-submit-form" onclick="submitFinalSettlementForm()" disabled
                     style="width: 100%; height: 44px; background-color: #9ca3af; border: none; border-radius: 10px; color: #FFF; font-size: 13.5px; font-weight: 700; cursor: not-allowed; transition: all 0.3s; margin-top: 5px;">관리자
                     승인 대기중 (신청 불가)</button>
+
+                <!-- 🎯 [신규 이식]: 평소에는 철저히 숨겨져 있다가 종료 상태 시 고대비 스카이블루 스킨으로 개방되는 독립 액션 단추 -->
+                <button type="button" id="ui_calendar_redirect_btn" class="btn-submit-form"
+                    onclick="navigateToStep(5); if(document.getElementById('mobileCalendarFrame')?.contentWindow?.renderCalendar === 'function') document.getElementById('mobileCalendarFrame').contentWindow.renderCalendar();"
+                    style="display: none; background-color: #0284c7 !important; cursor: pointer !important; margin-top: 10px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+                    📅 임상시험 일정 확인 (과제 완료)
+                </button>
             </div>
         </div>
 
@@ -1103,6 +1110,34 @@
                             cmsBadgeSlot.innerText = `참여\n(${currentStage})`;
                             cmsBadgeSlot.style.background = "#0056B3"; // 순정 소집 블루 테마 보존
                         }
+
+                        /* =================================================================
+                           🔥 [통합 추가] 최하단 "시험일정" 버튼 노출 및 기존 제출 버튼 가드 잠금
+                           ================================================================= */
+                        const calendarBtn = document.getElementById('ui_calendar_redirect_btn');
+                        const submitBtn = document.getElementById('ui_submit_btn');
+
+                        if (currentStage === "종료") {
+                            // 관리자 승인 대기중 버튼 아래에 "시험일정" 단추 활성화 노출 개방
+                            if (calendarBtn) {
+                                calendarBtn.style.setProperty("display", "block", "important");
+                            }
+                            // 기존 지급 신청 버튼은 완결 문구와 함께 락인 잠금
+                            if (submitBtn) {
+                                submitBtn.innerText = "지급 청구 마감 (과제 종료)";
+                                submitBtn.disabled = true;
+                                submitBtn.style.background = "#1e293b";
+                                submitBtn.style.cursor = "not-allowed";
+                            }
+                            // 5단계 스케줄러 프레임 상단 라벨 성명 미리 상속 동기화
+                            if (document.getElementById('lblSetTargetNew')) {
+                                document.getElementById('lblSetTargetNew').innerText = `${matchedPatientData.name || "대상자"}님 (임상 과제 완결)`;
+                            }
+                        } else {
+                            // 종료 상태가 아닌 일반 참여/소집 상태일 때는 일정 버튼 철저히 은폐
+                            if (calendarBtn) calendarBtn.style.display = "none";
+                        }
+                        /* ================================================================= */
                     }
 
                     // 1. 실제 연동 시험 공고의 진짜 기수(th) 실시간 치환 주입
@@ -1352,11 +1387,34 @@
                         if (stageTxtSlot) {
                             stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 과제의 정산 청구 및 금융 지급 심사가 정상 완료되었습니다.</span>`;
                         }
+
+                        /* =================================================================
+                           🔥 [통합 완착] 실시간 "시험일정" 버튼 노출 및 기존 제출 버튼 원격 마감 잠금
+                           ================================================================= */
+                        const calendarBtn = document.getElementById('ui_calendar_redirect_btn');
+                        const submitBtn = document.getElementById('ui_submit_btn');
+
+                        // 관리자 제어반 마스터 신호 포착 즉시 최하단에 "시험일정" 액션 단추 동적 출현
+                        if (calendarBtn) {
+                            calendarBtn.style.setProperty("display", "block", "important");
+                        }
+                        // 기존 지급 신청 버튼은 완결 문구와 함께 실시간 락인 잠금
+                        if (submitBtn) {
+                            submitBtn.innerText = "지급 청구 마감 (과제 종료)";
+                            submitBtn.disabled = true;
+                            submitBtn.style.background = "#1e293b";
+                            submitBtn.style.cursor = "not-allowed";
+                        }
+                        /* ================================================================= */
+                    } else {
+                        // 종료 상태가 아닐 때는 비동기 폴링 시점에 일정 버튼 숨김 상태 순정 복원
+                        const calendarBtn = document.getElementById('ui_calendar_redirect_btn');
+                        if (calendarBtn) calendarBtn.style.display = "none";
                     }
 
                     // 순정 원형 로직 상속 연동
                     if (liveRecord.payStatus === "처리중") {
-                        setMobileFormActive(false);
+                        setMobileFormActive(false); // 관리자가 처리중으로 넘기면 즉시 모바일 전체 잠금 역하강 트리거
                         return;
                     }
                 }
@@ -1405,6 +1463,7 @@
                 }
             }, 1000);
         }
+
 
         // 💥 4단: 최종 정산 데이터 전산 패킷 트랜잭션 전송 및 마스터 대장 원격 불 켜기 공정 완결
         function submitFinalSettlementForm() {

@@ -1712,20 +1712,34 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             let finalCount = targetRecord.count || "60";
             const elCount = document.getElementById(`inline-rec-count-${index}`);
             if (elCount) {
-                const inputCountValue = elCount.value.trim();
-                // 슬래시(/) 문자열이 섞인 오염 데이터가 "아니며", 사용자가 오타 교정을 위해 순수 숫자를 직접 입력한 경우에만 수락합니다.
-                if (inputCountValue !== "" && !inputCountValue.includes("/") && !isNaN(inputCountValue.replace(/[^0-9]/g, ''))) {
-                    finalCount = inputCountValue;
+                let inputCountValue = elCount.value.trim();
+
+                // 💡 [핵심 교정]: 화면에 렌더링된 "1/46명" 혹은 슬래시(/) 찌꺼기가 통째로 유입된 경우
+                if (inputCountValue.includes("/")) {
+                    // 슬래시를 기준으로 분할한 뒤 우측의 진짜 정원수 파트("46명")만 추출
+                    const tokens = inputCountValue.split("/");
+                    inputCountValue = tokens[tokens.length - 1];
+                }
+
+                // 숫자 기호 이외의 문자를 완벽히 소독하여 순정 정원 숫자만 필터링
+                const sanitizedCount = inputCountValue.replace(/[^0-9]/g, '');
+                if (sanitizedCount !== "") {
+                    finalCount = sanitizedCount;
                 }
             }
 
-            // 기간 필드도 화면 엘리먼트 오염 대비 안전 락업 스케줄 동일 적용
+            // 임상 기간(시간) 필드도 돔 인터페이스 오염 대비 디펜스 스케줄 동일 적용
             let finalPeriod = targetRecord.period || "72";
             const elPeriod = document.getElementById(`inline-rec-period-${index}`);
             if (elPeriod) {
-                const inputPeriodValue = elPeriod.value.trim();
-                if (inputPeriodValue !== "" && !inputPeriodValue.includes("/") && !isNaN(inputPeriodValue.replace(/[^0-9]/g, ''))) {
-                    finalPeriod = inputPeriodValue;
+                let inputPeriodValue = elPeriod.value.trim();
+                if (inputPeriodValue.includes("/")) {
+                    const tokens = inputPeriodValue.split("/");
+                    inputPeriodValue = tokens[tokens.length - 1];
+                }
+                const sanitizedPeriod = inputPeriodValue.replace(/[^0-9]/g, '');
+                if (sanitizedPeriod !== "") {
+                    finalPeriod = sanitizedPeriod;
                 }
             }
 

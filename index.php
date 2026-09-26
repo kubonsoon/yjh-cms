@@ -21,9 +21,6 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
     <!-- [반응형 이관]: 미디어 쿼리가 내장되어 PC/모바일 화면 전체를 총괄 제어하는 루트 마스터 스타일시트 바인딩 -->
     <link rel="stylesheet" href="./main.css">
     
-    <!-- [경로 복원 🌟]: Supabase 클라우드 전산망 연동 공식 JS SDK 엔진 정식 주소 주입 -->
-    <script src="https://jsdelivr.net"></script>
-
     <!-- [순서 교정 락인 🌟]: 자바스크립트 엔진(main.js)이 돌기 전에 dbcon 접속 자격 상수를 가장 먼저 메모리에 완착시킴 -->
     <?php if (function_exists('injectSupabaseConfig')) { injectSupabaseConfig(); } ?>
 </head>

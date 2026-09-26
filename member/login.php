@@ -18,8 +18,13 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
     <!-- 글로벌 사내 전산망 공통 폰트어썸 아이콘 라이브러리 CDN 상속 [1] -->
     <link rel="stylesheet" href="https://cloudflare.com">
     
-    <!-- [모듈화 연동 01]: 미디어 쿼리가 내장되어 총괄 제어하는 분리 독립 스킨 layout.css 바인딩 [1] -->
-    <link rel="stylesheet" href="./layout.css">
+   <style>
+   <?php include_once __DIR__ . '/layout.css'; ?>
+   </style>
+
+   <script>
+    <?php include_once __DIR__ . '/layout.js'; ?>
+</script>
 </head>
 <body>
 
@@ -195,7 +200,5 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
 
 </div>
 
-<!-- [모듈화 연동 02]: 분리 독립시킨 m-login 정순 스크립트 로직 자원 layout.js 최종 마운트 -->
-<script src="./layout.js"></script>
 </body>
 </html>

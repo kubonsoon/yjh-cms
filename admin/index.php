@@ -1,171 +1,59 @@
 <?php
-/**
- * 파일 위치: /mobile/m-login.php
- */
+// 1. 보안 격리 서브폴더 내 클라우드 커넥션 인프라 로드
+require_once __DIR__ . '/database/dbcon.php';
+
+// 2. 이미 로그인 세션이 안전하게 상주 중일 경우의 가드 락인 분기 제어 (필요시 세션 연동 개방)
+if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName'])) {
+    // 자동 리디렉션 가드 프로토콜 활성화 구역
+}
 ?>
-
-<!-- [모듈화 연동]: 분리 독립시킨 고유 디자인 스킨 로드 (m-login.html 내부 CSS 원형) -->
-<link rel="stylesheet" href="./mobile/css/m-login.css">
-
-<!-- 스마트폰 디바이스 프레임 구현 내부 모바일 컨테이너 -->
-<div class="mobile-container" style="border:none; border-radius:0; box-shadow:none; height:100%; width:100%; max-width:100%;">
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>임상시험 스마트 연동 시스템 | H+양지병원 의생명연구원</title>
     
-    <!-- [0단계 PANEL] QR코드 스캔 연동 시뮬레이터 (원본 마크업 100% 유지) -->
-    <div class="step-panel active" id="layer0">
-        <div class="panel-header-title">
-            <i class="fa-solid fa-qrcode"></i> 시연 시작 단계: 스마트 링커 QR 스캔
-        </div>
-        <div class="qr-scan-zone">
-            <p style="font-size:15px; color:rgba(255, 255, 255,0.8); line-height:1.5; margin-bottom: 5px;">
-                게시되는 <span style="color:#38bdf8; font-weight:700;">QR코드를 스캔</span>하여<br>모바일 인증 시스템에 접속합니다.
-            </p>
-            <div class="qr-box" onclick="executeStep0QRScan()">
-                <div class="scan-line"></div>
-                <img src="qr-code.png" alt="QR Code Link" onerror="this.style.display='none'; document.getElementById('qr-fallback-ico').style.display='block';">
-                <i class="fa-solid fa-qrcode" id="qr-fallback-ico" style="display:none; font-size:64px; color:#06B6D4;"></i>
-            </div>
-            <p style="font-size:11px; color:rgba(255,255,255,0.4); line-height:1.4;">
-                * 시연 안내: 위의 가상 QR 구역을 터치(클릭)하면<br>자동으로 다음 [모바일 인증서 선택] 화면으로 진입합니다.
-            </p>
-        </div>
-    </div>
+    <!-- 글로벌 사내 전산망 공통 폰트어썸 아이콘 라이브러리 CDN 상속 -->
+    <link rel="stylesheet" href="https://cloudflare.com">
+    
+    <!-- [반응형 이관]: 미디어 쿼리가 내장되어 PC/모바일 화면 전체를 총괄 제어하는 루트 마스터 스타일시트 바인딩 -->
+    <link rel="stylesheet" href="./main.css">
+    
+    <!-- Supabase 글로벌 클라우드 전산망 연동 공식 JS SDK 엔진 주입 -->
+    <script src="https://jsdelivr.net"></script>
 
-    <!-- [1단계 PANEL] 민간인증 로그인 수단 선택 스위치 (원본 마크업 100% 유지) -->
-    <div class="step-panel" id="layer1">
-        <div class="panel-header-title"><i class="fa-solid fa-key"></i> 1 단계: 간편인증 로그인 수단</div>
-        <div class="login-header-mini">
-            <div class="badge">스마트 솔루션 (CMS)</div>
-            <h2>임상시험 로그인</h2>
-            <p class="subtitle">H+ YANGJI HOSPITAL 의생명연구원</p>
-        </div>
-        <div class="auth-group">
-            <h3>인증 수단 선택</h3>
-            <button id="btn_kakao" class="btn-auth btn-kakao" onclick="executeStep1Select('kakao', '카카오톡')">
-                <span class="icon-wrapper"><i class="fa-solid fa-comment"></i></span>
-                <span class="text-wrapper">카카오톡으로 시작하기</span>
-            </button>
-            <button id="btn_naver" class="btn-auth btn-naver" onclick="executeStep1Select('naver', '네이버')">
-                <span class="icon-wrapper"><i class="fa-solid fa-n"></i></span>
-                <span class="text-wrapper">네이버로 시작하기</span>
-            </button>
-            <button id="btn_toss" class="btn-auth btn-toss" onclick="executeStep1Select('toss', '토스')">
-                <span class="icon-wrapper"><i class="fa-solid fa-t"></i></span>
-                <span class="text-wrapper">토스로 시작하기</span>
-            </button>
-            <button id="btn_pass" class="btn-auth btn-pass" onclick="executeStep1Select('pass', 'PASS')">
-                <span class="icon-wrapper"><i class="fa-solid fa-shield-halved"></i></span>
-                <span class="text-wrapper">PASS로 시작하기</span>
-            </button>
-        </div>
-    </div>
+    <!-- [보안 리팩토링]: 서브폴더 dbcon.php에 상주하는 클라우드 접속 anon 키 상수를 자바스크립트에 안전 전송 주입 -->
+    <?php if (function_exists('injectSupabaseConfig')) { injectSupabaseConfig(); } ?>
+</head>
+<body>
 
-    <!-- [2단계 PANEL] 본인 식별 데이터 기입 폼 (표준 명칭 개정 오버라이드) -->
-    <div class="step-panel" id="layer2">
-        <div class="panel-header-title"><i class="fa-solid fa-pen-to-square"></i> 2 단계: 본인인증 입력</div>
-        <div style="flex:1;">
-            <div class="form-group">
-                <label id="lblDynamicForm">이름</label>
-                <input type="text" id="txtUserName" placeholder="이름을 입력하세요">
-            </div>
-            <div class="form-group">
-                <label>생년월일 (6 or 8 자리)-1 형태 (성별 1~4)</label>
-                <input type="text" id="txtUserBirth" placeholder="예: 950505-1">
-            </div>
-            <div class="form-group">
-                <label>휴대폰 번호 (숫자만)</label>
-                <input type="text" id="txtUserPhone" placeholder="예: 01012345678">
-            </div>
-            <div class="agree-box">
-                <input type="checkbox" id="chkAgree">
-                <label for="chkAgree" style="cursor:pointer; font-weight:500;">이용약관 및 정보 수집 전체 동의</label>
-            </div>
-            <button id="btnSubmitForm" class="btn-submit theme-btn-default" onclick="executeStep2Submit()">인증 요청</button>
-        </div>
-    </div>
-      <!-- [3단계 PANEL] 검증 처리 결과 안내 모달 알림 스크린 (원본 마크업 100% 유지) -->
-    <div class="step-panel" id="layer3">
-        <div class="panel-header-title"><i class="fa-solid fa-bell"></i> 3 단계: 본인 확인 처리 결과</div>
-        <div class="popup-display-zone">
-            <div class="embedded-result-popup" id="popupEmbedded3">
-                <div class="pop-icon-box"><i id="icoPop" class="fa-solid fa-circle-check"></i></div>
-                <div class="pop-title-text" id="txtPopTitle">본인 인증 상태</div>
-                <div class="pop-body-message" id="txtPopMessage">내용 조회 중...</div>
-                <button id="btnActionPop" class="btn-pop-next" onclick="executeStep3ConfirmNext()">확인</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- [4단계 PANEL] 자동으로 인증서 통과한 기존 등록 대상자 전용 참여비 신청 페이지 (표준 용어 전수 치환) -->
-    <div class="step-panel" id="layer4">
-        <div class="panel-header-title"><i class="fa-solid fa-money-check-dollar"></i> 4단계: 정산 정보 등록 및 참여비 신청</div>
-        <div id="ui_trial_card" class="trial-list-card">
-            <div class="trial-info" style="text-align: left;">
-                <span id="lblTrialCategory" class="badge bg-blue"></span>
-                <h4 id="lblTrialTitle">임상과제 정보 로딩 중...</h4>
-                <div class="meta-row">
-                    <div id="ui_target_name_zone" class="meta-item-flex"></div>
-                    <div id="ui_crc_name_zone"></div>
-                </div>
-            </div>
-            <div class="mobile-settlement-box">
-                <span id="cms-badge" class="badge bg-blue">참여\n(소집)</span>
-            </div>
-        </div>
+    <!-- 미디어 쿼리의 명령을 직접 받아 디바이스별 레이아웃 프레임을 실시간 가공하는 거치대 컨테이너 -->
+    <div class="responsive-master-wrapper">
         
-        <div class="status-history-bar">
-            <span>실시간 연결: <b style="color:#4ade80;">연결중 (Supabase)</b></span>
-            <span> 상태: <b id="history-log" style="color: #06B6D4;">승인 대기중</b></span>
+        <!-- PC 및 대형 태블릿 접속자 전용 인프라 안내 사이드 바 (스마트폰 접속 시 미디어 쿼리에 의해 원천 은폐) -->
+        <div class="pc-info-sidebar">
+            <h2>H+양지병원<br>임상시험 스마트 연동</h2>
+            <p>의생명연구원 대상자 전용 모바일 웹 플랫폼입니다. 다중 디바이스 환경에서 클라우드 데이터베이스 인프라를 활용하여 안전하고 신속한 실시간 데이터 처리를 지원합니다.</p>
+            
+            <ul class="system-feature-list">
+                <li><i class="fa-solid fa-circle-check"></i> <b>대상자</b> 간편인증 및 실시간 가입 승인 처리</li>
+                <li><i class="fa-solid fa-circle-check"></i> <b>참여비</b> 청구서 양식 및 증빙 서류 클라우드 전송</li>
+                <li><i class="fa-solid fa-circle-check"></i> Supabase Realtime 기술 기반 실시간 심사 현황 미러링</li>
+            </ul>
         </div>
 
-        <div class="mobile-settlement-box" style="background-color: #112240; border: 1px solid #1E293B; border-radius: 16px; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px;">
-            <div class="settlement-title">참여비 지급 신청 서식</div>
-            <div class="progress-status" id="ui_stage_text" style="background-color: #07132B; padding: 8px; border-radius: 6px; font-size: 11px; color: #94A3B8; border: 1px solid #1E293B; line-height: 1.4;">
-                <b>신청 검증 단계</b><br>
-                <span style="font-size:11px;color:#94A3B8;">* 관리자가 [신청가능] 상태를 승인하면 신청이 가능합니다</span>
-            </div>
-            <div class="form-grid" style="display: grid; grid-template-columns: 95px 1fr; gap: 6px;">
-                <select class="form-select" id="ui_bank_select" disabled style="height: 34px; background-color: #07132B; border: 1px solid #1E293B; border-radius: 6px; color: #FFF; padding: 0 8px; font-size: 11.5px; outline: none;">
-                    <option value="">은행 선택</option>
-                    <option value="국민">KB국민은행</option>
-                    <option value="우리">우리은행</option>
-                    <option value="하나">하나은행</option>
-                    <option value="신한">신한은행</option>
-                    <option value="농협">NH농협은행</option>
-                    <option value="카카오">카카오뱅크</option>
-                    <option value="토스">토스뱅크</option>
-                </select>
-                <input type="text" class="form-input" id="ui_bank_input" disabled placeholder="계좌번호 입력(숫자만)" style="height: 34px; background-color: #07132B; border: 1px solid #1E293B; border-radius: 6px; color: #FFF; padding: 0 8px; font-size: 11.5px; outline: none;">
-            </div>
-            
-            <div class="upload-box-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                <input type="file" id="real_file_id" accept="image/*" style="display: none;" onchange="handleFileSelect(this, 'id')">
-                <input type="file" id="real_file_bank" accept="image/*" style="display: none;" onchange="handleFileSelect(this, 'bank')">
-                
-                <div class="upload-box" id="doc_box_1">
-                    <div class="status-text" id="id_status_txt" style="font-weight: 700; color:#f87171; font-size:12px; line-height:1.4;">X 신분증 미첨부</div>
-                    <div class="btn-file-select" id="id_select_btn" onclick="triggerFileInput('id')">파일 선택</div>
-                </div>
-                <div class="upload-box" id="doc_box_2">
-                    <div class="status-text" id="bank_status_txt" style="font-weight:700; color:#f87171; font-size:12px; line-height: 1.4;">X 통장사본 미첨부</div>
-                    <div class="btn-file-select" id="bank_select_btn" onclick="triggerFileInput('bank')">파일 선택</div>
-                </div>
-            </div>
-            
-            <button id="ui_submit_btn" class="btn-submit-form" onclick="submitFinalSettlementForm()" disabled>관리자 승인 대기중 (신청 불가)</button>
-            <button type="button" id="ui_calendar_redirect_btn" class="btn-submit-form" onclick="navigateToStep(5)" style="display: none; background-color: #0284c7 !important; cursor: pointer !important; margin-top: 10px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">임상시험 일정 확인 (과제 완료)</button>
+        <!-- 컴포넌트 마운트 프레임: PHP include_once 구문을 활용해 알맹이 로그인 소스 컴포넌트를 수평 결합 -->
+        <div class="app-component-container">
+            <?php 
+                // [경로 소독 완착]: 별도의 /mobile/ 물리 서브폴더 경위를 걷어내고 루트에 동거하는 m-login.php를 직접 인클루드
+                include_once __DIR__ . './member/login.php'; 
+            ?>
         </div>
+
     </div>
 
-    <!-- [5단계 PANEL] 최초 방문 신규 대상자 전용 캘린더 다이렉트 임베드 패널 (용어 전수 소독 완착) -->
-    <div class="step-panel" id="layer5" style="padding: 12px 10px; display: none; height: 100%; flex-direction: column;">
-        <div class="panel-header-title" style="margin-bottom: 8px;">
-            <i class="fa-solid fa-calendar-days" style="color:#06B6D4;"></i> 인증 완료: 나의 임상시험 스케줄러 (신규)
-        </div>
-        <div style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.2); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; color: #e2e8f0;">
-            <strong id="lblSetTargetNew" style="color:#06B6D4;">-</strong> 최초 인증 대상자 가상 스케줄러 연동 완료
-        </div>
-        <div style="flex: 1; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; background: #0b0f19;">
-            <iframe src="m-calendar.html" id="mobileCalendarFrame" style="width: 100%; height: 100%; border: none; background: #0b0f19;" sandbox="allow-scripts allow-same-origin allow-modals"></iframe>
-        </div>
-    </div>
-</div>
+<!-- [반응형 이관]: 루트에 배치된 글로벌 프론트엔드 환경 제어 및 디바이스 식별 스크립트 로드 -->
+<script src="./main.js"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 <?php
+
 // 1. 보안 격리 서브폴더 내 데이터베이스 연결 인프라 로드
 require_once __DIR__ . '/database/dbcon.php';
 
@@ -14,16 +15,16 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>임상시험 스마트 연동 시스템 | H+양지병원 의생명연구원</title>
     
-    <!-- 글로벌 사내 전산망 공통 폰트어썸 아이콘 라이브러리 CDN 상속 -->
+    <!-- [경로 복원 🌟]: 글로벌 사내 전산망 공통 폰트어썸 아이콘 라이브러리 CDN 정식 주소 상속 -->
     <link rel="stylesheet" href="https://cloudflare.com">
     
     <!-- [반응형 이관]: 미디어 쿼리가 내장되어 PC/모바일 화면 전체를 총괄 제어하는 루트 마스터 스타일시트 바인딩 -->
     <link rel="stylesheet" href="./main.css">
     
-    <!-- Supabase 클라우드 전산망 연동 공식 JS SDK 엔진 주입 -->
+    <!-- [경로 복원 🌟]: Supabase 클라우드 전산망 연동 공식 JS SDK 엔진 정식 주소 주입 -->
     <script src="https://jsdelivr.net"></script>
 
-    <!-- [보안 리팩토링]: 서브폴더 dbcon.php 접속 자격 상수를 자바스크립트에 안전 전송 주입 -->
+    <!-- [순서 교정 락인 🌟]: 자바스크립트 엔진(main.js)이 돌기 전에 dbcon 접속 자격 상수를 가장 먼저 메모리에 완착시킴 -->
     <?php if (function_exists('injectSupabaseConfig')) { injectSupabaseConfig(); } ?>
 </head>
 <body>

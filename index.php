@@ -46,7 +46,7 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
         <!-- 컴포넌트 마운트 프레임: PHP include_once 구문을 활용해 알맹이 로그인 소스 컴포넌트를 수평 결합 -->
         <div class="app-component-container">
             <?php 
-                // [경로 소독 완착]: 별도의 /mobile/ 물리 서브폴더 경위를 걷어내고 루트에 동거하는 m-login.php를 직접 인클루드
+                // 
                 include_once __DIR__ . './member/login.php'; 
             ?>
         </div>

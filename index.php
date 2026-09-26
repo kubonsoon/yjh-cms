@@ -1,10 +1,10 @@
 <?php
-// 1. 보안 격리 서브폴더 내 클라우드 커넥션 인프라 로드
+// 1. 보안 격리 서브폴더 내 데이터베이스 연결 인프라 로드
 require_once __DIR__ . '/database/dbcon.php';
 
-// 2. 이미 로그인 세션이 안전하게 상주 중일 경우의 가드 락인 분기 제어 (필요시 세션 연동 개방)
+// 2. 이미 로그인 인증된 대상자의 세션이 상주할 경우의 가드 분기 (필요시 개방)
 if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName'])) {
-    // 자동 리디렉션 가드 프로토콜 활성화 구역
+    // 자동 진입 프로토콜 활성화 구역
 }
 ?>
 <!DOCTYPE html>
@@ -20,15 +20,15 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
     <!-- [반응형 이관]: 미디어 쿼리가 내장되어 PC/모바일 화면 전체를 총괄 제어하는 루트 마스터 스타일시트 바인딩 -->
     <link rel="stylesheet" href="./main.css">
     
-    <!-- Supabase 글로벌 클라우드 전산망 연동 공식 JS SDK 엔진 주입 -->
+    <!-- Supabase 클라우드 전산망 연동 공식 JS SDK 엔진 주입 -->
     <script src="https://jsdelivr.net"></script>
 
-    <!-- [보안 리팩토링]: 서브폴더 dbcon.php에 상주하는 클라우드 접속 anon 키 상수를 자바스크립트에 안전 전송 주입 -->
+    <!-- [보안 리팩토링]: 서브폴더 dbcon.php 접속 자격 상수를 자바스크립트에 안전 전송 주입 -->
     <?php if (function_exists('injectSupabaseConfig')) { injectSupabaseConfig(); } ?>
 </head>
 <body>
 
-    <!-- 미디어 쿼리의 명령을 직접 받아 디바이스별 레이아웃 프레임을 실시간 가공하는 거치대 컨테이너 -->
+    <!-- 미디어 쿼리의 명령을 직접 받아 기기별 레이아웃 프레임을 실시간 가공하는 거치대 컨테이너 -->
     <div class="responsive-master-wrapper">
         
         <!-- PC 및 대형 태블릿 접속자 전용 인프라 안내 사이드 바 (스마트폰 접속 시 미디어 쿼리에 의해 원천 은폐) -->
@@ -43,11 +43,11 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
             </ul>
         </div>
 
-        <!-- 컴포넌트 마운트 프레임: PHP include_once 구문을 활용해 알맹이 로그인 소스 컴포넌트를 수평 결합 -->
+        <!-- 컴포넌트 마운트 프레임: PHP include 구문을 활용해 일반 유저 전용 m-login 마크업 알맹이를 직접 결합 -->
         <div class="app-component-container">
             <?php 
-                // 
-                include_once __DIR__ . './member/login.php'; 
+                // [확정 설계안 연동]: member/login.php 파일을 실시간으로 인클루드 주입하여 대문 프레임에 마운트
+                include_once __DIR__ . '/member/login.php'; 
             ?>
         </div>
 

@@ -5,13 +5,13 @@ const supabase = createClient(
   window.CMS_CONFIG.SUPABASE_ANON_KEY,
 );
 
-let currentChannel = "";
-let currentChannelName = "";
-let matchedPatientData = null;
-let temporaryVerifiedName = "";
-let idCardFileObj = null; // 신분증 리얼 바이너리 파일 객체
-let bankBookFileObj = null; // 통장사본 리얼 바이너리 파일 객체
-let realtimeChannel = null;
+//let currentChannel = "";
+//let currentChannelName = "";
+//let matchedPatientData = null;
+//let temporaryVerifiedName = "";
+//let idCardFileObj = null; // 신분증 리얼 바이너리 파일 객체
+//let bankBookFileObj = null; // 통장사본 리얼 바이너리 파일 객체
+//let realtimeChannel = null;
 
 // 모바일 화면 인터페이스 패널 순차적 제어 스위칭 엔진
 function navigateToStep(stepNumber) {

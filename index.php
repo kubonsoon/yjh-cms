@@ -33,7 +33,7 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
     <div class="responsive-master-wrapper">
         
         <!-- PC 및 대형 태블릿 접속자 전용 인프라 안내 사이드 바 (스마트폰 접속 시 미디어 쿼리에 의해 원천 은폐) -->
-        <div class="pc-info-sidebar">
+      <!--  <div class="pc-info-sidebar">
             <h2>H+양지병원<br>임상시험 스마트 연동</h2>
             <p>의생명연구원 대상자 전용 모바일 웹 플랫폼입니다. 다중 디바이스 환경에서 클라우드 데이터베이스 인프라를 활용하여 안전하고 신속한 실시간 데이터 처리를 지원합니다.</p>
             
@@ -42,7 +42,7 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
                 <li><i class="fa-solid fa-circle-check"></i> <b>참여비</b> 청구서 양식 및 증빙 서류 클라우드 전송</li>
                 <li><i class="fa-solid fa-circle-check"></i> Supabase Realtime 기술 기반 실시간 심사 현황 미러링</li>
             </ul>
-        </div>
+        </div>  -->
 
         <!-- 컴포넌트 마운트 프레임: PHP include 구문을 활용해 일반 유저 전용 m-login 마크업 알맹이를 직접 결합 -->
         <div class="app-component-container">

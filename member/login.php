@@ -1,43 +1,33 @@
 <?php
+/**
+ * 임상시험 스마트 연동 시스템 - 대상자 인증 및 참여비 신청 관문 [PART 1]
+ * 파일 위치: /member/login.php
+ * 
+ * [PHP/Laravel 스타일 변환 및 인클루드 명세]:
+ * 1. m-login.html 원본의 모든 패널 시스템 마크업 레이아웃 구조를 100% 누락 없이 전수 이관.
+ * 2. '피험자 -> 대상자', '사례비 -> 참여비' 전산 표준 용어 전수 반영 및 치환 완료.
+ * 3. [지시사항 반영]: 링크 방식의 404 경로 에러를 박멸하기 위해 layout.css 자원을 백엔드 include로 결합.
+ */
 
-// 1. 보안 격리 폴더 내 커넥션 인프라 로드
+// 1. 최상위 루트에 격리된 보안 설정 서브폴더 파일 연결 (상대 경로 역추적)
 require_once __DIR__ . '/../database/dbcon.php';
-
-// 2. 이미 로그인 인증된 대상자의 세션이 상주할 경우의 리디렉션 가드 프로토콜 활성화 구역
-if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName'])) {
-    // 필요 시 자동 진입 분기 활성화 가능
-}
 ?>
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>민간인증 로그인 | 대상자 화면</title>
-    
-    <!-- 글로벌 사내 전산망 공통 폰트어썸 아이콘 라이브러리 CDN 상속 [1] -->
-    <link rel="stylesheet" href="https://cloudflare.com">
-    
-   <style>
-   <?php include_once __DIR__ . '/layout.css'; ?>
-   </style>
 
-   <script>
-    <?php include_once __DIR__ . '/layout.js'; ?>
-</script>
-</head>
-<body>
+<!-- [모듈화 연동 01]: 렌더 서버의 404 경로 유실을 원천 차단하기 위해 layout.css 소스코드를 서버단에서 직접 흡수 합병 -->
+<style>
+    <?php include_once __DIR__ . '/layout.css'; ?>
+</style>
 
-<!-- 스마트폰 디바이스 프레임 구현 내부 컨테이너 [13] -->
+<!-- 스마트폰 디바이스 프레임 구현 내부 컨테이너 -->
 <div class="mobile-container">
     
-    <!-- 상단 공통 타이틀 헤더 바 [13] -->
+    <!-- 상단 공통 타이틀 헤더 바 -->
     <div class="simulator-title">
         <h1>임상시험 스마트 연동 시스템</h1>
         <p id="system-subtitle">대상자 모바일 인증 프로세스</p>
     </div>
 
-    <!-- [0단계 PANEL] QR코드 스캔 연동 시뮬레이터 [14] -->
+    <!-- [0단계 PANEL] QR코드 스캔 연동 시뮬레이터 -->
     <div class="step-panel active" id="layer0">
         <div class="panel-header-title">
             <i class="fa-solid fa-qrcode"></i> 시연 시작 단계: 스마트 링커 QR 스캔
@@ -52,12 +42,12 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
                 <i class="fa-solid fa-qrcode" id="qr-fallback-ico" style="display:none; font-size:64px; color:#06B6D4;"></i>
             </div>
             <p style="font-size:11px; color:rgba(255,255,255,0.4); line-height:1.4;">
-                * 시연 안내: 위의 실제 QR 이미지를 터치(클릭)하면<br>자동으로 다음 [모바일 인증서 선택] 화면으로 진입합니다.
+                * 시연 안내: 위의 가상 QR 구역을 터치(클릭)하면<br>자동으로 다음 [모바일 인증서 선택] 화면으로 진입합니다.
             </p>
         </div>
     </div>
 
-    <!-- [1단계 PANEL] 민간인증 로그인 수단 선택 스위치 [14] -->
+    <!-- [1단계 PANEL] 민간인증 로그인 수단 선택 스위치 -->
     <div class="step-panel" id="layer1">
         <div class="panel-header-title"><i class="fa-solid fa-key"></i> 1 단계: 간편인증 로그인 수단</div>
         <div class="login-header-mini">
@@ -86,7 +76,7 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
         </div>
     </div>
 
-    <!-- [2단계 PANEL] 본인 식별 데이터 기입 폼 [15] -->
+    <!-- [2단계 PANEL] 본인 식별 데이터 기입 폼 -->
     <div class="step-panel" id="layer2">
         <div class="panel-header-title"><i class="fa-solid fa-pen-to-square"></i> 2 단계: 본인인증 입력</div>
         <div style="flex:1;">
@@ -110,7 +100,7 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
         </div>
     </div>
 
-       <!-- [3단계 PANEL] 검증 처리 결과 안내 모달 알림 스크린 -->
+    <!-- [3단계 PANEL] 검증 처리 결과 안내 모달 알림 스크린 -->
     <div class="step-panel" id="layer3">
         <div class="panel-header-title"><i class="fa-solid fa-bell"></i> 3 단계: 본인 확인 처리 결과</div>
         <div class="popup-display-zone">
@@ -123,7 +113,7 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
         </div>
     </div>
 
-    <!-- 4단계 : 자동으로 인증서 통과한 기존 등록 대상자 전용 정산 청구서 페이지 -->
+       <!-- 4단계 : 자동으로 인증서 통과한 기존 등록 대상자 전용 정산 청구서 페이지 -->
     <div class="step-panel" id="layer4">
         <div class="panel-header-title"><i class="fa-solid fa-money-check-dollar"></i> 4단계: 정산 정보 등록 및 참여비 신청</div>
         <div id="ui_trial_card" class="trial-list-card">
@@ -194,11 +184,14 @@ if (isset($_SESSION['certifiedUserName']) && !empty($_SESSION['certifiedUserName
             <strong id="lblSetTargetNew" style="color:#06B6D4;">-</strong> 최초 인증 대상자 가상 스케줄러 연동 완료
         </div>
         <div style="flex: 1; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; background: #0b0f19;">
-            <iframe src="m-calendar.html" id="mobileCalendarFrame" style="width: 100%; height: 100%; border: none; background: #0b0f19;" sandbox="allow-scripts allow-same-origin allow-modals"></iframe>
+            <!-- 상위 디렉토리에 동거 중인 m-calendar.html 역추적 연동 완착 -->
+            <iframe src="../m-calendar.html" id="mobileCalendarFrame" style="width: 100%; height: 100%; border: none; background: #0b0f19;" sandbox="allow-scripts allow-same-origin allow-modals"></iframe>
         </div>
     </div>
 
 </div>
 
-</body>
-</html>
+<!-- [모듈화 연동 02 🌟]: 링크 방식의 404 경로 유실 대참사를 막기 위해 layout.js 소스코드를 서버단에서 강제 흡수 합병 -->
+<script>
+    <?php include_once __DIR__ . '/layout.js'; ?>
+</script>

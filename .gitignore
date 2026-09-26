@@ -1,0 +1,34 @@
+# =======================================================================
+# 임상시험 관리 시스템 (CMS) - GitHub 소스 유출 방어 및 환경 오염 차단 명세
+# 파일 위치: /.gitignore
+# =======================================================================
+
+# 1. 최우선 보안 격리 대상 (실제 DB 접속 키가 담긴 파일 및 로컬 환경변수 파일)
+config.php
+.env
+*.env.local
+*.env.development.local
+*.env.production.local
+
+# 2. VS Code 개발 환경 편집기 설정 및 개인 찌꺼기 폴더 차단
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# 3. 운영체제(OS)가 백그라운드에서 자동 생성하는 임시 인덱스 파일 격리
+Thumbs.db
+Ehthumbs.db
+Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 4. 서버 및 애플리케이션 런타임 로그 및 캐시 자원 제외
+*.log
+logs/
+*.gz
+/vendor/

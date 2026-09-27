@@ -450,9 +450,13 @@
                         <div class="form-group">
                             <label>참여상태</label>
                             <select id="form-app-stage">
-                                <option value="소집" selected>소집</option>
-                                <option value="투약" selected>투약</option>
-                                <option value="종료" selected>종료</option>
+                                <option value="신검대기" selected>신검대기</option>
+                                <option value="신검통과">신검통과</option>
+                                <option value="신검탈락">신검탈락</option>
+                                <option value="신검동철">신검동철</option>
+                                <option value="소집">소집</option>
+                                <option value="투약">투약</option>
+                                <option value="종료">종료</option>
                                 <option value="예비귀가">예비귀가</option>
                                 <option value="검사탈락">검사탈락</option>
                                 <option value="개인사정">개인사정</option>
@@ -476,6 +480,47 @@
 
                     </div>
                 </div>
+
+
+                <!-- [신설] 대상자 마스터 검색 컨트롤 패널 패널 (수동 폼과 목록 테이블 사이 배치) -->
+                <div class="dashboard-search-filter-bar"
+                    style="width: 100%; margin-top: 10px; margin-bottom: 20px; padding: 16px; background: var(--card-color); border: 1px solid var(--border-color); border-radius: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 12px; flex-wrap: nowrap;">
+
+                    <!-- 1. 안내 라벨 -->
+                    <span
+                        style="font-size: 13px; font-weight: 700; color: var(--secondary-color); white-space: nowrap;">
+                        <i class="fa-solid fa-magnifying-glass"></i> 대상자 통합 검색:
+                    </span>
+
+                    <!-- 2. 연도 체인 셀렉터 -->
+                    <select id="dashboard-filter-year"
+                        style="width: 110px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
+                        <option value="ALL">-연도-</option>
+                    </select>
+
+                    <!-- 3. 월 체인 셀렉터 -->
+                    <select id="dashboard-filter-month"
+                        style="width: 100px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
+                        <option value="ALL">-월-</option>
+                    </select>
+
+                    <!-- 4. 시험명 자동 매핑 셀렉터 (기존 ID 유지하여 통계 연산선 승계) -->
+                    <select id="dashboard-filter-title" onchange="updateDashboardThOptions()"
+                        style="max-width: 300px; flex: 1; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
+                        <option value="ALL">-전체 시험 목록-</option>
+                    </select>
+
+                    <!-- 5. 성명 텍스트 검색 인풋 -->
+                    <input type="text" id="search-app-name" placeholder="대상자 성명 검색 (예: 홍길동)"
+                        style="width: 200px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; outline: none;">
+
+                    <!-- 6. 강력한 검색 실행 단추 -->
+                    <button type="button" id="btn-filter-search" onclick="executeCombinedSearchPipeline()"
+                        style="height: 36px; padding: 0 16px; background: var(--secondary-color); color: #fff; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">검색
+                        실행</button>
+                </div>
+
+
                 <!-- [대상자 목록 출력]  -->
                 <div class="table-responsive">
                     <table>
@@ -2112,7 +2157,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 const tr = document.createElement('tr');
                 tr.style.display = "table-row";
 
-                // 1. 참여비 1~3차 지급 정산 일정이 모두 채워졌다면 참여상태를 '종료'로 자동 변환 [index: 0.1.57]
+                // 1. 참여비 1~3차 지급 정산 일정이 모두 채워졌다면 참여상태를 '종료'로 자동 변환
                 const hasPay1 = row.payDate1 && row.payDate1.trim() !== "";
                 const hasPay2 = row.payDate2 && row.payDate2.trim() !== "";
                 const hasPay3 = row.payDate3 && row.payDate3.trim() !== "";
@@ -2121,30 +2166,50 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     row.stage = "종료";
                 }
 
-                const currentStage = row.stage ? row.stage.toString().trim() : "소집";
+                const currentStage = row.stage ? row.stage.toString().trim() : "신검대기";
 
-                // 2. 피드백 사양 반영: 4대 배지 스타일 및 소집 상태 시 이름 링크 클릭 완전 봉쇄 [index: 0.1.1, 0.1.33]
+                // 2. 피드백 사양 반영: 4대 배지 스타일 및 소집 상태 시 이름 링크 클릭 완전 봉쇄 
                 let stageBadgeStyle = "";
                 let nameLinkActionHTML = "";
 
-                if (currentStage === "소집") {
-                    // 🔵 소집: 파란색 배지 + 이름 클릭 완전 잠금 (pointer-events 및 회색 최적화) [index: 0.1.1]
-                    stageBadgeStyle = "color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important; padding: 4px 8px; font-size:11px; display: inline-block; border-radius: 4px;";
+                if (currentStage === "신검대기") {
+                    // 신검대기: 인디고 보라색 배지 + 초기 돔 크래시 방어선 이름 링크 잠금 락인
+                    stageBadgeStyle = "color: #c084fc !important; background: rgba(168, 85, 247, 0.15) !important; border: 1px solid #a855f7 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = `<a style="pointer-events: none !important; opacity: 0.65; cursor: not-allowed; text-decoration: none; color: #94a3b8;">${row.name || '-'}</a>`;
+                }
+                else if (currentStage === "신검통과") {
+                    // 신검통과: 네온 오렌지색 배지 + 이력 모달 연동 링크 개방
+                    stageBadgeStyle = "color: #fb923c !important; background: rgba(249, 115, 22, 0.15) !important; border: 1px solid #f97316 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+                }
+                else if (currentStage === "신검탈락") {
+                    // 신검탈락: 부적합 판정이므로 고대비 연한 빨간색 배지 적용
+                    stageBadgeStyle = "color: #f87171 !important; background: rgba(239, 68, 68, 0.15) !important; border: 1px solid #f87171 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+                }
+                else if (currentStage === "신검동철") {
+                    // 신검동철: 동의 철회이므로 차분한 슬레이트 그레이 배지 적용
+                    stageBadgeStyle = "color: #94a3b8 !important; background: rgba(148, 163, 184, 0.12) !important; border: 1px solid #64748b !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+                }
+                else if (currentStage === "소집") {
+                    // 소집: 파란색 배지 + 이름 클릭 완전 잠금 (pointer-events 및 회색 최적화) [index: 0.1.1]
+                    stageBadgeStyle = "color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
                     nameLinkActionHTML = `<a style="pointer-events: none !important; opacity: 0.65; cursor: not-allowed; text-decoration: none; color: #94a3b8;">${row.name || '-'}</a>`;
                 }
                 else if (currentStage === "투약") {
-                    // 🟢 투약: 연두색 배지 [index: 0.1.1]
-                    stageBadgeStyle = "color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important; padding: 4px 8px; font-size:11px; display: inline-block; border-radius: 4px;";
+                    // 투약: 연두색 배지 [index: 0.1.1]
+                    stageBadgeStyle = "color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 limportant; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
                     nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
                 }
                 else if (currentStage === "종료") {
-                    // ⚪ 종료: 회색 배지 [index: 0.1.1]
-                    stageBadgeStyle = "color: #cbd5e1 !important; background: rgba(148, 163, 184, 0.15) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; padding: 4px 8px; font-size:11px; display: inline-block; border-radius: 4px;";
+                    // 종료: 회색 배지 [index: 0.1.1]
+                    stageBadgeStyle = "color: #cbd5e1 !important; background: rgba(148, 163, 184, 0.15) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
                     nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
                 }
                 else {
-                    // 🔴 나머지 중도탈락 사유 전체: 고대비 빨간색 배지 일괄 적용 [index: 0.1.1, 0.1.33]
-                    stageBadgeStyle = "color: #f87171 !important; background: rgba(239, 68, 68, 0.15) !important; border: 1px solid #ef4444 !important; font-weight: 800 !important; padding: 4px 8px; font-size:11px; display: inline-block; border-radius: 4px;";
+                    // 나머지 중도탈락 사유 전체: 고대비 빨간색 배지 일괄 적용 [index: 0.1.1, 0.1.33]
+                    stageBadgeStyle = "color: #f87171 !important; background: rgba(239, 68, 68, 0.15) !important; border: 1px solid #ef4444 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
                     nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
                 }
 
@@ -2286,23 +2351,27 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
     <td style="width: 11%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>
-       <td style="width: 6.5%; vertical-align: middle; text-align: center;">
-        <select id="inline-app-stage-${masterIndex}" class="inline-input" style="height:30px; padding:2px; background: #1e293b !important; font-weight: 700; color: #ffffff !important; text-align: center; cursor: pointer;">
-            <!-- 정상 진행 프로세스 표준 단계 옵션 매핑 (기존 '참여' 탈피) -->
-            <option value="소집" ${row.stage === '소집' || !row.stage ? 'selected' : ''}>소집</option>
-            <option value="투약" ${row.stage === '투약' ? 'selected' : ''}>투약</option>
-            <option value="종료" ${row.stage === '종료' ? 'selected' : ''}>종료</option>
-            
-            <!-- 중도탈락군 표준 사유 사양 유지 -->
-            <option value="예비귀가" ${row.stage === '예비귀가' ? 'selected' : ''}>예비귀가</option>
-            <option value="검사탈락" ${row.stage === '검사탈락' ? 'selected' : ''}>검사탈락</option>
-            <option value="개인사정" ${row.stage === '개인사정' ? 'selected' : ''}>개인사정</option>
-            <option value="규정위반" ${row.stage === '규정위반' ? 'selected' : ''}>규정위반</option>
-            <option value="임의행동" ${row.stage === '임의행동' ? 'selected' : ''}>임의행동</option>
-            <option value="욕설폭행" ${row.stage === '욕설폭행' ? 'selected' : ''}>욕설폭행</option>
-            <option value="기타탈락" ${row.stage === '기타탈락' ? 'selected' : ''}>기타탈락</option>
-        </select>
-    </td>
+      <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+<select id="inline-app-stage-${masterIndex}" class="inline-input" style="height: 30px; padding: 2px; background: #1e293b !important; font-weight: 700; color: #ffffff !important; text-align: center; cursor: pointer; ">
+<!-- 정상 진행 프로세스 표준 단계 옵션 매핑 (기존 '참여' 탈피) -->
+<option value="신검대기" ${row.stage === '신검대기' ? 'selected' : ''}>신검대기</option>
+<option value="신검통과" ${row.stage === '신검통과' ? 'selected' : ''}>신검통과</option>
+<option value="신검탈락" ${row.stage === '신검탈락' ? 'selected' : ''}>신검탈락</option>
+<option value="신검동철" ${row.stage === '신검동철' ? 'selected' : ''}>신검동철</option>
+<option value="소집" ${row.stage === '소집' || !row.stage ? 'selected' : ''}>소집 </option>
+<option value="투약" ${row.stage === '투약' ? 'selected' : ''}>투약</option>
+<option value="종료" ${row.stage === '종료' ? 'selected' : ''}>종료</option>
+
+<!-- 중도탈락군 표준 사유 사양 유지 -->
+<option value="예비귀가" ${row.stage === '예비귀가' ? 'selected' : ''}>예비귀가</option>
+<option value="검사탈락" ${row.stage === '검사탈락' ? 'selected' : ''}>검사탈락</option>
+<option value="개인사정" ${row.stage === '개인사정' ? 'selected' : ''}>개인사정</option>
+<option value="규정위반" ${row.stage === '규정위반' ? 'selected' : ''}>규정위반</option>
+<option value="임의행동" ${row.stage === '임의행동' ? 'selected' : ''}>임의행동</option>
+<option value="욕설폭행" ${row.stage === '욕설폭행' ? 'selected' : ''}>욕설폭행</option>
+<option value="기타탈락" ${row.stage === '기타탈락' ? 'selected' : ''}>기타탈락</option>
+</select>
+</td>
     <td style="width: 9%; vertical-align: middle; text-align: center;">
         <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
             <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
@@ -2735,7 +2804,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 result: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].result || "대기"),
                 payStatus: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus || "대기"),
 
-                // 🎯 [3단 분할 참여비 독립 채널]: 1차 정산 배지도 예외 없이 완전히 "대기" 상태로 탄생시킵니다. [index: 0.1.33]
+                // 🎯 [3단 분할 참여비 독립 채널]: 1차 정산 배지도 예외 없이 완전히 "대기" 상태로 탄생시킵니다.
                 payStatus1: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus1 || "대기"),
                 payStatus2: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus2 || "대기"),
                 payStatus3: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].payStatus3 || "대기"),
@@ -2744,11 +2813,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 isCallAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isCallAgreed || "대기"),
                 isAgreed: editIndex === "" ? "대기" : (dataStoreApplicant[editIndex].isAgreed || "대기"),
 
-                // 선택된 참여경로(알바몬, M인증 등) 및 가변 상태 주입 [index: 0.1.33]
+                // 선택된 참여경로(알바몬, M인증 등) 및 가변 상태 주입
                 category: cat,
 
-                // ⚡ [수정 교정점]: 신규 폼 등록 유입자는 수동 선택값을 무시하고 무조건 초기값 "소집"으로 락업 인젝션
-                stage: editIndex === "" ? "소집" : stg,
+                // 신규 폼 등록 유입자는 무조건 초기값 "신검대기"으로 락업 인젝션
+                stage: editIndex === "" ? "신검대기" : stg,
 
                 idCard: editIndex === "" ? true : (dataStoreApplicant[editIndex].idCard !== undefined ? dataStoreApplicant[editIndex].idCard : true),
                 bankbook: editIndex === "" ? true : (dataStoreApplicant[editIndex].bankbook !== undefined ? dataStoreApplicant[editIndex].bankbook : true),
@@ -2763,7 +2832,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // =========================================================================
             try {
                 if (editIndex === "") {
-                    // [A. 신규 등록 모드]: 무조건 초기값을 "대기"로 격리 락업 [index: 0.1.33]
+                    // [A. 신규 등록 모드]: 무조건 초기값을 "대기"로 격리 락업 
                     payload.result = "대기";
                     payload.payStatus = "대기";
                     payload.payStatus1 = "대기";
@@ -2772,8 +2841,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     payload.isCallAgreed = "대기";
                     payload.isAgreed = "대기";
 
-                    // ⚡ [자동화 파이프라인 규칙]: 폼 등록 유입자는 강제로 무조건 '소집' 상태로 락인
-                    payload.stage = "소집";
+                    // 폼 등록 유입자는 강제로 무조건 '소집' 상태로 락인
+                    payload.stage = "신검대기";
 
                     // 최신 대상자가 목록 맨 위(0번)에 안착하도록 unshift 적용 (순정 원형 유지) [index: 0.1.33]
                     dataStoreApplicant.unshift(payload);
@@ -2806,7 +2875,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     /* ==================== 🎯 [B분기] 보안 로그 실시간 추가 ==================== */
                     /* 수정 유형: [추가] 인풋 폼을 통한 기존 대상자 마스터 레코드 업데이트 성공 로그 마운트 */
                     if (typeof insertSystemAuditLog === "function") {
-                        insertSystemAuditLog("수정", `대상자 [${n}] 인풋 폼 정보 갱신 처리 (상태: ${payload.stage || "소집"})`);
+                        insertSystemAuditLog("수정", `대상자 [${n}] 인풋 폼 정보 갱신 처리 (상태: ${payload.stage || "신검대기"})`);
                     }
                     /* ========================================================================= */
 
@@ -2850,7 +2919,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     if (elCategory) elCategory.value = "수동등록";
 
                     // ⚡ [오류 원천 분쇄 교정]: 구형 '참여' 옵션을 지우고 표준 진입점인 '소집'으로 원형 회귀 초기화
-                    if (elStage) elStage.value = "소집";
+                    if (elStage) elStage.value = "신검대기";
 
                     if (editIndex) editIndex.value = "";
 
@@ -2979,7 +3048,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                 // ⚡ [여기서부터 신설 2대 필드 가변 데이터 원천 락인 주입 및 교정 구간]
                 category: elCategory ? elCategory.value : (origin.category || "수동등록"),
-                stage: elStage ? elStage.value : (origin.stage || "소집") // 수정에 맞춰 '소집' 베이스 연동 보존
+                stage: elStage ? elStage.value : (origin.stage || "신검대기") // 수정에 맞춰 '소집' 베이스 연동 보존
             };
 
             try {

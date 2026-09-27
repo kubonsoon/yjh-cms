@@ -7406,8 +7406,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
 
         /* =========================================================================
-       [대상자 검색: 상단의 데이터 통계와 별도]
-       ========================================================================= */
+     [대상자 검색: 상단의 데이터 통계와 별도]
+     ========================================================================= */
 
         // 최초 화면 진입 시에는 전체 노출을 유지하게 통제하는 독립 검색 상태 가드 스위치 변수
         window.isCustomSearchActive = false;
@@ -7468,28 +7468,44 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const selMonth = fMonth ? fMonth.value : "ALL";
             const curSelected = fTitleSelect.value;
 
+            // 모집공고 마스터 데이터 저장소 정품 로드
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
             fTitleSelect.innerHTML = '<option value="ALL">-전체 시험 목록-</option>';
             let targetTitles = [];
 
-            // 공고 원장의 소집일자 스트링에서 매칭 토큰을 검문하는 독립 디펜스 가드
+            // [직관적 관문 스캔 알고리즘]: 글자수 자릿수 깨짐 없이 정직하게 1:1 문자열 비교 검문 수행
             const isSearchDateMatched = (dateStr) => {
                 if (!dateStr) return false;
-                const clean = dateStr.toString().replace(/[^0-9-]/g, "").trim();
-                const parts = clean.split('-');
-                const matchYear = (selYear === "ALL" || parts === selYear);
-                const matchMonth = (selMonth === "ALL" || (parts && String(parts).padStart(2, '0') === selMonth));
+
+                // 특수문자 정제 후 순수 숫자와 대시 패턴만 추출 (예: "2025-07-22")
+                const cleanDate = dateStr.toString().replace(/[^0-9-]/g, "").trim();
+                const dateParts = cleanDate.split('-');
+
+                if (!dateParts || dateParts.length < 2) return false;
+
+                const rowYear = dateParts[0].trim();                      // 앞 4자리 연도 문자열
+                const rowMonth = String(dateParts[1]).padStart(2, '0');     // 중간 2자리 월 문자열 보정
+
+                // 연도와 월 조건 교차 검증 검문선 통과 제어
+                const matchYear = (selYear === "ALL" || rowYear === selYear);
+                const matchMonth = (selMonth === "ALL" || rowMonth === selMonth);
+
                 return matchYear && matchMonth;
             };
 
+            // 소집일자 조건에 완벽히 매치되는 진짜 살아있는 시험명만 추출 수집
             recruitmentDB.forEach(row => {
                 if (row.title && (selYear === "ALL" || isSearchDateMatched(row.recDate))) {
                     const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
-                    if (cleanTitle && !targetTitles.includes(cleanTitle)) targetTitles.push(cleanTitle);
+                    // 중복 리스트 스퀴즈 압착 가드 적용
+                    if (cleanTitle && !targetTitles.includes(cleanTitle)) {
+                        targetTitles.push(cleanTitle);
+                    }
                 }
             });
 
+            // 가나다순 정렬 가동 후 3번째 독립 상자 자리에 알아서 자동으로 실물 옵션 주입 사출
             targetTitles.sort().forEach(t => {
                 const option = document.createElement('option');
                 option.value = t;
@@ -7497,11 +7513,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 fTitleSelect.appendChild(option);
             });
 
+            // 유령 공백 소독 후 기존 선택되어 있던 값 안전하게 상속 복원 유지
             if (targetTitles.includes(curSelected.toString().replace(/\s+/g, ' ').trim())) {
                 fTitleSelect.value = curSelected.toString().replace(/\s+/g, ' ').trim();
             } else {
                 fTitleSelect.value = 'ALL';
             }
+
+            console.log(`🎯 [독립 엔진 연산] ${selYear}년 ${selMonth}월 기준 총 ${targetTitles.length}개의 시험명 자동 사출 완착.`);
         }
 
         // 5. [2단계 - 마스터 검색 버튼]: 연월일 시험명이 좁혀진 상태에서 최종 성명(홍길동) 수색을 집행하는 최종 단추 함수

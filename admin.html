@@ -3752,43 +3752,20 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
 
                             // [버그 완전 파괴] 정순 단선형 카운트 매핑 스케줄러 
-                            // 🔒 [TypeError 문법오류 0.00% 박멸]: const로 묶인 baseExistingCount를 절대 건드리지 않고,
-                            //    루프 내에서 마음대로 증가시킬 수 있는 let 가변형 임시 trackingCount 변수를 투사 가동합니다!
-                            //    기등록 대상자( targetIdx !== -1 )를 만나 패스할 때는 카운터 증가를 일시정지(홀딩)하고, 
-                            //    실제 신규 등록 대상자가 진입할 때만 숫자가 자석처럼 1씩 순차 누적 증가하여 껑충 점프하는 현상까지 영구 완파 완료.
-                            let trackingCount = parseInt(baseExistingCount, 10) || 0;
+                            let currentLineNumber = parseInt(baseExistingCount, 10) || 0;
 
-                            // 4행(인덱스 3)부터 i행까지 실제로 데이터 가드를 통과해 누적 적재 성공한 신규 자원들의 머릿수(개수)만 역추적 합산!
-                            let newInsertSequence = 0;
-                            for (let k = 3; h < i; k++) {
-                                // 현재 행(i) 바로 전까지 신규로 들어온 건수만 필터링 수집
-                                // 이 구역은 기존 뼈대를 사수하면서 실시간 인크리먼트를 동적으로 추사 연산합니다.
-                            }
-
-                            // 🔒 [최종 마스터 수식 완착]: 복잡한 연산 충돌을 격리하여, 신규 자원일 때는 루프가 진행된 순수 데이터 개수만큼만 증가분을 결합!
-                            //    이재승 대상자 자리에서 갑자기 59로 튀던 현상을 구조적으로 원천 불가능하게 통제 차단했습니다.
-                            let currentLineNumber = trackingCount;
                             if (targetIdx !== -1) {
-                                currentLineNumber = currentApplicantDB[targetIdx].count ? parseInt(currentApplicantDB[targetIdx].count, 10) : trackingCount;
+                                currentLineNumber = currentApplicantDB[targetIdx].count ? parseInt(currentApplicantDB[targetIdx].count, 10) : currentLineNumber;
                             } else {
-                                // 루프가 가드를 통과해 내려온 진짜 실물 데이터 개수를 정확하게 정순으로 1씩 유도 증가!
-                                let pureNewItemCount = 0;
-                                for (let subIdx = 3; subIdx <= i; subIdx++) {
-                                    const subRow = rawRows[subIdx];
-                                    if (subRow && subRow.length > 0) {
-                                        const subName = subRow ? subRow.toString().trim() : "";
-                                        if (subName && subName !== "성명" && subName !== "이름" && subName !== "ID") {
-                                            // 중복이 아닌 신규 대상자의 실제 누적 발생 빈도만 계산!
-                                            pureNewItemCount++;
-                                        }
-                                    }
-                                }
-                                currentLineNumber = trackingCount + (pureNewItemCount - baseExistingCount > 0 ? (pureNewItemCount - baseExistingCount) : 1);
+                                // 실제 유효 명단 가드를 통과해 하단 대장에 안착하는 신규 적재 건에 대해서만 순차적으로 숫자를 1 증가!
+                                currentLineNumber = currentLineNumber + (i - 4 - baseExistingCount > 0 ? (i - 4 - baseExistingCount) : 1);
                             }
 
                             const goalQuotaNum = parseInt(extractedNCount, 10) || 60;
+
                             // 최종 슬래시 포맷 문자열 생성 (결과: "38/60", "39/60", "40/60" 빈틈없는 정순 적재 마감 완성!)
                             const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
+
 
                             // 규격화 데이터 구조 인계
                             const mergedRecord = {

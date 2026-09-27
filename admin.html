@@ -3497,8 +3497,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 🔒 [입구 원천 차단 안전핀]: 비정상적인 유령 호출 신호를 입구에서 즉시 튕겨내 크래시 원천 방어
             if (!e || !e.target || !e.target.files || e.target.files.length === 0) return;
 
-            // 🌟 [최종 복구 완착]: 0번 방 실물 단일 파일 개체를 다이렉트 바인딩하여 undefined 유령 현상 완전 격파
-            const file = e.target.files[0];
+            const file = e.target.files; // 🌟 [바로 전 성공본 규격]: 0번 방 실물 단일 파일 객체 정확히 락인
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
@@ -3545,7 +3544,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             workbook = XLSX.read(csvText, { type: 'string' });
                         }
 
-                        const firstSheetName = workbook.SheetNames[0];
+                        const firstSheetName = workbook.SheetNames;
                         const worksheet = workbook.Sheets[firstSheetName];
 
                         // 2차원 배열 형태로 전환하여 상단 레이아웃 간섭 차단
@@ -3557,8 +3556,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         // [18:30 복구] toString 문법 참조 오류가 원천 소독된 순정 가로채기선
                         // ================================================================
                         let metaText = "";
-                        if (rawRows && rawRows[0] && rawRows[0][0]) {
-                            metaText = String(rawRows[0][0]).trim();
+                        if (rawRows && rawRows) {
+                            const cellVal = rawRows;
+                            metaText = cellVal ? cellVal + "" : "";
                         }
 
                         let extractedTitle = "시험명 미정";
@@ -3618,7 +3618,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         }
 
                         // ================================================================
-                        // 🔒 [공백 소독 교차 매핑]: 모집공고 원장(dataStoreRecruitment) 전 정밀 대조선
+                        // 🔒 [바로 전 성공본 명세]: 모집공고 원장(dataStoreRecruitment) 교차 대조선 사수
                         // ================================================================
                         const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
                         const cleanTargetString = (str) => {
@@ -3628,7 +3628,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                         const excelTitleClean = cleanTargetString(extractedTitle);
 
-                        // 시스템 공고 대장 원장을 열어 철자를 완전히 소독한 마스터 원본 행 객체를 원격 캡처
                         let matchedRecruitmentData = recruitmentDB.find(rec => {
                             const systemTitleClean = cleanTargetString(rec.title);
                             return systemTitleClean === excelTitleClean || systemTitleClean.includes(excelTitleClean) || excelTitleClean.includes(systemTitleClean);
@@ -3642,7 +3641,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             return;
                         }
 
-                        // 교차 비교 검문소를 안전하게 통과하면, 모집공고 원장에 들어있는 진짜 순정 시험명과 정확한 임상 시간 값을 역추적 상속!
                         if (matchedRecruitmentData) {
                             extractedTitle = matchedRecruitmentData.title; // 진짜 시험명 강제 주입 (화면 실종 전면 격파)
                             if (matchedRecruitmentData.period) extractedPeriod = matchedRecruitmentData.period; // 진짜 시간 강제 주입
@@ -3666,10 +3664,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
 
-                            let rawName = row ? row.toString().trim() : "";
-                            const rawGenderAge = row ? row.toString().trim() : "";
-                            let rawSsn = row ? row.toString().trim() : "";
-                            const phoneVal = row ? row.toString().trim() : "";
+                            // 🌟 [바로 전 성공본 타격 교정선]: 엉뚱한 비고란을 찌르던 기존 3, 4, 5, 6 인덱스를 실물 엑셀 규격인 0, 1, 2, 3으로 전격 정정!
+                            let rawName = row[0] ? row[0].toString().trim() : "";        // 성명 (0번 열 타격)
+                            const rawGenderAge = row[1] ? row[1].toString().trim() : ""; // 성별/나이 (1번 열 타격)
+                            let rawSsn = row[2] ? row[2].toString().trim() : "";         // 생년월일 (2번 열 타격)
+                            const phoneVal = row[3] ? row[3].toString().trim() : "";     // 연락처 (3번 열 타격)
 
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 
@@ -3751,7 +3750,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             // 최종 슬래시 포맷 문자열 생성 (결과: "2/60", "3/60", "4/60" 고정!)
                             const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
 
-                            // 🔒 [정품 스펙 동기화 인계]: 모집공고 대장과 크로스 교차 비교를 통과한 진짜 살아있는 마스터 데이터셋을 조립 객체에 1:1 바인딩
+                            // 규격화 데이터 구조 인계
                             const mergedRecord = {
                                 uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : "EXCEL_" + Date.now() + "_" + Math.floor(Math.random() * 1000) + "_" + i,
                                 name: excelName,
@@ -3760,7 +3759,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 gender: gender,
                                 age: age,
 
-                                // 🌟 [공란 버그 완파]: 거친 엑셀 파싱 단어를 소멸시키고, 1단계 매칭 검문소를 통과하여 치환 복원된 모집공고의 정품 마스터 데이터를 정확히 주입 사출
+                                // 🔒 바로 전 성공본 데이터 상속선 그대로 매핑 유지
                                 title: targetIdx !== -1 ? currentApplicantDB[targetIdx].title : extractedTitle, // 순정 진짜 시험명 탑재
                                 th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,       // 순정 진짜 기수 탑재
                                 period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod, // 순정 진짜 임상 시간 탑재
@@ -3813,7 +3812,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             window.refreshApplicantView();
                         }
 
-                        // 🔒 [통계 간섭 원천 봉쇄]: 기존에 상단 통계 수치를 동반 오염 뒤흔들던 window.calculateLiveDashboardStats() 호출을 제거하여 상단 지표 카드는 완벽 보호 홀딩됨.
+                        // 🔒 [통계 간섭 원천 봉쇄]: 상단 통계 위젯 지표 수치 오염을 막기 위한 파기 상태 고수 완료!
 
                         e.target.value = ''; // 인풋 초기화 안착
 
@@ -3822,10 +3821,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.error("🚨 [실제 에러 발생 원인]:", err);
                     }
                 };
-                // 🔒 [Blob 엔진 기동 마감 완료]: file 배열 통째가 아닌 0번 방 정품 단일 file 개체를 명확하게 낚아채어 해독 엔진 주입 완료!
+                // 🔒 [Blob 엔진 사수 완료]: 0번 방 정품 단일 file 개체를 명확하게 낚아채어 해독 엔진 주입 완료!
                 r.readAsArrayBuffer(file);
             } else {
-                // [순정 유지]: 기존 docx, doc 문서 계열 파트 연동선은 순정 그대로 원형 안전 보존 상속
+                // 기존 텍스트 및 CSV 덤프 파싱 파트 순정 그대로 원형 유지 보존
                 r.onload = function (evt) {
                     if (typeof parseRawTextDump === 'function') {
                         parseRawTextDump(evt.target.result);

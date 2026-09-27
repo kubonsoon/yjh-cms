@@ -3663,6 +3663,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         // ================================================================
                         // [2단계] 4행(인덱스 3)부터 반복 돌며 인적사항 정제 및 데이터 조립
                         // ================================================================
+                        // 🌟 엑셀 공백 행이나 기존 기등록 머릿수 간섭 없이, 진짜 주입되는 순서대로 1씩 올라가는 마스터 정순 나침반 변수 선언
+                        let liveValidCounter = baseExistingCount;
+
                         for (let i = 5; i < rawRows.length; i++) {
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
@@ -4091,7 +4094,12 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             return dbName === cleanExcelName && dbSsn === finalSsn && dbPhone === extractedPhone;
                         });
 
-                        // ⚠️ [인원수 증가 누락 분쇄 스케줄러]: 루프 외부의 고정 기존 명수 + 현재 CSV 파싱 성공 행 순번 증가분 결합
+                        // 🔒 [순번 왜곡 원천 분쇄]: 기존 등록된 사람(예: 김수지)을 덮어쓸 때는 전체 카운터 전진을 홀딩(차감) 보정!
+                        if (targetIdx !== -1) {
+                            importCount--;
+                        }
+
+                        // ⚠️ [인원수 증가 누락 분쇄 스케줄러]: 루프 외부의 고정 기존 명수 + 안전핀이 장착된 파싱 성공 행 순번 결합
                         const currentLineNumber = baseExistingCount + (importCount + 1);
                         const goalQuotaNum = parseInt(fileExtractedCount, 10) || 60;
                         const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;

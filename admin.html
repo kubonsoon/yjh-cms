@@ -3668,12 +3668,12 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             if (!row || row.length === 0) continue;
 
                             // 🌟 [실수 수정 최종 교정선]: 엉뚱한 비고란을 찌르던 기존 3, 4, 5, 6 인덱스를 실물 엑셀 규격인 0, 1, 2, 3으로 전격 정정!
-                            let rawName = row[5] ? row[5].toString().trim() : "";        // 성명 (진짜 이름이 들어있는 6번째 열 타격)
+                            let rawName = row[3] ? row[3].toString().trim() : "";        // 성명 (진짜 이름이 들어있는 6번째 열 타격)
                             const rawGenderAge = row[4] ? row[4].toString().trim() : ""; // 성별/나이 (진짜 성별이 들어있는 5번째 열 타격)
-                            let rawSsn = row[3] ? row[3].toString().trim() : "";         // 생년월일 (진짜 주민앞자리가 들어있는 4번째 열 타격)
+                            let rawSsn = row[5] ? row[5].toString().trim() : "";         // 생년월일 (진짜 주민앞자리가 들어있는 4번째 열 타격)
                             const phoneVal = row[6] ? row[6].toString().trim() : "정보없음"; // 연락처 (연락처 열 타격, 공란 시 디폴트 확보)
 
-                            if (!rawName || rawName === "성명" || rawName === "ID") continue;
+                            if (!rawName || rawName === "성명" || rawName === "이름" || rawName === "ID") continue;
 
                             // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
                             const excelName = rawName.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();

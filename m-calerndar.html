@@ -854,46 +854,21 @@
                             if (isAlreadyClickedThisJob) {
                                 alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
 
-                                // 🔒 [iframe 격리 샌드박스 원천 전수 파괴 관통 엔진]:
-                                //    - 자식 창 내부의 좁은 시야를 전면 폐쇄하고, window.parent 및 window.top 마스터 권한을 투사!
-                                //    - 부모 창의 진짜 화면 제어 엔진인 navigateToStep(4) 또는 실물 layer 주파수선을 직접 정밀 타격하여 4단계 정산 화면을 대문에 강제 사출 출력시킵니다.
+                                // 🔒 [브라우저 보안 샌드박스 완벽 관통 - postMessage 방송망 개통 엔진]:
+                                //    크롬 브라우저의 탈옥 차단 가드막을 완벽하게 우회하기 위해 
+                                //    부모 창의 함수를 직접 부르지 않고, 공식 규격 패킷 시그널("GOTO_STEP_4")을 부모 본진 전역에 쏘아 올립니다!
                                 try {
-                                    if (window.parent && typeof window.parent.navigateToStep === "function") {
-                                        // ① 부모 창의 순정 라우팅 제어 함수를 1:1 다이렉트 원격 호출!
-                                        window.parent.navigateToStep(4);
-                                    } else if (window.top && typeof window.top.navigateToStep === "function") {
-                                        window.top.navigateToStep(4);
-                                    } else {
-                                        // ② 함수 조인이 차단되었을 시, 형님이 올려주신 부모 창의 진짜 실물 layer 패널 주소를 직접 타격하여 스위칭!
-                                        //    현재 열려있는 캘린더 임베드 패널(layer5)을 강제 전면 폐쇄(none) 처리합니다.
-                                        const parentDoc = window.parent ? window.parent.document : document;
-
-                                        const layer1 = parentDoc.getElementById('layer1');
-                                        const layer2 = parentDoc.getElementById('layer2');
-                                        const layer3 = parentDoc.getElementById('layer3');
-                                        const layer4 = parentDoc.getElementById('layer4'); // 사내 정품 4단계 시험정보·정산처리 패널 주소선
-                                        const layer5 = parentDoc.getElementById('layer5'); // 캘린더 임베드 패널 주소선
-
-                                        if (layer1) layer1.style.setProperty("display", "none", "important");
-                                        if (layer2) layer2.style.setProperty("display", "none", "important");
-                                        if (layer3) layer3.style.setProperty("display", "none", "important");
-                                        if (layer5) layer5.style.setProperty("display", "none", "important"); // 🌟 눈앞의 캘린더 iframe 통째로 철거 숨김!
-
-                                        if (layer4) {
-                                            layer4.style.setProperty("display", "block", "important"); // 🌟 진짜 4단계 정산서 영수증 화면 강제 개방 사출!
-
-                                            // 부모 본진의 4단계 정산서 카드판 실시간 리렌더러 기능 강제 업데이트 수혈
-                                            if (window.parent && typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
-                                            if (window.parent && typeof window.parent.initStep4Layout === "function") window.parent.initStep4Layout();
-                                        } else {
-                                            // ③ 최후의 보루 안전핀: 세션 리스크 없이 부모 주소창 전역을 4단계 파라미터형으로 강제 관통 워프 리프레시!
-                                            window.parent.location.href = "m-login.html?step=4";
-                                        }
+                                    if (window.parent) {
+                                        window.parent.postMessage({
+                                            action: "GOTO_STEP_4",
+                                            user: currentSessionName
+                                        }, "*");
                                     }
-                                } catch (iframeFatalErr) {
-                                    // 프레임 구조가 완전히 꼬여 다운되었을 때 발동하는 강력한 하이패스 구출선
-                                    console.error("[전산망 프레임 가드 락인]", iframeFatalErr);
-                                    window.top.location.href = "m-login.html?step=4";
+                                } catch (postErr) {
+                                    console.error("[방송망 단선 가드 작동]", postErr);
+                                    // 최후의 보루 안전핀 백업
+                                    localStorage.setItem('currentStep', '4');
+                                    localStorage.setItem('forcedStepNum', '4');
                                 }
                                 return; // 트랜잭션 정상 안전 분리 종료
                             }

@@ -358,9 +358,8 @@
                             <p id="selected-file-name"
                                 style="margin: 0 !important; font-weight: 700; color: var(--secondary-color); font-size: 12px; padding-left: 4px;">
                             </p>
-                            <input type="file" id="fileParser"
-                                accept=".xlsx, .xls, .csv, .docx, .doc, .hwp, .hwpx, .txt" style="display:none;"
-                                onchange="handleSmartFileImport(event)">
+                            <input type="file" id="fileParser" accept=".xlsx, .xls, .csv, .docx, .doc"
+                                style="display:none;" onchange="handleSmartFileImport(event)">
                         </div>
                     </div>
 
@@ -3494,8 +3493,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         // [5-C 파트] 외부 텍스트/문서 원천 데이터 스마트 정규표현식 파서 엔진
         // =========================================================================
 
-
-
         function handleSmartFileImport(e) {
             const file = e.target.files[0]; // 0번째 단일 파일 개체 바인딩 락인
             const d = document.getElementById('selected-file-name');
@@ -3504,8 +3501,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const ext = file.name.split('.').pop().toLowerCase();
 
             // 🔒 [확장자 가드 긴축 완료]: 지시하신 대로 오직 xlsx, xls, docx, doc 파일형식만 업로드 허용하도록 원천 잠금 처리
-            if (!['xlsx', 'xls', 'docx', 'doc'].includes(ext)) {
-                alert('지원하지 않는 형식입니다. (xlsx, xls, docx, doc 파일만 업로드 가능)');
+            if (!['xlsx', 'xls', 'csv', 'docx', 'doc'].includes(ext)) {
+                alert('지원하지 않는 형식입니다. (xlsx, xls, csv, docx, doc 파일만 업로드 가능)');
                 e.target.value = '';
                 if (d) d.innerText = '';
                 return;
@@ -3513,14 +3510,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file.name}`;
 
             // [보안 크로스 체킹]: 헤더의 XLSX 객체가 브라우저 메모리에 정상 안착했는지 예외 가드 가동
-            if ((ext === 'xlsx' || ext === 'xls') && typeof XLSX === "undefined") {
+            if ((ext === 'xlsx' || ext === 'xls' || ext === 'csv') && typeof XLSX === "undefined") {
                 alert("전산망 내부 차단 경고: 최상단 헤더의 엑셀 파싱 라이브러리(SheetJS) 로딩 주파수가 단절되었습니다.");
                 return;
             }
 
             const r = new FileReader();
 
-            if (ext === 'xlsx' || ext === 'xls') {
+            if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') {
                 r.onload = function (evt) {
                     try {
                         const bufferArray = evt.target.result;

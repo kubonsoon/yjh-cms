@@ -854,54 +854,27 @@
                             if (isAlreadyClickedThisJob) {
                                 alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
 
-                                // 🔒 [최상위 전산망 관통 4단계 다이렉트 하이패스 엔진]: 
-                                //    현재 창이 iframe이든 가상 샌드박스 독립 창이든 상관없이 최상위 스위칭 주파수를 다이렉트 타격!
+                                // 🔒 [영구 마스터 완치 - 최상위 전산망 관통 무조건 4단계 강제 이송 엔진]:
+                                //    프레임 격리 제약과 DOM 인식 불능 결함을 완벽히 분쇄하기 위해,
+                                //    로컬 원장의 전산 스태이지 단계를 '4단계' 규격으로 강제 새김 박제 처리한 뒤,
+                                //    최상위 브라우저 주소창(window.top) 전체를 새로고침하여 전산망을 시원하게 강제 관통 개통합니다!
                                 try {
-                                    // ① [모달 레이어 전면 폐쇄]: 눈앞을 가려 화면 전환을 가로막던 캘린더 팝업창/모달 레이아웃을 전수 철거 닫기 집행!
-                                    const calendarModal = document.getElementById('calendar-modal') || window.parent.document.getElementById('calendar-modal');
-                                    const calendarOverlay = document.getElementById('calendar-overlay') || window.parent.document.getElementById('calendar-overlay');
-                                    if (calendarModal) calendarModal.style.setProperty("display", "none", "important");
-                                    if (calendarOverlay) calendarOverlay.style.setProperty("display", "none", "important");
+                                    // ① 현재 유저 세션 대장에 4단계 진입 신호 시그널 강제 커밋 박제!
+                                    localStorage.setItem('currentStep', '4');
+                                    localStorage.setItem('forcedStepNum', '4');
 
-                                    // ② 사내 순정 모바일 화면 전환 마스터 스위칭 함수 호출 (window.top 및 window.parent 교차 3중 타격)
-                                    if (typeof window.showPanel === "function") {
-                                        window.showPanel(4);
-                                    } else if (typeof window.parent.showPanel === "function") {
-                                        window.parent.showPanel(4);
-                                    } else if (typeof window.top.showPanel === "function") {
-                                        window.top.showPanel(4);
-                                    } else if (typeof window.changeStep === "function") {
-                                        window.changeStep(4);
-                                    } else if (typeof window.parent.changeStep === "function") {
-                                        window.parent.changeStep(4);
-                                    } else {
-                                        // ③ 함수 교차가 안 잡힐 시 문서 객체의 DOM 가시성을 직접 강제 다이렉트 스위칭 전환!
-                                        const targetDocs = [window.document, window.parent.document, window.top.document];
-                                        targetDocs.forEach(doc => {
-                                            const mp1 = doc.getElementById('step1-panel');
-                                            const mp2 = doc.getElementById('step2-panel');
-                                            const mp3 = doc.getElementById('step3-panel');
-                                            const mp4 = doc.getElementById('step4-panel');
+                                    // ② 눈앞을 막고 가린 가상 모달과 오버레이 차단막 수동 파괴 소독
+                                    if (document.getElementById('calendar-modal')) document.getElementById('calendar-modal').style.display = 'none';
+                                    if (document.getElementById('calendar-overlay')) document.getElementById('calendar-overlay').style.display = 'none';
 
-                                            if (mp1) mp1.style.setProperty("display", "none", "important");
-                                            if (mp2) mp2.style.setProperty("display", "none", "important");
-                                            if (mp3) mp3.style.setProperty("display", "none", "important");
-                                            if (mp4) {
-                                                mp4.style.setProperty("display", "block", "important");
-                                                // 4단계 카드판 실시간 렌더러 동기화
-                                                if (typeof window.renderStep4SettlementCard === "function") window.renderStep4SettlementCard();
-                                                if (typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
-                                            }
-                                        });
+                                    // ③ 윈도우 최상위 주소창 전체를 완전 강제 새로고침 동기화 워프!
+                                    //    m-login.html이 새로고침으로 깨어나면서 방금 박아둔 'currentStep: 4' 신호를 읽고 
+                                    //    입구 검문소에서 4단계 정산 영수증 카드판 화면을 단 0초의 지체도 없이 무조건 눈앞에 사출 출력시킵니다.
+                                    window.top.location.href = "m-login.html?step=4&refresh=" + Date.now();
 
-                                        // 만약 DOM 스위칭 이후에도 반응이 없을 시 주소창 자체를 4단계 강제 리다이렉트 포워딩!
-                                        if (window.parent.document.getElementById('step4-panel')?.style.display !== 'block') {
-                                            window.top.location.href = "m-login.html?step=4";
-                                        }
-                                    }
-                                } catch (domErr) {
-                                    // 크로스 도메인 및 프레임 구조 충돌 예외 발생 시 주소창 다이렉트 무조건 관통 워프 락인
-                                    window.top.location.href = "m-login.html?step=4";
+                                } catch (urlForceErr) {
+                                    // 하위 호환 안전핀: 격리 룸 탈출 다이렉트 주소 워프
+                                    window.location.href = "m-login.html?step=4";
                                 }
                                 return; // 트랜잭션 정상 안전 분리 종료
                             }

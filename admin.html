@@ -493,7 +493,7 @@
                     </span>
 
                     <!-- 2. 연도 체인 셀렉터 -->
-                    <select id="dashboard-filter-year" onchange="searchBarYearChain()"
+                    <select id="search-filter-year" onchange="searchBarYearChain()"
                         style="width: 110px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-연도-</option>
                         <option value="2025">2025년</option>
@@ -501,7 +501,7 @@
                     </select>
 
                     <!-- 3. 월 체인 셀렉터 -->
-                    <select id="dashboard-filter-month" onchange="searchBarTitleChain()"
+                    <select id="search-filter-month" onchange="searchBarTitleChain()"
                         style="width: 100px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-월-</option>
                         <option value="01">1월</option>
@@ -519,7 +519,7 @@
                     </select>
 
                     <!-- 4. 시험명 자동 매핑 셀렉터 (기존 ID 유지하여 통계 연산선 승계) -->
-                    <select id="dashboard-filter-title"
+                    <select id="search-filter-title"
                         style="max-width: 300px; flex: 1; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-전체 시험 목록-</option>
                     </select>
@@ -7412,28 +7412,27 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
        [대상자 검색: 상단의 데이터 통계와 별도]
        ========================================================================= */
 
-        // 1. [독립 연도 체인] 연도 선택 시 상단 통계 간섭 없이 오직 검색 바 전용 월 목록 세팅 후 시험명 함수 연쇄 호출
+        // 1. [독립 연도 엔진]: 상단 간섭 원인 코드를 전면 배제하고 오직 search- 고유 ID방만 타격
         function searchBarYearChain() {
-            const fYear = document.getElementById('dashboard-filter-year');
-            const fMonth = document.getElementById('dashboard-filter-month');
+            const fYear = document.getElementById('search-filter-year');
+            const fMonth = document.getElementById('search-filter-month');
             if (!fYear || !fMonth) return;
 
-            // 연도가 전체보기일 시 월 상자도 ALL 처리 후 독립 시험명 함수 호출 탈출
             if (fYear.value === "ALL") {
                 fMonth.value = "ALL";
                 searchBarTitleChain();
                 return;
             }
 
-            // 🔒 상단 통계판이나 기존 사내 전산망 함수를 일절 호출하지 않고, 곧바로 3번째 독립 시험명 상자를 채우도록 리액터 강제 호출
+            // 상단 연동 주파수를 완전히 차단 잠금하고 곧바로 3번째 독립 시험명 상자를 채우도록 리액터 강제 호출
             searchBarTitleChain();
         }
 
-        // 2. [독립 시험명 주입] 선택된 연도와 월 조건에 맞는 시험 목록 데이터만 3번째 상자에 "알아서 자동으로" 채워주는 단독 파서
+        // 2. [독립 시험명 엔진]: 상단 셀렉트박스를 오염시키던 주범을 도려내고 오직 3번째 상자에만 '알아서' 데이터를 꽂아주는 단독 파서
         function searchBarTitleChain() {
-            const fYear = document.getElementById('dashboard-filter-year');
-            const fMonth = document.getElementById('dashboard-filter-month');
-            const fTitleSelect = document.getElementById('dashboard-filter-title');
+            const fYear = document.getElementById('search-filter-year');
+            const fMonth = document.getElementById('search-filter-month');
+            const fTitleSelect = document.getElementById('search-filter-title');
             if (!fTitleSelect) return;
 
             const selYear = fYear ? fYear.value : "ALL";
@@ -7447,7 +7446,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             let targetTitles = [];
 
-            // 대장 내 날짜 서식에서 연도와 월이 일치하는지 판독하는 독립 검색 전용 디펜스 가드
+            // 대장 내 날짜 서식에서 조건 만족 여부를 검사하는 독립 검색 영역 전용 디펜스 가드
             const isSearchDateMatched = (dateStr) => {
                 if (!dateStr) return false;
                 const clean = dateStr.toString().replace(/[^0-9-]/g, "").trim();
@@ -7457,7 +7456,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 return matchYear && matchMonth;
             };
 
-            // 조건에 만족하는 공고 대장 내 시험명 추출 수집
             recruitmentDB.forEach(row => {
                 if (row.title && (selYear === "ALL" || isSearchDateMatched(row.recDate))) {
                     const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
@@ -7465,7 +7463,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 }
             });
 
-            // 조건에 만족하는 대상자 대장 내 시험명 추출 수집
             applicantDB.forEach(row => {
                 if (row.title && (selYear === "ALL" || isSearchDateMatched(row.recDate || row.regDate))) {
                     const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
@@ -7473,7 +7470,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 }
             });
 
-            // 가나다순 정렬 후 3번째 상자에 "알아서 자동으로" 실물 옵션 데이터 적재 주입
             targetTitles.sort().forEach(t => {
                 const option = document.createElement('option');
                 option.value = t;
@@ -7481,43 +7477,41 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 fTitleSelect.appendChild(option);
             });
 
-            // 공백 제거 후 기존 선택값 상속 복원
             if (targetTitles.includes(curSelected.toString().replace(/\s+/g, ' ').trim())) {
                 fTitleSelect.value = curSelected.toString().replace(/\s+/g, ' ').trim();
             } else {
                 fTitleSelect.value = 'ALL';
             }
 
+            // [보안 체인 마감]: 사내 구형 공유 함수인 initDashboardFilter() 연동 경로를 완전히 끊어내어 
         }
 
 
-        // 최초 화면 접속 진입 시에는 무조건 전체 대상자 목록이 노출되도록 제어하는 검색 상태 스위치 변수
+        // 3. [독립 검색 실행 엔진]: 버튼 클릭 시 상단 카드는 손대지 않고 오직 하단 테이블 데이터만 가져오도록 통제하는 최종 마스터 함수
         window.isSearchTriggered = false;
 
-        // 상단 통합 검색 바 [검색] 버튼 마우스 클릭 및 성명 검색창 엔터 타격 시 다이렉트 트리거 실행
         function executeCombinedSearchPipeline() {
 
-            // 1. 명시적인 검색 액션이 수립되었으므로 검색 필터 가동 상태 스위치 ON 전환
+            // 검색 액션 가동 상태 스위치 ON 전환
             window.isSearchTriggered = true;
 
-            // 3. 만족하는 타겟 대상자만 쏙 발라내어 하단 대상자 목록 테이블 화면 즉시 실시간 리렌더링
+            // 오직 하단 대상자 목록 테이블만 단독으로 실시간 리렌더링 새로고침 수행 (ID 스펙 반영)
             if (typeof refreshApplicantView === "function") {
                 refreshApplicantView();
             }
 
-            console.log("[검색 엔진 가동] executeCombinedSearchPipeline 단독 신설 및 리렌더링 완수.");
+            console.log("⚡ [독립 검색 완수] 상단 셀렉트값 오염 및 통계 카드 변동 없이 오직 하단 테이블만 단독 필터링 완료.");
         }
 
-        // 좌측 메뉴 내비게이션 바에서 '대상자 관리' 메뉴 탭을 다시 새로 클릭할 시에는 검색 스위치를 전체노출(false) 상태로 자동 세척 리셋
-        const menuAppBtnTarget = document.getElementById('menuApp');
-        if (menuAppBtnTarget) {
-            menuAppBtnTarget.addEventListener('click', function () {
-                window.isSearchTriggered = false; // 검색 락다운 초기화 원복
-                const nameInputBox = document.getElementById('search-app-name');
-                if (nameInputBox) nameInputBox.value = ''; // 이름 검색창 문자열 초기화 청소
+        // 메뉴 클릭 시 평시(전체노출) 상태로 자동 세척 초기화 리셋
+        const menuAppBtnNode = document.getElementById('menuApp');
+        if (menuAppBtnNode) {
+            menuAppBtnNode.addEventListener('click', function () {
+                window.isSearchTriggered = false;
+                const targetInputBox = document.getElementById('search-app-name');
+                if (targetInputBox) targetInputBox.value = '';
             });
         }
-
 
     </script>
 

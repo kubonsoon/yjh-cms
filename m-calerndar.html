@@ -852,28 +852,41 @@
                             );
 
                             if (isAlreadyClickedThisJob) {
-                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면(4단계)으로 즉시 이동합니다.");
+                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
 
-                                // 🔒 [4단계 정산 전산망 다이렉트 하이패스 엔진 완착]: 
-                                //    캘린더 화면을 즉시 소멸시키고, 나의 진짜 시험 명세와 정산서 영수증이 도사린 4단계 패널막을 강제 전면 개방!
-                                const p1 = document.getElementById('step1-panel');
-                                const p2 = document.getElementById('step2-panel');
-                                const p3 = document.getElementById('step3-panel');
-                                const p4 = document.getElementById('step4-panel');
+                                // 🔒 [부모 전산망 관통 4단계 다이렉트 워프 하이패스 엔진]: 
+                                //    현재 창이 iframe이든 독립 창이든 상관없이 최상위 부모 창(window.parent)의 4단계 폼 레이아웃을 직접 전격 개방!
+                                try {
+                                    // ① 사내 순정 모바일 탑 매스터 화면 전환 스위칭 함수 최우선 호출 (4단계 강제 이송)
+                                    if (typeof window.parent.showPanel === "function") {
+                                        window.parent.showPanel(4);
+                                    } else if (typeof window.parent.changeStep === "function") {
+                                        window.parent.changeStep(4);
+                                    } else if (typeof window.parent.executeStep4ConfirmNext === "function") {
+                                        window.parent.executeStep4ConfirmNext();
+                                    } else {
+                                        // ② 함수가 숨겨져 있을 시 부모 문서 객체의 DOM 주소 주파수를 다이렉트 강제 스위칭 처리!
+                                        const mp1 = window.parent.document.getElementById('step1-panel');
+                                        const mp2 = window.parent.document.getElementById('step2-panel');
+                                        const mp3 = window.parent.document.getElementById('step3-panel');
+                                        const mp4 = window.parent.document.getElementById('step4-panel');
 
-                                if (p1) p1.style.setProperty("display", "none", "important");
-                                if (p2) p2.style.setProperty("display", "none", "important");
-                                if (p3) p3.style.setProperty("display", "none", "important");
+                                        if (mp1) mp1.style.setProperty("display", "none", "important");
+                                        if (mp2) mp2.style.setProperty("display", "none", "important");
+                                        if (mp3) mp3.style.setProperty("display", "none", "important");
 
-                                if (p4) {
-                                    p4.style.setProperty("display", "block", "important");
-
-                                    // 🌟 [실시간 UI 새로고침 링크 체인]: 4단계 정산 카드판 내부 데이터가 최신으로 그려지도록 트리거 함수 동기화 수혈
-                                    if (typeof window.renderStep4SettlementCard === "function") window.renderStep4SettlementCard();
-                                    else if (typeof window.initStep4Layout === "function") window.initStep4Layout();
-                                } else {
-                                    // 최후의 보루 안전핀: 파일 세션 주파수를 온전히 유지 상속하여 4단계 다이렉트 뷰 복귀
-                                    location.href = "m-login.html?step=4";
+                                        if (mp4) {
+                                            mp4.style.setProperty("display", "block", "important");
+                                            // 4단계 카드판 렌더러 동기화 수혈
+                                            if (typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
+                                        } else {
+                                            // 최후의 보루: 세션 원장을 사수하며 전체 4단계 주소창으로 리로드 워프!
+                                            window.parent.location.href = "m-login.html?step=4";
+                                        }
+                                    }
+                                } catch (domErr) {
+                                    // 크로스 도메인 및 예외 가드 발생 시 독립 주소창 다이렉트 강제 복귀 락인
+                                    window.parent.location.href = "m-login.html?step=4";
                                 }
                                 return; // 트랜잭션 정상 안전 분리 종료
                             }

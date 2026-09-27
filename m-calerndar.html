@@ -794,6 +794,12 @@
                     if (joinBtn) {
                         joinBtn.onclick = function (e) {
                             e.preventDefault();
+
+                            // 🔒 [804라인 ReferenceError 영구 소독 완치 안전핀]: 
+                            //    자바스크립트 대원칙에 따라 변수 선언을 함수 본진 문이 열리는 맨 첫 줄(1순위)에 강제 선배치 완료!
+                            //    이로 인해 1단계, 2단계, 3단계, 4단계 전역 구역에서 단 1%의 컴파일 오류도 불가능하도록 원천 방어 봉쇄합니다.
+                            const cleanSessionName = currentSessionName.toString().trim().replace(/\s/g, "");
+
                             let appDB = getApplicantData();
 
                             // 🎯 [1단계 가드: 액티브 과제 중복 신청 원천 차단막]
@@ -805,12 +811,12 @@
                             });
 
                             if (activeJobRecord) {
-                                // 문법 오류를 완전 예방한 표준 역슬래시 개행(\n) 정형화 알림 포맷
+                                // 문법 오류를 완전 예방한 표준 역슬래시 개행(\n) 정형화 알림 포맷 (순정 원형 사수)
                                 alert(" 중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산 심사 대기 중인 임상시험 과제가 존재합니다.\n\n한 명당 오직 하나의 시험만 참여 가능하므로 다른 시험에 중복 신청할 수 없습니다.");
                                 return; // 트랜잭션 즉시 거절 종료
                             }
 
-                            // 🎯 [2단계 가드: 종료 대상자 대상 180일 격리 연산 인터셉터]
+                            // 🎯 [2단계 가드: 종료 대상자 대상 180일 격리 연산 인터셉터 - 순정 원형 100% 동결 상속]
                             // 기존 대장에서 완전히 완료되어 '종료' 상태로 박제된 가장 최근 과제의 소집일자(recDate)를 색인
                             const finishedJobs = appDB.filter(app => {
                                 const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
@@ -838,7 +844,7 @@
                                 console.log(`[보안 체인] 6개월 격리 해제 검증 적격 통과: 현재 ${dayDiff}일 경과로 신규 유입 정상 승인.`);
                             }
 
-                            // 🎯 [3단계 가드: 동일 과제 중복 신청 최종 디펜스]
+                            // 🎯 [3단계 가드: 동일 과제 중복 신청 최종 디펜스 - 순정 원형 100% 동결 상속]
                             const isAlreadyClickedThisJob = appDB.some(app =>
                                 (app.name || '').toString().trim() === currentSessionName &&
                                 (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
@@ -851,8 +857,7 @@
                             }
 
                             // 🎯 [4단계 파이프라인: 완전히 독립된 격리 신규 행 생성 차단 ➔ 실시간 1:1 데이터 엎어쓰기 갱신 엔진 완착]
-                            const cleanSessionName = currentSessionName.toString().trim().replace(/\s/g, "");
-
+                            // 중복 재선언 위반을 유발하던 구형 중복 코드는 삭제 처리하고 상단 마스터 변수를 공통 공유 상속받아 정합성 개통!
                             const realUserSession = appDB.find(u => u.name.toString().trim() === currentSessionName) || {};
 
                             // ① 로그인 시점에 임시 생성되어 대장에 들어가 있던 "신규 방문 과제 미배정" 행 객체를 성명 크로스 매칭으로 정밀 추적 색인!
@@ -864,7 +869,7 @@
                                 (u.th || '').toString().replace(/\s/g, "") === thText.toString().replace(/\s/g, "")
                             ).length;
 
-                            // 🔒 [순번 왜곡 박멸]: 기존 머릿수에 정직하게 이번 신규 진입 분인 +1을 누적 결합하여 2/46, 3/46 형태로 규칙적 전진!
+                            // 🔒 [순번 왜곡 박멸]: 기존 머릿체인에 정직하게 이번 신규 진입 분인 +1을 누적 결합하여 2/46, 3/46 형태로 규칙적 전진!
                             const nextLineNumber = liveQuotaCount + 1;
                             const goalQuotaNum = item.count ? item.count.toString().replace(/[^0-9]/g, '') : "46";
                             const liveProgressFormat = nextLineNumber + "/" + goalQuotaNum;

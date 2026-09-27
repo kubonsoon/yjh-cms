@@ -853,8 +853,10 @@
                             // 🎯 [4단계 파이프라인: 완전히 독립된 격리 신규 행 생성 차단 ➔ 실시간 1:1 데이터 엎어쓰기 갱신 엔진 완착]
                             const realUserSession = appDB.find(u => u.name.toString().trim() === currentSessionName) || {};
 
-                            // ① 로그인 시점에 임시 생성되어 대장에 들어가 있던 "신규 방문 과제 미배정" 행 객체를 성명 크로스 매칭으로 정밀 추적 색인!
+                            // 🔒 [그랜드 완치]: ReferenceError 원천 소독을 위해 세척 선언문(cleanSessionName)을 최선행 배치 락인!
                             const cleanSessionName = currentSessionName.toString().trim().replace(/\s/g, "");
+
+                            // ① 로그인 시점에 임시 생성되어 대장에 들어가 있던 "신규 방문 과제 미배정" 행 객체를 성명 크로스 매칭으로 정밀 추적 색인!
                             let targetIdx = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName && (u.title || '').toString().trim() === "신규 방문 과제 미배정");
 
                             // 📊 [인원수 정순 증가 스케줄러]: 이 시험(경동제약 식후 임상시험 등) + 이 기수로 기존 대장에 이미 등록 완료된 진짜 실시간 머릿수 산출

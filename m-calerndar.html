@@ -850,18 +850,33 @@
                                 return;
                             }
 
-                            // 🎯 [4단계 파이프라인: 완전히 독립된 격리 신규 행(NEW_UID) 발행 및 push 적재 공식 가동]
+                            // 🎯 [4단계 파이프라인: 완전히 독립된 격리 신규 행 생성 차단 ➔ 실시간 1:1 데이터 엎어쓰기 갱신 엔진 완착]
                             const realUserSession = appDB.find(u => u.name.toString().trim() === currentSessionName) || {};
-                            const newTemporaryUid = "NEW_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
 
+                            // ① 로그인 시점에 임시 생성되어 대장에 들어가 있던 "신규 방문 과제 미배정" 행 객체를 성명 크로스 매칭으로 정밀 추적 색인!
+                            const cleanSessionName = currentSessionName.toString().trim().replace(/\s/g, "");
+                            let targetIdx = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName && (u.title || '').toString().trim() === "신규 방문 과제 미배정");
+
+                            // 📊 [인원수 정순 증가 스케줄러]: 이 시험(경동제약 식후 임상시험 등) + 이 기수로 기존 대장에 이미 등록 완료된 진짜 실시간 머릿수 산출
+                            const liveQuotaCount = appDB.filter(u =>
+                                (u.title || '').toString().replace(/\s/g, "") === item.title.toString().replace(/\s/g, "") &&
+                                (u.th || '').toString().replace(/\s/g, "") === thText.toString().replace(/\s/g, "")
+                            ).length;
+
+                            // 🔒 [순번 왜곡 박멸]: 기존 머릿수에 정직하게 이번 신규 진입 분인 +1을 누적 결합하여 2/46, 3/46 형태로 규칙적 전진!
+                            const nextLineNumber = liveQuotaCount + 1;
+                            const goalQuotaNum = item.count ? item.count.toString().replace(/[^0-9]/g, '') : "46";
+                            const liveProgressFormat = nextLineNumber + "/" + goalQuotaNum;
+
+                            // 실시간 엎어치기 및 정보 매핑 인스턴스 빌드
                             const newApplicantRecord = {
-                                // 핵심 규칙 반영: 기존에 '종료'되었거나 연동 기록이 있는 유저이므로 기존 UID를 상속·오염시키지 않고 
-                                // 무조건 신규 일련번호(newTemporaryUid)를 독립 발행하여 개별 데이터 라인으로 창조 분사합니다.
-                                uid: newTemporaryUid,
+                                // 기존 임시 행이 존재한다면 그 고유 UID를 1%의 변조도 없이 그대로 상속 사수하여 데이터 파편화 차단!
+                                uid: (targetIdx !== -1) ? appDB[targetIdx].uid : ("NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000)),
                                 name: currentSessionName,
-                                title: item.title,
-                                th: thText,
-                                count: item.count ? item.count.toString().replace(/[^0-9]/g, '') : "60",
+                                title: item.title, // 🌟 "신규 방문 과제 미배정" 칸을 진짜 선택한 시험명으로 완벽 엎어치기!
+                                th: thText,        // 🌟 진짜 기수 정보로 완벽 엎어치기!
+                                count: liveProgressFormat, // 🌟 1/46 고착화를 깨부수고 실시간 누적 증가된 "2/46명" 분수 포맷 사출!
+                                nCount: parseInt(goalQuotaNum, 10) || 46,
                                 period: item.period || "0",
 
                                 // 진짜 생년월일, 전화번호, 성별 상속 락인 및 더미 찌꺼기 청소 세척 완료
@@ -880,14 +895,18 @@
                                 isCallAgreed: "대기",
                                 category: realUserSession.category || "M인증",
 
-                                // ⚡ [자동화 파이프라인 스펙]: 모바일 청구서 참여 신청 대상자의 초기 참여상태는 무조건 '소집'으로 강제 고정
-                                stage: "소집",
+                                // 🔒 [임상 실무 헌법 잠금]: 구형 "소집" 표기를 전면 철거하고, 신체검사 결과 대기자 규격인 "신검대기" 배지로 강제 락인 마운트!
+                                stage: "신검대기",
                                 regDate: new Date().toISOString().split('T')[0]
                             };
 
-                            // 🎯 [하이브리드 적재 스케줄러]: 기존 데이터가 존재하더라도 종료 유저의 신규 참여는 
-                            // 덮어쓰기 교체가 아닌 순수 push로 밀어넣어 과거 누적 이력을 철통 보존합니다.
-                            appDB.push(newApplicantRecord);
+                            // 🎯 [하이브리드 적재 스케줄러]: 기존 "미배정" 줄이 있으면 1:1 치환 교체 업데이트 단행!
+                            if (targetIdx !== -1) {
+                                appDB[targetIdx] = Object.assign({}, appDB[targetIdx], newApplicantRecord);
+                            } else {
+                                // 최후의 보루 안전핀 버퍼
+                                appDB.push(newApplicantRecord);
+                            }
 
                             // 가상 데이터베이스 최종 영구 커밋 동기화
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
@@ -897,7 +916,7 @@
 
                             renderDailyCards(); // 화면 상세 리스트 즉시 리렌더링 실시간 동기화
                         };
-                    } //
+                    }
 
                     const rejectBtn = document.getElementById(`btn_card_reject_${clickUid}`);
                     if (rejectBtn) {

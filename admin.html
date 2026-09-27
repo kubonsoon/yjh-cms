@@ -3501,7 +3501,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
-            // 🔒 [18:30 정품 명세]: split 없이 substring 공식으로 확장자 안전 분리 사수
+            // 🔒 [18:30 성공본 명세]: split 없이 substring 공식으로 확장자 안전 분리 사수
             const fileNameStr = file.name.toString();
             const lastDotIdx = fileNameStr.lastIndexOf('.');
             if (lastDotIdx === -1) {
@@ -3553,10 +3553,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
 
                         // ================================================================
-                        // 🌟 [텍스트 누락 방어 완파]: 1행 배열 전체를 하나의 마스터 통문장으로 강제 결합
+                        // 🌟 [3505라인 교정 완착]: 1행 첫 번째 줄(rawRows[0])의 모든 셀을 통문장으로 결합
                         // ================================================================
-                        // 1행([0]번 인덱스 행) 내부에서 칸칸이 쪼개져 분할 병합되어 있던 모든 셀 파편들을 일렬로 융합
-                        const metaText = (rawRows && rawRows) ? rawRows.filter(Boolean).join(" ").trim() : "";
+                        // 엑셀 첫 줄 배열 내에 쪼개져 분할 병합되어 있던 모든 칸의 문자열 파편들을 안전 가드를 쳐서 일렬로 융합
+                        const metaText = (rawRows && rawRows) ? Object.values(rawRows).filter(Boolean).join(" ").trim() : "";
 
                         let extractedTitle = "시험명 미정";
                         let extractedTh = "1기";
@@ -3656,10 +3656,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
 
-                            let rawName = row[3] ? row[3].toString().trim() : "";
-                            const rawGenderAge = row[4] ? row[4].toString().trim() : "";
-                            let rawSsn = row[5] ? row[5].toString().trim() : "";
-                            const phoneVal = row[6] ? row[6].toString().trim() : "";
+                            let rawName = row ? row.toString().trim() : "";
+                            const rawGenderAge = row ? row.toString().trim() : "";
+                            let rawSsn = row ? row.toString().trim() : "";
+                            const phoneVal = row ? row.toString().trim() : "";
 
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 
@@ -3760,7 +3760,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                                 // 🌟 [표준 안착]: 기등록 건이 아닐 시 초기 참여 상태를 과거 "소집/대기" 대신 무조건 마스터 표준 진입 규격인 "신검대기"로 강제 락인 매핑
                                 stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "신검대기",
-                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')[0]
+                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')
                             };
 
                             if (targetIdx !== -1) {
@@ -3824,7 +3824,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 r.readAsText(file, 'EUC-KR');
             }
         }
-
 
         function handleExamFileImport(event) {
             const file = event.target.files;

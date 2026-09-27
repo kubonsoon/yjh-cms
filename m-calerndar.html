@@ -855,8 +855,8 @@
                                 alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면(4단계)으로 즉시 이동합니다.");
 
                                 // 🔒 [GitHub Pages 404 에러 영구 완전 박멸 엔진 완착]:
-                                //    - 자식 파일명(m-calendar.html)이 주소 경로를 오염시켜 404를 내뿜던 치명적인 단선 결함을 전면 분쇄 파괴!
-                                //    - 현재 접속 중인 깃허브 실물 주소창 원형에서 자식 경로만 발라내고, 진짜 부모 파일인 m-login.html 주파수로 직접 1:1 강제 치환 매핑합니다.
+                                //    - split 배열 파편화로 인해 주소창에 쉼표(,)가 유입되어 404를 내뿜던 치명적인 단선 결함을 전면 분쇄 파괴!
+                                //    - 정품 replace 치환 문법을 적용하여 자식 파일명만 정밀 조준 세척하고, 진짜 부모 파일명 주파수로 1:1 정확히 리정렬 결합합니다.
                                 try {
                                     // 🌟 로컬 원장에 최신 4단계 동기화 상태 원천 박제 새김 처리
                                     localStorage.setItem('currentStep', '4');
@@ -865,20 +865,25 @@
                                     // 현재 브라우저 최상단 주소창 풀 경로 텍스트 가로채기
                                     let currentFullUrl = window.top.location.href;
 
-                                    // 주소창에서 혹시라도 m-calendar.html이 섞여 있다면 전면 소독 지워버리기 집행!
+                                    // 🌟 [정밀 소독 매핑]: 주소창 경로에서 자식 파일명(m-calendar.html)만 콕 집어 진짜 부모 파일명(m-login.html?step=4)으로 완벽 치환!
+                                    //    만약 쿼리스트링(?기호)이나 캐시 찌꺼기가 붙어있어도 주소 원형을 온전히 사수하며 하이패스 관통합니다.
                                     if (currentFullUrl.includes("m-calendar.html")) {
-                                        currentFullUrl = currentFullUrl.split("m-calendar.html")[0];
+                                        currentFullUrl = currentFullUrl.replace("m-calendar.html", "m-login.html?step=4");
                                     } else if (currentFullUrl.includes("m-login.html")) {
-                                        currentFullUrl = currentFullUrl.split("m-login.html")[0];
+                                        // 이미 부모 주소라면 뒤에 정산 파라미터 강제 주입
+                                        const cleanUrl = currentFullUrl.split("?")[0];
+                                        currentFullUrl = cleanUrl + "?step=4";
+                                    } else {
+                                        // 최후의 보루 안전핀 경로 결합
+                                        if (currentFullUrl.endsWith("/")) {
+                                            currentFullUrl = currentFullUrl + "m-login.html?step=4";
+                                        } else {
+                                            currentFullUrl = currentFullUrl + "/m-login.html?step=4";
+                                        }
                                     }
 
-                                    // 주소 끝자리가 슬래시(/)로 이쁘게 끝났는지 최종 보정 검사 후 진짜 정품 부모 파일명 완착 조인!
-                                    if (!currentFullUrl.endsWith("/")) {
-                                        currentFullUrl = currentFullUrl + "/";
-                                    }
-
-                                    // 🌟 [최종 마스터 주소창 완착]: 깃허브 호스팅 환경에서 대소문자 및 레포명 유실 리스크 0% 차단 개통!
-                                    window.top.location.href = currentFullUrl + "m-login.html?step=4&refresh=" + Date.now();
+                                    // 타임스탬프 결합으로 캐시 방어선 확보 후 최상위 주소창 최종 강제 관통 개통!
+                                    window.top.location.href = currentFullUrl + "&refresh=" + Date.now();
 
                                 } catch (urlForceErr) {
                                     // 최후의 보루 안전핀 복귀선

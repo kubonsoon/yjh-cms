@@ -3497,313 +3497,343 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 🔒 [입구 원천 차단 안전핀]: 비정상적인 유령 호출 신호를 입구에서 즉시 튕겨내 크래시 원천 방어
             if (!e || !e.target || !e.target.files || e.target.files.length === 0) return;
 
-            const file = e.target.files; // 0번째 단일 파일 개체 바인딩 락인
+            // 🌟 [최종 복구 완착]: 0번 방 실물 단일 파일 개체를 다이렉트 바인딩하여 undefined 유령 현상 완전 격파
+            const file = e.target.files[0];
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
-            // 파일 이름 시각적 레이블 노출 (18:30 성공 시점 마크업 상속)
+            // 🔒 [확장자 가드 최종 확정]: split 없이 lastIndexOf 공식으로 확장자 안전 분리 사수 (3501라인 에러 전면 차단)
+            const fileNameStr = file.name ? file.name + "" : "";
+            const lastDotIdx = fileNameStr.lastIndexOf('.');
+            if (lastDotIdx === -1) {
+                alert('올바르지 않은 파일 명세입니다.');
+                e.target.value = '';
+                return;
+            }
+            const ext = fileNameStr.substring(lastDotIdx + 1).toLowerCase().trim();
+
+            // 지시하신 대로 오직 xlsx, xls, csv, docx, doc 5대 오피스 파일형식만 업로드 허용하도록 잠금
+            if (ext !== 'xlsx' && ext !== 'xls' && ext !== 'csv' && ext !== 'docx' && ext !== 'doc') {
+                alert('지원하지 않는 형식입니다. (xlsx, xls, csv, docx, doc 파일만 업로드 가능)');
+                e.target.value = '';
+                if (d) d.innerText = '';
+                return;
+            }
             if (d) d.innerHTML = '<i class="fa-solid fa-file-circle-check"></i> 선택: ' + file.name;
+
+            // [보안 크로스 체킹]: 헤더의 XLSX 객체가 브라우저 메모리에 정상 안착했는지 예외 가드 가동
+            if ((ext === 'xlsx' || ext === 'xls' || ext === 'csv') && typeof XLSX === "undefined") {
+                alert("전산망 내부 차단 경고: 최상단 헤더의 엑셀 파싱 라이브러리(SheetJS) 로딩 주파수가 단절되었습니다.");
+                return;
+            }
 
             const r = new FileReader();
 
-            // 🔒 까다로운 확장자 if 텍스트 대조문을 통째로 철거하여 파일이 넘어오는 즉시 
-            //    18시 30분의 완전 성공 파일 파서 본진 구역으로 다이렉트 주입 집행
-            r.onload = function (evt) {
-                try {
-                    if (!evt || !evt.target || !evt.target.result) return;
-                    const bufferArray = evt.target.result;
-
-                    // 엑셀 및 CSV 패킷 디코딩 프로세스 가동 (18:30 정품 명세 100% 사수)
-                    let workbook;
+            if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') {
+                r.onload = function (evt) {
                     try {
-                        workbook = XLSX.read(bufferArray, { type: 'array' });
-                    } catch (err) {
-                        const decoder = new TextDecoder('euc-kr');
-                        const csvText = decoder.decode(bufferArray);
-                        workbook = XLSX.read(csvText, { type: 'string' });
-                    }
+                        if (!evt || !evt.target || !evt.target.result) return;
+                        const bufferArray = evt.target.result;
 
-                    const firstSheetName = workbook.SheetNames;
-                    const worksheet = workbook.Sheets[firstSheetName];
-
-                    // 2차원 배열 형태로 전환하여 상단 레이아웃 간섭 차단
-                    const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
-
-                    console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
-
-                    // ================================================================
-                    // [오류 전면 소독] 18시 30분 성공 본진 시점의 순정 문자열 추출 구조 복원
-                    // ================================================================
-                    let metaText = "";
-                    if (rawRows && rawRows && rawRows) {
-                        metaText = String(rawRows).trim();
-                    }
-
-                    let extractedTitle = "시험명 미정";
-                    let extractedTh = "1기";
-                    let extractedPeriod = "0";
-                    let extractedNCount = 60; // 디폴트 목표 인원수 숫자 설정
-
-                    if (metaText) {
-                        // ① 기수 추출: "기" 자를 타격하여 앞단 숫자 확보
-                        const thIndex = metaText.indexOf("기");
-                        if (thIndex !== -1) {
-                            const thNum = metaText.substring(0, thIndex).replace(/[^0-9]/g, "").trim();
-                            if (thNum) extractedTh = thNum + "기";
+                        // 엑셀 및 CSV 패킷 디코딩 프로세스 가동 (18:30 정품 명세 100% 사수)
+                        let workbook;
+                        try {
+                            workbook = XLSX.read(bufferArray, { type: 'array' });
+                        } catch (err) {
+                            const decoder = new TextDecoder('euc-kr');
+                            const csvText = decoder.decode(bufferArray);
+                            workbook = XLSX.read(csvText, { type: 'string' });
                         }
 
-                        // ② 시간 추출: "시간" 자를 타격하여 앞단 숫자 확보
-                        const periodIndex = metaText.indexOf("시간");
-                        if (periodIndex !== -1) {
-                            let startPos = periodIndex - 5;
-                            if (startPos < 0) startPos = 0;
-                            const pSub = metaText.substring(startPos, periodIndex).replace(/[^0-9]/g, "").trim();
-                            if (pSub) extractedPeriod = pSub;
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+
+                        // 2차원 배열 형태로 전환하여 상단 레이아웃 간섭 차단
+                        const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+
+                        console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
+
+                        // ================================================================
+                        // [18:30 복구] toString 문법 참조 오류가 원천 소독된 순정 가로채기선
+                        // ================================================================
+                        let metaText = "";
+                        if (rawRows && rawRows[0] && rawRows[0][0]) {
+                            metaText = String(rawRows[0][0]).trim();
                         }
 
-                        // ③ 인원수 추출: 명 글자 위치 기준 순수 숫자만 역추적 스캔
-                        const countIndex = metaText.indexOf("명");
-                        if (countIndex !== -1) {
-                            let startPos = countIndex - 5;
-                            if (startPos < 0) startPos = 0;
-                            const cSub = metaText.substring(startPos, countIndex).replace(/[^0-9]/g, "").trim();
-                            if (cSub) extractedNCount = parseInt(cSub, 10) || 60;
-                        }
+                        let extractedTitle = "시험명 미정";
+                        let extractedTh = "1기";
+                        let extractedPeriod = "0";
+                        let extractedNCount = 60; // 디폴트 목표 인원수 숫자 설정
 
-                        // ④ 순수 시험명 압착 추출: 기수 뒤 공간부터 (N) 또는 인원수 수치가 오기 전까지 슬라이싱
-                        let startIdx = (thIndex !== -1) ? thIndex + 1 : 0;
-                        let endIdx = metaText.indexOf("(N)");
-                        if (endIdx === -1) endIdx = metaText.indexOf(String(extractedNCount));
-                        if (endIdx === -1) endIdx = metaText.indexOf("담당");
-
-                        if (endIdx !== -1 && endIdx > startIdx) {
-                            extractedTitle = metaText.substring(startIdx, endIdx).trim();
-                        } else {
-                            let fallbackTitle = metaText;
-                            if (thIndex !== -1) fallbackTitle = fallbackTitle.substring(thIndex + 1);
-
-                            const crcPos = fallbackTitle.indexOf("담당");
-                            if (crcPos !== -1) fallbackTitle = fallbackTitle.substring(0, crcPos);
-
-                            const nPos = fallbackTitle.indexOf("(");
-                            if (nPos !== -1) fallbackTitle = fallbackTitle.substring(0, nPos);
-
-                            const mPos = fallbackTitle.indexOf(String(extractedNCount));
-                            if (mPos !== -1) fallbackTitle = fallbackTitle.substring(0, mPos);
-
-                            // 🔒 [정규식 오타 문법 오류 완파 소독]: 이스케이프 오류를 완벽히 해결하여 문법 예외 차단 마감
-                            extractedTitle = fallbackTitle.replace(/[^a-zA-Z0-9가-힣\s\[\]\+\-\_\/\:\.]/g, "").trim();
-                        }
-                    }
-
-                    // ================================================================
-                    // 🔒 [공백 소독 교차 매핑]: 모집공고 원장(dataStoreRecruitment) 전 정밀 대조선
-                    // ================================================================
-                    const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-                    const cleanTargetString = function (str) {
-                        if (!str) return "";
-                        return String(str).toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                    };
-
-                    const excelTitleClean = cleanTargetString(extractedTitle);
-
-                    // 시스템 공고 대장 원장을 열어 철자를 완전히 소독한 마스터 원본 행 객체를 원격 캡처
-                    let matchedRecruitmentData = recruitmentDB.find(function (rec) {
-                        const systemTitleClean = cleanTargetString(rec.title);
-                        return systemTitleClean === excelTitleClean || systemTitleClean.includes(excelTitleClean) || excelTitleClean.includes(systemTitleClean);
-                    });
-
-                    // 모집공고 원장에 등록되지 않은 시험일 경우 데이터 명단 오염 방지를 위해 차단
-                    if (!matchedRecruitmentData && extractedTitle !== "시험명 미정") {
-                        alert(`[업로드 차단] 파일 1행의 시험명 "${extractedTitle}" 은(는) 모집공고 대장에 등록되지 않은 시험명입니다.\n\n대상자 대량 등록을 위해 먼저 관리자 화면에서 해당 모집공고를 등록해 주십시오.`);
-                        e.target.value = '';
-                        if (d) d.innerText = '';
-                        return;
-                    }
-
-                    // 교차 비교 검문소를 안전하게 통과하면, 모집공고 원장에 들어있는 진짜 순정 시험명과 정확한 임상 시간 값을 역추적 상속!
-                    if (matchedRecruitmentData) {
-                        extractedTitle = matchedRecruitmentData.title; // 진짜 시험명 강제 주입 (화면 실종 전면 격파)
-                        if (matchedRecruitmentData.period) extractedPeriod = matchedRecruitmentData.period; // 진짜 시간 강제 주입
-                    }
-
-                    // [순정 데이터 바인딩 상속]: 사내 마스터 전역 변수 직접 연동 체인 락인
-                    let currentApplicantDB = dataStoreApplicant || JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-                    // 파일 업로드 루프를 돌기 "직전" 기존 대장에 이미 등록되어 있던 이 시험+기수의 오리지널 머릿수를 구합니다.
-                    const baseExistingCount = currentApplicantDB.filter(function (u) {
-                        return String(u.title).replace(/\s/g, "") === String(extractedTitle).replace(/\s/g, "") &&
-                            String(u.th).replace(/\s/g, "") === String(extractedTh).replace(/\s/g, "")
-                    }).length;
-
-                    console.log(`📊 [기준 데이터 연산] 기존 기등록 인원: ${baseExistingCount}명`);
-
-                    // ================================================================
-                    // [2단계] 4행(인덱스 3)부터 반복 돌며 인적사항 정제 및 데이터 조립
-                    // ================================================================
-                    for (let i = 3; i < rawRows.length; i++) {
-                        const row = rawRows[i];
-                        if (!row || row.length === 0) continue;
-
-                        let rawName = row ? row.toString().trim() : "";
-                        const rawGenderAge = row ? row.toString().trim() : "";
-                        let rawSsn = row ? row.toString().trim() : "";
-                        const phoneVal = row ? row.toString().trim() : "";
-
-                        if (!rawName || rawName === "성명" || rawName === "ID") continue;
-
-                        // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
-                        const excelName = rawName.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-
-                        // ② 성별 및 나이 추출
-                        const cleanGenderAge = rawGenderAge.replace(/[\r\n\s]/g, "");
-                        let gender = "미정";
-                        let age = 0;
-
-                        if (cleanGenderAge && cleanGenderAge.includes("/")) {
-                            const idx = cleanGenderAge.indexOf("/");
-                            const gLetter = cleanGenderAge.substring(0, idx).toUpperCase();
-
-                            if (gLetter === "M" || gLetter.includes("M")) gender = "남";
-                            else if (gLetter === "F" || gLetter.includes("F")) gender = "여";
-                            else gender = gLetter;
-
-                            age = parseInt(cleanGenderAge.substring(idx + 1), 10) || 0;
-                        }
-
-                        // ③ 생년월일 나이 기반 역산 가드 가동 복원 엔진
-                        let finalSsn = "정보없음";
-                        if (rawSsn) {
-                            let cleanSsn = rawSsn.toString().replace(/[^0-9]/g, "");
-
-                            if (cleanSsn.length > 0 && cleanSsn.length < 6) {
-                                try {
-                                    const currentYear = new Date().getFullYear();
-                                    let birthYear = currentYear - age + 1;
-                                    let yyPrefix = String(birthYear).substring(2, 4);
-                                    let mmddPart = cleanSsn;
-                                    if (cleanSsn.length === 3) mmddPart = cleanSsn.padStart(4, '0');
-                                    else if (cleanSsn.length === 5) mmddPart = cleanSsn.substring(cleanSsn.length - 4);
-                                    cleanSsn = yyPrefix + mmddPart;
-                                } catch (err) { }
+                        if (metaText) {
+                            // ① 기수 추출: "기" 자를 타격하여 앞단 숫자 확보
+                            const thIndex = metaText.indexOf("기");
+                            if (thIndex !== -1) {
+                                const thNum = metaText.substring(0, thIndex).replace(/[^0-9]/g, "").trim();
+                                if (thNum) extractedTh = thNum + "기";
                             }
 
-                            if (cleanSsn.length === 5) finalSsn = "0" + cleanSsn;
-                            else if (cleanSsn.length === 6) finalSsn = cleanSsn;
-                            else if (cleanSsn.length > 6) finalSsn = cleanSsn.substring(0, 6);
-                            else finalSsn = cleanSsn;
-                        }
+                            // ② 시간 추출: "시간" 자를 타격하여 앞단 숫자 확보
+                            const periodIndex = metaText.indexOf("시간");
+                            if (periodIndex !== -1) {
+                                let startPos = periodIndex - 5;
+                                if (startPos < 0) startPos = 0;
+                                const pSub = metaText.substring(startPos, periodIndex).replace(/[^0-9]/g, "").trim();
+                                if (pSub) extractedPeriod = pSub;
+                            }
 
-                        if (finalSsn.length === 6) {
-                            const yy = finalSsn.substring(0, 2);
-                            const mm = parseInt(finalSsn.substring(2, 4), 10);
-                            const dd = parseInt(finalSsn.substring(4, 6), 10);
-                            if (mm > 12 && dd <= 12) {
-                                finalSsn = yy + String(dd).padStart(2, '0') + String(mm).padStart(2, '0');
+                            // ③ 인원수 추출: 명 글자 위치 기준 순수 숫자만 역추적 스캔
+                            const countIndex = metaText.indexOf("명");
+                            if (countIndex !== -1) {
+                                let startPos = countIndex - 5;
+                                if (startPos < 0) startPos = 0;
+                                const cSub = metaText.substring(startPos, countIndex).replace(/[^0-9]/g, "").trim();
+                                if (cSub) extractedNCount = parseInt(cSub, 10) || 60;
+                            }
+
+                            // ④ 순수 시험명 압착 추출: 기수 뒤 공간부터 (N) 또는 인원수 수치가 오기 전까지 슬라이싱
+                            let startIdx = (thIndex !== -1) ? thIndex + 1 : 0;
+                            let endIdx = metaText.indexOf("(N)");
+                            if (endIdx === -1) endIdx = metaText.indexOf(String(extractedNCount));
+                            if (endIdx === -1) endIdx = metaText.indexOf("담당");
+
+                            if (endIdx !== -1 && endIdx > startIdx) {
+                                extractedTitle = metaText.substring(startIdx, endIdx).trim();
+                            } else {
+                                let fallbackTitle = metaText;
+                                if (thIndex !== -1) fallbackTitle = fallbackTitle.substring(thIndex + 1);
+
+                                const crcPos = fallbackTitle.indexOf("담당");
+                                if (crcPos !== -1) fallbackTitle = fallbackTitle.substring(0, crcPos);
+
+                                const nPos = fallbackTitle.indexOf("(");
+                                if (nPos !== -1) fallbackTitle = fallbackTitle.substring(0, nPos);
+
+                                const mPos = fallbackTitle.indexOf(String(extractedNCount));
+                                if (mPos !== -1) fallbackTitle = fallbackTitle.substring(0, mPos);
+
+                                extractedTitle = fallbackTitle.replace(/[^a-zA-Z0-9가-힣\s\[\]\+\-\_\/\:\.]/g, "").trim();
                             }
                         }
 
-                        // 기존 기등록 대상자 색인 기능 보존 (순정 원본)
-                        const cleanExcelName = excelName.replace(/\s/g, "");
-
-                        // 전화번호 비교용 특수문자 세척 특약
-                        const cleanCurrentPhone = phoneVal ? String(phoneVal).replace(/[^0-9]/g, "") : "정보없음";
-
-                        // 이름 + 생년월일 + 전화번호 3중 매칭 마스터 식별 엔진 (🔒 쉼표 및 중괄호 싱크 복구 오차 0%)
-                        const targetIdx = currentApplicantDB.findIndex(function (u) {
-                            const dbName = u.name ? String(u.name).replace(/\s/g, "") : "";
-                            const dbSsn = u.ssn ? String(u.ssn).trim() : "";
-                            const dbPhone = u.phone ? String(u.phone).replace(/[^0-9]/g, "") : "";
-
-                            return dbName === cleanExcelName &&
-                                dbSsn === String(finalSsn).trim() &&
-                                dbPhone === cleanCurrentPhone;
-                        });
-
-                        // [버그 완전 파괴] 정순 단선형 카운트 매핑 스케줄러 
-                        const excelOrder = parseInt(i, 10) - 2;
-
-                        // 루프 외부의 고정 기존 명수 + 현재 엑셀 순번 = 완벽한 최종 정순 번호 확보!
-                        const currentLineNumber = baseExistingCount + excelOrder;
-                        const goalQuotaNum = parseInt(extractedNCount, 10) || 60;
-
-                        // 최종 슬래시 포맷 문자열 생성 (결과: "2/60", "3/60", "4/60" 고정!)
-                        const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
-
-                        // 🔒 [정품 스펙 동기화 인계]: 모집공고 마스터와 크로스 매핑을 마친 순정 데이터셋 조립 객체 바인딩 완료
-                        const mergedRecord = {
-                            uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : "EXCEL_" + Date.now() + "_" + Math.floor(Math.random() * 1000) + "_" + i,
-                            name: excelName,
-                            ssn: finalSsn,
-                            phone: phoneVal || (targetIdx !== -1 ? currentApplicantDB[targetIdx].phone : "정보없음"),
-                            gender: gender,
-                            age: age,
-                            title: targetIdx !== -1 ? currentApplicantDB[targetIdx].title : extractedTitle, // 순정 진짜 시험명 탑재
-                            th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,       // 순정 진짜 기수 탑재
-                            period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod, // 순정 진짜 임상 시간 탑재
-
-                            count: liveProgressFormat, // 저장소에 개별 고유 분수로 정확히 새김
-                            nCount: goalQuotaNum,
-
-                            payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
-
-                            // 🔒 [표준 규격]: 기등록 건이 아닐 시 초기 참여 상태를 과거 "소집/대기" 대신 무조건 마스터 표준 진입 규격인 "신검대기"로 강제 락인 매핑
-                            stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "신검대기",
-                            regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')
+                        // ================================================================
+                        // 🔒 [공백 소독 교차 매핑]: 모집공고 원장(dataStoreRecruitment) 전 정밀 대조선
+                        // ================================================================
+                        const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                        const cleanTargetString = (str) => {
+                            if (!str) return "";
+                            return (str + "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
                         };
 
-                        if (targetIdx !== -1) {
-                            currentApplicantDB[targetIdx] = Object.assign({}, currentApplicantDB[targetIdx], mergedRecord);
-                        } else {
-                            currentApplicantDB.push(mergedRecord);
+                        const excelTitleClean = cleanTargetString(extractedTitle);
+
+                        // 시스템 공고 대장 원장을 열어 철자를 완전히 소독한 마스터 원본 행 객체를 원격 캡처
+                        let matchedRecruitmentData = recruitmentDB.find(rec => {
+                            const systemTitleClean = cleanTargetString(rec.title);
+                            return systemTitleClean === excelTitleClean || systemTitleClean.includes(excelTitleClean) || excelTitleClean.includes(systemTitleClean);
+                        });
+
+                        // 모집공고 원장에 등록되지 않은 시험일 경우 데이터 명단 오염 방지를 위해 차단
+                        if (!matchedRecruitmentData && extractedTitle !== "시험명 미정") {
+                            alert(`[업로드 차단] 파일 1행의 시험명 "${extractedTitle}" 은(는) 모집공고 대장에 등록되지 않은 시험명입니다.\n\n대상자 대량 등록을 위해 먼저 관리자 화면에서 해당 모집공고를 등록해 주십시오.`);
+                            e.target.value = '';
+                            if (d) d.innerText = '';
+                            return;
                         }
+
+                        // 교차 비교 검문소를 안전하게 통과하면, 모집공고 원장에 들어있는 진짜 순정 시험명과 정확한 임상 시간 값을 역추적 상속!
+                        if (matchedRecruitmentData) {
+                            extractedTitle = matchedRecruitmentData.title; // 진짜 시험명 강제 주입 (화면 실종 전면 격파)
+                            if (matchedRecruitmentData.period) extractedPeriod = matchedRecruitmentData.period; // 진짜 시간 강제 주입
+                        }
+
+                        // [순정 데이터 바인딩 상속]: 사내 마스터 전역 변수 직접 연동 체인 락인
+                        let currentApplicantDB = dataStoreApplicant || JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+                        // 파일 업로드 루프를 돌기 "직전" 기존 대장에 이미 등록되어 있던 이 시험+기수의 오리지널 머릿수를 구합니다.
+                        const baseExistingCount = currentApplicantDB.filter(u =>
+                            (u.title + "").replace(/\s/g, "") === (extractedTitle + "").replace(/\s/g, "") &&
+                            (u.th + "").replace(/\s/g, "") === (extractedTh + "").replace(/\s/g, "")
+                        ).length;
+
+                        console.log(`📊 [기준 데이터 연산] 기존 기등록 인원: ${baseExistingCount}명`);
+
+                        // ================================================================
+                        // [2단계] 4행(인덱스 3)부터 반복 돌며 인적사항 정제 및 데이터 조립
+                        // ================================================================
+                        for (let i = 3; i < rawRows.length; i++) {
+                            const row = rawRows[i];
+                            if (!row || row.length === 0) continue;
+
+                            let rawName = row ? row.toString().trim() : "";
+                            const rawGenderAge = row ? row.toString().trim() : "";
+                            let rawSsn = row ? row.toString().trim() : "";
+                            const phoneVal = row ? row.toString().trim() : "";
+
+                            if (!rawName || rawName === "성명" || rawName === "ID") continue;
+
+                            // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
+                            const excelName = rawName.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+
+                            // ② 성별 및 나이 추출
+                            const cleanGenderAge = rawGenderAge.replace(/[\r\n\s]/g, "");
+                            let gender = "미정";
+                            let age = 0;
+
+                            if (cleanGenderAge && cleanGenderAge.includes("/")) {
+                                const idx = cleanGenderAge.indexOf("/");
+                                const gLetter = cleanGenderAge.substring(0, idx).toUpperCase();
+
+                                if (gLetter === "M" || gLetter.includes("M")) gender = "남";
+                                else if (gLetter === "F" || gLetter.includes("F")) gender = "여";
+                                else gender = gLetter;
+
+                                age = parseInt(cleanGenderAge.substring(idx + 1), 10) || 0;
+                            }
+
+                            // ③ 생년월일 나이 기반 역산 가드 가동 복원 엔진
+                            let finalSsn = "정보없음";
+                            if (rawSsn) {
+                                let cleanSsn = rawSsn.toString().replace(/[^0-9]/g, "");
+
+                                if (cleanSsn.length > 0 && cleanSsn.length < 6) {
+                                    try {
+                                        const currentYear = new Date().getFullYear();
+                                        let birthYear = currentYear - age + 1;
+                                        let yyPrefix = (birthYear + "").substring(2, 4);
+                                        let mmddPart = cleanSsn;
+                                        if (cleanSsn.length === 3) mmddPart = cleanSsn.padStart(4, '0');
+                                        else if (cleanSsn.length === 5) mmddPart = cleanSsn.substring(cleanSsn.length - 4);
+                                        cleanSsn = yyPrefix + mmddPart;
+                                    } catch (err) { }
+                                }
+
+                                if (cleanSsn.length === 5) finalSsn = "0" + cleanSsn;
+                                else if (cleanSsn.length === 6) finalSsn = cleanSsn;
+                                else if (cleanSsn.length > 6) finalSsn = cleanSsn.substring(0, 6);
+                                else finalSsn = cleanSsn;
+                            }
+
+                            if (finalSsn.length === 6) {
+                                const yy = finalSsn.substring(0, 2);
+                                const mm = parseInt(finalSsn.substring(2, 4), 10);
+                                const dd = parseInt(finalSsn.substring(4, 6), 10);
+                                if (mm > 12 && dd <= 12) {
+                                    finalSsn = yy + String(dd).padStart(2, '0') + String(mm).padStart(2, '0');
+                                }
+                            }
+
+                            // 기존 기등록 대상자 색인 기능 보존 (순정 원본)
+                            const cleanExcelName = excelName.replace(/\s/g, "");
+
+                            // 전화번호 비교용 특수문자 세척 특약
+                            const cleanCurrentPhone = phoneVal ? (phoneVal + "").replace(/[^0-9]/g, "") : "정보없음";
+
+                            // 이름 + 생년월일 + 전화번호 3중 매칭 마스터 식별 엔진
+                            const targetIdx = currentApplicantDB.findIndex(u => {
+                                const dbName = u.name ? (u.name + "").replace(/\s/g, "") : "";
+                                const dbSsn = u.ssn ? (u.ssn + "").trim() : "";
+                                const dbPhone = u.phone ? (u.phone + "").replace(/[^0-9]/g, "") : "";
+
+                                return dbName === cleanExcelName &&
+                                    dbSsn === (finalSsn + "").trim() &&
+                                    dbPhone === cleanCurrentPhone;
+                            });
+
+                            // [버그 완전 파괴] 정순 단선형 카운트 매핑 스케줄러 
+                            const excelOrder = parseInt(i, 10) - 2;
+
+                            // 루프 외부의 고정 기존 명수 + 현재 엑셀 순번 = 완벽한 최종 정순 번호 확보!
+                            const currentLineNumber = baseExistingCount + excelOrder;
+                            const goalQuotaNum = parseInt(extractedNCount, 10) || 60;
+
+                            // 최종 슬래시 포맷 문자열 생성 (결과: "2/60", "3/60", "4/60" 고정!)
+                            const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
+
+                            // 🔒 [정품 스펙 동기화 인계]: 모집공고 대장과 크로스 교차 비교를 통과한 진짜 살아있는 마스터 데이터셋을 조립 객체에 1:1 바인딩
+                            const mergedRecord = {
+                                uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : "EXCEL_" + Date.now() + "_" + Math.floor(Math.random() * 1000) + "_" + i,
+                                name: excelName,
+                                ssn: finalSsn,
+                                phone: phoneVal || (targetIdx !== -1 ? currentApplicantDB[targetIdx].phone : "정보없음"),
+                                gender: gender,
+                                age: age,
+
+                                // 🌟 [공란 버그 완파]: 거친 엑셀 파싱 단어를 소멸시키고, 1단계 매칭 검문소를 통과하여 치환 복원된 모집공고의 정품 마스터 데이터를 정확히 주입 사출
+                                title: targetIdx !== -1 ? currentApplicantDB[targetIdx].title : extractedTitle, // 순정 진짜 시험명 탑재
+                                th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,       // 순정 진짜 기수 탑재
+                                period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod, // 순정 진짜 임상 시간 탑재
+
+                                count: liveProgressFormat, // 저장소에 개별 고유 분수로 정확히 새김
+                                nCount: goalQuotaNum,
+
+                                payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
+
+                                // 🔒 [표준 규격]: 기등록 건이 아닐 시 초기 참여 상태를 과거 "소집/대기" 대신 무조건 마스터 표준 진입 규격인 "신검대기"로 강제 락인 매핑
+                                stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "신검대기",
+                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')
+                            };
+
+                            if (targetIdx !== -1) {
+                                currentApplicantDB[targetIdx] = Object.assign({}, currentApplicantDB[targetIdx], mergedRecord);
+                            } else {
+                                currentApplicantDB.push(mergedRecord);
+                            }
+                        }
+
+                        // ================================================================
+                        // [3단계] 전역 변수 싱크 전송 및 사내 순정 커밋 트랜잭션 가동
+                        // ================================================================
+                        dataStoreApplicant = currentApplicantDB; // 전역 스토리지 연동 싱크
+
+                        if (typeof commitToLocalStorage === "function") {
+                            commitToLocalStorage(); // 사내 순정 공식 세이브 함수 호출로 영구 저장 완료
+                        } else {
+                            localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
+                        }
+
+                        console.log("▶ [엔진 디버깅] 최종 동기화 완료 데이터 배열:", currentApplicantDB);
+
+                        alert(
+                            "📢 지능형 문장 분리 파싱 일괄 등록 성공!\n" +
+                            "──────────────────────────────\n" +
+                            "● 적용 시험명: " + extractedTitle + "\n" +
+                            "● 적용 기수: " + extractedTh + "\n" +
+                            "● 모집 인원: " + extractedNCount + "명\n" +
+                            "● 임상 기간: " + extractedPeriod + "시간\n" +
+                            "● 소집 일자: " + (extractedTh || '미정') + "\n" +
+                            "──────────────────────────────\n" +
+                            "- 정상 적재 완료: Total [" + (rawRows.length - 3) + "건]\n" +
+                            "- 중복 제외 데이터: Total [0건]\n\n"
+                        );
+
+                        // 순정 UI 새로고침 작동 [독립 개체 격리 완착]
+                        if (typeof window.refreshApplicantView === "function") {
+                            window.refreshApplicantView();
+                        }
+
+                        // 🔒 [통계 간섭 원천 봉쇄]: 기존에 상단 통계 수치를 동반 오염 뒤흔들던 window.calculateLiveDashboardStats() 호출을 제거하여 상단 지표 카드는 완벽 보호 홀딩됨.
+
+                        e.target.value = ''; // 인풋 초기화 안착
+
+                    } catch (err) {
+                        alert("전산 오류: 최종 인원수 데이터 타입 빌드 도중 예외가 발생했습니다.");
+                        console.error("🚨 [실제 에러 발생 원인]:", err);
                     }
-
-                    // ================================================================
-                    // [3단계] 전역 변수 싱크 전송 및 사내 순정 커밋 트랜잭션 가동
-                    // ================================================================
-                    dataStoreApplicant = currentApplicantDB; // 전역 스토리지 연동 싱크
-
-                    if (typeof commitToLocalStorage === "function") {
-                        commitToLocalStorage(); // 사내 순정 공식 세이브 함수 호출로 영구 저장 완료
-                    } else {
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
+                };
+                // 🔒 [Blob 엔진 기동 마감 완료]: file 배열 통째가 아닌 0번 방 정품 단일 file 개체를 명확하게 낚아채어 해독 엔진 주입 완료!
+                r.readAsArrayBuffer(file);
+            } else {
+                // [순정 유지]: 기존 docx, doc 문서 계열 파트 연동선은 순정 그대로 원형 안전 보존 상속
+                r.onload = function (evt) {
+                    if (typeof parseRawTextDump === 'function') {
+                        parseRawTextDump(evt.target.result);
                     }
-
-                    console.log("▶ [엔진 디버깅] 최종 동기화 완료 데이터 배열:", currentApplicantDB);
-
-                    alert(
-                        "📢 지능형 문장 분리 파싱 일괄 등록 성공!\n" +
-                        "──────────────────────────────\n" +
-                        "● 적용 시험명: " + extractedTitle + "\n" +
-                        "● 적용 기수: " + extractedTh + "\n" +
-                        "● 모집 인원: " + extractedNCount + "명\n" +
-                        "● 임상 기간: " + extractedPeriod + "시간\n" +
-                        "● 소집 일자: " + (extractedTh || '미정') + "\n" +
-                        "──────────────────────────────\n" +
-                        "- 정상 적재 완료: Total [" + (rawRows.length - 3) + "건]\n" +
-                        "- 중복 제외 데이터: Total [0건]\n\n"
-                    );
-
-                    // 순정 UI 새로고침 작동 [독립 개체 격리 완착]
-                    if (typeof window.refreshApplicantView === "function") {
-                        window.refreshApplicantView();
-                    }
-
-                    // 🔒 [통계 간섭 원천 봉쇄]: 기존에 상단 통계 수치를 동반 오염 뒤흔들던 window.calculateLiveDashboardStats() 
-                    //    호출 명령어를 이 최종 세이브 구역에서 전면 파기·삭제 조치 완료함!
-                    //    이로 인해 파일을 백만 번 업로드해도 상단 카드는 처음 적재된 마스터 프리셋 모수 수치 그대로 철저히 홀딩 고정 보호됨.
-
-                    e.target.value = ''; // 인풋 초기화 안착
-
-                } catch (err) {
-                    alert("전산 오류: 최종 인원수 데이터 타입 빌드 도중 예외가 발생했습니다.");
-                    console.error("🚨 [실제 에러 발생 원인]:", err);
-                }
-            };
-            r.readAsArrayBuffer(file);
+                };
+                r.readAsText(file, 'EUC-KR');
+            }
         }
-
 
         //파일 업로드 후 해독처리
         function handleExamFileImport(event) {

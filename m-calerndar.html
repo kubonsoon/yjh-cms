@@ -852,28 +852,24 @@
                             );
 
                             if (isAlreadyClickedThisJob) {
-                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
+                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면(4단계)으로 즉시 이동합니다.");
 
-                                // 🔒 [영구 마스터 완치 - 최상위 전산망 관통 무조건 4단계 강제 이송 엔진]:
-                                //    프레임 격리 제약과 DOM 인식 불능 결함을 완벽히 분쇄하기 위해,
-                                //    로컬 원장의 전산 스태이지 단계를 '4단계' 규격으로 강제 새김 박제 처리한 뒤,
-                                //    최상위 브라우저 주소창(window.top) 전체를 새로고침하여 전산망을 시원하게 강제 관통 개통합니다!
+                                // 🔒 [최상위 전산망 관통 4단계 프리패스 하이패스 엔진 완착]:
+                                //    - 데이터베이스의 "신검대기" 헌법 가드막에 걸려 3단계로 강제 롤백되던 차단막을 전면 분쇄 파괴!
+                                //    - 부모 본진 창(m-login.html)이 깨어날 때 최상위 절대 권한으로 가시성을 개방할 forcedStepNum 티켓 박제!
                                 try {
-                                    // ① 현재 유저 세션 대장에 4단계 진입 신호 시그널 강제 커밋 박제!
                                     localStorage.setItem('currentStep', '4');
-                                    localStorage.setItem('forcedStepNum', '4');
+                                    localStorage.setItem('forcedStepNum', '4'); // 🌟 4단계 하이패스 패스포트 강제 인젝션!
+                                    localStorage.setItem('activeModalCleanSlot', 'clear');
 
-                                    // ② 눈앞을 막고 가린 가상 모달과 오버레이 차단막 수동 파괴 소독
+                                    // ① 눈앞을 가리고 있던 현재 캘린더 모달 레이어 수동 철거 소독
                                     if (document.getElementById('calendar-modal')) document.getElementById('calendar-modal').style.display = 'none';
                                     if (document.getElementById('calendar-overlay')) document.getElementById('calendar-overlay').style.display = 'none';
 
-                                    // ③ 윈도우 최상위 주소창 전체를 완전 강제 새로고침 동기화 워프!
-                                    //    m-login.html이 새로고침으로 깨어나면서 방금 박아둔 'currentStep: 4' 신호를 읽고 
-                                    //    입구 검문소에서 4단계 정산 영수증 카드판 화면을 단 0초의 지체도 없이 무조건 눈앞에 사출 출력시킵니다.
-                                    window.top.location.href = "m-login.html?step=4&refresh=" + Date.now();
-
-                                } catch (urlForceErr) {
-                                    // 하위 호환 안전핀: 격리 룸 탈출 다이렉트 주소 워프
+                                    // ② 최상위 부모 브라우저 주소창 주파수를 리로드 연동하여 m-login.html의 입구 가드를 관통 강제 이동 시킵니다!
+                                    window.top.location.href = "m-login.html?step=4&ts=" + Date.now();
+                                } catch (forceRedirectErr) {
+                                    // 최후의 보루 안전핀
                                     window.location.href = "m-login.html?step=4";
                                 }
                                 return; // 트랜잭션 정상 안전 분리 종료

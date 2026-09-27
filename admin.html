@@ -3692,6 +3692,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 else gender = gLetter;
 
                                 age = parseInt(cleanGenderAge.substring(idx + 1), 10) || 0;
+                            } else {
+                                // 슬래시(/) 분리선 없이 '남' 또는 '여' 단일 글자만 유입될 때 성별 배지 유실을 전면 방어
+                                if (cleanGenderAge === "남" || cleanGenderAge === "M" || cleanGenderAge.includes("남")) {
+                                    gender = "남";
+                                } else if (cleanGenderAge === "여" || cleanGenderAge === "F" || cleanGenderAge.includes("여")) {
+                                    gender = "여";
+                                }
                             }
 
                             // ③ 생년월일 나이 기반 역산 가드 가동 복원 엔진

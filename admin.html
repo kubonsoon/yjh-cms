@@ -2354,11 +2354,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
       <td style="width: 6.5%; vertical-align: middle; text-align: center;">
 <select id="inline-app-stage-${masterIndex}" class="inline-input" style="height: 30px; padding: 2px; background: #1e293b !important; font-weight: 700; color: #ffffff !important; text-align: center; cursor: pointer; ">
 <!-- 정상 진행 프로세스 표준 단계 옵션 매핑 (기존 '참여' 탈피) -->
-<option value="신검대기" ${row.stage === '신검대기' ? 'selected' : ''}>신검대기</option>
+<option value="신검대기" ${row.stage === '신검대기' || !row.stage ? 'selected' : ''}>신검대기</option>
 <option value="신검통과" ${row.stage === '신검통과' ? 'selected' : ''}>신검통과</option>
 <option value="신검탈락" ${row.stage === '신검탈락' ? 'selected' : ''}>신검탈락</option>
 <option value="신검동철" ${row.stage === '신검동철' ? 'selected' : ''}>신검동철</option>
-<option value="소집" ${row.stage === '소집' || !row.stage ? 'selected' : ''}>소집 </option>
+<option value="소집" ${row.stage === '소집' ? 'selected' : ''}>소집 </option>
 <option value="투약" ${row.stage === '투약' ? 'selected' : ''}>투약</option>
 <option value="종료" ${row.stage === '종료' ? 'selected' : ''}>종료</option>
 

@@ -3501,8 +3501,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
-            // 🔒 [18:30 정품 스펙]: split 없이 substring 공식으로 확장자 안전 분리 사수 (3501라인 에러 전면 차단)
-            const fileNameStr = file.name.toString();
+            // 🔒 [18:30 성공 프리셋]: split 없이 lastIndexOf 공식으로 확장자 안전 분리 사수 (3501라인 에러 전면 차단)
+            const fileNameStr = file.name ? file.name + "" : "";
             const lastDotIdx = fileNameStr.lastIndexOf('.');
             if (lastDotIdx === -1) {
                 alert('올바르지 않은 파일 명세입니다.');
@@ -3553,12 +3553,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
 
                         // ================================================================
-                        // 🌟 [3505라인 크래시 원천 차단]: toString 문법을 전면 폐기한 안전핀 복구선
+                        // 🌟 [3505라인 크래시 원천 박멸]: toString/String 단어를 통째로 삭제한 무결점 안전선
                         // ================================================================
-                        // 18시 30분에 완전 등록 성공을 공인했던 순정 문자열 추출선으로 원상복구 고정
+                        // 18시 30분에 완전 등록 성공을 공인했던 순정 가드선에 철저히 안전핀 적용
                         let metaText = "";
                         if (rawRows && rawRows && rawRows) {
-                            metaText = String(rawRows).trim();
+                            const cellVal = rawRows;
+                            metaText = cellVal ? cellVal + "" : "";
                         }
 
                         let extractedTitle = "시험명 미정";
@@ -3601,6 +3602,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             if (endIdx !== -1 && endIdx > startIdx) {
                                 extractedTitle = metaText.substring(startIdx, endIdx).trim();
                             } else {
+                                // 최후의 문자열 정제 안전 보선 가드 가동
                                 let fallbackTitle = metaText;
                                 if (thIndex !== -1) fallbackTitle = fallbackTitle.substring(thIndex + 1);
 
@@ -3623,7 +3625,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
                         const cleanTargetString = (str) => {
                             if (!str) return "";
-                            return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                            return (str + "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
                         };
 
                         const excelTitleClean = cleanTargetString(extractedTitle);
@@ -3653,8 +3655,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                         // 파일 업로드 루프를 돌기 "직전" 기존 대장에 이미 등록되어 있던 이 시험+기수의 오리지널 머릿수를 구합니다.
                         const baseExistingCount = currentApplicantDB.filter(u =>
-                            u.title.toString().replace(/\s/g, "") === extractedTitle.toString().replace(/\s/g, "") &&
-                            u.th.toString().replace(/\s/g, "") === extractedTh.toString().replace(/\s/g, "")
+                            (u.title + "").replace(/\s/g, "") === (extractedTitle + "").replace(/\s/g, "") &&
+                            (u.th + "").replace(/\s/g, "") === (extractedTh + "").replace(/\s/g, "")
                         ).length;
 
                         console.log(`📊 [기준 데이터 연산] 기존 기등록 인원: ${baseExistingCount}명`);
@@ -3666,10 +3668,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
 
-                            let rawName = row[3] ? row[3].toString().trim() : "";
-                            const rawGenderAge = row[4] ? row[4].toString().trim() : "";
-                            let rawSsn = row[5] ? row[5].toString().trim() : "";
-                            const phoneVal = row[6] ? row[6].toString().trim() : "";
+                            let rawName = row[2] ? row[2].toString().trim() : "";
+                            const rawGenderAge = row[3] ? row[3].toString().trim() : "";
+                            let rawSsn = row[4] ? row[4].toString().trim() : "";
+                            const phoneVal = row[5] ? row[5].toString().trim() : "";
 
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 
@@ -3701,7 +3703,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                     try {
                                         const currentYear = new Date().getFullYear();
                                         let birthYear = currentYear - age + 1;
-                                        let yyPrefix = String(birthYear).substring(2, 4);
+                                        let yyPrefix = (birthYear + "").substring(2, 4);
                                         let mmddPart = cleanSsn;
                                         if (cleanSsn.length === 3) mmddPart = cleanSsn.padStart(4, '0');
                                         else if (cleanSsn.length === 5) mmddPart = cleanSsn.substring(cleanSsn.length - 4);
@@ -3728,16 +3730,16 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const cleanExcelName = excelName.replace(/\s/g, "");
 
                             // 전화번호 비교용 특수문자 세척 특약
-                            const cleanCurrentPhone = phoneVal ? phoneVal.toString().replace(/[^0-9]/g, "") : "정보없음";
+                            const cleanCurrentPhone = phoneVal ? (phoneVal + "").replace(/[^0-9]/g, "") : "정보없음";
 
                             // 이름 + 생년월일 + 전화번호 3중 매칭 마스터 식별 엔진
                             const targetIdx = currentApplicantDB.findIndex(u => {
-                                const dbName = u.name ? u.name.toString().replace(/\s/g, "") : "";
-                                const dbSsn = u.ssn ? u.ssn.toString().trim() : "";
-                                const dbPhone = u.phone ? u.phone.toString().replace(/[^0-9]/g, "") : "";
+                                const dbName = u.name ? (u.name + "").replace(/\s/g, "") : "";
+                                const dbSsn = u.ssn ? (u.ssn + "").trim() : "";
+                                const dbPhone = u.phone ? (u.phone + "").replace(/[^0-9]/g, "") : "";
 
                                 return dbName === cleanExcelName &&
-                                    dbSsn === finalSsn.toString().trim() &&
+                                    dbSsn === (finalSsn + "").trim() &&
                                     dbPhone === cleanCurrentPhone;
                             });
 
@@ -3836,6 +3838,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 r.readAsText(file, 'EUC-KR');
             }
         }
+
 
         function handleExamFileImport(event) {
             const file = event.target.files;

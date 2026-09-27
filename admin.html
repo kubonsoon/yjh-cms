@@ -490,16 +490,16 @@
                         <i class="fa-solid fa-magnifying-glass"></i> 대상자 통합 검색:
                     </span>
 
-                    <!-- 1. 연도 선택 상자 -->
-                    <select id="search-filter-year"
+                    <!-- 1. 연도 선택 상자: 자바스크립트 독립 엔진과 연동 스펙 일치화 완료 -->
+                    <select id="dashboard-filter-year"
                         style="width: 110px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-연도-</option>
                         <option value="2025">2025년</option>
                         <option value="2026">2026년</option>
                     </select>
 
-                    <!-- 2. 월 선택 상자 -->
-                    <select id="search-filter-month"
+                    <!-- 2. 월 선택 상자: 자바스크립트 독립 엔진과 연동 스펙 일치화 완료 -->
+                    <select id="dashboard-filter-month"
                         style="width: 100px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-월-</option>
                         <option value="01">1월</option>
@@ -516,8 +516,8 @@
                         <option value="12">12월</option>
                     </select>
 
-                    <!-- 3. 시험명 선택 상자 [수정 완료]: 상단 통계 간섭 원인을 원천 제거하기 위해 고유 독립 ID 치환 및 onchange 링크선 완전 파기 마감 -->
-                    <select id="search-filter-title"
+                    <!-- 3. 시험명 선택 상자: 상단 통계판 수치는 철저히 고정 차단하되, 동적 날짜 파서가 드롭다운 목록을 정상적으로 로드할 수 있도록 공용 ID 매핑선 완성 -->
+                    <select id="dashboard-filter-title"
                         style="max-width: 300px; flex: 1; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-전체 시험 목록-</option>
                     </select>
@@ -526,10 +526,11 @@
                     <input type="text" id="search-app-name" placeholder="대상자 (예:홍길동)"
                         style="width: 140px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; outline: none;">
 
-                    <!-- 5. 검색 실행 버튼 -->
+                    <!-- 5. 검색 실행 버튼: 클릭 시 오직 하단 목록 데이터만 쏙 좁혀서 가져오는 마스터 실행 단추 -->
                     <button type="button" id="btn-filter-search" onclick="executeCombinedSearchPipeline()"
                         style="height: 36px; padding: 0 16px; background: var(--secondary-color); color: #fff; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">검색</button>
                 </div>
+
             </div>
 
 
@@ -7414,11 +7415,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             // 1. 명시적인 검색 액션이 수립되었으므로 검색 필터 가동 상태 스위치 ON 전환
             window.isSearchTriggered = true;
-
-            // 2. 선택/입력된 4대 검색 상자의 조건 밸류를 기반으로 상단 4단 정산 지표 현황판 실시간 카운트 리계산
-            if (typeof calculateLiveDashboardStats === "function") {
-                calculateLiveDashboardStats();
-            }
 
             // 3. 만족하는 타겟 대상자만 쏙 발라내어 하단 대상자 목록 테이블 화면 즉시 실시간 리렌더링
             if (typeof refreshApplicantView === "function") {

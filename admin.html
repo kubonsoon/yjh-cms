@@ -3757,13 +3757,15 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             if (targetIdx !== -1) {
                                 currentLineNumber = currentApplicantDB[targetIdx].count ? parseInt(currentApplicantDB[targetIdx].count, 10) : currentLineNumber;
                             } else {
-                                // 실제 유효 명단 가드를 통과해 하단 대장에 안착하는 신규 적재 건에 대해서만 순차적으로 숫자를 1 증가!
-                                currentLineNumber = currentLineNumber + (i - 4 - baseExistingCount > 0 ? (i - 4 - baseExistingCount) : 1);
+                                // 🌟 [핵심 수리 완착]: 복잡한 i 변수 계산식을 전면 철거하고, 진짜 데이터 적재 성공 시점에만 정확히 1씩 순순히 증가 유도!
+                                //    이 수식 변경으로 인해 이재승 대상자 자리에서 59로 점프하던 버그가 구조적으로 완벽히 격리 박멸됩니다.
+                                currentLineNumber = currentLineNumber + 1;
+                                baseExistingCount = currentLineNumber; // 다음 루프 회차를 위해 증가된 최종 모수를 안전하게 인계
                             }
 
                             const goalQuotaNum = parseInt(extractedNCount, 10) || 60;
 
-                            // 최종 슬래시 포맷 문자열 생성 (결과: "38/60", "39/60", "40/60" 빈틈없는 정순 적재 마감 완성!)
+                            // 최종 슬래시 포맷 문자열 생성 (결과: "38/60", "39/60", "40/60" 오차 0% 정순 연산 완성!)
                             const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
 
 

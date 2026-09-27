@@ -3497,11 +3497,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 🔒 [입구 원천 차단 안전핀]: 비정상적인 유령 호출 신호를 입구에서 즉시 튕겨내 크래시 원천 방어
             if (!e || !e.target || !e.target.files || e.target.files.length === 0) return;
 
-            const file = e.target.files; // 🌟 [바로 전 성공본 규격]: 0번 방 실물 단일 파일 객체 정확히 락인
+            const file = e.target.files[0]; // 🌟 [직전 대성공본 오리지널 명세]: 0번 방 실물 단일 파일 개체 다이렉트 바인딩 락인
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
-            // 🔒 [확장자 가드 최종 확정]: split 없이 lastIndexOf 공식으로 확장자 안전 분리 사수 (3501라인 에러 전면 차단)
+            // 🔒 [확장자 가드 최종 사수]: split 없이 lastIndexOf 공식으로 확장자 안전 분리 사수 (3501라인 에러 전면 차단)
             const fileNameStr = file.name ? file.name + "" : "";
             const lastDotIdx = fileNameStr.lastIndexOf('.');
             if (lastDotIdx === -1) {
@@ -3544,7 +3544,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             workbook = XLSX.read(csvText, { type: 'string' });
                         }
 
-                        const firstSheetName = workbook.SheetNames;
+                        const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
 
                         // 2차원 배열 형태로 전환하여 상단 레이아웃 간섭 차단
@@ -3556,8 +3556,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         // [18:30 복구] toString 문법 참조 오류가 원천 소독된 순정 가로채기선
                         // ================================================================
                         let metaText = "";
-                        if (rawRows && rawRows) {
-                            const cellVal = rawRows;
+                        if (rawRows && rawRows[0]) {
+                            const cellVal = rawRows[0];
                             metaText = cellVal ? cellVal + "" : "";
                         }
 
@@ -3601,6 +3601,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             if (endIdx !== -1 && endIdx > startIdx) {
                                 extractedTitle = metaText.substring(startIdx, endIdx).trim();
                             } else {
+                                // 최후의 문자열 정제 안전 보선 가드 가동
                                 let fallbackTitle = metaText;
                                 if (thIndex !== -1) fallbackTitle = fallbackTitle.substring(thIndex + 1);
 
@@ -3618,7 +3619,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         }
 
                         // ================================================================
-                        // 🔒 [바로 전 성공본 명세]: 모집공고 원장(dataStoreRecruitment) 교차 대조선 사수
+                        // 🔒 [직전 대성공본 명세 원형]: 모집공고 원장(dataStoreRecruitment) 전 정밀 대조선 사수
                         // ================================================================
                         const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
                         const cleanTargetString = (str) => {
@@ -3628,6 +3629,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                         const excelTitleClean = cleanTargetString(extractedTitle);
 
+                        // 시스템 공고 대장 원장을 열어 철자를 완전히 소독한 마스터 원본 행 객체를 원격 캡처
                         let matchedRecruitmentData = recruitmentDB.find(rec => {
                             const systemTitleClean = cleanTargetString(rec.title);
                             return systemTitleClean === excelTitleClean || systemTitleClean.includes(excelTitleClean) || excelTitleClean.includes(systemTitleClean);
@@ -3641,6 +3643,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             return;
                         }
 
+                        // 교차 비교 검문소를 안전하게 통과하면, 모집공고 원장에 들어있는 진짜 순정 시험명과 정확한 임상 시간 값을 역추적 상속!
                         if (matchedRecruitmentData) {
                             extractedTitle = matchedRecruitmentData.title; // 진짜 시험명 강제 주입 (화면 실종 전면 격파)
                             if (matchedRecruitmentData.period) extractedPeriod = matchedRecruitmentData.period; // 진짜 시간 강제 주입
@@ -3664,7 +3667,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
 
-                            // 🌟 [바로 전 성공본 타격 교정선]: 엉뚱한 비고란을 찌르던 기존 3, 4, 5, 6 인덱스를 실물 엑셀 규격인 0, 1, 2, 3으로 전격 정정!
+                            // 🌟 [실수 수정 최종 교정선]: 엉뚱한 비고란을 찌르던 기존 3, 4, 5, 6 인덱스를 실물 엑셀 규격인 0, 1, 2, 3으로 전격 정정!
                             let rawName = row[0] ? row[0].toString().trim() : "";        // 성명 (0번 열 타격)
                             const rawGenderAge = row[1] ? row[1].toString().trim() : ""; // 성별/나이 (1번 열 타격)
                             let rawSsn = row[2] ? row[2].toString().trim() : "";         // 생년월일 (2번 열 타격)
@@ -3759,7 +3762,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 gender: gender,
                                 age: age,
 
-                                // 🔒 바로 전 성공본 데이터 상속선 그대로 매핑 유지
+                                // 🔒 직전 대성공본 데이터 상속선 그대로 매핑 유지
                                 title: targetIdx !== -1 ? currentApplicantDB[targetIdx].title : extractedTitle, // 순정 진짜 시험명 탑재
                                 th: targetIdx !== -1 ? currentApplicantDB[targetIdx].th : extractedTh,       // 순정 진짜 기수 탑재
                                 period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod, // 순정 진짜 임상 시간 탑재
@@ -3821,10 +3824,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.error("🚨 [실제 에러 발생 원인]:", err);
                     }
                 };
-                // 🔒 [Blob 엔진 사수 완료]: 0번 방 정품 단일 file 개체를 명확하게 낚아채어 해독 엔진 주입 완료!
+                // 🔒 [직전 대성공본 사수 완료]: 0번 방 정품 단일 file 객체를 명확하게 낚아채어 해독 엔진 주입 마감!
                 r.readAsArrayBuffer(file);
             } else {
-                // 기존 텍스트 및 CSV 덤프 파싱 파트 순정 그대로 원형 유지 보존
+                // 기존 docx, doc 문서 계열 파트 연동선은 순정 원형 그대로 보존 상속
                 r.onload = function (evt) {
                     if (typeof parseRawTextDump === 'function') {
                         parseRawTextDump(evt.target.result);

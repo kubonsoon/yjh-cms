@@ -852,38 +852,36 @@
                             );
 
                             if (isAlreadyClickedThisJob) {
-                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
+                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 즉시 이동합니다.");
 
-                                // 🔒 [형님의 천재적 라우팅 역정렬 - 전산망 1·2단계 주파수 강제 역회전 관통 엔진]:
-                                //    - 4단계를 억지로 열려다 "신검대기" 가드막에 부딪혀 먹통이 되던 결함을 원천 파괴 소독!
-                                //    - 세션을 초기화(튕김)시키지 않고, 1단계(인증완료) 및 2단계(정보조회 완착) 성공 시점으로 주파수를 강제 백워드 워프!
+                                // 🔒 [전산망 마스터 최종 영구 대종결 - 순정 라우팅 navigateToStep(4) 하이패스 엔진 완착]:
+                                //    - 형님이 m-login 원본에서 발굴해 주신 사내 표준 화면 제어 엔진인 navigateToStep 함수 주파수를 직접 정밀 타격!
+                                //    - 새로고침이나 세션 단선 없이 4단계 정산서 및 시험정보 카드판 화면을 단 0초의 지체도 없이 무조건 눈앞에 개통 사출시킵니다.
                                 try {
-                                    // ① 로컬 원장에 4단계 관통 예비 승인 티켓 커밋 박제!
-                                    localStorage.setItem('currentStep', '4');
-                                    localStorage.setItem('forcedStepNum', '4');
-
-                                    // ② 눈앞을 가리고 캘린더 기능을 마비시키던 자식 모달창/오버레이 레이아웃 즉시 철거 폐쇄
+                                    // ① 눈앞을 가리고 캘린더 기능을 마비시키던 자식 모달창/오버레이 레이아웃 즉시 철거 폐쇄
                                     if (document.getElementById('calendar-modal')) document.getElementById('calendar-modal').style.display = 'none';
                                     if (document.getElementById('calendar-overlay')) document.getElementById('calendar-overlay').style.display = 'none';
                                     if (window.parent && window.parent.document.getElementById('calendar-modal')) window.parent.document.getElementById('calendar-modal').style.display = 'none';
                                     if (window.parent && window.parent.document.getElementById('calendar-overlay')) window.parent.document.getElementById('calendar-overlay').style.display = 'none';
 
-                                    // ③ [핵심 역정렬 가동]: 부모 본진(m-login)의 인증/조회 처리 핸들러 함수를 기습적으로 재트리거 호출!
-                                    //    함수가 다시 돌면서 대장의 "신검대기" 팩트를 신선하게 읽어내어 4단계 정산 화면을 스스로 자동 사출시킵니다.
-                                    if (typeof window.executeStep2Submit === "function") {
-                                        window.executeStep2Submit();
-                                    } else if (typeof window.checkExistingUser === "function") {
-                                        window.checkExistingUser();
-                                    } else if (window.parent && typeof window.parent.executeStep2Submit === "function") {
-                                        window.parent.executeStep2Submit();
-                                    } else if (window.parent && typeof window.parent.checkExistingUser === "function") {
-                                        window.parent.checkExistingUser();
+                                    // ② [순정 라우팅 회선 다이렉트 개통]: 1:1 교차 타격으로 부모 본진의 4단계 정산서 패널을 전격 강제 구동!
+                                    if (typeof navigateToStep === "function") {
+                                        navigateToStep(4);
+                                    } else if (window.parent && typeof window.parent.navigateToStep === "function") {
+                                        window.parent.navigateToStep(4);
+                                    } else if (window.top && typeof window.top.navigateToStep === "function") {
+                                        window.top.navigateToStep(4);
                                     } else {
-                                        // ④ 최후의 마스터 보선 보루: 세션을 완전히 물고 1단계➔2단계 초기화 레일 라우팅으로 주소창 관통 리프레시!
-                                        window.top.location.href = "m-login.html?step=4&auth=success&ts=" + Date.now();
+                                        // 최후의 보루 안전핀: DOM 가시성 직접 스위칭
+                                        const finalDoc = window.parent ? window.parent.document : document;
+                                        const p3 = finalDoc.getElementById('step3-panel');
+                                        const p4 = finalDoc.getElementById('step4-panel');
+                                        if (p3) p3.style.setProperty("display", "none", "important");
+                                        if (p4) p4.style.setProperty("display", "block", "important");
                                     }
-                                } catch (routeErr) {
-                                    // 예외 단선 발생 시 안전핀 하이패스 리다이렉트
+                                } catch (routeForceErr) {
+                                    // 격리 룸 물리적 충돌 예외 발생 시 주소창 바이패스 락인
+                                    console.error("[라우팅 오류 가드 작동]", routeForceErr);
                                     window.top.location.href = "m-login.html?step=4";
                                 }
                                 return; // 트랜잭션 정상 안전 분리 종료

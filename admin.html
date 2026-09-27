@@ -3663,7 +3663,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         // ================================================================
                         // [2단계] 4행(인덱스 3)부터 반복 돌며 인적사항 정제 및 데이터 조립
                         // ================================================================
-                        for (let i = 3; i < rawRows.length; i++) {
+                        for (let i = 5; i < rawRows.length; i++) {
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
 
@@ -3751,7 +3751,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             });
 
                             // [버그 완전 파괴] 정순 단선형 카운트 매핑 스케줄러 
-                            const excelOrder = parseInt(i, 10) - 2;
+                            const excelOrder = parseInt(i, 10) - 4;
 
                             // 루프 외부의 고정 기존 명수 + 현재 엑셀 순번 = 완벽한 최종 정순 번호 확보!
                             const currentLineNumber = baseExistingCount + excelOrder;

@@ -3497,11 +3497,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 🔒 [입구 원천 차단 안전핀]: 비정상적인 유령 호출 신호를 입구에서 즉시 튕겨내 크래시 원천 방어
             if (!e || !e.target || !e.target.files || e.target.files.length === 0) return;
 
-            const file = e.target.files[0]; // 0번째 단일 파일 개체 바인딩 락인
+            const file = e.target.files; // 0번째 단일 파일 개체 바인딩 락인
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
-            // 🔒 [3501라인 버그 완파]: 위험한 split 대신 문자열 위치 역추적 substring 공식으로 확장자 분리 완착
+            // 🔒 [18:30 정품 명세]: split 없이 substring 공식으로 확장자 안전 분리 사수
             const fileNameStr = file.name.toString();
             const lastDotIdx = fileNameStr.lastIndexOf('.');
             if (lastDotIdx === -1) {
@@ -3544,7 +3544,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             workbook = XLSX.read(csvText, { type: 'string' });
                         }
 
-                        const firstSheetName = workbook.SheetNames[0];
+                        const firstSheetName = workbook.SheetNames;
                         const worksheet = workbook.Sheets[firstSheetName];
 
                         // 2차원 배열 형태로 전환하여 상단 레이아웃 간섭 차단
@@ -3553,9 +3553,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
 
                         // ================================================================
-                        // [문법 오류 0% / 크래시 0%] split 단어를 단 한 글자도 쓰지 않는 정밀 파서
+                        // 🌟 [텍스트 누락 방어 완파]: 1행 배열 전체를 하나의 마스터 통문장으로 강제 결합
                         // ================================================================
-                        const metaText = (rawRows && rawRows[0] && rawRows[0][0]) ? rawRows[0][0].toString().trim() : "";
+                        // 1행([0]번 인덱스 행) 내부에서 칸칸이 쪼개져 분할 병합되어 있던 모든 셀 파편들을 일렬로 융합
+                        const metaText = (rawRows && rawRows) ? rawRows.filter(Boolean).join(" ").trim() : "";
 
                         let extractedTitle = "시험명 미정";
                         let extractedTh = "1기";
@@ -3588,17 +3589,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 if (cSub) extractedNCount = parseInt(cSub, 10) || 60;
                             }
 
-                            // ④ 순수 시험명 압착 추출 [★영구 조율 완착★]: split 명세를 본문 전역에서 100% 완전 파기 소멸 처리
+                            // ④ 순수 시험명 압착 추출: 기수 뒤 공간부터 (N) 또는 인원수 수치가 오기 전까지 슬라이싱
                             let startIdx = (thIndex !== -1) ? thIndex + 1 : 0;
                             let endIdx = metaText.indexOf("(N)");
                             if (endIdx === -1) endIdx = metaText.indexOf(String(extractedNCount));
                             if (endIdx === -1) endIdx = metaText.indexOf("담당");
 
                             if (endIdx !== -1 && endIdx > startIdx) {
-                                // "3기" 다음 글자부터 "(N)" 혹은 인원수 수치가 오기 전까지의 오리지널 순정 시험명 명확히 슬라이싱
+                                // 통문장에서 추출했으므로 잘려 나가는 현상 없이 정품 시험명 정확히 도려냄
                                 extractedTitle = metaText.substring(startIdx, endIdx).trim();
                             } else {
-                                // 최후의 문자열 정제 안전 보선 가드 가동 (정규식/split 전면 제로)
+                                // 최후의 문자열 정제 안전 보선 가드 가동
                                 let fallbackTitle = metaText;
                                 if (thIndex !== -1) fallbackTitle = fallbackTitle.substring(thIndex + 1);
 
@@ -3814,7 +3815,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 r.readAsArrayBuffer(file);
 
             } else {
-                // [순정 유지]: 기존 docx, doc 문서 계열 파트 연동선은순정 그대로 원형 안전 보존 상속
+                // [순정 유지]: 기존 docx, doc 문서 계열 파트 연동선은 순정 그대로 원형 안전 보존 상속
                 r.onload = function (evt) {
                     if (typeof parseRawTextDump === 'function') {
                         parseRawTextDump(evt.target.result);

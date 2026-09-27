@@ -1584,6 +1584,33 @@
                 console.log(`[백엔드 데이터 최종 종결] 대상자 ${row.name} 님의 차수별 정산 레코드 코딩 적재 완결.`);
             }
         }
+
+
+        /* =========================================================================
+          [모바일 전산망 통합 관제 수신소] iframe 보안 샌드박스 관통 신호 수신기 완착
+          ========================================================================= */
+        window.addEventListener('message', function (e) {
+            // 자식 캘린더 창에서 "GOTO_STEP_4" 무결점 방송 신호 패킷이 유입되었는지 실시간 가로채기 확인!
+            if (e.data && e.data.action === "GOTO_STEP_4") {
+                console.log(`[통합 관제소] 자식 캘린더 신호 수신 성공 ➔ 대상자명: ${e.data.user}님 4단계 정산 화면으로 강제 이송 집행.`);
+
+                // 🔒 부모 창 자체 내부 스코프 권한이므로 크롬 보안 차단막 간섭 없이 4단계 navigateToStep을 100% 무조건 다이렉트 개통 사출!
+                if (typeof navigateToStep === "function") {
+                    navigateToStep(4);
+                } else {
+                    // 하위 호환 layer 구조 강제 스위칭 가드 가동
+                    const targetLayers = ['layer1', 'layer2', 'layer3', 'layer5'];
+                    targetLayers.forEach(id => {
+                        if (document.getElementById(id)) document.getElementById(id).style.setProperty("display", "none", "important");
+                    });
+                    if (document.getElementById('layer4')) {
+                        document.getElementById('layer4').style.setProperty("display", "block", "important");
+                        if (typeof renderStep4SettlementCard === "function") renderStep4SettlementCard();
+                    }
+                }
+            }
+        });
+
     </script>
 </body>
 

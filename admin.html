@@ -3838,14 +3838,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 };
                 // 🔒 [직전 대성공본 사수 완료]: 0번 방 정품 단일 file 객체를 명확하게 낚아채어 해독 엔진 주입 마감!
                 r.readAsArrayBuffer(file);
-            } else {
-                // 기존 docx, doc 문서 계열 파트 연동선은 순정 원형 그대로 보존 상속
-                r.onload = function (evt) {
-                    if (typeof parseRawTextDump === 'function') {
-                        parseRawTextDump(evt.target.result);
-                    }
-                };
-                r.readAsText(file, 'EUC-KR');
             }
         }
 
@@ -3928,29 +3920,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             } catch (err) {
                 alert("전산 파일 추출 오류: 데이터 스트림 변환 및 다운로드 처리에 실패했습니다.");
             }
-        }
-
-        function parseRecruitmentTextDump(rawText) {
-            if (!rawText) return alert("파일 내용이 비어있습니다.");
-            const titleMatch = rawText.match(/(?:시험명|과제명|임상명)(?:\s*[:=➔]\s*|\s+)(\[.*\]\s*[가-힣\w\s+]+)/) || rawText.match(/(\[.*\]\s*[가-힣\w\s+]+)/);
-            const thMatch = rawText.match(/(\d+)\s*(?:기|차수)/) || rawText.match(/(?:기수|차수)(?:\s*[:=➔]\s*|\s+)(\d+)/);
-            const countMatch = rawText.match(/(?:배정\s*인원수|인원수|인원)(?:\s*[:=➔]\s*|\s+)(\d+)/) || rawText.match(/(\d+)\s*명/);
-            const periodMatch = rawText.match(/(?:임상\s*기간|기간|시간)(?:\s*[:=➔]\s*|\s+)(\d+)/) || rawText.match(/(\d+)\s*시간/);
-            if (!titleMatch) return alert("❌ 문서 내에서 규격화된 [시험명] 패턴을 식별할 수 없습니다.");
-
-            const extractedTitle = titleMatch[1].trim();
-            const extractedTh = thMatch ? thMatch[1].trim() : "1";
-            const extractedCount = countMatch ? countMatch[1].trim() : "30";
-            const extractedPeriod = periodMatch ? periodMatch[1].trim() : "72";
-
-            if (dataStoreRecruitment.some(rec => rec.title === extractedTitle && rec.th === extractedTh)) {
-                return alert('알림: 이미 대장에 등록된 모집공고 과제입니다.');
-            }
-
-            dataStoreRecruitment.push({ uid: Date.now(), title: extractedTitle, th: extractedTh, count: extractedCount, period: extractedPeriod });
-            localStorage.setItem('dataStoreRecruitment', JSON.stringify(dataStoreRecruitment));
-            if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
-            alert(`📢 모집공고 등록 성공!\n● 시험명: ${extractedTitle}\n● 기수: ${extractedTh}기\n● 인원수: ${extractedCount}명\n● 임상기간: ${extractedPeriod}시간`);
         }
 
 

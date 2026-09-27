@@ -3494,14 +3494,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         // =========================================================================
 
         function handleSmartFileImport(e) {
-            // 🔒 [안전핀 가드]: e 개체나 target 주파수 단선에 따른 예외 크래시 원천 방어
-            if (!e || !e.target || !e.target.files) return;
+            // 🔒 [입구 원천 차단 안전핀]: 비정상적인 유령 호출 신호를 입구에서 즉시 튕겨내 크래시 원천 방어
+            if (!e || !e.target || !e.target.files || e.target.files.length === 0) return;
 
             const file = e.target.files[0]; // 0번째 단일 파일 개체 바인딩 락인
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
-            // 고유 확장자 분리 시 위험한 split 대신 문자열 위치 역추적 공식 사수 (에러 전면 차단)
+            // 🔒 [3501라인 버그 완파]: 위험한 split 대신 문자열 위치 역추적 substring 공식으로 확장자 분리 완착
             const fileNameStr = file.name.toString();
             const lastDotIdx = fileNameStr.lastIndexOf('.');
             if (lastDotIdx === -1) {
@@ -3814,7 +3814,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 r.readAsArrayBuffer(file);
 
             } else {
-                // [순정 유지]: 기존 docx, doc 문서 계열 파트 연동선은 순정 그대로 원형 안전 보존 상속
+                // [순정 유지]: 기존 docx, doc 문서 계열 파트 연동선은순정 그대로 원형 안전 보존 상속
                 r.onload = function (evt) {
                     if (typeof parseRawTextDump === 'function') {
                         parseRawTextDump(evt.target.result);

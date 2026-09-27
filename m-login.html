@@ -1017,19 +1017,33 @@
                     `아래 확인 버튼을 클릭하면 참여중인 시험현황으로 이동합니다.`;
 
             } else {
-                // 💡 [트랙 B: 최초 방문 신규 대상자 가드] 유령 데이터 터짐을 막기 위해 디폴트 폴백값 매핑
+                // 🔒 [신규 대상자 캘린더 과제 실시간 도킹 엔진]:
+                //    대상자가 m-calendar 캘린더 화면에서 최종 선택하고 넘어온 진짜 시험 과제 명세셋을 실시간 가로채기 연동!
+                //    만약 캘린더 선택 데이터가 없을 때만 안전핀으로 디폴트 풀백값을 부여합니다.
+                const calTitle = localStorage.getItem('selectedCalendarTitle') || "신규 방문 과제 미배정";
+                const calTh = localStorage.getItem('selectedCalendarTh') || "1기";
+
+                // 모집공고 마스터 원장(dataStoreRecruitment)을 역추적하여 캘린더 시험의 진짜 정품 임상 기간(period)과 목표 모수(count) 결합 상속!
+                let refRecDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                let matchedRefRec = refRecDB.find(r => (r.title || '').toString().replace(/\s/g, '') === calTitle.replace(/\s/g, '') && (r.th || '').toString().replace(/[^0-9]/g, '') === calTh.replace(/[^0-9]/g, ''));
+
+                const calPeriod = matchedRefRec ? (matchedRefRec.period + "시간") : "-";
+                const calGoalQuota = matchedRefRec ? matchedRefRec.count : "60";
+
                 const ghostPassTicket = {
                     uid: "VIRTUAL_" + Date.now(),
                     name: name,
                     ssn: birth,
                     phone: phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3'), // 관리자 폼 호환 하이픈 규격화
-                    title: "신규 방문 과제 미배정",
-                    th: "1기",
-                    count: "-",
-                    period: "-",
+                    title: calTitle,   // 🌟 캘린더에서 진짜 선택하고 신청한 진짜 시험명 다이렉트 주입!
+                    th: calTh.includes("기") ? calTh : calTh + "기", // 🌟 진짜 기수 주입!
+                    count: "1/" + calGoalQuota, // 🌟 신규 최초 진입이므로 해당 시험의 진짜 목표 모수 정순 분모 결합!
+                    period: calPeriod, // 🌟 마스터 공고 원장의 진짜 임상 시간 상속 주입!
                     payStatus: "대기",
-                    isNewUserGhost: true
+                    stage: "신검대기",  // 형님이 앞서 락인하신 표준 마스터 최초 참여 상태 자격 부여
+                    isNewUserGhost: false // 🔒 유령 회원 오인 간섭을 전면 파기 삭제하여 진짜 데이터셋 개통!
                 };
+
                 adminApplicantDB.push(ghostPassTicket);
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
                 matchedPatientData = ghostPassTicket;

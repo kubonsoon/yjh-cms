@@ -854,39 +854,54 @@
                             if (isAlreadyClickedThisJob) {
                                 alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
 
-                                // 🔒 [부모 전산망 관통 4단계 다이렉트 워프 하이패스 엔진]: 
-                                //    현재 창이 iframe이든 독립 창이든 상관없이 최상위 부모 창(window.parent)의 4단계 폼 레이아웃을 직접 전격 개방!
+                                // 🔒 [최상위 전산망 관통 4단계 다이렉트 하이패스 엔진]: 
+                                //    현재 창이 iframe이든 가상 샌드박스 독립 창이든 상관없이 최상위 스위칭 주파수를 다이렉트 타격!
                                 try {
-                                    // ① 사내 순정 모바일 탑 매스터 화면 전환 스위칭 함수 최우선 호출 (4단계 강제 이송)
-                                    if (typeof window.parent.showPanel === "function") {
+                                    // ① [모달 레이어 전면 폐쇄]: 눈앞을 가려 화면 전환을 가로막던 캘린더 팝업창/모달 레이아웃을 전수 철거 닫기 집행!
+                                    const calendarModal = document.getElementById('calendar-modal') || window.parent.document.getElementById('calendar-modal');
+                                    const calendarOverlay = document.getElementById('calendar-overlay') || window.parent.document.getElementById('calendar-overlay');
+                                    if (calendarModal) calendarModal.style.setProperty("display", "none", "important");
+                                    if (calendarOverlay) calendarOverlay.style.setProperty("display", "none", "important");
+
+                                    // ② 사내 순정 모바일 화면 전환 마스터 스위칭 함수 호출 (window.top 및 window.parent 교차 3중 타격)
+                                    if (typeof window.showPanel === "function") {
+                                        window.showPanel(4);
+                                    } else if (typeof window.parent.showPanel === "function") {
                                         window.parent.showPanel(4);
+                                    } else if (typeof window.top.showPanel === "function") {
+                                        window.top.showPanel(4);
+                                    } else if (typeof window.changeStep === "function") {
+                                        window.changeStep(4);
                                     } else if (typeof window.parent.changeStep === "function") {
                                         window.parent.changeStep(4);
-                                    } else if (typeof window.parent.executeStep4ConfirmNext === "function") {
-                                        window.parent.executeStep4ConfirmNext();
                                     } else {
-                                        // ② 함수가 숨겨져 있을 시 부모 문서 객체의 DOM 주소 주파수를 다이렉트 강제 스위칭 처리!
-                                        const mp1 = window.parent.document.getElementById('step1-panel');
-                                        const mp2 = window.parent.document.getElementById('step2-panel');
-                                        const mp3 = window.parent.document.getElementById('step3-panel');
-                                        const mp4 = window.parent.document.getElementById('step4-panel');
+                                        // ③ 함수 교차가 안 잡힐 시 문서 객체의 DOM 가시성을 직접 강제 다이렉트 스위칭 전환!
+                                        const targetDocs = [window.document, window.parent.document, window.top.document];
+                                        targetDocs.forEach(doc => {
+                                            const mp1 = doc.getElementById('step1-panel');
+                                            const mp2 = doc.getElementById('step2-panel');
+                                            const mp3 = doc.getElementById('step3-panel');
+                                            const mp4 = doc.getElementById('step4-panel');
 
-                                        if (mp1) mp1.style.setProperty("display", "none", "important");
-                                        if (mp2) mp2.style.setProperty("display", "none", "important");
-                                        if (mp3) mp3.style.setProperty("display", "none", "important");
+                                            if (mp1) mp1.style.setProperty("display", "none", "important");
+                                            if (mp2) mp2.style.setProperty("display", "none", "important");
+                                            if (mp3) mp3.style.setProperty("display", "none", "important");
+                                            if (mp4) {
+                                                mp4.style.setProperty("display", "block", "important");
+                                                // 4단계 카드판 실시간 렌더러 동기화
+                                                if (typeof window.renderStep4SettlementCard === "function") window.renderStep4SettlementCard();
+                                                if (typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
+                                            }
+                                        });
 
-                                        if (mp4) {
-                                            mp4.style.setProperty("display", "block", "important");
-                                            // 4단계 카드판 렌더러 동기화 수혈
-                                            if (typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
-                                        } else {
-                                            // 최후의 보루: 세션 원장을 사수하며 전체 4단계 주소창으로 리로드 워프!
-                                            window.parent.location.href = "m-login.html?step=4";
+                                        // 만약 DOM 스위칭 이후에도 반응이 없을 시 주소창 자체를 4단계 강제 리다이렉트 포워딩!
+                                        if (window.parent.document.getElementById('step4-panel')?.style.display !== 'block') {
+                                            window.top.location.href = "m-login.html?step=4";
                                         }
                                     }
                                 } catch (domErr) {
-                                    // 크로스 도메인 및 예외 가드 발생 시 독립 주소창 다이렉트 강제 복귀 락인
-                                    window.parent.location.href = "m-login.html?step=4";
+                                    // 크로스 도메인 및 프레임 구조 충돌 예외 발생 시 주소창 다이렉트 무조건 관통 워프 락인
+                                    window.top.location.href = "m-login.html?step=4";
                                 }
                                 return; // 트랜잭션 정상 안전 분리 종료
                             }

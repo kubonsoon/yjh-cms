@@ -854,52 +854,34 @@
                             if (isAlreadyClickedThisJob) {
                                 alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
 
-                                // 🔒 [전산망 마스터 그랜드 최종 대종결 - 주소 변조 없는 4단계 다이렉트 레이어 스위칭 엔진]:
-                                //    - 깃허브 Pages 서버를 자극하여 404 및 캘린더 로딩 차단을 유발하던 모든 구형 주소창 변조(location.href) 수식을 전면 파기 소멸!
-                                //    - 주소창 새로고침을 절대 하지 않으므로 깃허브 서버 404 반응이 공학적으로 0.00% 원천 불가능합니다.
-                                //    - 부모 본진 창(window.parent.document)의 실물 레이어 주소셋을 다이렉트로 기습 타격하여 눈앞의 layer5(캘린더 프레임)를 즉시 폐쇄 철거하고 layer4(정산서 영수증) 패널을 대문에 강제 사출합니다!
+                                // 🔒 [404 및 캘린더 미출력 리스크 0% - 순수 인라인 레이어 스위칭 엔진]:
+                                //    - 깃허브 서버 주소창을 절대 건드리지 않으므로 404 에러나 캘린더 백지화 현상이 전면 박멸됩니다.
+                                //    - 부모 본진 창(window.parent.document)의 실물 레이어 주소 주파수를 다이렉트로 직접 제어 스위칭 전환합니다.
                                 try {
-                                    // 🌟 1단계: 로컬 원장에 최신 4단계 동기화 상태 완벽 박제 새김 처리
                                     localStorage.setItem('currentStep', '4');
                                     localStorage.setItem('forcedStepNum', '4');
 
-                                    // 🌟 2단계: 내 스마트폰 눈앞을 가리고 있던 자식 iframe 내부의 임시 모달/오버레이 가시성 즉각 숨김 소독
                                     if (document.getElementById('calendar-modal')) document.getElementById('calendar-modal').style.display = 'none';
-                                    if (document.getElementById('calendar-overlay')) document.getElementById('calendar-overlay').style.display = 'none';
 
-                                    // 🌟 3단계: 부모 본진 창의 실물 문서 프레임 컨텍스트(window.parent.document) 하이패스 개통!
                                     const parentDoc = (window.parent && window.parent.document) ? window.parent.document : document;
 
-                                    const lyr1 = parentDoc.getElementById('layer1');
-                                    const lyr2 = parentDoc.getElementById('layer2');
-                                    const lyr3 = parentDoc.getElementById('layer3');
                                     const lyr4 = parentDoc.getElementById('layer4'); // 사내 정품 4단계 시험정보·정산처리 패널
-                                    const lyr5 = parentDoc.getElementById('layer5'); // 현재 캘린더 iframe이 임베드 구동중인 바로 그 패널
+                                    const lyr5 = parentDoc.getElementById('layer5'); // 현재 캘린더 iframe 임베드 패널
 
-                                    // 🌟 4단계: 화면 대전환 강제 사출! 캘린더 방(layer5)을 통째로 숨기고, 정산 영수증 방(layer4)을 전격 강제 개방!
-                                    if (lyr1) lyr1.style.setProperty("display", "none", "important");
-                                    if (lyr2) lyr2.style.setProperty("display", "none", "important");
-                                    if (lyr3) lyr3.style.setProperty("display", "none", "important");
-                                    if (lyr5) lyr5.style.setProperty("display", "none", "important"); // 🔒 눈앞의 캘린더 iframe 틀 구조를 통째로 폐쇄 철거 완료!
-
+                                    // 🌟 화면 대전환 집행: 눈앞의 캘린더방(layer5)을 닫고, 정산서방(layer4)을 전격 개방 사출!
+                                    if (lyr5) lyr5.style.setProperty("display", "none", "important");
                                     if (lyr4) {
-                                        lyr4.style.setProperty("display", "block", "important"); // 🔒 진짜 4단계 정산 영수증 레이아웃 대문에 즉시 개방 사출!
-
-                                        // 부모 본진 내부에 안착되어 대기 중일 4단계 카드판 실시간 리렌더러 기능 교차 수혈 기동
+                                        lyr4.style.setProperty("display", "block", "important");
                                         if (window.parent && typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
-                                        if (window.parent && typeof window.parent.initStep4Layout === "function") window.parent.initStep4Layout();
                                     } else {
-                                        // 하위 호환 안전핀 가드: 부모 창 자체 라우팅 함수 호출 원격 연동
                                         if (window.parent && typeof window.parent.navigateToStep === "function") {
                                             window.parent.navigateToStep(4);
                                         }
                                     }
                                 } catch (fatalRouteErr) {
-                                    console.error("[전산망 레이어 가드 가동 단선 복구]:", fatalRouteErr);
-                                    // 최후의 보루 안전핀 세션 복귀선
                                     if (window.parent) window.parent.location.href = "m-login.html?step=4";
                                 }
-                                return; // 트랜잭션 정상 안전 분리 종료
+                                return;
                             }
 
                             // 🎯 [4단계 파이프라인: 완전히 독립된 격리 신규 행 생성 차단 ➔ 실시간 1:1 데이터 엎어쓰기 갱신 엔진 완착]

@@ -852,42 +852,48 @@
                             );
 
                             if (isAlreadyClickedThisJob) {
-                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면(4단계)으로 즉시 이동합니다.");
+                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
 
-                                // 🔒 [GitHub Pages 404 에러 영구 완전 박멸 엔진 완착]:
-                                //    - split 배열 파편화로 인해 주소창에 쉼표(,)가 유입되어 404를 내뿜던 치명적인 단선 결함을 전면 분쇄 파괴!
-                                //    - 정품 replace 치환 문법을 적용하여 자식 파일명만 정밀 조준 세척하고, 진짜 부모 파일명 주파수로 1:1 정확히 리정렬 결합합니다.
+                                // 🔒 [전산망 마스터 최종 그랜드 대종결 - 404 에러 영구 박멸 및 순정 라우팅 단선 완치 엔진]:
+                                //    - 깃허브 서버의 주소창 경로를 훼손하여 404를 유발하던 모든 구형 문자열(replace/split) 연산 수식을 전면 파기 소멸 처리!
+                                //    - 형님이 부모 창 원본에서 증명해 주신 사내 표준 화면 제어 엔진인 navigateToStep 함수를 iframe 보안벽을 뚫고 원격 다이렉트 호출합니다.
+                                //    - 이로 인해 주소창 새로고침 없이 눈앞의 layer5(캘린더) 프레임이 싹 치워지며 4단계 정산 화면이 깨끗하게 사출 가동됩니다.
                                 try {
-                                    // 🌟 로컬 원장에 최신 4단계 동기화 상태 원천 박제 새김 처리
-                                    localStorage.setItem('currentStep', '4');
-                                    localStorage.setItem('forcedStepNum', '4');
+                                    // 🌟 1단계: 눈앞을 가려 화면 배정을 방해하던 자식 iframe 내부의 모달/오버레이 가시성 즉각 숨김 소독
+                                    if (document.getElementById('calendar-modal')) document.getElementById('calendar-modal').style.display = 'none';
+                                    if (document.getElementById('calendar-overlay')) document.getElementById('calendar-overlay').style.display = 'none';
 
-                                    // 현재 브라우저 최상단 주소창 풀 경로 텍스트 가로채기
-                                    let currentFullUrl = window.top.location.href;
-
-                                    // 🌟 [정밀 소독 매핑]: 주소창 경로에서 자식 파일명(m-calendar.html)만 콕 집어 진짜 부모 파일명(m-login.html?step=4)으로 완벽 치환!
-                                    //    만약 쿼리스트링(?기호)이나 캐시 찌꺼기가 붙어있어도 주소 원형을 온전히 사수하며 하이패스 관통합니다.
-                                    if (currentFullUrl.includes("m-calendar.html")) {
-                                        currentFullUrl = currentFullUrl.replace("m-calendar.html", "m-login.html?step=4");
-                                    } else if (currentFullUrl.includes("m-login.html")) {
-                                        // 이미 부모 주소라면 뒤에 정산 파라미터 강제 주입
-                                        const cleanUrl = currentFullUrl.split("?")[0];
-                                        currentFullUrl = cleanUrl + "?step=4";
+                                    // 🌟 2단계 [순정 라우팅 회선 대개통]: 부모 본진(window.parent)에 내장된 navigateToStep(4)을 직접 정밀 기습 호출!
+                                    if (window.parent && typeof window.parent.navigateToStep === "function") {
+                                        window.parent.navigateToStep(4);
+                                    } else if (window.top && typeof window.top.navigateToStep === "function") {
+                                        window.top.navigateToStep(4);
+                                    } else if (typeof navigateToStep === "function") {
+                                        navigateToStep(4);
                                     } else {
-                                        // 최후의 보루 안전핀 경로 결합
-                                        if (currentFullUrl.endsWith("/")) {
-                                            currentFullUrl = currentFullUrl + "m-login.html?step=4";
-                                        } else {
-                                            currentFullUrl = currentFullUrl + "/m-login.html?step=4";
+                                        // 🌟 3단계 [최후의 보루 실물 layer 패널 강제 스위칭]: 부모 함수 교차가 단선되었을 시 부모 문서 객체의 DOM 주소를 직접 타격!
+                                        const parentDoc = window.parent ? window.parent.document : document;
+                                        const lyr1 = parentDoc.getElementById('layer1');
+                                        const lyr2 = parentDoc.getElementById('layer2');
+                                        const lyr3 = parentDoc.getElementById('layer3');
+                                        const lyr4 = parentDoc.getElementById('layer4'); // 사내 정품 4단계 시험정보·정산처리 패널
+                                        const lyr5 = parentDoc.getElementById('layer5'); // 현재 캘린더 임베드 패널
+
+                                        if (lyr1) lyr1.style.setProperty("display", "none", "important");
+                                        if (lyr2) lyr2.style.setProperty("display", "none", "important");
+                                        if (lyr3) lyr3.style.setProperty("display", "none", "important");
+                                        if (lyr5) lyr5.style.setProperty("display", "none", "important"); // 캘린더 창 전면 철거 숨김!
+
+                                        if (lyr4) {
+                                            lyr4.style.setProperty("display", "block", "important"); // 4단계 정산 영수증 레이아웃 강제 개방 사출!
+                                            // 부모 본진의 4단계 정산 카드판 실시간 리렌더러 마스터 기동 동기화 수혈
+                                            if (window.parent && typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
                                         }
                                     }
-
-                                    // 타임스탬프 결합으로 캐시 방어선 확보 후 최상위 주소창 최종 강제 관통 개통!
-                                    window.top.location.href = currentFullUrl + "&refresh=" + Date.now();
-
-                                } catch (urlForceErr) {
-                                    // 최후의 보루 안전핀 복귀선
-                                    window.top.location.href = "m-login.html?step=4";
+                                } catch (fatalRouteErr) {
+                                    // 최후의 보루 안전핀 세션 원장 사수선 복귀
+                                    console.error("[전산망 라우터 가드 작동]:", fatalRouteErr);
+                                    if (window.parent) window.parent.location.href = "m-login.html?step=4";
                                 }
                                 return; // 트랜잭션 정상 안전 분리 종료
                             }

@@ -854,47 +854,37 @@
                             if (isAlreadyClickedThisJob) {
                                 alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
 
-                                // 🔒 [전산망 마스터 최종 영구 대종결 - 부모 본진 4단계 다이렉트 뷰 포워딩 엔진]:
-                                //    - 세션 단선과 무한 롤백을 유발하는 새로고침(location.href) 수식을 전면 파기 소멸 처리!
-                                //    - m-login.html 본진 컨텍스트 전역에 내장된 순정 화면 전환 트리거를 원격으로 즉시 강제 기습 가동합니다.
+                                // 🔒 [형님의 천재적 라우팅 역정렬 - 전산망 1·2단계 주파수 강제 역회전 관통 엔진]:
+                                //    - 4단계를 억지로 열려다 "신검대기" 가드막에 부딪혀 먹통이 되던 결함을 원천 파괴 소독!
+                                //    - 세션을 초기화(튕김)시키지 않고, 1단계(인증완료) 및 2단계(정보조회 완착) 성공 시점으로 주파수를 강제 백워드 워프!
                                 try {
-                                    // 1. [모달 즉시 폐쇄]: 눈앞을 가려 화면 배정을 방해하던 캘린더 레이아웃과 블록막을 즉각 숨김 처리!
-                                    const modalContainer = document.getElementById('calendar-modal') || document.querySelector('.calendar-modal') || (window.parent && window.parent.document.getElementById('calendar-modal'));
-                                    const modalOverlay = document.getElementById('calendar-overlay') || document.querySelector('.calendar-overlay') || (window.parent && window.parent.document.getElementById('calendar-overlay'));
+                                    // ① 로컬 원장에 4단계 관통 예비 승인 티켓 커밋 박제!
+                                    localStorage.setItem('currentStep', '4');
+                                    localStorage.setItem('forcedStepNum', '4');
 
-                                    if (modalContainer) modalContainer.style.setProperty("display", "none", "important");
-                                    if (modalOverlay) modalOverlay.style.setProperty("display", "none", "important");
+                                    // ② 눈앞을 가리고 캘린더 기능을 마비시키던 자식 모달창/오버레이 레이아웃 즉시 철거 폐쇄
+                                    if (document.getElementById('calendar-modal')) document.getElementById('calendar-modal').style.display = 'none';
+                                    if (document.getElementById('calendar-overlay')) document.getElementById('calendar-overlay').style.display = 'none';
+                                    if (window.parent && window.parent.document.getElementById('calendar-modal')) window.parent.document.getElementById('calendar-modal').style.display = 'none';
+                                    if (window.parent && window.parent.document.getElementById('calendar-overlay')) window.parent.document.getElementById('calendar-overlay').style.display = 'none';
 
-                                    // 2. [4단계 정산 영수증 패널 강제 개방 및 동기화]: 
-                                    //    부모 창(m-login)의 전역 스코프 환경을 정밀 타격하여 4단계 뷰 포인트를 직접 핸들링 가동시킵니다.
-                                    if (typeof window.showPanel === "function") {
-                                        window.showPanel(4);
-                                    } else if (typeof window.changeStep === "function") {
-                                        window.changeStep(4);
-                                    } else if (window.parent && typeof window.parent.showPanel === "function") {
-                                        window.parent.showPanel(4);
-                                    } else if (window.parent && typeof window.parent.changeStep === "function") {
-                                        window.parent.changeStep(4);
+                                    // ③ [핵심 역정렬 가동]: 부모 본진(m-login)의 인증/조회 처리 핸들러 함수를 기습적으로 재트리거 호출!
+                                    //    함수가 다시 돌면서 대장의 "신검대기" 팩트를 신선하게 읽어내어 4단계 정산 화면을 스스로 자동 사출시킵니다.
+                                    if (typeof window.executeStep2Submit === "function") {
+                                        window.executeStep2Submit();
+                                    } else if (typeof window.checkExistingUser === "function") {
+                                        window.checkExistingUser();
+                                    } else if (window.parent && typeof window.parent.executeStep2Submit === "function") {
+                                        window.parent.executeStep2Submit();
+                                    } else if (window.parent && typeof window.parent.checkExistingUser === "function") {
+                                        window.parent.checkExistingUser();
                                     } else {
-                                        // 3. [최후의 보루 돔 가시성 직접 스위칭]: 함수 교차가 차단되었을 시 현재 상속된 DOM 문서 패널을 직접 개방 소독!
-                                        const docCtx = [document, (window.parent ? window.parent.document : null)].filter(Boolean);
-                                        docCtx.forEach(targetDoc => {
-                                            const step3 = targetDoc.getElementById('step3-panel');
-                                            const step4 = targetDoc.getElementById('step4-panel');
-                                            if (step3) step3.style.setProperty("display", "none", "important");
-                                            if (step4) {
-                                                step4.style.setProperty("display", "block", "important");
-
-                                                // 4단계 내장 정산 영수증 카드판 리렌더링 함수가 있다면 교차 수혈 작동
-                                                if (typeof window.renderStep4SettlementCard === "function") window.renderStep4SettlementCard();
-                                                if (window.parent && typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
-                                            }
-                                        });
+                                        // ④ 최후의 마스터 보선 보루: 세션을 완전히 물고 1단계➔2단계 초기화 레일 라우팅으로 주소창 관통 리프레시!
+                                        window.top.location.href = "m-login.html?step=4&auth=success&ts=" + Date.now();
                                     }
-                                } catch (fatalSwitchErr) {
-                                    // 예외 상황 발생 시에만 안전핀 백업 가드 발동
-                                    console.error("[전산망 가드] 스위칭 내부 복구 체인 작동:", fatalSwitchErr);
-                                    if (window.parent) window.parent.location.href = "m-login.html?step=4";
+                                } catch (routeErr) {
+                                    // 예외 단선 발생 시 안전핀 하이패스 리다이렉트
+                                    window.top.location.href = "m-login.html?step=4";
                                 }
                                 return; // 트랜잭션 정상 안전 분리 종료
                             }

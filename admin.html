@@ -2069,11 +2069,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = db;
             }
 
-            // 상단 필터 값 실시간 정밀 트래킹 연동 구역
+            // 🎯 [순정 보존]: 상단 필터 값 실시간 정밀 트래킹 연동 구역 (단 한 줄도 수정 없이 100% 원형 유지)
             const filterTitleSelect = document.getElementById('dashboard-filter-title');
             const filterThSelect = document.getElementById('dashboard-filter-th');
             const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
             const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
+
+            // 🔒 [독립 신설 완착]: 상단과 무관하게 독자 작동하는 중하단 독립 검색 바의 4대 조건 데이터 실시간 캡처
+            const sYear = document.getElementById('custom-search-year')?.value || 'ALL';
+            const sMonth = document.getElementById('custom-search-month')?.value || 'ALL';
+            const sTitle = document.getElementById('custom-search-title')?.value || 'ALL';
+            const sName = document.getElementById('custom-search-name')?.value.trim() || '';
 
             const cleanString = (str) => {
                 if (!str) return "";
@@ -2083,8 +2089,30 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const targetTitleClean = cleanString(filterTitle);
             const filterThNum = filterTh.replace(/[^0-9]/g, "");
 
-            // 상단 드롭다운 조건에 매칭되는 대상자만 정밀 필터링
+            // 🔒 [독립 신설 완착]: 검색 바 전용 문자열 공백 제거 헬퍼 변수 빌드
+            const cleanSearchTitle = cleanString(sTitle);
+            const cleanSearchName = sName.replace(/\s+/g, '');
+
+            // 🌟 [하이브리드 투트랙 데이터 교차 스캔 검문소 개편 완료]
             let displayList = db.filter(row => {
+                // [트랙 1]: 사용자가 독립 검색 바를 건드렸을 때(window.isCustomSearchActive가 true일 때) 가동되는 독립 필터링 가드
+                if (window.isCustomSearchActive) {
+                    const rowDate = row.recDate || row.regDate || "";
+
+                    // 1단계 분기 검문: 고른 연도와 월, 그리고 소집일자 기준 시험명이 일치하는지 정직하게 1:1 대조
+                    const matchCustomYear = (sYear === 'ALL' || rowDate.toString().includes(sYear));
+                    const matchCustomMonth = (sMonth === 'ALL' || rowDate.toString().includes('-' + sMonth));
+
+                    const rowTitleClean = cleanString(row.title);
+                    const matchCustomTitle = (sTitle === 'ALL' || rowTitleClean === cleanSearchTitle || rowTitleClean.includes(cleanSearchTitle));
+
+                    // 2단계 분기 검문: 좁혀진 범위 내에서 사용자가 입력한 성명이 대상자 이름(row.name) 내에 포함되어 있는지 수색
+                    const matchCustomName = (cleanSearchName === '' || row.name.toString().replace(/\s+/g, '').includes(cleanSearchName));
+
+                    return matchCustomYear && matchCustomMonth && matchCustomTitle && matchCustomName;
+                }
+
+                // [트랙 2]: 평시 최초 진입 혹은 상단 통계 필터 조작 시 기동하는 100% 순정 필터러 본문 (단 한 자의 변경 없이 원형 유지)
                 const rowTitleClean = cleanString(row.title);
                 const rowThNum = (row.th || "").toString().replace(/[^0-9]/g, "");
                 const matchTitle = (filterTitle === 'ALL' || rowTitleClean === targetTitleClean || rowTitleClean.includes(targetTitleClean) || targetTitleClean.includes(rowTitleClean));
@@ -2092,7 +2120,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 return matchTitle && matchTh;
             });
 
-            if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL') displayList = db;
+            if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL' && !window.isCustomSearchActive) displayList = db;
 
             // [하이브리드 투트랙 정렬 체인 마스터 락인]
             displayList.sort((a, b) => {

@@ -800,12 +800,13 @@
                             // 대장에서 동일 명의 유저 중 아직 '종료'되지 않고 살아있는 일정이 있는지 정밀 필터링 스캔
                             const activeJobRecord = appDB.find(app => {
                                 const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
-                                return cleanDbName === cleanSessionName && app.stage !== "종료";
+                                const dbTitle = (app.title || '').toString().trim();
+                                return cleanDbName === cleanSessionName && app.stage !== "종료" && dbTitle !== "신규 방문 과제 미배정";
                             });
 
                             if (activeJobRecord) {
                                 // 문법 오류를 완전 예방한 표준 역슬래시 개행(\n) 정형화 알림 포맷
-                                alert("⚠️ 중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산 심사 대기 중인 임상시험 과제가 존재합니다.\n\n한 명당 오직 하나의 시험만 참여 가능하므로 다른 시험에 중복 신청할 수 없습니다.");
+                                alert(" 중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산 심사 대기 중인 임상시험 과제가 존재합니다.\n\n한 명당 오직 하나의 시험만 참여 가능하므로 다른 시험에 중복 신청할 수 없습니다.");
                                 return; // 트랜잭션 즉시 거절 종료
                             }
 

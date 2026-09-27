@@ -3532,7 +3532,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             workbook = XLSX.read(csvText, { type: 'string' });
                         }
 
-                        const firstSheetName = workbook.SheetNames[0];
+                        const firstSheetName = workbook.SheetNames;
                         const worksheet = workbook.Sheets[firstSheetName];
 
                         // 2차원 배열 형태로 전환하여 상단 레이아웃 간섭 차단
@@ -3541,9 +3541,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
 
                         // ================================================================
-                        // [오류 완전 박멸] 에러 제로 안전 패턴 매칭 및 데이터 사출 파이프라인
+                        // [문법 오류 0%] 안전한 텍스트 기반 자릿수 역추적 추출 엔진
                         // ================================================================
-                        const metaText = (rawRows && rawRows[0] && rawRows[0][0]) ? rawRows[0][0].toString().trim() : "";
+                        const metaText = (rawRows && rawRows && rawRows) ? rawRows.toString().trim() : "";
 
                         let extractedTitle = "시험명 미정";
                         let extractedTh = "1기";
@@ -3551,44 +3551,46 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         let extractedNCount = 60; // 디폴트 목표 인원수 숫자 설정
 
                         if (metaText) {
-                            // ① 기수 정밀 안착: RegExp 매칭 배열의 안전한 방 번호 지정 방식 사수
-                            const thMatch = metaText.match(/(\d+)\s*기/);
-                            if (thMatch && thMatch[1]) {
-                                extractedTh = thMatch[1].trim() + "기";
+                            // ① 기수 추출: "기" 자를 타격하여 앞단 숫자 확보
+                            const thIndex = metaText.indexOf("기");
+                            if (thIndex !== -1) {
+                                const thNum = metaText.substring(0, thIndex).replace(/[^0-9]/g, "").trim();
+                                if (thNum) extractedTh = thNum + "기";
                             }
 
-                            // ② 시간 정밀 안착: RegExp 매칭 배열의 안전한 방 번호 지정 방식 사수
-                            const periodMatch = metaText.match(/(\d+)\s*시간/);
-                            if (periodMatch && periodMatch[1]) {
-                                extractedPeriod = periodMatch[1].trim();
+                            // ② 시간 추출: "시간" 자를 타격하여 앞단 숫자 확보
+                            const periodIndex = metaText.indexOf("시간");
+                            if (periodIndex !== -1) {
+                                let startPos = periodIndex - 5;
+                                if (startPos < 0) startPos = 0;
+                                const pSub = metaText.substring(startPos, periodIndex).replace(/[^0-9]/g, "").trim();
+                                if (pSub) extractedPeriod = pSub;
                             }
 
-                            // ③ 인원수 정밀 안착: 괄호 외벽 탈출형 (N)60명 패턴 완벽 방어 처리 완료
-                            const nCountMatch = metaText.match(/\(?N\)?\s*(\d+)\s*명/i);
-                            if (nCountMatch && nCountMatch[1]) {
-                                extractedNCount = parseInt(nCountMatch[1], 10) || 60;
+                            // ③ 인원수 추출 [문법 소독]: 크래시를 내던 ?N? 정규식을 완전히 파괴하고 명 자의 앞자리 순수 숫자만 역추적 스캔
+                            const countIndex = metaText.indexOf("명");
+                            if (countIndex !== -1) {
+                                let startPos = countIndex - 5;
+                                if (startPos < 0) startPos = 0;
+                                const cSub = metaText.substring(startPos, countIndex).replace(/[^0-9]/g, "").trim();
+                                if (cSub) extractedNCount = parseInt(cSub, 10) || 60;
                             }
 
-                            // ④ 순수 시험명 압착 추출 [수리 완료]: 배열 쪼개기 split 크래시 원천 소독 및 지우개 기법 안착
-                            let cleanTitle = metaText;
+                            // ④ 순수 시험명 압착 추출: 기수 뒤 공간부터 (N) 또는 인원수 수치가 오기 전까지 슬라이싱
+                            let startIdx = (thIndex !== -1) ? thIndex + 1 : 0;
+                            let endIdx = metaText.indexOf("(N)");
+                            if (endIdx === -1) endIdx = metaText.indexOf(String(extractedNCount));
+                            if (endIdx === -1) endIdx = metaText.indexOf("담당");
 
-                            // 기적출 완료된 메타 스펙 글자들을 문자열 치환으로 공중 소멸 세척 처리 (크래시 원인 봉쇄)
-                            cleanTitle = cleanTitle.replace(new RegExp(extractedTh, 'g'), "");
-                            cleanTitle = cleanTitle.replace(new RegExp(extractedPeriod + '\\s*시간', 'g'), "");
-                            cleanTitle = cleanTitle.replace(/\(?N\)?\s*\d+\s*명/gi, "");
-
-                            // 담당CRC 영역 분리 시 배열 방 검증선 장착하여 split 크래시 완벽 차단
-                            if (cleanTitle.includes("담당")) {
-                                const titleParts = cleanTitle.split("담당");
-                                if (titleParts && titleParts.length > 0 && titleParts[0]) {
-                                    extractedTitle = titleParts[0].replace(/\s+/g, " ").trim();
-                                }
-                            } else {
-                                extractedTitle = cleanTitle.replace(/\s+/g, " ").trim();
+                            if (endIdx !== -1 && endIdx > startIdx) {
+                                extractedTitle = metaText.substring(startIdx, endIdx).replace(/\s+/g, " ").trim();
+                            } else if (metaText.includes("담당")) {
+                                const titleParts = metaText.replace(/^[0-9]\s*기\s*/, "").split("담당");
+                                extractedTitle = titleParts.replace(/\s+/g, " ").trim();
                             }
                         }
 
-                        console.log(`▶ [메타 추출 성공] 시험명: ${extractedTitle} | 기수: ${extractedTh} | 인원수: ${extractedNCount} (숫자만) | 기간: ${extractedPeriod}시간`);
+                        console.log(`▶ [메타 추출 성공] 시험명: ${extractedTitle} | 기수: ${extractedTh} | 인원수: ${extractedNCount} | 기간: ${extractedPeriod}시간`);
 
                         // ⚠️ [보안 가드 검문소 안착]: 파싱 완료된 시험명이 모집공고 대장(dataStoreRecruitment)에 실재하는지 교차 대조 검증
                         const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
@@ -3636,7 +3638,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 
                             // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
-                            const excelName = rawName.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+                            const excelName = rawName.replace(/.*?/g, "").replace(/\[.*?\]/g, "").trim();
 
                             // ② 성별 및 나이 추출
                             const cleanGenderAge = rawGenderAge.replace(/[\r\n\s]/g, "");
@@ -3796,7 +3798,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 r.readAsText(file, 'EUC-KR');
             }
         }
-
 
         function handleExamFileImport(event) {
             const file = event.target.files;

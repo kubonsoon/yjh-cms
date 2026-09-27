@@ -493,7 +493,7 @@
                     </span>
 
                     <!-- 2. 연도 체인 셀렉터 -->
-                    <select id="dashboard-filter-year" onchange="updateMonthOptions()"
+                    <select id="dashboard-filter-year" onchange="searchBarYearChain()"
                         style="width: 110px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-연도-</option>
                         <option value="2025">2025년</option>
@@ -501,7 +501,7 @@
                     </select>
 
                     <!-- 3. 월 체인 셀렉터 -->
-                    <select id="dashboard-filter-month" onchange="initDashboardFilter()"
+                    <select id="dashboard-filter-month" onchange="searchBarTitleChain()"
                         style="width: 100px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-월-</option>
                         <option value="01">1월</option>
@@ -7408,132 +7408,88 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         window.openAdminMobileControlBridge = openAdminMobileControlBridge;
 
 
-        // 1. [정밀 보정] 선택된 연도에 존재하는 실제 소집 월 데이터만 추적하여 2번째 박스에 자동으로 채우는 함수
-        function updateMonthOptions() {
-            const filterYear = document.getElementById('dashboard-filter-year');
-            const filterMonth = document.getElementById('dashboard-filter-month');
-            if (!filterYear || !filterMonth) return;
+        /* =========================================================================
+       [대상자 검색: 상단의 데이터 통계와 별도]
+       ========================================================================= */
 
-            const selectedYear = filterYear.value;
-            const previousSelectedMonth = filterMonth.value || "ALL";
+        // 1. [독립 연도 체인] 연도 선택 시 상단 통계 간섭 없이 오직 검색 바 전용 월 목록 세팅 후 시험명 함수 연쇄 호출
+        function searchBarYearChain() {
+            const fYear = document.getElementById('dashboard-filter-year');
+            const fMonth = document.getElementById('dashboard-filter-month');
+            if (!fYear || !fMonth) return;
 
-            // 연도가 전체보기('ALL')일 때는 월 선택 상자도 초기화 처리 후 3번 상자 연쇄 호출
-            if (selectedYear === "ALL") {
-                filterMonth.innerHTML = '<option value="ALL">-월-</option>';
-                filterMonth.value = "ALL";
-                initDashboardFilter();
+            // 연도가 전체보기일 시 월 상자도 ALL 처리 후 독립 시험명 함수 호출 탈출
+            if (fYear.value === "ALL") {
+                fMonth.value = "ALL";
+                searchBarTitleChain();
                 return;
             }
+
+            // 🔒 상단 통계판이나 기존 사내 전산망 함수를 일절 호출하지 않고, 곧바로 3번째 독립 시험명 상자를 채우도록 리액터 강제 호출
+            searchBarTitleChain();
+        }
+
+        // 2. [독립 시험명 주입] 선택된 연도와 월 조건에 맞는 시험 목록 데이터만 3번째 상자에 "알아서 자동으로" 채워주는 단독 파서
+        function searchBarTitleChain() {
+            const fYear = document.getElementById('dashboard-filter-year');
+            const fMonth = document.getElementById('dashboard-filter-month');
+            const fTitleSelect = document.getElementById('dashboard-filter-title');
+            if (!fTitleSelect) return;
+
+            const selYear = fYear ? fYear.value : "ALL";
+            const selMonth = fMonth ? fMonth.value : "ALL";
+            const curSelected = fTitleSelect.value;
 
             const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             const applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            let months = [];
+            fTitleSelect.innerHTML = '<option value="ALL">-전체 시험 목록-</option>';
 
-            // 대장 내 날짜 서식에서 안전하게 월 문자열만 추출하는 방어벽
-            const checkAndExtractMonth = (dateStr, targetYear) => {
-                if (!dateStr) return null;
-                const clean = dateStr.toString().replace(/[^0-9-]/g, "").trim();
-                const parts = clean.split('-');
-                if (parts && parts[0] === targetYear && parts[1]) {
-                    return String(parts[1]).padStart(2, '0');
-                }
-                return null;
-            };
+            let targetTitles = [];
 
-            // 모집공고 대장에서 월 데이터 추출
-            recruitmentDB.forEach(row => {
-                const m = checkAndExtractMonth(row.recDate, selectedYear);
-                if (m && !months.includes(m)) months.push(m);
-            });
-
-            // 대상자 대장 등록일 및 소집일 데이터에서 월 데이터 추출 
-            applicantDB.forEach(row => {
-                const m = checkAndExtractMonth(row.recDate || row.regDate, selectedYear);
-                if (m && !months.includes(m)) months.push(m);
-            });
-
-            filterMonth.innerHTML = '<option value="ALL">-월-</option>';
-
-            // 월 순서대로 오름차순 정렬 후 실물 옵션 태그 동적 주입
-            months.sort((a, b) => a.localeCompare(b)).forEach(m => {
-                const option = document.createElement('option');
-                option.value = m;
-                option.innerText = parseInt(m, 10) + "월";
-                filterMonth.appendChild(option);
-            });
-
-            // 기존 사용자가 보고 있던 월 유지 보정 가드 적용
-            filterMonth.value = months.includes(previousSelectedMonth) ? previousSelectedMonth : "ALL";
-
-            // 🔒 2번째 월 상자 적재가 완착되는 즉시, 연속으로 3번째 시험명 목록 박스를 채워주도록 실시간 연쇄 리액터 강제 호출
-            initDashboardFilter();
-        }
-
-
-        // 2. [완전 격리 완료] 연도와 월 조건에 부합하는 시험명만 3번째 상자에 "알아서 자동으로" 채워주는 함수
-        function initDashboardFilter() {
-            const filterYear = document.getElementById('dashboard-filter-year');
-            const filterMonth = document.getElementById('dashboard-filter-month');
-            const filterTitleSelect = document.getElementById('dashboard-filter-title');
-            if (!filterTitleSelect) return;
-
-            const selectedYear = filterYear ? filterYear.value : "ALL";
-            const selectedMonth = filterMonth ? filterMonth.value : "ALL";
-            const currentSelected = filterTitleSelect.value;
-
-            let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-            filterTitleSelect.innerHTML = '<option value="ALL">-전체 시험 목록-</option>';
-
-            let titles = [];
-
-            // 선택된 연도와 월 구조를 만족하는지 판독하는 크로스 필터 가드
-            const isDateStructureMatched = (dateStr) => {
+            // 대장 내 날짜 서식에서 연도와 월이 일치하는지 판독하는 독립 검색 전용 디펜스 가드
+            const isSearchDateMatched = (dateStr) => {
                 if (!dateStr) return false;
                 const clean = dateStr.toString().replace(/[^0-9-]/g, "").trim();
                 const parts = clean.split('-');
-                const matchYear = (selectedYear === "ALL" || parts[0] === selectedYear);
-                const matchMonth = (selectedMonth === "ALL" || (parts[1] && String(parts[1]).padStart(2, '0') === selectedMonth));
+                const matchYear = (selYear === "ALL" || parts[0] === selYear);
+                const matchMonth = (selMonth === "ALL" || (parts[1] && String(parts[1]).padStart(2, '0') === selMonth));
                 return matchYear && matchMonth;
             };
 
-            // 연도/월 조건에 맞는 모집공고 시험명 수집
+            // 조건에 만족하는 공고 대장 내 시험명 추출 수집
             recruitmentDB.forEach(row => {
-                if (row.title && (selectedYear === "ALL" || isDateStructureMatched(row.recDate))) {
+                if (row.title && (selYear === "ALL" || isSearchDateMatched(row.recDate))) {
                     const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
-                    if (cleanTitle && !titles.includes(cleanTitle)) titles.push(cleanTitle);
+                    if (cleanTitle && !targetTitles.includes(cleanTitle)) targetTitles.push(cleanTitle);
                 }
             });
 
-            // 연도/월 조건에 맞는 대상자 등록 시험명 누수 없이 가로채기 수집
-            adminApplicantDB.forEach(row => {
-                if (row.title && (selectedYear === "ALL" || isDateStructureMatched(row.recDate || row.regDate))) {
+            // 조건에 만족하는 대상자 대장 내 시험명 추출 수집
+            applicantDB.forEach(row => {
+                if (row.title && (selYear === "ALL" || isSearchDateMatched(row.recDate || row.regDate))) {
                     const cleanTitle = row.title.toString().replace(/\s+/g, ' ').trim();
-                    if (cleanTitle && !titles.includes(cleanTitle)) titles.push(cleanTitle);
+                    if (cleanTitle && !targetTitles.includes(cleanTitle)) targetTitles.push(cleanTitle);
                 }
             });
 
             // 가나다순 정렬 후 3번째 상자에 "알아서 자동으로" 실물 옵션 데이터 적재 주입
-            titles.sort().forEach(t => {
+            targetTitles.sort().forEach(t => {
                 const option = document.createElement('option');
                 option.value = t;
                 option.innerText = t;
-                filterTitleSelect.appendChild(option);
+                fTitleSelect.appendChild(option);
             });
 
-            // 유령 공백 소독 후 기존 선택값 안전 복원 상속
-            if (titles.includes(currentSelected.toString().replace(/\s+/g, ' ').trim())) {
-                filterTitleSelect.value = currentSelected.toString().replace(/\s+/g, ' ').trim();
+            // 공백 제거 후 기존 선택값 상속 복원
+            if (targetTitles.includes(curSelected.toString().replace(/\s+/g, ' ').trim())) {
+                fTitleSelect.value = curSelected.toString().replace(/\s+/g, ' ').trim();
             } else {
-                filterTitleSelect.value = 'ALL';
+                fTitleSelect.value = 'ALL';
             }
 
-            // 🔒 [결함 원천 분쇄 마감]: 기존 순정 함수 최하단에 링크되어 상단 통계판 수치를 제멋대로 뒤틀어버리던
-            //    구형 기수 로더 및 통계 리계산 함수(updateDashboardThOptions) 호출 코드를 이 함수 본문 내부에서 완벽하게 통째로 파기·삭제함!
-            //    이로 인해 상단 현황판 위젯 지표는 완벽하게 차단 잠금되어 보존되며, 오직 3번 상자에 데이터가 자동으로 들어오는 임무만 독립 수행함.
         }
+
 
         // 최초 화면 접속 진입 시에는 무조건 전체 대상자 목록이 노출되도록 제어하는 검색 상태 스위치 변수
         window.isSearchTriggered = false;

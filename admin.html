@@ -3532,7 +3532,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             workbook = XLSX.read(csvText, { type: 'string' });
                         }
 
-                        const firstSheetName = workbook.SheetNames;
+                        const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
 
                         // 2차원 배열 형태로 전환하여 상단 레이아웃 간섭 차단
@@ -3543,7 +3543,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         // ================================================================
                         // [오류 완전 박멸] 에러 제로 안전 패턴 매칭 및 데이터 사출 파이프라인
                         // ================================================================
-                        const metaText = (rawRows && rawRows && rawRows) ? rawRows.toString().trim() : "";
+                        const metaText = (rawRows && rawRows[0] && rawRows[0][0]) ? rawRows[0][0].toString().trim() : "";
 
                         let extractedTitle = "시험명 미정";
                         let extractedTh = "1기";
@@ -3553,35 +3553,35 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         if (metaText) {
                             // ① 기수 정밀 안착: RegExp 매칭 배열의 안전한 방 번호 지정 방식 사수
                             const thMatch = metaText.match(/(\d+)\s*기/);
-                            if (thMatch && thMatch) {
-                                extractedTh = thMatch.trim() + "기";
+                            if (thMatch && thMatch[1]) {
+                                extractedTh = thMatch[1].trim() + "기";
                             }
 
                             // ② 시간 정밀 안착: RegExp 매칭 배열의 안전한 방 번호 지정 방식 사수
                             const periodMatch = metaText.match(/(\d+)\s*시간/);
-                            if (periodMatch && periodMatch) {
-                                extractedPeriod = periodMatch.trim();
+                            if (periodMatch && periodMatch[1]) {
+                                extractedPeriod = periodMatch[1].trim();
                             }
 
                             // ③ 인원수 정밀 안착: 괄호 외벽 탈출형 (N)60명 패턴 완벽 방어 처리 완료
-                            const nCountMatch = metaText.match(/?N?\s*(\d+)\s*명/i);
-                            if (nCountMatch && nCountMatch) {
-                                extractedNCount = parseInt(nCountMatch, 10) || 60;
+                            const nCountMatch = metaText.match(/\(?N\)?\s*(\d+)\s*명/i);
+                            if (nCountMatch && nCountMatch[1]) {
+                                extractedNCount = parseInt(nCountMatch[1], 10) || 60;
                             }
 
-                            // ④ 순수 시험명 압착 추출 [수리 완료]: 배열 쪼개기 split 에러 소독 처리 및 안전 보정 가드 빌드
+                            // ④ 순수 시험명 압착 추출 [수리 완료]: 배열 쪼개기 split 크래시 원천 소독 및 지우개 기법 안착
                             let cleanTitle = metaText;
 
-                            // 기적출 완료된 메타 스펙 글자들을 원본에서 공중 소멸 세척 처리
+                            // 기적출 완료된 메타 스펙 글자들을 문자열 치환으로 공중 소멸 세척 처리 (크래시 원인 봉쇄)
                             cleanTitle = cleanTitle.replace(new RegExp(extractedTh, 'g'), "");
                             cleanTitle = cleanTitle.replace(new RegExp(extractedPeriod + '\\s*시간', 'g'), "");
-                            cleanTitle = cleanTitle.replace(/?N?\s*\d+\s*명/gi, "");
+                            cleanTitle = cleanTitle.replace(/\(?N\)?\s*\d+\s*명/gi, "");
 
                             // 담당CRC 영역 분리 시 배열 방 검증선 장착하여 split 크래시 완벽 차단
                             if (cleanTitle.includes("담당")) {
                                 const titleParts = cleanTitle.split("담당");
-                                if (titleParts && titleParts.length > 0 && titleParts) {
-                                    extractedTitle = titleParts.replace(/\s+/g, " ").trim();
+                                if (titleParts && titleParts.length > 0 && titleParts[0]) {
+                                    extractedTitle = titleParts[0].replace(/\s+/g, " ").trim();
                                 }
                             } else {
                                 extractedTitle = cleanTitle.replace(/\s+/g, " ").trim();
@@ -3628,10 +3628,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
 
-                            let rawName = row[2] ? row[2].toString().trim() : "";
-                            const rawGenderAge = row[3] ? row[3].toString().trim() : "";
-                            let rawSsn = row[4] ? row[4].toString().trim() : "";
-                            const phoneVal = row[5] ? row[5].toString().trim() : "";
+                            let rawName = row[3] ? row[3].toString().trim() : "";
+                            const rawGenderAge = row[4] ? row[4].toString().trim() : "";
+                            let rawSsn = row[5] ? row[5].toString().trim() : "";
+                            const phoneVal = row[6] ? row[6].toString().trim() : "";
 
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 

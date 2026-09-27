@@ -852,23 +852,21 @@
                             );
 
                             if (isAlreadyClickedThisJob) {
-                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면으로 이동합니다.");
+                                alert("알림: 이미 참여 신청서 접수가 완료된 과제입니다.\n\n나의 임상시험 정보 및 정산 처리 화면(4단계)으로 즉시 이동합니다.");
 
-                                // 🔒 [브라우저 보안 샌드박스 완벽 관통 - postMessage 방송망 개통 엔진]:
-                                //    크롬 브라우저의 탈옥 차단 가드막을 완벽하게 우회하기 위해 
-                                //    부모 창의 함수를 직접 부르지 않고, 공식 규격 패킷 시그널("GOTO_STEP_4")을 부모 본진 전역에 쏘아 올립니다!
+                                // 🔒 [최상위 브라우저 주소창 강제 관통 하이패스 엔진 완착]:
+                                //    - 부모 창에서 allow-top-navigation 자격을 수혈받았으므로 
+                                //    - 가상 DOM 함수 꼬임 리스크 없이 최상위 윈도우(window.top) 주소창 자체를 4단계 정산 화면 주소로 다이렉트 강제 전환합니다!
                                 try {
-                                    if (window.parent) {
-                                        window.parent.postMessage({
-                                            action: "GOTO_STEP_4",
-                                            user: currentSessionName
-                                        }, "*");
-                                    }
-                                } catch (postErr) {
-                                    console.error("[방송망 단선 가드 작동]", postErr);
-                                    // 최후의 보루 안전핀 백업
+                                    // 🌟 로컬 원장에 최신 4단계 동기화 상태 원천 박제 새김 처리
                                     localStorage.setItem('currentStep', '4');
                                     localStorage.setItem('forcedStepNum', '4');
+
+                                    // 최상위 부모 프레임 전체를 4단계 정산 영수증 세션 화면으로 무조건 워프 리프레시!
+                                    window.top.location.href = "m-login.html?step=4&ts=" + Date.now();
+                                } catch (urlForceErr) {
+                                    // 최후의 보루 안전핀 복귀선
+                                    window.location.href = "m-login.html?step=4";
                                 }
                                 return; // 트랜잭션 정상 안전 분리 종료
                             }

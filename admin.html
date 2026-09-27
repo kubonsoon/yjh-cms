@@ -531,180 +531,178 @@
                         style="height: 36px; padding: 0 16px; background: var(--secondary-color); color: #fff; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">검색</button>
                 </div>
 
+
+                <!-- [대상자 목록 출력]  -->
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr style="display: table-row;">
+                                <th
+                                    style="min-width: 220px; max-width: 300px; text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; width: 21%;">
+                                    시험명</th>
+                                <th style="text-align: center; width: 6%;">기수</th>
+                                <th style="text-align: center; width: 6.5%;">인원수</th>
+                                <th style="text-align: center; width: 6%;">시간</th>
+                                <th style="text-align: center; width: 6%;">이름</th>
+                                <th style="text-align: center; width: 8.5%;">생년월일</th>
+                                <th style="text-align: center; width: 4.5%;">성별</th>
+                                <th style="text-align: center; width: 11%;">전화번호</th>
+                                <th style="text-align: center; width: 6.5%;">참여상태</th>
+                                <th style="text-align: center; width: 9%;">참여비</th>
+                                <th style="text-align: center; width: 5.5%;">당직동의</th>
+                                <th style="text-align: center; width: 5.5%;">소집동의</th>
+                                <th style="text-align: center; width: 10%;">첨부서류</th>
+                                <th style="width: 140px; text-align: center; padding-right: 15px;">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dom-applicant-table">
+                            <!-- 자바스크립트에 의해 데이터(홍길동, 강남구 등)가 여기에 출력됩니다 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="applicant-pagination"
+                    style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 20px; width: 100%;">
+                </div>
+
             </div>
 
-
-            <!-- [대상자 목록 출력]  -->
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr style="display: table-row;">
-                            <th
-                                style="min-width: 220px; max-width: 300px; text-align: left; padding-left: 15px; font-weight: 700; color: #ffffff; width: 21%;">
-                                시험명</th>
-                            <th style="text-align: center; width: 6%;">기수</th>
-                            <th style="text-align: center; width: 6.5%;">인원수</th>
-                            <th style="text-align: center; width: 6%;">시간</th>
-                            <th style="text-align: center; width: 6%;">이름</th>
-                            <th style="text-align: center; width: 8.5%;">생년월일</th>
-                            <th style="text-align: center; width: 4.5%;">성별</th>
-                            <th style="text-align: center; width: 11%;">전화번호</th>
-                            <th style="text-align: center; width: 6.5%;">참여상태</th>
-                            <th style="text-align: center; width: 9%;">참여비</th>
-                            <th style="text-align: center; width: 5.5%;">당직동의</th>
-                            <th style="text-align: center; width: 5.5%;">소집동의</th>
-                            <th style="text-align: center; width: 10%;">첨부서류</th>
-                            <th style="width: 140px; text-align: center; padding-right: 15px;">작업</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dom-applicant-table">
-                        <!-- 자바스크립트에 의해 데이터(홍길동, 강남구 등)가 여기에 출력됩니다 -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div id="applicant-pagination"
-                style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 20px; width: 100%;">
-            </div>
-
-        </div>
-
-        <!-- ==========================================================
+            <!-- ==========================================================
                  SECTION 03. [교정 반영] 관리 담당자 리스트 통합 마운트 구역
                  ========================================================== -->
-        <div id="gradeView" class="content-section">
-            <h2>전산망 관리 담당자 회원 목록</h2>
+            <div id="gradeView" class="content-section">
+                <h2>전산망 관리 담당자 회원 목록</h2>
 
-            <div class="register-box"
-                style="margin-top: 20px !important; margin-bottom: 25px; background: #0f172a; padding: 24px; border-radius: 12px; border: 1px solid #1e293b;">
-                <h3
-                    style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--secondary-color); text-transform: uppercase;">
-                    <i class="fa-solid fa-square-plus"></i> [신규 사원 정보 및 권한설정]
-                </h3>
+                <div class="register-box"
+                    style="margin-top: 20px !important; margin-bottom: 25px; background: #0f172a; padding: 24px; border-radius: 12px; border: 1px solid #1e293b;">
+                    <h3
+                        style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--secondary-color); text-transform: uppercase;">
+                        <i class="fa-solid fa-square-plus"></i> [신규 사원 정보 및 권한설정]
+                    </h3>
 
-                <!-- 🟢 [수정 완료]: 불필요한 가로 공간 낭비를 막고 버튼을 인풋 창 바로 옆으로 밀착시키기 위해 부모 너비를 max-content로 제어 -->
-                <div class="register-form"
-                    style="display: flex; flex-wrap: nowrap; gap: 6px; align-items: center !important; width: max-content;">
+                    <!-- 🟢 [수정 완료]: 불필요한 가로 공간 낭비를 막고 버튼을 인풋 창 바로 옆으로 밀착시키기 위해 부모 너비를 max-content로 제어 -->
+                    <div class="register-form"
+                        style="display: flex; flex-wrap: nowrap; gap: 6px; align-items: center !important; width: max-content;">
 
-                    <!-- 1. 사번 인풋 (5글자 스펙 ➡️ 컴팩트 고정 폭 110px 락업) -->
-                    <div class="form-group" style="width: 110px; flex-shrink: 0;">
-                        <label
-                            style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">사번</label>
-                        <input type="text" id="form-mem-id" placeholder="예: m0005"
-                            style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; font-size: 14px; font-weight: 500; outline: none; text-align: center;">
+                        <!-- 1. 사번 인풋 (5글자 스펙 ➡️ 컴팩트 고정 폭 110px 락업) -->
+                        <div class="form-group" style="width: 110px; flex-shrink: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">사번</label>
+                            <input type="text" id="form-mem-id" placeholder="예: m0005"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; font-size: 14px; font-weight: 500; outline: none; text-align: center;">
+                        </div>
+
+                        <!-- 2. 이름 인풋 (5글자 스펙 ➡️ 컴팩트 고정 폭 120px 락업) -->
+                        <div class="form-group" style="width: 120px; flex-shrink: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">이름</label>
+                            <input type="text" id="form-mem-name" placeholder="성명"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; font-size: 14px; font-weight: 500; outline: none; text-align: center;">
+                        </div>
+
+                        <!-- 3. 직급 셀렉트 (7글자 스펙 ➡️ 화살표 공간 포함 고정 폭 160px 락업) -->
+                        <div class="form-group" style="width: 160px; flex-shrink: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">직급</label>
+                            <select id="form-mem-duty"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 8px; font-size: 14px; font-weight: 500; outline: none; cursor: pointer; text-align: center;">
+                                <option value="사원">사원</option>
+                                <option value="주임">주임</option>
+                                <option value="대리">대리</option>
+                                <option value="과장">과장</option>
+                                <option value="팀장">팀장</option>
+                                <option value="본부장">본부장</option>
+                                <option value="센터장">센터장</option>
+                                <option value="연구원장">연구원장</option>
+                                <option value="시스템 관리자">시스템 관리자</option>
+                            </select>
+                        </div>
+
+                        <!-- 4. 소속 부서 인풋 (10글자 스펙 ➡️ 컴팩트 고정 폭 200px 락업) -->
+                        <div class="form-group" style="width: 200px; flex-shrink: 0;">
+                            <label
+                                style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">소속
+                                부서</label>
+                            <input type="text" id="form-mem-dept" placeholder="예: 임상관리팀"
+                                style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 14px; font-weight: 500; outline: none;">
+                        </div>
+
+                        <!-- 5. 등록 실행 단추 -->
+                        <button class="action-btn" onclick="insertAdminMember()"
+                            style="height: 38px !important; margin-bottom: 0 !important; padding: 0 16px; color: #070a12; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; background: var(--success-color); box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            신규 등록
+                        </button>
+
                     </div>
+                </div>
 
-                    <!-- 2. 이름 인풋 (5글자 스펙 ➡️ 컴팩트 고정 폭 120px 락업) -->
-                    <div class="form-group" style="width: 120px; flex-shrink: 0;">
-                        <label
-                            style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">이름</label>
-                        <input type="text" id="form-mem-name" placeholder="성명"
-                            style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 10px; font-size: 14px; font-weight: 500; outline: none; text-align: center;">
-                    </div>
-
-                    <!-- 3. 직급 셀렉트 (7글자 스펙 ➡️ 화살표 공간 포함 고정 폭 160px 락업) -->
-                    <div class="form-group" style="width: 160px; flex-shrink: 0;">
-                        <label
-                            style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">직급</label>
-                        <select id="form-mem-duty"
-                            style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 8px; font-size: 14px; font-weight: 500; outline: none; cursor: pointer; text-align: center;">
-                            <option value="사원">사원</option>
-                            <option value="주임">주임</option>
-                            <option value="대리">대리</option>
-                            <option value="과장">과장</option>
-                            <option value="팀장">팀장</option>
-                            <option value="본부장">본부장</option>
-                            <option value="센터장">센터장</option>
-                            <option value="연구원장">연구원장</option>
-                            <option value="시스템 관리자">시스템 관리자</option>
-                        </select>
-                    </div>
-
-                    <!-- 4. 소속 부서 인풋 (10글자 스펙 ➡️ 컴팩트 고정 폭 200px 락업) -->
-                    <div class="form-group" style="width: 200px; flex-shrink: 0;">
-                        <label
-                            style="color: #ffffff; font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block;">소속
-                            부서</label>
-                        <input type="text" id="form-mem-dept" placeholder="예: 임상관리팀"
-                            style="width: 100%; height: 38px; border-radius: 6px; background: #0b0f19; color: #fff; border: 2px solid var(--border-color); padding: 0 12px; font-size: 14px; font-weight: 500; outline: none;">
-                    </div>
-
-                    <!-- 5. 등록 실행 단추 -->
-                    <button class="action-btn" onclick="insertAdminMember()"
-                        style="height: 38px !important; margin-bottom: 0 !important; padding: 0 16px; color: #070a12; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; background: var(--success-color); box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        신규 등록
-                    </button>
-
+                <!-- 가로 폭 분할 및 동적 인라인 편집 액션 폼 슬롯 장착 -->
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 13%; text-align: center;">사번</th>
+                                <th style="width: 17%;">성명</th>
+                                <th style="width: 17%;">부서</th>
+                                <th style="width: 13%;">직급</th>
+                                <th style="width: 15%;">권한 레벨</th>
+                                <th style="width: 13%;">비밀번호 관리</th>
+                                <th style="width: 12%; text-align: center;">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dom-member-table">
+                            <!-- JS 엔진에 의해 실시간 동적 바인딩 및 인라인 폼이 마운트되는 슬롯 -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- 가로 폭 분할 및 동적 인라인 편집 액션 폼 슬롯 장착 -->
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 13%; text-align: center;">사번</th>
-                            <th style="width: 17%;">성명</th>
-                            <th style="width: 17%;">부서</th>
-                            <th style="width: 13%;">직급</th>
-                            <th style="width: 15%;">권한 레벨</th>
-                            <th style="width: 13%;">비밀번호 관리</th>
-                            <th style="width: 12%; text-align: center;">작업</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dom-member-table">
-                        <!-- JS 엔진에 의해 실시간 동적 바인딩 및 인라인 폼이 마운트되는 슬롯 -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-
-        <!-- ==========================================================================
+            <!-- ==========================================================================
                SECTION 04. 보고서 및 통계 탭 (2안: 외부 JS 연동형 슬림 6대 서브 탭 허브 레이아웃)
               ========================================================================== -->
-        <div id="reportView" class="content-section" style="display: none; flex-direction: column; background: #0f172a; border:1px solid var(--border-color); padding: 24px; border-radius: 12px; margin-bottom: 24px; width:
+            <div id="reportView" class="content-section" style="display: none; flex-direction: column; background: #0f172a; border:1px solid var(--border-color); padding: 24px; border-radius: 12px; margin-bottom: 24px; width:
                      100%; gap: 20px;">
 
-            <!-- ️ [가로형 6대 서브 탭 메뉴 바]: 실무 부서별 관제탑 전환 스위치 세트 -->
-            <div class="report-sub-tab-bar">
-                <button type="button" class="report-sub-tab-btn active" onclick="switchReportSubTab('summary')">
-                    <i class="fa-solid fa-chart-line"></i>종합 통계 관제탑
-                </button>
-                <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('recruitment')">
-                    <i class="fa-solid fa-layer-group"></i>시험별 모집/재무 현황
-                </button>
-                <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('dropout')">
-                    <i class="fa-solid fa-user-slash"></i>대상자 탈락 사유 통계
-                </button>
-                <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('ledger')">
-                    <i class="fa-solid fa-address-book"></i>대상자 개인별 원장 조회
-                </button>
-                <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('crc')">
-                    <i class="fa-solid fa-id-card-clip"></i>CRC 시험 목표 달성률
-                </button>
-                <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('budget')">
-                    <i class="fa-solid fa-calendar-days"></i>차수별 참여비 스케줄러
-                </button>
-                <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('auditLog')">
-                    <i class="fa-solid fa-user-shield"></i>보안 로그 기록
-                </button>
+                <!-- ️ [가로형 6대 서브 탭 메뉴 바]: 실무 부서별 관제탑 전환 스위치 세트 -->
+                <div class="report-sub-tab-bar">
+                    <button type="button" class="report-sub-tab-btn active" onclick="switchReportSubTab('summary')">
+                        <i class="fa-solid fa-chart-line"></i>종합 통계 관제탑
+                    </button>
+                    <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('recruitment')">
+                        <i class="fa-solid fa-layer-group"></i>시험별 모집/재무 현황
+                    </button>
+                    <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('dropout')">
+                        <i class="fa-solid fa-user-slash"></i>대상자 탈락 사유 통계
+                    </button>
+                    <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('ledger')">
+                        <i class="fa-solid fa-address-book"></i>대상자 개인별 원장 조회
+                    </button>
+                    <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('crc')">
+                        <i class="fa-solid fa-id-card-clip"></i>CRC 시험 목표 달성률
+                    </button>
+                    <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('budget')">
+                        <i class="fa-solid fa-calendar-days"></i>차수별 참여비 스케줄러
+                    </button>
+                    <button type="button" class="report-sub-tab-btn" onclick="switchReportSubTab('auditLog')">
+                        <i class="fa-solid fa-user-shield"></i>보안 로그 기록
+                    </button>
+                </div>
+
+                <!-- 📥 [실실시간 가변형 뷰포트]: 선택한 서브 탭 메뉴 본문이 안착되는 데이터 마운트 구역 -->
+                <div id="report-tab-panel-summary" style="width: 100%;">
+                    <!-- 전산망 스크립트 엔진 가동 시 외부 report-view.js 모듈 뼈대 -->
+                    <div
+                        style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; font-weight: 700;">
+                        보고서 모듈 로딩 중...
+                    </div>
+                </div>
+
             </div>
 
-            <!-- 📥 [실실시간 가변형 뷰포트]: 선택한 서브 탭 메뉴 본문이 안착되는 데이터 마운트 구역 -->
-            <div id="report-tab-panel-summary" style="width: 100%;">
-                <!-- 전산망 스크립트 엔진 가동 시 외부 report-view.js 모듈 뼈대 -->
-                <div
-                    style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; font-weight: 700;">
-                    보고서 모듈 로딩 중...
-                </div>
-            </div>
+
 
         </div>
-
-
-
-    </div>
     </div>
     <script>
         // 카톡 알림음 실행 가부 정밀 실시간 필터링 함수

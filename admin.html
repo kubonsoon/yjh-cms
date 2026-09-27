@@ -3494,6 +3494,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         // [5-C 파트] 외부 텍스트/문서 원천 데이터 스마트 정규표현식 파서 엔진
         // =========================================================================
 
+
+
         function handleSmartFileImport(e) {
             const file = e.target.files[0]; // 0번째 단일 파일 개체 바인딩 락인
             const d = document.getElementById('selected-file-name');
@@ -3501,9 +3503,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             const ext = file.name.split('.').pop().toLowerCase();
 
-            if (!['xlsx', 'xls', 'docx', 'doc', 'hwp', 'hwpx', 'txt', 'csv'].includes(ext)) {
-                alert('지원하지 않는 형식입니다.');
+            // 🔒 [확장자 가드 긴축 완료]: 지시하신 대로 오직 xlsx, xls, docx, doc 파일형식만 업로드 허용하도록 원천 잠금 처리
+            if (!['xlsx', 'xls', 'docx', 'doc'].includes(ext)) {
+                alert('지원하지 않는 형식입니다. (xlsx, xls, docx, doc 파일만 업로드 가능)');
                 e.target.value = '';
+                if (d) d.innerText = '';
                 return;
             }
             if (d) d.innerHTML = `<i class="fa-solid fa-file-circle-check"></i> 선택: ${file.name}`;
@@ -3544,7 +3548,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         // ================================================================
                         const metaText = (rawRows && rawRows[0] && rawRows[0][0]) ? rawRows[0][0].toString().trim() : "";
 
-                        let extractedTitle = "과제명 미정";
+                        let extractedTitle = "시험명 미정";
                         let extractedTh = "1기";
                         let extractedPeriod = "0";
                         let extractedNCount = 60; // 디폴트 목표 인원수 숫자 설정
@@ -3556,7 +3560,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const periodMatch = metaText.match(/(\d+)시간/);
                             if (periodMatch) extractedPeriod = periodMatch[1];
 
-                            // ⚠️ [최종 보정] (N60)에서 N 뒤의 순수 숫자만 매칭하여 숫자로 완벽 변환
+                            // [최종 보정] (N60)에서 N 뒤의 순수 숫자만 매칭하여 숫자로 완벽 변환
                             const nMatch = metaText.match(/\(N(\d+)\)/);
                             if (nMatch && nMatch[1]) {
                                 extractedNCount = parseInt(nMatch[1], 10) || 60;
@@ -3572,20 +3576,37 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                         console.log(`▶ [메타 추출 성공] 시험명: ${extractedTitle} | 기수: ${extractedTh} | 인원수: ${extractedNCount} (숫자만) | 기간: ${extractedPeriod}시간`);
 
-                        // ⚠️ [순정 데이터 바인딩 상속]: 사내 마스터 전역 변수 직접 연동 체인 락인
+                        // ⚠️ [보안 가드 검문소 안착]: 파싱된 시험명이 모집공고 대장(dataStoreRecruitment)에 실재하는지 교차 대조 검증
+                        const recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                        const cleanTargetString = (str) => {
+                            if (!str) return "";
+                            return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        };
+                        const excelTitleClean = cleanTargetString(extractedTitle);
+                        const isRecruitmentMatched = recruitmentDB.some(rec => {
+                            const systemTitleClean = cleanTargetString(rec.title);
+                            return systemTitleClean === excelTitleClean || systemTitleClean.includes(excelTitleClean) || excelTitleClean.includes(systemTitleClean);
+                        });
+
+                        // 모집공고 원장에 등록되지 않은 시험일 경우 데이터 명단 오염 방지를 위해 차단
+                        if (!isRecruitmentMatched && extractedTitle !== "시험명 미정") {
+                            alert(`[업로드 차단] 엑셀 1행의 시험명 "${extractedTitle}" 은(는) 모집공고 대장에 등록되지 않은 시험명입니다.\n\n대상자 대량 등록을 위해 먼저 관리자 화면에서 해당 모집공고를 등록해 주십시오.`);
+                            e.target.value = ''; // 선택 파일 초기화
+                            if (d) d.innerText = '';
+                            return;
+                        }
+
+                        // [순정 데이터 바인딩 상속]: 사내 마스터 전역 변수 직접 연동 체인 락인
                         let currentApplicantDB = dataStoreApplicant || JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                        // ================================================================
-                        // 🔒 [배수 폭발 완파 핵심]: 파일 업로드 루프를 돌기 "직전" 
-                        //    기존 대장에 이미 등록되어 있던 이 시험+기수의 오리지널 머릿수를 "딱 한 번만" 구합니다.
-                        //    (김수지 님이 이미 1명 존재하므로, 기존 명수 고정값 '1'이 명확하게 확보됩니다.)
-                        // ================================================================
+                        // 파일 업로드 루프를 돌기 "직전" 기존 대장에 이미 등록되어 있던 이 시험+기수의 오리지널 머릿수를 구합니다.
                         const baseExistingCount = currentApplicantDB.filter(u =>
                             u.title.toString().replace(/\s/g, "") === extractedTitle.toString().replace(/\s/g, "") &&
                             u.th.toString().replace(/\s/g, "") === extractedTh.toString().replace(/\s/g, "")
                         ).length;
 
                         console.log(`📊 [기준 데이터 연산] 기존 기등록 인원: ${baseExistingCount}명`);
+
 
                         // ================================================================
                         // [2단계] 4행(인덱스 3)부터 반복 돌며 인적사항 정제 및 데이터 조립
@@ -3602,7 +3623,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 
                             // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
-                            const excelName = rawName.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+                            const excelName = rawName.replace(/.*?/g, "").replace(/\[.*?\]/g, "").trim();
 
                             // ② 성별 및 나이 추출
                             const cleanGenderAge = rawGenderAge.replace(/[\r\n\s]/g, "");
@@ -3620,14 +3641,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 age = parseInt(parts[1], 10) || 0;
                             }
 
-                            // ③ 생년월일 3자리, 5자리 나이 기반 역산 가드 가동 복원 엔진
+                            // ③ 생년월일 나이 기반 역산 가드 가동 복원 엔진
                             let finalSsn = "정보없음";
                             if (rawSsn) {
                                 let cleanSsn = rawSsn.toString().replace(/[^0-9]/g, "");
 
                                 if (cleanSsn.length > 0 && cleanSsn.length < 6) {
                                     try {
-                                        const currentYear = new Date().getFullYear(); // 2026
+                                        const currentYear = new Date().getFullYear();
                                         let birthYear = currentYear - age + 1;
                                         let yyPrefix = String(birthYear).substring(2, 4);
                                         let mmddPart = cleanSsn;
@@ -3648,19 +3669,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 const mm = parseInt(finalSsn.substring(2, 4), 10);
                                 const dd = parseInt(finalSsn.substring(4, 6), 10);
                                 if (mm > 12 && dd <= 12) {
-                                    finalSsn = `${yy}${String(dd).padStart(2, '0 Karth')}${String(mm).padStart(2, '0')}`;
+                                    finalSsn = `${yy}${String(dd).padStart(2, '0')}${String(mm).padStart(2, '0')}`;
                                 }
                             }
 
                             // 기존 기등록 대상자 색인 기능 보존 (순정 원본)
                             const cleanExcelName = excelName.replace(/\s/g, "");
 
-                            // ⚠️ [전화번호 비교용 특수문자 세척 특약]: 하이픈(-) 유무로 인한 미스매칭 방지
+                            // 전화번호 비교용 특수문자 세척 특약
                             const cleanCurrentPhone = phoneVal ? phoneVal.toString().replace(/[^0-9]/g, "") : "정보없음";
 
-                            // ================================================================
-                            // 🔒 [최종 대종결] 이름 + 생년월일 + 전화번호 3중 매칭 마스터 식별 엔진 교체 완료
-                            // ================================================================
+                            // 이름 + 생년월일 + 전화번호 3중 매칭 마스터 식별 엔진
                             const targetIdx = currentApplicantDB.findIndex(u => {
                                 const dbName = u.name ? u.name.toString().replace(/\s/g, "") : "";
                                 const dbSsn = u.ssn ? u.ssn.toString().trim() : "";
@@ -3671,17 +3690,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                     dbPhone === cleanCurrentPhone;
                             });
 
-                            // ================================================================
-                            // 🎯 [버그 완전 파괴] 정순 단선형 카운트 매핑 스케줄러 
-                            // ================================================================
-                            // 1. i가 3부터 시작하므로 (i - 2)를 수행하면 이번 엑셀 내에서의 순번(1, 2, 3, 4..., 30)이 오차 없이 1씩 정직하게 올라갑니다.
+                            // [버그 완전 파괴] 정순 단선형 카운트 매핑 스케줄러 
                             const excelOrder = parseInt(i, 10) - 2;
 
-                            // 2. 루프 외부의 고정 기존 명수(1) + 현재 엑셀 순번(1, 2, 3...) = 완벽한 최종 정순 번호 확보!
+                            // 루프 외부의 고정 기존 명수 + 현재 엑셀 순번 = 완벽한 최종 정순 번호 확보!
                             const currentLineNumber = baseExistingCount + excelOrder;
                             const goalQuotaNum = parseInt(extractedNCount, 10) || 60;
 
-                            // 3. 최종 슬래시 포맷 문자열 생성 (결과: "2/60", "3/60", "4/60"..., "31/60" 고정!)
+                            // 최종 슬래시 포맷 문자열 생성 (결과: "2/60", "3/60", "4/60" 고정!)
                             const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
 
                             // 규격화 데이터 구조 인계
@@ -3700,7 +3716,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 nCount: goalQuotaNum,
 
                                 payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
-                                stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "대기",
+
+                                // 🌟 [표준 안착]: 기등록 건이 아닐 시 초기 참여 상태를 과거 "소집/대기" 대신 무조건 마스터 표준 진입 규격인 "신검대기"로 강제 락인 매핑
+                                stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "신검대기",
                                 regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')[0]
                             };
 
@@ -3717,7 +3735,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         dataStoreApplicant = currentApplicantDB; // 전역 스토리지 연동 싱크
 
                         if (typeof commitToLocalStorage === "function") {
-                            commitToLocalStorage(); // ⚠️ 사내 순정 공식 세이브 함수 호출로 영구 저장 완료
+                            commitToLocalStorage(); // 사내 순정 공식 세이브 함수 호출로 영구 저장 완료
                         } else {
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(currentApplicantDB));
                         }
@@ -3737,9 +3755,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             `- 중복 제외 데이터: 총 [0건]\n\n`
                         );
 
-                        // 순정 UI 새로고침 작동
-                        if (typeof window.refreshApplicantView === "function") window.refreshApplicantView();
-                        if (typeof window.calculateLiveDashboardStats === "function") window.calculateLiveDashboardStats();
+                        // 순정 UI 새로고침 작동 [독립 개체 격리 완착]
+                        if (typeof window.refreshApplicantView === "function") {
+                            window.refreshApplicantView();
+                        }
+
+                        // 🔒 [통계 간섭 원천 봉쇄]: 기존에 상단 통계 수치를 동반 오염 뒤흔들던 window.calculateLiveDashboardStats() 
+                        //    호출 명령어를 이 최종 세이브 구역에서 전면 파기·삭제 조치 완료함!
+                        //    이로 인해 파일을 백만 번 업로드해도 상단 카드는 처음 적재된 마스터 프리셋 모수 수치 그대로 철저히 홀딩 고정 보호됨.
 
                         e.target.value = ''; // 인풋 초기화 안착
 
@@ -3751,7 +3774,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 r.readAsArrayBuffer(file);
 
             } else {
-                // 기존 텍스트 및 CSV 덤프 파싱 파트 순정 그대로 원형 유지 보존
+                // [순정 유지]: 기존 docx, doc 문서 계열 파트 연동선은 순정 그대로 원형 안전 보존 상속
                 r.onload = function (evt) {
                     if (typeof parseRawTextDump === 'function') {
                         parseRawTextDump(evt.target.result);

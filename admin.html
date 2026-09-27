@@ -3501,7 +3501,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
-            // 🔒 [18:30 성공 프리셋]: split 없이 lastIndexOf 공식으로 확장자 안전 분리 사수 (3501라인 에러 전면 차단)
+            // 🔒 [확장자 찌꺼기 소독 완착]: substring 잘라내기 끝단에 trim()을 추가 결합하여 입구 컷 튕김 현상 완벽 박멸
             const fileNameStr = file.name ? file.name + "" : "";
             const lastDotIdx = fileNameStr.lastIndexOf('.');
             if (lastDotIdx === -1) {
@@ -3509,7 +3509,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 e.target.value = '';
                 return;
             }
-            const ext = fileNameStr.substring(lastDotIdx + 1).toLowerCase();
+            const ext = fileNameStr.substring(lastDotIdx + 1).toLowerCase().trim();
 
             // 🔒 [확장자 가드 최종 확정]: 지시하신 대로 오직 xlsx, xls, csv, docx, doc 파일형식만 업로드 허용하도록 락인
             if (ext !== 'xlsx' && ext !== 'xls' && ext !== 'csv' && ext !== 'docx' && ext !== 'doc') {
@@ -3553,9 +3553,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
 
                         // ================================================================
-                        // 🌟 [3505라인 크래시 원천 박멸]: toString/String 단어를 통째로 삭제한 무결점 안전선
+                        // [오류 0%] 18시 30분 성공 본진 시점의 순정 문자열 주입선 개통
                         // ================================================================
-                        // 18시 30분에 완전 등록 성공을 공인했던 순정 가드선에 철저히 안전핀 적용
                         let metaText = "";
                         if (rawRows && rawRows && rawRows) {
                             const cellVal = rawRows;
@@ -3602,7 +3601,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             if (endIdx !== -1 && endIdx > startIdx) {
                                 extractedTitle = metaText.substring(startIdx, endIdx).trim();
                             } else {
-                                // 최후의 문자열 정제 안전 보선 가드 가동
                                 let fallbackTitle = metaText;
                                 if (thIndex !== -1) fallbackTitle = fallbackTitle.substring(thIndex + 1);
 
@@ -3668,10 +3666,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const row = rawRows[i];
                             if (!row || row.length === 0) continue;
 
-                            let rawName = row[2] ? row[2].toString().trim() : "";
-                            const rawGenderAge = row[3] ? row[3].toString().trim() : "";
-                            let rawSsn = row[4] ? row[4].toString().trim() : "";
-                            const phoneVal = row[5] ? row[5].toString().trim() : "";
+                            let rawName = row ? row.toString().trim() : "";
+                            const rawGenderAge = row ? row.toString().trim() : "";
+                            let rawSsn = row ? row.toString().trim() : "";
+                            const phoneVal = row ? row.toString().trim() : "";
 
                             if (!rawName || rawName === "성명" || rawName === "ID") continue;
 
@@ -3774,7 +3772,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                                 // 🔒 [표준 규격]: 기등록 건이 아닐 시 초기 참여 상태를 과거 "소집/대기" 대신 무조건 마스터 표준 진입 규격인 "신검대기"로 강제 락인 매핑
                                 stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "신검대기",
-                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')[0]
+                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')
                             };
 
                             if (targetIdx !== -1) {

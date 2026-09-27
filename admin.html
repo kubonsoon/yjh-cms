@@ -489,17 +489,13 @@
                         style="font-size: 13px; font-weight: 700; color: var(--secondary-color); white-space: nowrap;">
                         <i class="fa-solid fa-magnifying-glass"></i> 대상자 통합 검색:
                     </span>
-
-                    <!-- 1. 연도 선택 상자 [교정 완료]: 자바스크립트 엔진과 연동 스펙 일치화 완료 -->
-                    <select id="dashboard-filter-year"
+                    <select id="search-filter-year"
                         style="width: 110px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-연도-</option>
                         <option value="2025">2025년</option>
                         <option value="2026">2026년</option>
                     </select>
-
-                    <!-- 2. 월 선택 상자 [교정 완료]: 자바스크립트 엔진과 연동 스펙 일치화 완료 -->
-                    <select id="dashboard-filter-month"
+                    <select id="search-filter-month"
                         style="width: 100px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-월-</option>
                         <option value="01">1월</option>
@@ -515,18 +511,12 @@
                         <option value="11">11월</option>
                         <option value="12">12월</option>
                     </select>
-
-                    <!-- 3. 시험명 선택 상자 [교정 완료]: 상단 통계판 수치는 철저히 고정 차단하되, 동적 날짜 파서가 드롭다운 목록을 정상적으로 로드할 수 있도록 공용 ID 매핑선 완성 -->
-                    <select id="dashboard-filter-title"
+                    <select id="search-filter-title"
                         style="max-width: 300px; flex: 1; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                         <option value="ALL">-전체 시험 목록-</option>
                     </select>
-
-                    <!-- 4. 성명 검색 인풋 창 -->
                     <input type="text" id="search-app-name" placeholder="대상자 (예:홍길동)"
                         style="width: 140px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; outline: none;">
-
-                    <!-- 5. 검색 실행 버튼 (클릭 시 오직 하단 목록 데이터만 쏙 좁혀서 가져오는 마스터 실행 단추) -->
                     <button type="button" id="btn-filter-search" onclick="executeCombinedSearchPipeline()"
                         style="height: 36px; padding: 0 16px; background: var(--secondary-color); color: #fff; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">검색</button>
                 </div>

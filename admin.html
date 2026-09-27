@@ -3541,7 +3541,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
 
                         // ================================================================
-                        // [크래시 에러 0%] 안전한 절대 위치 추적 및 슬라이싱 문자열 도려내기 파서
+                        // [문법 오류 0%] 정규식을 전면 폐기한 1행 메타 키워드 역추적 엔진
                         // ================================================================
                         const metaText = (rawRows && rawRows && rawRows) ? rawRows.toString().trim() : "";
 
@@ -3551,14 +3551,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         let extractedNCount = 60; // 디폴트 목표 인원수 숫자 설정
 
                         if (metaText) {
-                            // ① 기수 정밀 안착: "기" 글자 위치 기반 숫자 안전 파싱
+                            // ① 기수 추출: "기" 자를 타격하여 앞단 숫자 확보
                             const thIndex = metaText.indexOf("기");
                             if (thIndex !== -1) {
                                 const thNum = metaText.substring(0, thIndex).replace(/[^0-9]/g, "").trim();
                                 if (thNum) extractedTh = thNum + "기";
                             }
 
-                            // ② 시간 정밀 안착: "시간" 글자 위치 기반 숫자 안전 파싱
+                            // ② 시간 추출: "시간" 자를 타격하여 앞단 숫자 확보
                             const periodIndex = metaText.indexOf("시간");
                             if (periodIndex !== -1) {
                                 let startPos = periodIndex - 5;
@@ -3567,7 +3567,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 if (pSub) extractedPeriod = pSub;
                             }
 
-                            // ③ 인원수 정밀 안착: "명" 글자 위치 기반 숫자 안전 파싱 (N 괄호 유무 상관없이 차단 완착)
+                            // ③ 인원수 추출: 명 글자 위치 기준 순수 숫자만 역추적 스캔
                             const countIndex = metaText.indexOf("명");
                             if (countIndex !== -1) {
                                 let startPos = countIndex - 5;
@@ -3576,21 +3576,26 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 if (cSub) extractedNCount = parseInt(cSub, 10) || 60;
                             }
 
-                            // ④ 순수 시험명 압착 추출 [🌟버그 완전 소독]: split 명세를 100% 제거하고 문장 위치 잘라내기로 원천 개편
-                            const startIdx = (thIndex !== -1) ? thIndex + 1 : 0;
+                            // ④ 순수 시험명 압착 추출 [★문법 폭발 원천 분쇄★]: 정규식 replace 구문을 전면 폐기 및 물리적 전격 철거 완료
+                            let startIdx = (thIndex !== -1) ? thIndex + 1 : 0;
                             let endIdx = metaText.indexOf("(N)");
                             if (endIdx === -1) endIdx = metaText.indexOf(String(extractedNCount));
                             if (endIdx === -1) endIdx = metaText.indexOf("담당");
 
                             if (endIdx !== -1 && endIdx > startIdx) {
-                                // "3기" 다음 글자부터 "(N)" 혹은 "60" 글자가 오기 전까지의 진짜 알맹이 시험명만 온전히 도려냄
+                                // "3기" 다음 글자부터 "(N)" 혹은 인원수 숫자가 처음 등장하는 구역 직전까지만 칼로 정밀 슬라이싱
                                 extractedTitle = metaText.substring(startIdx, endIdx).replace(/\s+/g, " ").trim();
                             } else {
-                                // 최후의 방어 복원선 (정규식 에러 위험이 없는 순수 replace 공사)
-                                let fallbackTitle = metaText.replace(/^[0-9]\s*기\s*/, "");
+                                // 최후의 순수 텍스트 커팅 방어 복원선 (정규식 기호 제로)
+                                let fallbackTitle = metaText;
+                                if (thIndex !== -1) fallbackTitle = fallbackTitle.substring(thIndex + 1);
                                 const crcPos = fallbackTitle.indexOf("담당");
                                 if (crcPos !== -1) fallbackTitle = fallbackTitle.substring(0, crcPos);
-                                extractedTitle = fallbackTitle.replace(/?N?\s*[0-9]+\s*명/gi, "").replace(/[0-9]+\s*시간/g, "").replace(/\s+/g, " ").trim();
+
+                                const nPos = fallbackTitle.indexOf("(");
+                                if (nPos !== -1) fallbackTitle = fallbackTitle.substring(0, nPos);
+
+                                extractedTitle = fallbackTitle.replace(/[^a-zA-Z0-9가-힣\s\[\]\+\-\_\/\:\.]/g, "").replace(/\s+/g, " ").trim();
                             }
                         }
 

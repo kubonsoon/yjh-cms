@@ -3673,6 +3673,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             let rawSsn = row[5] ? row[5].toString().trim() : "";         // 생년월일 (진짜 주민앞자리가 들어있는 4번째 열 타격)
                             const phoneVal = row[6] ? row[6].toString().trim() : "정보없음"; // 연락처 (연락처 열 타격, 공란 시 디폴트 확보)
 
+                            // 🔒 [N열/O열 실물 텍스트 가로채기선]: 도면 스펙에 의거하여 N열(소집결과)과 O열(신검결과) 문장 값을 정직하게 스캔!
+                            const rawSojibResult = row[3] ? row[3].toString().trim() : "";  // N열 (소집결과 - 인덱스 3)
+                            const rawSingeomResult = row[4] ? row[4].toString().trim() : ""; // O열 (신검결과 - 인덱스 4)
+
                             if (!rawName || rawName === "성명" || rawName === "이름" || rawName === "ID") continue;
 
                             // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
@@ -3799,7 +3803,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                                 payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
 
                                 // 🔒 [표준 규격]: 기등록 건이 아닐 시 초기 참여 상태를 과거 "소집/대기" 대신 무조건 마스터 표준 진입 규격인 "신검대기"로 강제 락인 매핑
-                                stage: targetIdx !== -1 ? currentApplicantDB[targetIdx].stage : "신검대기",
+                                stage: rawSojibResult ? (rawSojibResult === "탈락" ? "검사탈락" : rawSojibResult) : (
+                                    rawSingeomResult === "통과" ? "신검통과" : (
+                                        rawSingeomResult === "탈락" ? "신검탈락" : (
+                                            rawSingeomResult === "동의철회" ? "신검동철" : (rawSingeomResult ? rawSingeomResult : "신검대기")
+                                        )
+                                    )
+                                ),
+
                                 regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')
                             };
 

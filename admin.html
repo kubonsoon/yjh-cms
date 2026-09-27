@@ -3752,10 +3752,18 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
 
                             // 기등록 건(김수지 등)이라면 과거 대장에 박제 고정되어 있던 고유 순번 분수 포맷(u.count)의 첫자리를 그대로 사령 사수 홀딩하고, 신규만 동적 순차 증가분 주입!
-                            const currentLineNumber = (targetIdx !== -1) ? (currentApplicantDB[targetIdx].count ? parseInt(currentApplicantDB[targetIdx].count, 10) : (baseExistingCount + (i - 4))) : (baseExistingCount + (i - 4));
+                            let currentLineNumber = baseExistingCount;
+                            if (targetIdx !== -1) {
+                                currentLineNumber = currentApplicantDB[targetIdx].count ? parseInt(currentApplicantDB[targetIdx].count, 10) : baseExistingCount;
+                            } else {
+                                // 진짜 신규 등록 대상자가 루프 필터를 통과하여 적재될 때만 기존 머릿수를 1 증가시킵니다.
+                                baseExistingCount = parseInt(baseExistingCount, 10) + 1;
+                                currentLineNumber = baseExistingCount;
+                            }
+
                             const goalQuotaNum = parseInt(extractedNCount, 10) || 60;
 
-                            // 최종 슬래시 포맷 문자열 생성 (결과: "1/60", "2/60", "3/60" 문법 오류 0% 완착!)
+                            // 최종 슬래시 포맷 문자열 생성 (결과: "38/60", "39/60", "40/60" 빈틈없는 정순 적재 완성!)
                             const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
 
                             // 규격화 데이터 구조 인계

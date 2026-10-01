@@ -2764,7 +2764,29 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     refreshRecruitmentView();
                 }
 
+                // 1. [순정 보존 마무리]: 모든 렌더링 리플래시와 저장 처리를 순정 상태 그대로 완착 진행합니다.
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
+                if (typeof commitToLocalStorage === 'function') commitToLocalStorage();
+                if (typeof calculateLiveDashboardStats === 'function') calculateLiveDashboardStats();
+                if (typeof refreshApplicantView === 'function') refreshApplicantView();
+
+                // 2. 🎯 [정통 프로세스 락인]: 관리자가 화면에 뜬 영구 저장 얼럿창을 눈으로 확인하고 
+                // [확인] 단추를 누르는 '그 순간' 브라우저가 다음 줄로 넘어가며 동기화 신호를 격발합니다.
                 alert(`📢 대상자의 차수별 참여비 정산 상태가 안전하게 영구 저장되었습니다.\n[1차: ${nextS1} | 2차: ${nextS2} | 3차: ${nextS3}]`);
+
+                // 🚀 [확인 클릭 직후 실시간 통신선]: 얼럿창이 닫힌 찰나의 순간에 모바일 화면(m-login.html)의 
+                // 실시간 리프레시 엔진을 정확하게 타격하여 배지 문구와 클래스 색상을 일제히 치환 사출합니다.
+                if (window.opener && !window.opener.closed) {
+                    if (typeof window.opener.refreshMobileStatusUI === "function") {
+                        window.opener.refreshMobileStatusUI();
+                    }
+                }
+
+                // 세션 교차 방화벽 가드 구동
+                if (typeof refreshMobileStatusUI === "function") {
+                    refreshMobileStatusUI();
+                }
+
 
             } catch (error) {
                 console.error("saveApplicantInline 트랜잭션 도중 치명적인 오류가 발생했습니다:", error);

@@ -5510,6 +5510,38 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             let config = { title: "", icon: "", color: "", dbField: "", label: "" };
             if (type === 'notice') {
                 config = { title: "주의사항 안내", icon: "fa-solid fa-triangle-exclamation", color: "var(--secondary-color, #0ea5e9)", dbField: "customNoticeHTML", label: "주의사항" };
+
+                // [교정 완착]: 데이터 저장소(dataStoreRecruitment) 내부의 가짜 임시 문구를 감지하면 
+                // 즉시 실제 이미지의 12대 준수사항 마스터 데이터로 물갈이 가드를 발동합니다.
+                let rawData = targetRow[config.dbField] || '';
+                if (!rawData || rawData.includes("주의사항 안내")) {
+                    targetRow[config.dbField] = `1. 금식·물 섭취
+                    2. 음주·카페인·흡연
+                    3. 힘든 운동·육체작업
+                    4. 투약 후 자세유지·화장실 제한 (2시간)
+                    5. 투약 후 기립·이동 안전
+                    6. 채혈 후 지혈 & 퇴실 후 운전 주의
+                    7. 병용약물 (처방약·일반의약품)
+                    8. 건강기능식품·영양제·비타민
+                    9. 타 임상시험 참여
+                    10. 입원생활 준수사항 (외출·샤워·지각)
+                    11. 피임
+                    12. 소화기계 이상사례(구토·설사)와 PK 개념`;
+
+                    // 로컬스토리지 물리 데이터 원본 즉시 동기화 마크
+                    if (realPhysicalIndex !== -1) {
+                        origRecruitmentDB[realPhysicalIndex] = targetRow;
+                        localStorage.setItem('dataStoreRecruitment', JSON.stringify(origRecruitmentDB));
+                    }
+                }
+
+                // 50ms 후 모달이 완전히 열렸을 때 컬러 원형 배지 카드로 빌드 사출 연동
+                setTimeout(() => {
+                    if (typeof parseAndRenderPrecautionsWithBadges === 'function') {
+                        parseAndRenderPrecautionsWithBadges(targetRow[config.dbField]);
+                    }
+                }, 50);
+
             } else if (type === 'schedule') {
                 config = { title: "시험일정 안내", icon: "fa-regular fa-calendar-days", color: "#38bdf8", dbField: "customScheduleHTML", label: "시험일정" };
             } else if (type === 'duty') {

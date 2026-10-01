@@ -1155,3 +1155,67 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   width: 100% !important;
   white-space: nowrap !important;
 }
+
+/* 모집공고 관리> 주의사항 */
+.precaution-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+  padding: 10px 0;
+}
+
+.precaution-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+/* 숫자 원형 배지 공통 규격 */
+.badge-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* 텍스트 스타일 규격 */
+.precaution-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: #334155;
+}
+
+/* 🎨 이미지 기반 번호별 고유 색상 매핑 수술 */
+.bg-navy {
+  background-color: #1e3a8a;
+} /* 1번, 12번: 다크블루 */
+.bg-wine {
+  background-color: #881337;
+} /* 2번, 5번: 와인레드/버건디 */
+.bg-green {
+  background-color: #15803d;
+} /* 3번: 딥그린 */
+.bg-blue {
+  background-color: #0369a1;
+} /* 4번, 11번: 스카이블루 */
+.bg-brown {
+  background-color: #7c2d12;
+} /* 6번, 8번: 브라운/초코 */
+.bg-purple {
+  background-color: #581c87;
+} /* 7번, 10번: 퍼플 */
+.bg-rose {
+  background-color: #9f1239;
+  border: 1px solid #fda4af;
+} /* 9번: 타시험 테두리형 로즈 */

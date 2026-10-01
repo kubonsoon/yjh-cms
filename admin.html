@@ -2121,21 +2121,34 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             // 마스터 공고 원장 데이터베이스(dataStoreRecruitment)에서 진짜 배정 정원 수치를 실시간 역추적하는 함수를 이식합니다.
             function getTrueMasterQuota(rowTitle, rowTh) {
-                const appTitleClean = (rowTitle || "").toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                const appThClean = (rowTh || "").toString().trim();
+                if (!rowTitle) return "46";
 
-                if (typeof recruitmentDB !== "undefined" && recruitmentDB.length > 0) {
+                // 원본의 소문자 변환 및 특수문자 소독 필터와 완전히 일치화
+                const cleanAppTitle = rowTitle.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                const cleanAppTh = (rowTh || "").toString().replace(/[^0-9]/g, "").trim();
+
+                if (typeof recruitmentDB !== "undefined" && recruitmentDB && recruitmentDB.length > 0) {
                     const matchedRec = recruitmentDB.find(rec => {
-                        const recTitleClean = (rec.title || "").toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                        return recTitleClean === appTitleClean && (rec.th || "").toString().trim() === appThClean;
+                        if (!rec || !rec.title) return false;
+                        const cleanRecTitle = rec.title.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const cleanRecTh = (rec.th || "").toString().replace(/[^0-9]/g, "").trim();
+
+                        // 제목 포함 관계 분석 및 기수 숫자 정보의 완벽한 1:1 교차 검증
+                        return (cleanRecTitle === cleanAppTitle || cleanRecTitle.includes(cleanAppTitle) || cleanAppTitle.includes(cleanRecTitle)) && (cleanRecTh === cleanAppTh);
                     });
 
-                    // 1:1 매칭 성공 시 해당 공고 원장의 순정 정원(예: 46)을 발라내어 분모에 수혈
                     if (matchedRec && matchedRec.count) {
-                        return matchedRec.count.toString().replace(/[^0-9]/g, "");
+                        const extractedNum = matchedRec.count.toString().replace(/[^0-9]/g, "");
+                        if (extractedNum) return extractedNum;
                     }
                 }
-                return "46"; // 일치하는 공고가 아예 유실되었을 때 작동할 기본 안전핀
+
+                // 만약 매칭에 완전히 실패한 유령 데이터라면 행 자체에 혹시 박혀있을 순정 정원수를 역추적하는 안전핀 가동
+                if (typeof row !== "undefined" && row && row.count && !row.count.toString().includes('/')) {
+                    return row.count.toString().replace(/[^0-9]/g, "") || "46";
+                }
+
+                return "46";
             }
 
             if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL' && !window.isCustomSearchActive) displayList = db;

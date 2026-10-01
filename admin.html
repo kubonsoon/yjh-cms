@@ -5564,10 +5564,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     const parentModal = contentZone.closest('.editor-modal-content') || contentZone.closest('.calendar-modal');
                     if (parentModal) {
-                        parentModal.style.setProperty("height", "auto", "important");
-                        parentModal.style.setProperty("max-height", "95vh", "important");
-                        // 통합 모달창 전체 프레임 자체에 스크롤을 단 하나만 유연하게 허용
-                        parentModal.style.setProperty("overflow-y", "auto", "important");
+                        // 🚀 [바깥 스크롤 차단]: 바깥쪽 프레임은 고정 크기를 유지하고 스크롤바가 절대 안 나오도록 원천 봉쇄합니다.
+                        parentModal.style.setProperty("height", "520px", "important");
+                        parentModal.style.setProperty("overflow", "hidden", "important");
                     }
 
                     const isEditMode = contentZone.querySelector('.quill-editor') || contentZone.querySelector('textarea') || document.getElementById('noticeTextarea') || contentZone.innerText.includes("게시판 에디터");
@@ -5575,12 +5574,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     if (isEditMode) {
                         contentZone.style.setProperty("padding-top", "0px", "important");
                         contentZone.style.setProperty("margin-top", "0px", "important");
+                        contentZone.style.setProperty("overflow", "visible", "important");
                         return;
                     }
 
-                    // 간섭을 일으키던 기존 패딩값을 지우고, 타이틀 가림막을 완벽하게 탈피하는 고정 상단 패딩 수술
-                    contentZone.style.setProperty("padding-top", "50px", "important");
+                    // 🚀 [내부 그릇 확장 가드]: 보기 목록일 때 타이틀 영역과의 물리적 겹침을 완벽히 피해 아래로 내립니다.
+                    contentZone.style.setProperty("padding-top", "45px", "important");
                     contentZone.style.setProperty("box-sizing", "border-box", "important");
+                    contentZone.style.setProperty("overflow", "hidden", "important");
 
                     const currentCleanData = targetRow[config.dbField] || '';
                     const lines = currentCleanData.split('\n').map(line => line.trim()).filter(line => line !== "");
@@ -5591,8 +5592,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    // 🚀 max-height와 overflow-y 속성을 완전히 제거하여 이중 스크롤바를 흔적도 없이 박멸합니다.
-                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;">`;
+                    // 🚀 [안쪽 독점 스크롤바 잠금 이식]: max-height(360px)를 딱 걸어 가두고 overflow-y: auto를 주어 오직 이 안에서만 스크롤바가 단 하나만 생기도록 셋업합니다.
+                    let finalHtml = `<div class="precaution-list" id="innerPrecautionScrollBox" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 5px 0 15px 0 !important; margin: 0 !important; box-sizing: border-box !important; max-height: 360px !important; overflow-y: auto !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);
@@ -5614,9 +5615,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     finalHtml += `</div>`;
                     contentZone.innerHTML = finalHtml;
 
-                    // 부모 통합 모달 프레임 스크롤바의 위치를 강제로 맨 위(0)로 튜닝 고정
-                    if (parentModal) parentModal.scrollTop = 0;
-                    if (contentZone) contentZone.scrollTop = 0;
+                    // 🚀 [강제 탑뷰 영점 조절]: 조립 완료 즉시 안쪽 스크롤 상자의 위치를 0으로 강제 리셋하여 무조건 1번 "금식" 카드부터 화면 정중앙에 사출합니다.
+                    const innerBox = document.getElementById('innerPrecautionScrollBox');
+                    if (innerBox) innerBox.scrollTop = 0;
 
                 }, 150);
 

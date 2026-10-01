@@ -1098,7 +1098,7 @@
 
         function executeStep3ConfirmNext() {
             if (matchedPatientData) {
-                const systemCurrentTime = new Date("2026-10-01");
+                const systemCurrentTime = new Date();
                 const lastExamDate = matchedPatientData.recDate ? new Date(matchedPatientData.recDate) : null;
 
                 // [교정 완착]: 기본값을 false로 두고, 확실히 종료된 날짜 데이터가 존재하며 
@@ -1115,7 +1115,8 @@
                     navigateToStep(5);
 
                     if (document.getElementById('lblSetTargetNew')) {
-                        document.getElementById('lblSetTargetNew').innerText = `\${matchedPatientData.name} 대상자님 ` + (isOver6Months ? "(6개월 경과)" : "(최초인증)");
+                        document.getElementById('lblSetTargetNew').innerText =
+                            `${matchedPatientData.name} 대상자님 ` + (isOver6Months ? "(6개월 경과)" : "(최초인증)");
                     }
 
                     const iframe = document.getElementById('mobileCalendarFrame');

@@ -2707,11 +2707,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 if (elDuty) adminApplicantDB[index].isDutyAgreed = elDuty.value;
                 if (elCall) adminApplicantDB[index].isCallAgreed = elCall.value;
 
-                // 🚀 [교정 완착]: 화면에 활성화된 인라인 참여상태 드롭다운 셀렉터 상자 ID를 역추적하여 
-                // 원본 대장의 진짜 실시간 모바일 동기화 필드인 'status' 영역에 유동적으로 정밀 밀봉합니다.
+                // 🚀 [교정 완착]: 관리자가 마우스로 변경한 인라인 '참여상태' 셀렉터 박스의 최신 선택값을 
+                // 원본 대장의 진짜 모바일 실시간 동기화 필드인 'status' 영역에 완벽하게 정밀 밀봉합니다.
                 const elStatusInline = document.getElementById(`inline-app-status-${index}`) || document.getElementById(`inline-status-${index}`);
                 if (elStatusInline) {
                     adminApplicantDB[index].status = elStatusInline.value.trim();
+                } else {
+                    // 최초 예외 상태일 때 순정 규칙을 상속하여 안정화
+                    if (!adminApplicantDB[index].status) adminApplicantDB[index].status = "신검대기";
                 }
                 adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
 
@@ -2720,27 +2723,20 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     dataStoreApplicant = adminApplicantDB;
                     dataStoreApplicant[index] = adminApplicantDB[index];
                 }
-                if (typeof adminApplicantDBGlobal !== 'undefined') {
-                    adminApplicantDBGlobal = adminApplicantDB;
-                    adminApplicantDBGlobal[index] = adminApplicantDB[index];
-                }
 
-                // 5. 🎯 [초기화 엔진 원천 차단 마운트]: 초기화 로직이 덮어쓰지 못하도록 로컬스토리지 하드웨어에 다이렉트 강제 고정 락인
+                // 5. 🎯 [초기화 엔진 원천 차단 마운트]
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
                 if (typeof commitToLocalStorage === 'function') {
                     commitToLocalStorage();
                 }
 
-                // 🚀 [0초 무지연 실시간 직통선]: 로컬스토리지 디스크 저장이 끝난 바로 그 찰나의 순간에 
-                // 자식 팝업창이나 부모 오프너 윈도우 관계로 열려있는 모바일 화면(m-login.html)의 
-                // 실시간 리프레시 엔진을 다이렉트로 때려 깨워 배지 문구와 색상을 즉각 실시간 변환시킵니다.
+                // 🚀 [0초 무지연 실시간 트리거]: 로컬스토리지 디스크 저장이 끝난 바로 그 순간에
+                // 자식 팝업창이나 부모 오프너 관계로 열려있는 모바일 화면의 실시간 리프레시 엔진을 다이렉트로 원격 호출합니다.
                 if (window.opener && !window.opener.closed) {
                     if (typeof window.opener.refreshMobileStatusUI === "function") {
                         window.opener.refreshMobileStatusUI();
                     }
                 }
-
-                // 하이브리드 세션 교차 감섭 차단 가드
                 if (typeof refreshMobileStatusUI === "function") {
                     refreshMobileStatusUI();
                 }

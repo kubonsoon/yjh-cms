@@ -1490,6 +1490,7 @@
 
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
+            // 성명 + 전화번호 복합 교차 1:1 조준 검문 수색
             const liveRecord = adminApplicantDB.find(u => {
                 if (!u || !u.name) return false;
                 const dbNameClean = u.name.toString().replace(/\s/g, "");
@@ -1506,33 +1507,35 @@
                     mobileBadge.removeAttribute("style");
                     mobileBadge.className = "badge";
 
+                    // 🚀 [실물 이미지 기반 1:1 포맷터 바인딩 가드]
                     if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
                         mobileBadge.innerText = "신검\n대기";
-                        mobileBadge.classList.add("master-purple");
-                    } else if (liveStatusText === "신검적합" || liveStatusText.includes("적합")) {
-                        mobileBadge.innerText = "신검\n적합";
-                        mobileBadge.classList.add("master-green");
-                    } else if (liveStatusText === "참여(소집)" || liveStatusText.includes("소집")) {
-                        mobileBadge.innerText = "참여\n(소집)";
-                        mobileBadge.classList.add("master-blue");
+                        mobileBadge.classList.add("master-purple"); /* 보라색 테마 연동 */
+                    } else if (liveStatusText === "신검통과" || liveStatusText.includes("통과")) {
+                        mobileBadge.innerText = "신검\n통과";
+                        mobileBadge.classList.add("master-blue");   /* 파란색 테마 연동 */
+                    } else if (liveStatusText === "신검탈락" || liveStatusText.includes("탈락")) {
+                        mobileBadge.innerText = "신검\n탈락";
+                        mobileBadge.classList.add("master-rose");   /* 빨간색 테마 연동 */
                     } else if (liveStatusText === "투약" || liveStatusText.includes("진행")) {
-                        mobileBadge.innerText = "진행\n(투약)";
-                        mobileBadge.classList.add("master-blue");
+                        mobileBadge.innerText = "투약\n";
+                        mobileBadge.classList.add("master-green");  /* 초록색 테마 연동 */
                     } else if (liveStatusText === "종료" || liveStatusText === "완결") {
                         mobileBadge.innerText = "정산\n(종료)";
-                        mobileBadge.classList.add("master-slate");
-                    } else if (liveStatusText.includes("탈락") || liveStatusText.includes("부적합")) {
-                        mobileBadge.innerText = "심사\n탈락";
-                        mobileBadge.classList.add("master-rose");
+                        mobileBadge.classList.add("master-slate");  /* 회색 테마 연동 */
                     } else {
                         mobileBadge.innerText = liveStatusText.replace("(", "\n(");
                         mobileBadge.classList.add("master-navy");
                     }
                 }
+
+                // 좌측 하단 조형 알림 텍스트 실시간 치환
+                const historyLogSlot = document.getElementById('history-log');
+                if (historyLogSlot) historyLogSlot.innerText = liveStatusText;
             }
         }
 
-        // 🚀 전역 윈도우 스코프에 함수를 개방하여 admin.html이 다이렉트로 원격 호출할 수 있도록 통로 개설
+        // 전역 윈도우 스코프에 함수를 개방하여 admin.html이 원격으로 다이렉트 강제 호출할 수 있도록 처리
         window.refreshMobileStatusUI = refreshMobileStatusUI;
 
 

@@ -5576,7 +5576,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         return;
                     }
 
-                    contentZone.style.setProperty("padding-top", "15px", "important");
+                    // 🎯 [여백 최적화]: 과도하게 아래로 밀어내던 간섭 패딩을 제거하여 카드가 숨어버리는 현상을 원천 차단합니다.
+                    contentZone.style.setProperty("padding-top", "5px", "important");
                     contentZone.style.setProperty("box-sizing", "border-box", "important");
 
                     const currentCleanData = targetRow[config.dbField] || '';
@@ -5588,7 +5589,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;">`;
+                    let finalHtml = `<div class="precaution-list" id="finalPrecautionScrollContainer" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important; max-height: 380px !important; overflow-y: auto !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);
@@ -5609,6 +5610,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     finalHtml += `</div>`;
                     contentZone.innerHTML = finalHtml;
+
+                    // 🚀 [강제 스크롤 원점 타격 가드]: 카드가 조립 완료된 즉시 내외부 스크롤 위치를 
+                    // 맨 위(0)로 강제 고정하여 사용자 눈앞에 1번, 2번, 3번 카드가 100% 무조건 가장 먼저 보이도록 강제 통제합니다.
+                    const scrollBox = document.getElementById('finalPrecautionScrollContainer');
+                    if (scrollBox) scrollBox.scrollTop = 0;
+                    if (contentZone) contentZone.scrollTop = 0;
+
                 }, 150);
 
             } else if (type === 'schedule') {

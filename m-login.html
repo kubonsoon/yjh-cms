@@ -1417,11 +1417,23 @@
                 const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
                 const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
 
+                // 🚀 [교정 완착]: 이름 중복 간섭을 깨부수기 위해 로그인 시 저장된 휴대폰 번호 세션을 실시간 수혈합니다.
+                const sessionPhone = sessionStorage.getItem('certifiedUserPhone') || (window.loggedInUser ? window.loggedInUser.phone : "");
+                const cleanSessionPhone = sessionPhone.toString().replace(/[^0-9]/g, "").trim();
+
                 // =========================================================================
-                // 🟢 [역방향 락킹]: 관리자가 PC창에서 '처리중'으로 바꾸는 순간을 1초 간격 상시 미러링
+                // 🟢 [역방향 락킹]: 관리자가 PC창에서 바꾼 참여상태를 1초 간격으로 무결 매핑 추적
                 // =========================================================================
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                const liveRecord = adminApplicantDB.find(u => u.name.toString().replace(/\s/g, "") === cleanSessionName);
+
+                // 🚀 [정밀 교차 식별 가드]: 이름과 핸드폰 번호까지 매칭되는 진짜 실물 최신 레코드 하나만 조준 타격합니다.
+                const liveRecord = adminApplicantDB.find(u => {
+                    if (!u || !u.name) return false;
+                    const dbNameClean = u.name.toString().replace(/\s/g, "");
+                    const dbPhoneClean = (u.phone || "").toString().replace(/[^0-9]/g, "").trim();
+                    if (!cleanSessionPhone) return dbNameClean === cleanSessionName;
+                    return dbNameClean === cleanSessionName && (dbPhoneClean === cleanSessionPhone || dbPhoneClean.includes(cleanSessionPhone) || cleanSessionPhone.includes(dbPhoneClean));
+                });
 
                 if (liveRecord) {
                     const mobileBadge = document.getElementById('cms-badge');
@@ -1435,11 +1447,8 @@
                         // 🚀 [교정 완착]: 복잡한 인라인 속성을 완전히 소독하여 날려버리고,
                         // 오직 관리자모드 대상자관리 목록의 참여상태 배지 고유 클래스명들을 그대로 수혈하여 100% 동일화합니다.
                         mobileBadge.removeAttribute("style");
-
-                        // 1. 기존에 강제 고정되어 있던 bg-blue 등의 하드코딩 클래스 명단을 전면 삭제 소독
                         mobileBadge.className = "badge";
 
-                        // 2. 관리자모드 참여상태 데이터(status) 가로채기 및 동일 색상 배지 클래스 락인(Lock-in)
                         if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
                             mobileBadge.innerText = "신검\n대기";
                             mobileBadge.classList.add("bg-purple"); /* 🎨 관리자 대상자관리 보라색 배지 색상과 100% 동일화 */
@@ -1459,7 +1468,6 @@
                             mobileBadge.innerText = "심사\n탈락";
                             mobileBadge.classList.add("bg-rose");   /* 🎨 관리자 대상자관리 적색 배지 색상과 100% 동일화 */
                         } else {
-                            // 그 외 예외 상태 데이터 연동
                             mobileBadge.innerText = liveStatusText.replace("(", "\n(");
                             mobileBadge.classList.add("bg-purple");
                         }
@@ -1494,14 +1502,12 @@
                         }
                         /* ================================================================= */
                     } else {
-                        // 종료 상태가 아닐 때는 비동기 폴링 시점에 일정 버튼 숨김 상태 순정 복원
                         const calendarBtn = document.getElementById('ui_calendar_redirect_btn');
                         if (calendarBtn) calendarBtn.style.display = "none";
                     }
 
-                    // 순정 원형 로직 상속 연동
                     if (liveRecord.payStatus === "처리중") {
-                        setMobileFormActive(false); // 관리자가 처리중으로 넘기면 즉시 모바일 전체 잠금 역하강 트리거
+                        setMobileFormActive(false);
                         return;
                     }
                 }
@@ -1541,6 +1547,7 @@
                     }
                 }
 
+                // 🚀 [제공해주신 순정 마감 구역 연동선 사수]: 윈도우 오프너 신호 실시간 안착 포착선
                 if (window.opener && !window.opener.closed && window.opener.currentCertifiedUser) {
                     const currentStatus = window.opener.currentCertifiedUser.payStatus;
                     if (currentStatus === "신청가능") {

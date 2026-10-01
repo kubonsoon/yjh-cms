@@ -5564,8 +5564,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     const parentModal = contentZone.closest('.editor-modal-content') || contentZone.closest('.calendar-modal');
                     if (parentModal) {
-                        // 🚀 바깥쪽 프레임 고정 틀 유지 및 외부 스크롤바 완벽 차단 가드
-                        parentModal.style.setProperty("height", "560px", "important");
+                        // 🚀 [바깥 레이어 수직 대확장 가드]: 세로 높이를 780px로 크게 벌려 버튼들을 바닥으로 내리고 바깥 스크롤바를 완벽 소독합니다.
+                        parentModal.style.setProperty("height", "780px", "important");
+                        parentModal.style.setProperty("min-height", "780px", "important");
                         parentModal.style.setProperty("overflow", "hidden", "important");
                         parentModal.style.setProperty("display", "flex", "important");
                         parentModal.style.setProperty("flex-direction", "column", "important");
@@ -5581,14 +5582,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         return;
                     }
 
-                    // 🚀 [부모 가두리 파괴 수술]: 상위 내용칸 자체의 고정 높이를 430px로 대폭 확장 개방하여 수직 영역 지분을 완벽 확보합니다.
-                    contentZone.style.setProperty("height", "430px", "important");
+                    // 🚀 [내용칸 세로 지분 동시 확장]: 바깥 틀이 커진 만큼 안쪽 내용칸의 세로 크기도 640px로 시원하게 늘려 개방감을 줍니다.
+                    contentZone.style.setProperty("height", "640px", "important");
                     contentZone.style.setProperty("padding-top", "10px", "important");
                     contentZone.style.setProperty("box-sizing", "border-box", "important");
                     contentZone.style.setProperty("overflow", "hidden", "important");
 
-                    // 🚀 [하단 버튼 하강 유도]: 리스트 바로 아래 컴포넌트인 버튼 박스를 강제로 모달 최하단으로 밀어내기 위한 마진 수술
-                    contentZone.style.setProperty("margin-bottom", "15px", "important");
+                    // 하단 버튼 그룹을 모달창 바닥 최하단으로 확실하게 밀어내기 위한 마진 여백 정화
+                    contentZone.style.setProperty("margin-bottom", "25px", "important");
 
                     const currentCleanData = targetRow[config.dbField] || '';
                     const lines = currentCleanData.split('\n').map(line => line.trim()).filter(line => line !== "");
@@ -5599,8 +5600,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    // 🚀 [안쪽 독점 스크롤 리스트 온전한 빌드]: 리스트 상자의 크기를 부모가 열어준 400px 공간에 100% 가득 채워 대개방합니다.
-                    let finalHtml = `<div class="precaution-list" id="innerPrecautionScrollBox" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 5px 0 10px 0 !important; margin: 0 !important; box-sizing: border-box !important; height: 400px !important; max-height: 400px !important; overflow-y: auto !important;">`;
+                    // 🚀 [안쪽 내용창 스크롤 박스 최적화]: 내용칸 크기에 맞춰 600px까지 확대하여 한 화면에 한 번에 8~9개씩 카드가 보이도록 확장합니다.
+                    let finalHtml = `<div class="precaution-list" id="innerPrecautionScrollBox" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 5px 0 10px 0 !important; margin: 0 !important; box-sizing: border-box !important; height: 600px !important; max-height: 600px !important; overflow-y: auto !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);
@@ -5622,7 +5623,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     finalHtml += `</div>`;
                     contentZone.innerHTML = finalHtml;
 
-                    // 스크롤 상자의 뷰포트 위치를 최상단 0점으로 정밀 수혈 리셋
+                    // 스크롤 위치 초기 영점 조절
                     const innerBox = document.getElementById('innerPrecautionScrollBox');
                     if (innerBox) innerBox.scrollTop = 0;
 

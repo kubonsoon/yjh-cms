@@ -2703,19 +2703,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 adminApplicantDB[index].payStatus = finalPipelineStatus;
                 adminApplicantDB[index].result = finalPipelineStatus;
 
-                // 동의 여부 값 밀봉 (순정 보존)
+                // 동의 여부 값 밀봉 (순정 오리지널 100% 원복 완착)
                 if (elDuty) adminApplicantDB[index].isDutyAgreed = elDuty.value;
                 if (elCall) adminApplicantDB[index].isCallAgreed = elCall.value;
-
-                // 🚀 [교정 완착]: 관리자가 마우스로 변경한 인라인 '참여상태' 셀렉터 박스의 최신 선택값을 
-                // 원본 대장의 진짜 모바일 실시간 동기화 필드인 'status' 영역에 완벽하게 정밀 밀봉합니다.
-                const elStatusInline = document.getElementById(`inline-app-status-${index}`) || document.getElementById(`inline-status-${index}`);
-                if (elStatusInline) {
-                    adminApplicantDB[index].status = elStatusInline.value.trim();
-                } else {
-                    // 최초 예외 상태일 때 순정 규칙을 상속하여 안정화
-                    if (!adminApplicantDB[index].status) adminApplicantDB[index].status = "신검대기";
-                }
                 adminApplicantDB[index].stage = `${adminApplicantDB[index].th} 참여(소집)`;
 
                 // 4. [메모리 참조 일치화 가드] 전역 배열과 캐시 메모리 주소 동치화 완전히 고정
@@ -2723,22 +2713,15 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     dataStoreApplicant = adminApplicantDB;
                     dataStoreApplicant[index] = adminApplicantDB[index];
                 }
+                if (typeof adminApplicantDBGlobal !== 'undefined') {
+                    adminApplicantDBGlobal = adminApplicantDB;
+                    adminApplicantDBGlobal[index] = adminApplicantDB[index];
+                }
 
-                // 5. 🎯 [초기화 엔진 원천 차단 마운트]
+                // 5. 🎯 [초기화 엔진 원천 차단 마운트]: 초기화 로직이 덮어쓰지 못하도록 로컬스토리지 하드웨어에 다이렉트 강제 고정 락인
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
                 if (typeof commitToLocalStorage === 'function') {
                     commitToLocalStorage();
-                }
-
-                // 🚀 [0초 무지연 실시간 트리거]: 로컬스토리지 디스크 저장이 끝난 바로 그 순간에
-                // 자식 팝업창이나 부모 오프너 관계로 열려있는 모바일 화면의 실시간 리프레시 엔진을 다이렉트로 원격 호출합니다.
-                if (window.opener && !window.opener.closed) {
-                    if (typeof window.opener.refreshMobileStatusUI === "function") {
-                        window.opener.refreshMobileStatusUI();
-                    }
-                }
-                if (typeof refreshMobileStatusUI === "function") {
-                    refreshMobileStatusUI();
                 }
 
                 // 6. [편집 스위치 완전 초기화]
@@ -2764,28 +2747,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     refreshRecruitmentView();
                 }
 
-                // 1. [순정 보존 마무리]: 모든 렌더링 리플래시와 저장 처리를 순정 상태 그대로 완착 진행합니다.
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-                if (typeof commitToLocalStorage === 'function') commitToLocalStorage();
-                if (typeof calculateLiveDashboardStats === 'function') calculateLiveDashboardStats();
-                if (typeof refreshApplicantView === 'function') refreshApplicantView();
-
-                // 2. 🎯 [정통 프로세스 락인]: 관리자가 화면에 뜬 영구 저장 얼럿창을 눈으로 확인하고 
-                // [확인] 단추를 누르는 '그 순간' 브라우저가 다음 줄로 넘어가며 동기화 신호를 격발합니다.
+                // 🚀 [순정 복원 완료]: 뜬금없는 참여상태 알림을 파괴하고, 오리지널 참여비 정산 완료 정통 얼럿창으로 완전히 리셋 복구 완료했습니다.
                 alert(`📢 대상자의 차수별 참여비 정산 상태가 안전하게 영구 저장되었습니다.\n[1차: ${nextS1} | 2차: ${nextS2} | 3차: ${nextS3}]`);
-
-                // 🚀 [확인 클릭 직후 실시간 통신선]: 얼럿창이 닫힌 찰나의 순간에 모바일 화면(m-login.html)의 
-                // 실시간 리프레시 엔진을 정확하게 타격하여 배지 문구와 클래스 색상을 일제히 치환 사출합니다.
-                if (window.opener && !window.opener.closed) {
-                    if (typeof window.opener.refreshMobileStatusUI === "function") {
-                        window.opener.refreshMobileStatusUI();
-                    }
-                }
-
-                // 세션 교차 방화벽 가드 구동
-                if (typeof refreshMobileStatusUI === "function") {
-                    refreshMobileStatusUI();
-                }
 
 
             } catch (error) {
@@ -3199,6 +3162,19 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 }
 
                 alert(`📋 목록 정보 수정 완료: [${n}] 대상자의 변경 사항이 목록에 즉시 반영되었습니다.`);
+
+                // 🚀 [확인 클릭 직후 실시간 원격 신호]: 얼럿창 가림막이 닫히는 바로 그 찰나의 순간,
+                // 모바일 화면(m-login.html)의 실시간 리프레시 엔진을 정확하게 타격하여 배지 문구와 클래스 색상을 0초 만에 완벽 동기화 사출합니다.
+                if (window.opener && !window.opener.closed) {
+                    if (typeof window.opener.refreshMobileStatusUI === "function") {
+                        window.opener.refreshMobileStatusUI();
+                    }
+                }
+
+                // 세션 교차 하이브리드 안전핀 가드 구동
+                if (typeof refreshMobileStatusUI === "function") {
+                    refreshMobileStatusUI();
+                }
 
                 // 7. 오리지널 통계 엔진 및 렌더러 연쇄 구동 리프레시 [index: 0.1.24]
                 if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();

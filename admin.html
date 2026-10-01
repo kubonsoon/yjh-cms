@@ -5559,19 +5559,47 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                 // [교정 완착 2]: 깨끗해진 정적 데이터를 바탕으로 150ms 후 비주얼 배지 카드를 사출합니다.
                 setTimeout(() => {
+                    // 1. 시스템 원본 통합 모달의 구역 매핑 추적
                     const contentZone = document.getElementById('integrated-display-view-area');
-                    if (!contentZone) return;
+                    const parentModal = contentZone ? (contentZone.closest('.editor-modal-content') || contentZone.closest('.calendar-modal')) : null;
 
-                    const isEditMode = contentZone.querySelector('.quill-editor') || contentZone.querySelector('textarea') || document.getElementById('noticeTextarea') || contentZone.innerText.includes("게시판 에디터");
+                    if (!contentZone || !parentModal) return;
 
-                    if (isEditMode) {
+                    // 🚀 [편집 모드 인텔리전스 스캔 가드]: 화면에 입력창(textarea, input)이 존재하거나 에디터 활성화 상태인지 실시간 정밀 추적합니다.
+                    const isEditActive = parentModal.querySelector('textarea') ||
+                        parentModal.querySelector('input[type="text"]') ||
+                        parentModal.querySelector('.quill-editor') ||
+                        parentModal.innerHTML.includes("취소") ||
+                        parentModal.innerHTML.includes("저장");
+
+                    // 🎯 [A 트랙: 편집창 모드일 때] -> 그 어떤 가드도 주입하지 않고 원본 500px 순정 크기와 입력 폼을 그대로 보존해 조기 종료합니다.
+                    if (isEditActive) {
+                        parentModal.style.setProperty("height", "520px", "important");
+                        parentModal.style.setProperty("min-height", "520px", "important");
+                        parentModal.style.setProperty("overflow", "visible", "important");
                         contentZone.style.removeAttribute("height");
                         contentZone.style.removeAttribute("padding-top");
                         contentZone.style.removeAttribute("overflow");
                         return;
                     }
 
-                    // 가로폭 500px 원본 무결성을 지키며 문자열 중복 데이터를 완벽 소독하는 파싱 가드 가동
+                    // 🎯 [B 트랙: 순수 보기 목록 리스트일 때만 단독 대확장 및 배지 공정 가동]
+                    parentModal.style.setProperty("height", "750px", "important");
+                    parentModal.style.setProperty("min-height", "750px", "important");
+                    parentModal.style.setProperty("overflow", "hidden", "important");
+                    parentModal.style.setProperty("display", "flex", "important");
+                    parentModal.style.setProperty("flex-direction", "column", "important");
+
+                    contentZone.style.setProperty("display", "flex", "important");
+                    contentZone.style.setProperty("flex-direction", "column", "important");
+                    contentZone.style.setProperty("height", "600px", "important");
+                    contentZone.style.setProperty("min-height", "600px", "important");
+                    contentZone.style.setProperty("max-height", "600px", "important");
+                    contentZone.style.setProperty("padding-top", "15px", "important");
+                    contentZone.style.setProperty("overflow", "hidden", "important");
+                    contentZone.style.setProperty("box-sizing", "border-box", "important");
+                    contentZone.style.setProperty("margin-bottom", "15px", "important");
+
                     let textData = targetRow[config.dbField] || '';
                     textData = textData.replace(/(\d+)\./g, "\n\$1.");
                     const lines = textData.split('\n').map(line => line.trim()).filter(line => line !== "");
@@ -5582,8 +5610,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    // CSS로 제어권을 넘기기 위해 인라인 크기 제한을 풀고 순수한 리스트 매트릭스로만 조립
-                    let finalHtml = `<div class="precaution-list">`;
+                    let finalHtml = `<div class="precaution-list" id="innerPrecautionScrollBox" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; flex: 1 !important; height: 100% !important; padding: 5px 0 10px 0 !important; margin: 0 !important; box-sizing: border-box !important; overflow-y: auto !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);
@@ -5591,11 +5618,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const num = parseInt(match[1]);
                             const pureText = match[2];
                             const colorClass = colorMap[num] || "bg-navy";
+                            const defaultCardStyle = "border: 1px solid #334155 !important;";
+                            const defaultTextStyle = "color: #f1f5f9 !important;";
 
                             finalHtml += `
-                                <div class="precaution-card">
-                                    <span class="badge-num ${colorClass}">${num}</span>
-                                    <span class="precaution-text">${pureText}</span>
+                                <div class="precaution-card" style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 12px 14px !important; background: #273549 !important; border-radius: 6px !important; ${defaultCardStyle} width: 100% !important; box-sizing: border-box !important;">
+                                    <span class="badge-num ${colorClass}" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 24px !important; height: 24px !important; border-radius: 50% !important; color: #ffffff !important; font-weight: 700 !important; font-size: 12px !important; flex-shrink: 0 !important;">${num}</span>
+                                    <span class="precaution-text" style="font-size: 13px !important; font-weight: 500 !important; ${defaultTextStyle} line-height: 1.4 !important; text-align: left !important;">${pureText}</span>
                                 </div>`;
                         }
                     });
@@ -5603,10 +5632,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     finalHtml += `</div>`;
                     contentZone.innerHTML = finalHtml;
 
-                    // 스크롤 상자의 초기화 위치를 실시간 최상단 영점으로 복구 고정
-                    const innerBox = contentZone.querySelector('.precaution-list');
+                    const innerBox = document.getElementById('innerPrecautionScrollBox');
                     if (innerBox) innerBox.scrollTop = 0;
-
                 }, 150);
 
             } else if (type === 'schedule') {

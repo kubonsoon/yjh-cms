@@ -1444,32 +1444,51 @@
                     const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
 
                     if (mobileBadge) {
-                        // 🚀 [교정 완착]: 복잡한 인라인 속성을 완전히 소독하여 날려버리고,
-                        // 오직 관리자모드 대상자관리 목록의 참여상태 배지 고유 클래스명들을 그대로 수혈하여 100% 동일화합니다.
-                        mobileBadge.removeAttribute("style");
+                        // 🚀 [교정 완착]: 외부 프레임워크 CSS의 우선순위 간섭을 완전히 붕괴시키기 위해
+                        // 기존 인라인 스타일을 완전 소독 후, 관리자 대장 고유 색상을 강제로 주입합니다.
+                        mobileBadge.style.removeAttribute("background");
+                        mobileBadge.style.removeAttribute("background-color");
+                        mobileBadge.style.removeAttribute("border");
+                        mobileBadge.style.removeAttribute("color");
+
                         mobileBadge.className = "badge";
 
                         if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
                             mobileBadge.innerText = "신검\n대기";
-                            mobileBadge.classList.add("bg-purple"); /* 🎨 관리자 대상자관리 보라색 배지 색상과 100% 동일화 */
+                            // 🎨 [관리자 보라색 배지 100% 동일화]: 꿀림 현상을 차단하기 위해 !important 가드로 보라색 스킨을 완착합니다.
+                            mobileBadge.style.setProperty("background-color", "rgba(168, 85, 247, 0.15)", "important"); /* 연보라 배경 */
+                            mobileBadge.style.setProperty("border", "1px solid #c084fc", "important");                 /* 보라색 테두리 */
+                            mobileBadge.style.setProperty("color", "#e9d5ff", "important");                          /* 연청보라 글씨 */
                         } else if (liveStatusText === "신검적합" || liveStatusText.includes("적합")) {
                             mobileBadge.innerText = "신검\n적합";
-                            mobileBadge.classList.add("bg-green");  /* 🎨 관리자 대상자관리 녹색 배지 색상과 100% 동일화 */
+                            mobileBadge.style.setProperty("background-color", "rgba(22, 163, 74, 0.15)", "important");  /* 연녹색 배경 */
+                            mobileBadge.style.setProperty("border", "1px solid #4ade80", "important");
+                            mobileBadge.style.setProperty("color", "#f0fdf4", "important");
                         } else if (liveStatusText === "참여(소집)" || liveStatusText.includes("소집")) {
                             mobileBadge.innerText = "참여\n(소집)";
-                            mobileBadge.classList.add("bg-blue");   /* 🎨 관리자 대상자관리 청색 배지 색상과 100% 동일화 */
+                            mobileBadge.style.setProperty("background-color", "rgba(2, 132, 199, 0.15)", "important");  /* 연청색 배경 */
+                            mobileBadge.style.setProperty("border", "1px solid #38bdf8", "important");
+                            mobileBadge.style.setProperty("color", "#ffffff", "important");
                         } else if (liveStatusText === "투약" || liveStatusText.includes("진행")) {
                             mobileBadge.innerText = "진행\n(투약)";
-                            mobileBadge.classList.add("bg-blue");   /* 🎨 관리자 대상자관리 청색 배지 색상과 100% 동일화 */
+                            mobileBadge.style.setProperty("background-color", "rgba(2, 132, 199, 0.15)", "important");
+                            mobileBadge.style.setProperty("border", "1px solid #38bdf8", "important");
+                            mobileBadge.style.setProperty("color", "#ffffff", "important");
                         } else if (liveStatusText === "종료" || liveStatusText.includes("완결")) {
                             mobileBadge.innerText = "정산\n(종료)";
-                            mobileBadge.classList.add("bg-slate");  /* 🎨 관리자 대상자관리 회색 배지 색상과 100% 동일화 */
+                            mobileBadge.style.setProperty("background-color", "rgba(71, 85, 105, 0.15)", "important");  /* 연회색 배경 */
+                            mobileBadge.style.setProperty("border", "1px solid #94a3b8", "important");
+                            mobileBadge.style.setProperty("color", "#f8fafc", "important");
                         } else if (liveStatusText.includes("탈락") || liveStatusText.includes("부적합") || liveStatusText === "시험부적합") {
                             mobileBadge.innerText = "심사\n탈락";
-                            mobileBadge.classList.add("bg-rose");   /* 🎨 관리자 대상자관리 적색 배지 색상과 100% 동일화 */
+                            mobileBadge.style.setProperty("background-color", "rgba(190, 18, 60, 0.15)", "important");  /* 연적색 배경 */
+                            mobileBadge.style.setProperty("border", "1px solid #f43f5e", "important");
+                            mobileBadge.style.setProperty("color", "#fff1f2", "important");
                         } else {
                             mobileBadge.innerText = liveStatusText.replace("(", "\n(");
-                            mobileBadge.classList.add("bg-purple");
+                            mobileBadge.style.setProperty("background-color", "rgba(168, 85, 247, 0.15)", "important");
+                            mobileBadge.style.setProperty("border", "1px solid #c084fc", "important");
+                            mobileBadge.style.setProperty("color", "#e9d5ff", "important");
                         }
                     }
 

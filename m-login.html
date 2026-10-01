@@ -1047,12 +1047,12 @@
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
 
                 document.getElementById('txtPopMessage').innerText =
-                    ` • 인증기관: \${currentChannelName} 연동모듈\n` +
-                    `• 대상자: \${matchedPatientData.name || name} (\${displayBirth} / \${displayGender})\n` +
-                    `• 시험명: \${matchedPatientData.title || "미배정 과제"}(\${matchedPatientData.th || "1기"})\n \n` +
-                    ` [참여비 지급 예정일]\n` +
-                    `\${finalPayScheduleLog}\n\n` +
-                    `아래 확인 버튼을 클릭하면 참여중인 시험현황으로 이동합니다.`;
+                    `• 인증기관: ${currentChannelName} 연동모듈
+                     • 대상자: ${matchedPatientData.name || name} (${displayBirth} / ${displayGender})
+                     • 시험명: ${matchedPatientData.title || "미배정 과제"} (${matchedPatientData.th || "1기"})
+                     [참여비 지급 예정일]
+                     ${finalPayScheduleLog}
+                     아래 확인 버튼을 클릭하면 참여중인 시험현황으로 이동합니다.`;
 
             } else {
                 // 💡 [트랙 B: 최초 방문 신규 대상자 가드] 유령 데이터 터짐을 막기 위해 디폴트 폴백값 매핑

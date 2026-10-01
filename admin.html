@@ -5566,6 +5566,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     if (parentModal) {
                         parentModal.style.setProperty("height", "auto", "important");
                         parentModal.style.setProperty("max-height", "95vh", "important");
+                        // 통합 모달창 전체 프레임 자체에 스크롤을 단 하나만 유연하게 허용
+                        parentModal.style.setProperty("overflow-y", "auto", "important");
                     }
 
                     const isEditMode = contentZone.querySelector('.quill-editor') || contentZone.querySelector('textarea') || document.getElementById('noticeTextarea') || contentZone.innerText.includes("게시판 에디터");
@@ -5576,8 +5578,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         return;
                     }
 
-                    // 🎯 [여백 최적화]: 과도하게 아래로 밀어내던 간섭 패딩을 제거하여 카드가 숨어버리는 현상을 원천 차단합니다.
-                    contentZone.style.setProperty("padding-top", "5px", "important");
+                    // 간섭을 일으키던 기존 패딩값을 지우고, 타이틀 가림막을 완벽하게 탈피하는 고정 상단 패딩 수술
+                    contentZone.style.setProperty("padding-top", "50px", "important");
                     contentZone.style.setProperty("box-sizing", "border-box", "important");
 
                     const currentCleanData = targetRow[config.dbField] || '';
@@ -5589,13 +5591,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    let finalHtml = `<div class="precaution-list" id="finalPrecautionScrollContainer" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important; max-height: 380px !important; overflow-y: auto !important;">`;
+                    // 🚀 max-height와 overflow-y 속성을 완전히 제거하여 이중 스크롤바를 흔적도 없이 박멸합니다.
+                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);
                         if (match) {
-                            const num = parseInt(match[1]);
-                            const pureText = match[2];
+                            const num = parseInt(match);
+                            const pureText = match;
                             const colorClass = colorMap[num] || "bg-navy";
                             const defaultCardStyle = "border: 1px solid #334155 !important;";
                             const defaultTextStyle = "color: #f1f5f9 !important;";
@@ -5611,10 +5614,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     finalHtml += `</div>`;
                     contentZone.innerHTML = finalHtml;
 
-                    // 🚀 [강제 스크롤 원점 타격 가드]: 카드가 조립 완료된 즉시 내외부 스크롤 위치를 
-                    // 맨 위(0)로 강제 고정하여 사용자 눈앞에 1번, 2번, 3번 카드가 100% 무조건 가장 먼저 보이도록 강제 통제합니다.
-                    const scrollBox = document.getElementById('finalPrecautionScrollContainer');
-                    if (scrollBox) scrollBox.scrollTop = 0;
+                    // 부모 통합 모달 프레임 스크롤바의 위치를 강제로 맨 위(0)로 튜닝 고정
+                    if (parentModal) parentModal.scrollTop = 0;
                     if (contentZone) contentZone.scrollTop = 0;
 
                 }, 150);

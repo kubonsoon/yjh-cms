@@ -836,9 +836,23 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* -------------------------------------------------------------------------
    B. 모집공고 관리: 주의사항 및 일정 인라인 에디터 팝업 모달 서식
    ------------------------------------------------------------------------- */
-/* 1. 공통 모달 기본 정렬 세팅 */
+/* 1. 로그인 전이나 호출 전에는 모든 에디터 모달 오버레이를 화면에서 철저히 숨김 잠금 */
+.editor-modal-overlay {
+  display: none !important; /* 🚀 초기 무단 노출을 원천 봉쇄하는 초강력 안전핀 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 2. 공통 모달 내부 알맹이 그릇 정의 (인라인 간섭 소독) */
 .editor-modal-content {
-  background-color: #ffffff;
+  background-color: #ffffff; /* 에디터 내부 컨필드 화이트 반전 사수 */
   padding: 25px;
   border-radius: 10px;
   width: 500px;
@@ -846,10 +860,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
+  justify-content: flex-start !important;
 }
 
-/* 🚀 [격리 완착]: 편집창(.notice-edit-window)은 절대 건드리지 않고, 
-   오직 비주얼 카드(.precaution-list)가 주입된 진짜 보기용 통합 모달창만 세로 760px로 대확장합니다. */
+/* 3. 오직 자바스크립트나 시스템이 active/show 권한을 명시적으로 부여했을 때만 모달 개방 */
+.editor-modal-overlay.active,
+.editor-modal-overlay.show {
+  display: flex !important; /* 🚀 호출되었을 때만 flex로 유연하게 화면 사출 */
+}
+
+/* 4. [주의사항 보기] 목록 단독 대확장 격리 가드 (편집창은 침범하지 않음) */
 .editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
   .editor-modal-content {
   height: 760px !important;
@@ -858,7 +878,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   overflow: hidden !important;
 }
 
-/* 🚀 보기 목록 내부 알맹이 박스(contentZone) 지분만 600px로 대개방하여 1~3번 완벽 구출 */
 .editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
   #integrated-display-view-area {
   height: 600px !important;
@@ -871,7 +890,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   box-sizing: border-box !important;
 }
 
-/* 🚀 보기 목록일 때 하단 버튼 그룹을 모달창 맨 바닥 밑바닥 레이아웃으로 유연하게 하강 정렬 */
 .editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
   #integrated-display-view-area
   + div,

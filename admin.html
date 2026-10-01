@@ -5562,39 +5562,19 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     const contentZone = document.getElementById('integrated-display-view-area');
                     if (!contentZone) return;
 
-                    const parentModal = contentZone.closest('.editor-modal-content') || contentZone.closest('.calendar-modal');
-                    if (parentModal) {
-                        // 주의사항 단독 수술: 바깥 프레임 세로 대확장 및 이중 스크롤 하드웨어 차단
-                        parentModal.style.setProperty("height", "750px", "important");
-                        parentModal.style.setProperty("min-height", "750px", "important");
-                        parentModal.style.setProperty("overflow", "hidden", "important");
-                        parentModal.style.setProperty("display", "flex", "important");
-                        parentModal.style.setProperty("flex-direction", "column", "important");
-                    }
-
                     const isEditMode = contentZone.querySelector('.quill-editor') || contentZone.querySelector('textarea') || document.getElementById('noticeTextarea') || contentZone.innerText.includes("게시판 에디터");
+
                     if (isEditMode) {
-                        contentZone.style.setProperty("height", "auto", "important");
-                        contentZone.style.setProperty("padding-top", "0px", "important");
-                        contentZone.style.setProperty("overflow", "visible", "important");
+                        contentZone.style.removeAttribute("height");
+                        contentZone.style.removeAttribute("padding-top");
+                        contentZone.style.removeAttribute("overflow");
                         return;
                     }
 
-                    // 🚀 [알맹이 박스 크기 강제 수술 가드]: 팅겨나가고 뭉개지던 원인인 contentZone 자체의 수직 한계선을 600px로 대폭 확장 개방합니다.
-                    contentZone.style.setProperty("display", "flex", "important");
-                    contentZone.style.setProperty("flex-direction", "column", "important");
-                    contentZone.style.setProperty("height", "600px", "important");
-                    contentZone.style.setProperty("min-height", "600px", "important");
-                    contentZone.style.setProperty("max-height", "600px", "important");
-                    contentZone.style.setProperty("padding-top", "15px", "important");
-                    contentZone.style.setProperty("overflow", "hidden", "important");
-                    contentZone.style.setProperty("box-sizing", "border-box", "important");
-
-                    // 하단 버튼 그룹을 모달창 맨 바닥면으로 밀착 고정하여 밀어내기 위한 최적의 여백 하강 수술
-                    contentZone.style.setProperty("margin-bottom", "15px", "important");
-
-                    const currentCleanData = targetRow[config.dbField] || '';
-                    const lines = currentCleanData.split('\n').map(line => line.trim()).filter(line => line !== "");
+                    // 가로폭 500px 원본 무결성을 지키며 문자열 중복 데이터를 완벽 소독하는 파싱 가드 가동
+                    let textData = targetRow[config.dbField] || '';
+                    textData = textData.replace(/(\d+)\./g, "\n\$1.");
+                    const lines = textData.split('\n').map(line => line.trim()).filter(line => line !== "");
 
                     const colorMap = {
                         1: "bg-navy", 2: "bg-wine", 3: "bg-green", 4: "bg-blue",
@@ -5602,22 +5582,20 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    // 🚀 [안쪽 독점 리스트 100% 동기화]: 부모가 열어준 600px 공간 내에서 리스트 상자가 flex: 1로 빈틈없이 공간을 가득 채우도록 사출합니다.
-                    let finalHtml = `<div class="precaution-list" id="innerPrecautionScrollBox" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; flex: 1 !important; height: 100% !important; padding: 5px 0 10px 0 !important; margin: 0 !important; box-sizing: border-box !important; overflow-y: auto !important;">`;
+                    // CSS로 제어권을 넘기기 위해 인라인 크기 제한을 풀고 순수한 리스트 매트릭스로만 조립
+                    let finalHtml = `<div class="precaution-list">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);
                         if (match) {
-                            const num = parseInt(match);
-                            const pureText = match;
+                            const num = parseInt(match[1]);
+                            const pureText = match[2];
                             const colorClass = colorMap[num] || "bg-navy";
-                            const defaultCardStyle = "border: 1px solid #334155 !important;";
-                            const defaultTextStyle = "color: #f1f5f9 !important;";
 
                             finalHtml += `
-                                <div class="precaution-card" style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 12px 14px !important; background: #273549 !important; border-radius: 6px !important; ${defaultCardStyle} width: 100% !important; box-sizing: border-box !important;">
-                                    <span class="badge-num ${colorClass}" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 24px !important; height: 24px !important; border-radius: 50% !important; color: #ffffff !important; font-weight: 700 !important; font-size: 12px !important; flex-shrink: 0 !important;">${num}</span>
-                                    <span class="precaution-text" style="font-size: 13px !important; font-weight: 500 !important; ${defaultTextStyle} line-height: 1.4 !important; text-align: left !important;">${pureText}</span>
+                                <div class="precaution-card">
+                                    <span class="badge-num ${colorClass}">${num}</span>
+                                    <span class="precaution-text">${pureText}</span>
                                 </div>`;
                         }
                     });
@@ -5625,9 +5603,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     finalHtml += `</div>`;
                     contentZone.innerHTML = finalHtml;
 
-                    // 스크롤 상자의 위치를 강제로 맨 위(0)로 튜닝 리셋하여 1번 카드 상시 노출 유지
-                    const innerBox = document.getElementById('innerPrecautionScrollBox');
+                    // 스크롤 상자의 초기화 위치를 실시간 최상단 영점으로 복구 고정
+                    const innerBox = contentZone.querySelector('.precaution-list');
                     if (innerBox) innerBox.scrollTop = 0;
+
                 }, 150);
 
             } else if (type === 'schedule') {

@@ -1427,27 +1427,57 @@
                     const mobileBadge = document.getElementById('cms-badge');
                     const stageTxtSlot = document.getElementById('ui_stage_text');
 
-                    // 🎯 [실시간 원격 리스킨 인터셉터]: 관리자가 PC에서 상태를 '종료'로 수정하는 즉시 모바일 연쇄 동기화
-                    if (liveRecord.stage === "종료") {
-                        if (mobileBadge) {
+                    // 🚀 [리얼타임 원장 소스 수혈]: 과거의 오염된 껍데기 필드(stage)를 완전 폐기하고,
+                    // 파일 업로드(신검/소집결과) 및 수정 모드로 변경된 진짜 관리자 대장의 참여상태인 'status'를 다이렉트 캡처합니다.
+                    const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
+
+                    if (mobileBadge) {
+                        // 🚀 [배지 멘트 및 색상 일치화 가드]: 우회나 임의 숫자 없이 관리자 화면의 배지 색상 스펙트럼과 100% 한 몸으로 매핑합니다.
+                        if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
+                            mobileBadge.innerText = "신검\n대기";
+                            mobileBadge.style.setProperty("background", "#1d4ed8", "important"); /* 관리자 대장 bg-navy 색상 일치화 */
+                        } else if (liveStatusText === "신검적합" || liveStatusText.includes("적합")) {
+                            mobileBadge.innerText = "신검\n적합";
+                            mobileBadge.style.setProperty("background", "#16a34a", "important"); /* 관리자 대장 bg-green 색상 일치화 */
+                        } else if (liveStatusText === "참여(소집)" || liveStatusText.includes("소집")) {
+                            mobileBadge.innerText = "참여\n(소집)";
+                            mobileBadge.style.setProperty("background", "#0284c7", "important"); /* 관리자 대장 bg-blue 색상 일치화 */
+                        } else if (liveStatusText === "투약" || liveStatusText.includes("진행")) {
+                            mobileBadge.innerText = "진행\n(투약)";
+                            mobileBadge.style.setProperty("background", "#0284c7", "important"); /* 관리자 대장 bg-blue 색상 일치화 */
+                        } else if (liveStatusText === "종료" || liveStatusText.includes("완결")) {
                             mobileBadge.innerText = "정산\n(종료)";
-                            mobileBadge.style.setProperty("background", "#475569", "important");
+                            mobileBadge.style.setProperty("background", "#475569", "important"); /* 관리자 대장 bg-slate 색상 일치화 */
+                        } else if (liveStatusText.includes("탈락") || liveStatusText.includes("부적합") || liveStatusText === "시험부적합") {
+                            mobileBadge.innerText = "심사\n탈락";
+                            mobileBadge.style.setProperty("background", "#be123c", "important"); /* 관리자 대장 bg-rose 색상 일치화 */
+                        } else {
+                            mobileBadge.innerText = liveStatusText.replace("(", "\n(");
+                            mobileBadge.style.setProperty("background", "#1d4ed8", "important");
                         }
+                    }
+
+                    // 🚀 [상태 멘트 실시간 미러링]: 모바일 화면 좌측 하단의 상태 텍스트 로그도 실시간으로 원장 문구와 일치화
+                    const historyLogSlot = document.getElementById('history-log');
+                    if (historyLogSlot) {
+                        historyLogSlot.innerText = liveStatusText;
+                    }
+
+                    // 🎯 [실시간 원격 리스킨 인터셉터]: 원본의 가드 규칙을 안전하게 상속
+                    if (liveStatusText === "종료" || liveStatusText === "완결") {
                         if (stageTxtSlot) {
                             stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 과제의 정산 청구 및 금융 지급 심사가 정상 완료되었습니다.</span>`;
                         }
 
                         /* =================================================================
-                           🔥 [통합 완착] 실시간 "시험일정" 버튼 노출 및 기존 제출 버튼 원격 마감 잠금
+                           🔥 [순정 무결 상속] 실시간 "시험일정" 버튼 노출 및 기존 제출 버튼 원격 마감 잠금
                            ================================================================= */
                         const calendarBtn = document.getElementById('ui_calendar_redirect_btn');
                         const submitBtn = document.getElementById('ui_submit_btn');
 
-                        // 관리자 제어반 마스터 신호 포착 즉시 최하단에 "시험일정" 액션 단추 동적 출현
                         if (calendarBtn) {
                             calendarBtn.style.setProperty("display", "block", "important");
                         }
-                        // 기존 지급 신청 버튼은 완결 문구와 함께 실시간 락인 잠금
                         if (submitBtn) {
                             submitBtn.innerText = "지급 청구 마감 (과제 종료)";
                             submitBtn.disabled = true;
@@ -1468,6 +1498,7 @@
                     }
                 }
 
+                // 🌟 [순정 보존 구역]: 하단 푸시 및 연동 시그널 처리반 (단 한 자의 유실 없이 원형 보존)
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
                 const cmsBadgeSlot = document.getElementById('cms-badge');
 

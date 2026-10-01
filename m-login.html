@@ -1477,6 +1477,65 @@
             }
         }
 
+
+        // 🚀 [교정 완착]: 관리자 화면의 실시간 수정 신호를 가로채어 
+        // 모바일 우측 배지의 글자와 색상을 단 0초 만에 무지연 리스킨하는 전용 엔진입니다.
+        function refreshMobileStatusUI() {
+            const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
+            if (!currentVerifiedSessionName) return;
+            const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
+
+            const sessionPhone = sessionStorage.getItem('certifiedUserPhone') || (window.loggedInUser ? window.loggedInUser.phone : "");
+            const cleanSessionPhone = sessionPhone.toString().replace(/[^0-9]/g, "").trim();
+
+            let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+
+            const liveRecord = adminApplicantDB.find(u => {
+                if (!u || !u.name) return false;
+                const dbNameClean = u.name.toString().replace(/\s/g, "");
+                const dbPhoneClean = (u.phone || "").toString().replace(/[^0-9]/g, "").trim();
+                if (!cleanSessionPhone) return dbNameClean === cleanSessionName;
+                return dbNameClean === cleanSessionName && (dbPhoneClean === cleanSessionPhone || dbPhoneClean.includes(cleanSessionPhone));
+            });
+
+            if (liveRecord) {
+                const mobileBadge = document.getElementById('cms-badge');
+                const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
+
+                if (mobileBadge) {
+                    mobileBadge.removeAttribute("style");
+                    mobileBadge.className = "badge";
+
+                    if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
+                        mobileBadge.innerText = "신검\n대기";
+                        mobileBadge.classList.add("master-purple");
+                    } else if (liveStatusText === "신검적합" || liveStatusText.includes("적합")) {
+                        mobileBadge.innerText = "신검\n적합";
+                        mobileBadge.classList.add("master-green");
+                    } else if (liveStatusText === "참여(소집)" || liveStatusText.includes("소집")) {
+                        mobileBadge.innerText = "참여\n(소집)";
+                        mobileBadge.classList.add("master-blue");
+                    } else if (liveStatusText === "투약" || liveStatusText.includes("진행")) {
+                        mobileBadge.innerText = "진행\n(투약)";
+                        mobileBadge.classList.add("master-blue");
+                    } else if (liveStatusText === "종료" || liveStatusText === "완결") {
+                        mobileBadge.innerText = "정산\n(종료)";
+                        mobileBadge.classList.add("master-slate");
+                    } else if (liveStatusText.includes("탈락") || liveStatusText.includes("부적합")) {
+                        mobileBadge.innerText = "심사\n탈락";
+                        mobileBadge.classList.add("master-rose");
+                    } else {
+                        mobileBadge.innerText = liveStatusText.replace("(", "\n(");
+                        mobileBadge.classList.add("master-navy");
+                    }
+                }
+            }
+        }
+
+        // 🚀 전역 윈도우 스코프에 함수를 개방하여 admin.html이 다이렉트로 원격 호출할 수 있도록 통로 개설
+        window.refreshMobileStatusUI = refreshMobileStatusUI;
+
+
         // 🎯 부모 관리자 시스템 및 m-adm 원격 제어반 글로벌 시그널 폴링 추적 하이브리드 루프
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {

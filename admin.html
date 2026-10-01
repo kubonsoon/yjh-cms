@@ -5537,10 +5537,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                 // 50ms 후 모달이 완전히 열렸을 때 컬러 원형 배지 카드로 빌드 사출 연동
                 setTimeout(() => {
+                    const currentNoticeData = targetRow[config.dbField] || '';
                     if (typeof parseAndRenderPrecautionsWithBadges === 'function') {
-                        parseAndRenderPrecautionsWithBadges(targetRow[config.dbField]);
+                        parseAndRenderPrecautionsWithBadges(currentNoticeData);
                     }
-                }, 50);
+                }, 150);
 
             } else if (type === 'schedule') {
                 config = { title: "시험일정 안내", icon: "fa-regular fa-calendar-days", color: "#38bdf8", dbField: "customScheduleHTML", label: "시험일정" };

@@ -5565,13 +5565,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const num = parseInt(match[1]);
                             const pureText = match[2];
                             const colorClass = colorMap[num] || "bg-navy";
-                            const roseCardStyle = num === 9 ? "border: 1px solid #f43f5e !important;" : "border: 1px solid #334155 !important;";
-                            const roseTextStyle = num === 9 ? "color: #fda4af !important;" : "color: #f1f5f9 !important;";
+                            const defaultCardStyle = "border: 1px solid #334155 !important;";
+                            const defaultTextStyle = "color: #f1f5f9 !important;";
 
                             finalHtml += `
-                                <div class="precaution-card" style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 14px !important; background: #273549 !important; border-radius: 6px !important; ${roseCardStyle} width: 100% !important; box-sizing: border-box !important;">
+                                <div class="precaution-card" style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 12px 14px !important; background: #273549 !important; border-radius: 6px !important; ${defaultCardStyle} width: 100% !important; box-sizing: border-box !important;">
                                     <span class="badge-num ${colorClass}" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 24px !important; height: 24px !important; border-radius: 50% !important; color: #ffffff !important; font-weight: 700 !important; font-size: 12px !important; flex-shrink: 0 !important;">${num}</span>
-                                    <span class="precaution-text" style="font-size: 13px !important; font-weight: 500 !important; ${roseTextStyle} line-height: 1.4 !important; text-align: left !important;">${pureText}</span>
+                                    <span class="precaution-text" style="font-size: 13px !important; font-weight: 500 !important; ${defaultTextStyle} line-height: 1.4 !important; text-align: left !important;">${pureText}</span>
                                 </div>`;
                         }
                     });

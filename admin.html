@@ -5556,8 +5556,15 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    // [교정 완착]: 상단 마진(margin-top: 55px)을 확실하게 인젝션하여 타이틀 레이어 밑으로 파묻히던 1번~3번 카드를 전원 구출합니다.
-                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; margin-top: 55px !important; padding: 10px 0 !important; box-sizing: border-box !important;">`;
+                    // 리스트 자체의 상단 패딩(padding-top: 65px)을 확실히 부여하여 타이틀 뒤편에 숨어있던 1~3번 카드를 완벽하게 지상으로 구출합니다.
+                    if (parentModal) {
+                        parentModal.style.setProperty("height", "auto", "important");
+                        parentModal.style.setProperty("max-height", "90vh", "important");
+                        parentModal.style.setProperty("padding-top", "20px", "important"); /* 부모 프레임 압박 해제 */
+                    }
+
+                    // 마진을 과감히 버리고 안전한 padding-top 구조로 내부에서 공간을 확보합니다.
+                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 65px 0 10px 0 !important; box-sizing: border-box !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);

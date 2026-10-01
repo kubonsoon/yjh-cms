@@ -77,8 +77,9 @@
             animation: slideIn 0.35s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
+        /* active 클래스가 결합되었을 때만 강제 표출되도록 우선순위 잠금 */
         .step-panel.active {
-            display: flex;
+            display: flex !important;
         }
 
         @keyframes slideIn {
@@ -1078,51 +1079,28 @@
                 document.getElementById('txtPopMessage').innerText = ` 연계기관: \${currentChannelName} 연동모듈\n 대상자명: \${name}님\n\n양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.\n\n확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
             }
 
-            try {
-                const ly1 = document.getElementById('layer1');
-                const ly2 = document.getElementById('layer2');
-                const ly3 = document.getElementById('layer3');
-                const ly4 = document.getElementById('layer4');
-                const ly5 = document.getElementById('layer5'); // 🌟 진짜 캘린더 임베드 패널 주소선
-
-                if (ly1) ly1.style.setProperty("display", "none", "important");
-                if (ly2) ly2.style.setProperty("display", "none", "important");
-                if (ly3) ly3.style.setProperty("display", "none", "important");
-                if (ly4) ly4.style.setProperty("display", "none", "important");
-
-                if (ly5) {
-                    // 🌟 [최종 잠금 해제]: 숨겨져 있던 layer5 패널의 문을 시원하게 flex 규격으로 열어젖혀 iframe 캘린더를 강제 로딩 출력!
-                    ly5.style.setProperty("display", "flex", "important");
-
-                    // 최초 인증 대상자 상단 배지 라벨 텍스트도 실시간 동기화 수혈 마크
-                    const lblNew = document.getElementById('lblSetTargetNew');
-                    if (lblNew) lblNew.innerText = (typeof name !== "undefined" ? name : "신규") + " 대상자님";
-                } else {
-                    // 하위 호환 안전핀 가드
-                    if (typeof navigateToStep === "function") navigateToStep(3);
-                }
-            } catch (layerOpenErr) {
-                console.error("[전산망 입구 가드 단선 복구]:", layerOpenErr);
-                if (typeof navigateToStep === "function") navigateToStep(3);
+            if (typeof navigateToStep === "function") {
+                navigateToStep(3);
             }
 
         }
 
         function executeStep3ConfirmNext() {
             if (matchedPatientData) {
-                // [정밀 분기 개편]: 마스터 시점(2026-10-01) 기준 6개월(180일) 경과 여부를 실시간 역추적 연산 가동
                 const systemCurrentTime = new Date("2026-10-01");
                 const lastExamDate = matchedPatientData.recDate ? new Date(matchedPatientData.recDate) : null;
-                let isOver6Months = false;
 
-                if (lastExamDate) {
+                // [교정 완착]: 기본값을 false로 두고, 확실히 종료된 날짜 데이터가 존재하며 
+                // 그 날짜가 180일 이상 경과했을 때만 만료(true)된 것으로 판정하도록 안전핀을 꽂습니다.
+                let isOver6Months = false;
+                if (lastExamDate && !isNaN(lastExamDate.getTime())) {
                     const timeDiff = systemCurrentTime.getTime() - lastExamDate.getTime();
                     const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
                     if (dayDiff >= 180) isOver6Months = true;
                 }
 
+                // 신규 가상 유저(Ghost)이거나 실제 데이터상 6개월이 지나 완결된 유저만 스케줄러(5단계)로 보냅니다.
                 if (matchedPatientData.isNewUserGhost || isOver6Months) {
-                    // A. 완전 신규 대상자이거나 마지막 시험종료일로부터 6개월이 지난 경우 ➔ m-calendar(5단계) 이동
                     navigateToStep(5);
 
                     if (document.getElementById('lblSetTargetNew')) {

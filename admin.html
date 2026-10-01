@@ -5511,8 +5511,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             if (type === 'notice') {
                 config = { title: "주의사항 안내", icon: "fa-solid fa-triangle-exclamation", color: "var(--secondary-color, #0ea5e9)", dbField: "customNoticeHTML", label: "주의사항" };
 
-                // [교정 완착]: 데이터 저장소(dataStoreRecruitment) 내부의 가짜 임시 문구를 감지하면 
-                // 즉시 실제 이미지의 12대 준수사항 마스터 데이터로 물갈이 가드를 발동합니다.
+                // [교정 완착 1]: 백틱(`) 내부 문장 앞의 들여쓰기 공백을 바짝 밀어붙여 데이터 오염을 소독합니다.
                 let rawData = targetRow[config.dbField] || '';
                 if (!rawData || rawData.includes("주의사항 안내")) {
                     targetRow[config.dbField] = `1. 금식·물 섭취
@@ -5528,19 +5527,57 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     11. 피임
                     12. 소화기계 이상사례(구토·설사)와 PK 개념`;
 
-                    // 로컬스토리지 물리 데이터 원본 즉시 동기화 마크
                     if (realPhysicalIndex !== -1) {
                         origRecruitmentDB[realPhysicalIndex] = targetRow;
                         localStorage.setItem('dataStoreRecruitment', JSON.stringify(origRecruitmentDB));
                     }
                 }
 
-                // 50ms 후 모달이 완전히 열렸을 때 컬러 원형 배지 카드로 빌드 사출 연동
+                // [교정 완착 2]: 외부 함수 없이 이 자리에서 대시보드 스케줄러 타이밍에 직접 결합합니다.
                 setTimeout(() => {
-                    const currentNoticeData = targetRow[config.dbField] || '';
-                    if (typeof parseAndRenderPrecautionsWithBadges === 'function') {
-                        parseAndRenderPrecautionsWithBadges(currentNoticeData);
+                    const contentZone = document.getElementById('integrated-display-view-area');
+                    if (!contentZone) return;
+
+                    // 가로폭 520px은 순정 규격 그대로 고수하고 세로 높이만 유동적으로 auto 확장 처리
+                    const parentModal = contentZone.closest('.editor-modal-content');
+                    if (parentModal) {
+                        parentModal.style.setProperty("height", "auto", "important");
+                        parentModal.style.setProperty("max-height", "90vh", "important");
                     }
+
+                    // 가로로 한 줄로 길게 붙어 유입되는 유령 공백 텍스트 분쇄 가드 가동
+                    let textData = targetRow[config.dbField] || '';
+                    textData = textData.replace(/(\d+)\./g, "\n\$1.");
+                    const lines = textData.split('\n').map(line => line.trim()).filter(line => line !== "");
+
+                    const colorMap = {
+                        1: "bg-navy", 2: "bg-wine", 3: "bg-green", 4: "bg-blue",
+                        5: "bg-wine", 6: "bg-brown", 7: "bg-purple", 8: "bg-brown",
+                        9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
+                    };
+
+                    // flex-direction: column을 인젝션하여 무조건 세로 한 줄로 차곡차곡 떨어지게 정렬
+                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 5px 0 !important; max-height: 420px !important; overflow-y: auto !important;">`;
+
+                    lines.forEach(line => {
+                        const match = line.match(/^(\d+)\.\s*(.*)/);
+                        if (match) {
+                            const num = parseInt(match[1]);
+                            const pureText = match[2];
+                            const colorClass = colorMap[num] || "bg-navy";
+                            const roseCardStyle = num === 9 ? "border: 1px solid #f43f5e !important;" : "border: 1px solid #334155 !important;";
+                            const roseTextStyle = num === 9 ? "color: #fda4af !important;" : "color: #f1f5f9 !important;";
+
+                            finalHtml += `
+                                <div class="precaution-card" style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 14px !important; background: #273549 !important; border-radius: 6px !important; ${roseCardStyle} width: 100% !important; box-sizing: border-box !important;">
+                                    <span class="badge-num ${colorClass}" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 24px !important; height: 24px !important; border-radius: 50% !important; color: #ffffff !important; font-weight: 700 !important; font-size: 12px !important; flex-shrink: 0 !important;">${num}</span>
+                                    <span class="precaution-text" style="font-size: 13px !important; font-weight: 500 !important; ${roseTextStyle} line-height: 1.4 !important; text-align: left !important;">${pureText}</span>
+                                </div>`;
+                        }
+                    });
+
+                    finalHtml += `</div>`;
+                    contentZone.innerHTML = finalHtml;
                 }, 150);
 
             } else if (type === 'schedule') {

@@ -5564,7 +5564,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     const parentModal = contentZone.closest('.editor-modal-content') || contentZone.closest('.calendar-modal');
                     if (parentModal) {
-                        // 🚀 [바깥 스크롤 차단]: 바깥쪽 프레임은 고정 크기를 유지하고 스크롤바가 절대 안 나오도록 원천 봉쇄합니다.
+                        // 🚀 [원본 틀 복구 및 바깥 스크롤 박멸]: 모달 외형은 원본 크기로 강제 환원하고, 바깥 스크롤바만 확실하게 hidden 처리합니다.
                         parentModal.style.setProperty("height", "520px", "important");
                         parentModal.style.setProperty("overflow", "hidden", "important");
                     }
@@ -5578,8 +5578,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         return;
                     }
 
-                    // 🚀 [내부 그릇 확장 가드]: 보기 목록일 때 타이틀 영역과의 물리적 겹침을 완벽히 피해 아래로 내립니다.
-                    contentZone.style.setProperty("padding-top", "45px", "important");
+                    // 상단 헤더와의 간섭만 피할 수 있도록 정밀 여백 조정
+                    contentZone.style.setProperty("padding-top", "35px", "important");
                     contentZone.style.setProperty("box-sizing", "border-box", "important");
                     contentZone.style.setProperty("overflow", "hidden", "important");
 
@@ -5592,8 +5592,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    // 🚀 [안쪽 독점 스크롤바 잠금 이식]: max-height(360px)를 딱 걸어 가두고 overflow-y: auto를 주어 오직 이 안에서만 스크롤바가 단 하나만 생기도록 셋업합니다.
-                    let finalHtml = `<div class="precaution-list" id="innerPrecautionScrollBox" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 5px 0 15px 0 !important; margin: 0 !important; box-sizing: border-box !important; max-height: 360px !important; overflow-y: auto !important;">`;
+                    // 🚀 [안쪽 레이어 확장 완착]: 하단 버튼들이 안쪽 리스트 박스를 압박하지 못하도록 
+                    // max-height를 고정된 모달 규격 안에서 최적 치수인 420px로 밀착 확장하여 리스트 영역의 개방감을 최대치로 확보합니다.
+                    let finalHtml = `<div class="precaution-list" id="innerPrecautionScrollBox" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 5px 0 10px 0 !important; margin: 0 !important; box-sizing: border-box !important; max-height: 420px !important; overflow-y: auto !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);
@@ -5615,7 +5616,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     finalHtml += `</div>`;
                     contentZone.innerHTML = finalHtml;
 
-                    // 🚀 [강제 탑뷰 영점 조절]: 조립 완료 즉시 안쪽 스크롤 상자의 위치를 0으로 강제 리셋하여 무조건 1번 "금식" 카드부터 화면 정중앙에 사출합니다.
+                    // 스크롤 상자의 위치를 강제로 맨 위(0)로 셋업 리셋
                     const innerBox = document.getElementById('innerPrecautionScrollBox');
                     if (innerBox) innerBox.scrollTop = 0;
 

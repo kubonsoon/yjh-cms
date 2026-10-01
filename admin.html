@@ -5513,6 +5513,30 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                 // [교정 완착 1]: 백틱(`) 내부 문장 앞의 들여쓰기 공백을 바짝 밀어붙여 데이터 오염을 소독합니다.
                 let rawData = targetRow[config.dbField] || '';
+
+                // 🚀 [원천 데이터 자동 치유 가드]: 로컬스토리지 DB 내부 텍스트가 쉼표(,)를 달고 중복 오염된 경우 자동으로 진짜 순정 텍스트만 추출합니다.
+                if (rawData && rawData.includes(",")) {
+                    // 정규식으로 쪼개어 중복 문장 패턴을 깔끔하게 단 한 문장씩으로만 압축 정화합니다.
+                    const cleanLines = rawData.split('\n').map(line => {
+                        const parts = line.split(',');
+                        if (parts.length > 1) {
+                            // "1. 금식,1. 금식" -> "1. 금식"만 반환
+                            return parts[0].trim();
+                        }
+                        return line.trim();
+                    }).filter(line => line !== "");
+
+                    rawData = cleanLines.join('\n');
+
+                    // 정화된 진짜 데이터를 메모리와 로컬스토리지 영구 데이터베이스에 즉시 동기화 수혈 치료
+                    targetRow[config.dbField] = rawData;
+                    if (realPhysicalIndex !== -1) {
+                        origRecruitmentDB[realPhysicalIndex] = targetRow;
+                        localStorage.setItem('dataStoreRecruitment', JSON.stringify(origRecruitmentDB));
+                    }
+                }
+
+                // 데이터가 완벽히 비어있거나 가짜 더미 안내 문구일 때만 진짜 마스터 12대 준수사항 주입
                 if (!rawData || rawData.includes("주의사항 안내")) {
                     targetRow[config.dbField] = `1. 금식·물 섭취
                     2. 음주·카페인·흡연
@@ -5533,7 +5557,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     }
                 }
 
-                // [교정 완착 2]: 외부 함수 없이 이 자리에서 대시보드 스케줄러 타이밍에 직접 결합합니다.
+                // [교정 완착 2]: 깨끗해진 정적 데이터를 바탕으로 150ms 후 비주얼 배지 카드를 사출합니다.
                 setTimeout(() => {
                     const contentZone = document.getElementById('integrated-display-view-area');
                     if (!contentZone) return;
@@ -5552,13 +5576,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         return;
                     }
 
-                    // 🚀 [강제 인출 가드]: 보기 목록일 때 contentZone의 상단 패딩을 60px로 과감하게 개방하여 가림막을 무력화합니다.
-                    contentZone.style.setProperty("padding-top", "60px", "important");
+                    contentZone.style.setProperty("padding-top", "15px", "important");
                     contentZone.style.setProperty("box-sizing", "border-box", "important");
 
-                    let textData = targetRow[config.dbField] || '';
-                    textData = textData.replace(/(\d+)\./g, "\n\$1.");
-                    const lines = textData.split('\n').map(line => line.trim()).filter(line => line !== "");
+                    const currentCleanData = targetRow[config.dbField] || '';
+                    const lines = currentCleanData.split('\n').map(line => line.trim()).filter(line => line !== "");
 
                     const colorMap = {
                         1: "bg-navy", 2: "bg-wine", 3: "bg-green", 4: "bg-blue",
@@ -5566,20 +5588,19 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    // 내부 리스트의 패딩 간섭을 초기화하고 순수한 한 줄 정렬 매트릭스 가동
                     let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);
                         if (match) {
-                            const num = parseInt(match);
-                            const pureText = match;
+                            const num = parseInt(match[1]);
+                            const pureText = match[2];
                             const colorClass = colorMap[num] || "bg-navy";
                             const defaultCardStyle = "border: 1px solid #334155 !important;";
                             const defaultTextStyle = "color: #f1f5f9 !important;";
 
                             finalHtml += `
-                                <div class="precaution-card" style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 14px !important; background: #273549 !important; border-radius: 6px !important; ${defaultCardStyle} width: 100% !important; box-sizing: border-box !important;">
+                                <div class="precaution-card" style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 12px 14px !important; background: #273549 !important; border-radius: 6px !important; ${defaultCardStyle} width: 100% !important; box-sizing: border-box !important;">
                                     <span class="badge-num ${colorClass}" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 24px !important; height: 24px !important; border-radius: 50% !important; color: #ffffff !important; font-weight: 700 !important; font-size: 12px !important; flex-shrink: 0 !important;">${num}</span>
                                     <span class="precaution-text" style="font-size: 13px !important; font-weight: 500 !important; ${defaultTextStyle} line-height: 1.4 !important; text-align: left !important;">${pureText}</span>
                                 </div>`;

@@ -1156,12 +1156,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   white-space: nowrap !important;
 }
 
-/* 모집공고 관리> 주의사항 */
+/*4대 공지 공통 내용창 그릇 상단 패딩(padding-top)을 20px 만큼 시원하게 내려서 개방합니다. */
+#integrated-display-view-area {
+  padding-top: 20px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 안쪽 리스트가 부모 여백 안에서 찌그러지지 않고 단정하게 스크롤되도록 구조 정렬 */
 .precaution-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 15px;
-  padding: 10px 0;
+  padding-top: 5px !important;
+  box-sizing: border-box !important;
 }
 
 .precaution-card {

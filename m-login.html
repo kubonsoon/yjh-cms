@@ -717,6 +717,72 @@
                 box-shadow: 0 0 5px rgba(244, 63, 94, 0.4);
             }
         }
+
+
+        /* ========================================================
+   [최종 대완결] 관리자 대상자관리 대장 - 모바일 상태 배지 비주얼 100% 동일화
+   ======================================================== */
+        #cms-badge {
+            display: inline-flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+            width: 68px !important;
+            height: 68px !important;
+            min-width: 68px !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            line-height: 1.4 !important;
+            white-space: pre-line !important;
+            box-sizing: border-box !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+
+        /* 🎨 관리자 대장 픽셀 스킨 그대로 모바일에 강제 동기화 복사 */
+        #cms-badge.master-navy {
+            background: #273549 !important;
+            border: 1px solid #3b82f6 !important;
+            color: #60a5fa !important;
+        }
+
+        /* 일반대기 */
+        #cms-badge.master-purple {
+            background: #273549 !important;
+            border: 1px solid #a855f7 !important;
+            color: #c084fc !important;
+        }
+
+        /* 신검대기: 보라색 테두리/글씨 */
+        #cms-badge.master-green {
+            background: #273549 !important;
+            border: 1px solid #16a34a !important;
+            color: #4ade80 !important;
+        }
+
+        /* 신검적합: 녹색 테두리/글씨 */
+        #cms-badge.master-blue {
+            background: #273549 !important;
+            border: 1px solid #0284c7 !important;
+            color: #38bdf8 !important;
+        }
+
+        /* 참여(소집)/투약 */
+        #cms-badge.master-slate {
+            background: #273549 !important;
+            border: 1px solid #475569 !important;
+            color: #cbd5e1 !important;
+        }
+
+        /* 종료/정산 */
+        #cms-badge.master-rose {
+            background: #273549 !important;
+            border: 1px solid #be123c !important;
+            color: #f43f5e !important;
+        }
+
+        /* 심사탈락/부적합 */
     </style>
 </head>
 
@@ -1417,109 +1483,80 @@
                 const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
                 const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
 
-                // 🚀 [교정 완착]: 이름 중복 간섭을 깨부수기 위해 로그인 시 저장된 휴대폰 번호 세션을 실시간 수혈합니다.
                 const sessionPhone = sessionStorage.getItem('certifiedUserPhone') || (window.loggedInUser ? window.loggedInUser.phone : "");
                 const cleanSessionPhone = sessionPhone.toString().replace(/[^0-9]/g, "").trim();
 
-                // =========================================================================
-                // 🟢 [역방향 락킹]: 관리자가 PC창에서 바꾼 참여상태를 1초 간격으로 무결 매핑 추적
-                // =========================================================================
+                // 🚀 관리자 대장 데이터베이스 실시간 캡처 스캔
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                // 🚀 [정밀 교차 식별 가드]: 이름과 핸드폰 번호까지 매칭되는 진짜 실물 최신 레코드 하나만 조준 타격합니다.
+                // 동명 이인 및 유령 레코드 간섭을 분쇄하는 복합 인적 정보 1:1 조준 매칭
                 const liveRecord = adminApplicantDB.find(u => {
                     if (!u || !u.name) return false;
                     const dbNameClean = u.name.toString().replace(/\s/g, "");
                     const dbPhoneClean = (u.phone || "").toString().replace(/[^0-9]/g, "").trim();
                     if (!cleanSessionPhone) return dbNameClean === cleanSessionName;
-                    return dbNameClean === cleanSessionName && (dbPhoneClean === cleanSessionPhone || dbPhoneClean.includes(cleanSessionPhone) || cleanSessionPhone.includes(dbPhoneClean));
+                    return dbNameClean === cleanSessionName && (dbPhoneClean === cleanSessionPhone || dbPhoneClean.includes(cleanSessionPhone));
                 });
 
                 if (liveRecord) {
                     const mobileBadge = document.getElementById('cms-badge');
                     const stageTxtSlot = document.getElementById('ui_stage_text');
 
-                    // 🚀 [리얼타임 원장 소스 수혈]: 과거의 오염된 껍데기 필드(stage)를 완전 폐기하고,
-                    // 파일 업로드(신검/소집결과) 및 수정 모드로 변경된 진짜 관리자 대장의 참여상태인 'status'를 다이렉트 캡처합니다.
+                    // 🚀 가짜 변수 필드를 전면 청소하고 진짜 관리자 화면의 참여상태 데이터인 'status'를 실시간 수혈
                     const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
 
                     if (mobileBadge) {
-                        // 🚀 [교정 완착]: 외부 프레임워크 CSS의 우선순위 간섭을 완전히 붕괴시키기 위해
-                        // 기존 인라인 스타일을 완전 소독 후, 관리자 대장 고유 색상을 강제로 주입합니다.
-                        mobileBadge.style.removeAttribute("background");
-                        mobileBadge.style.removeAttribute("background-color");
-                        mobileBadge.style.removeAttribute("border");
-                        mobileBadge.style.removeAttribute("color");
-
+                        // 인라인 스타일 찌꺼기와 하드코딩 파란색 족쇄 원천 무력화 소독
+                        mobileBadge.removeAttribute("style");
                         mobileBadge.className = "badge";
 
+                        // 🚀 [배지 상태 멘트 및 색상 대규모 동일화 구현부]
                         if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
                             mobileBadge.innerText = "신검\n대기";
-                            // 🎨 [관리자 보라색 배지 100% 동일화]: 꿀림 현상을 차단하기 위해 !important 가드로 보라색 스킨을 완착합니다.
-                            mobileBadge.style.setProperty("background-color", "rgba(168, 85, 247, 0.15)", "important"); /* 연보라 배경 */
-                            mobileBadge.style.setProperty("border", "1px solid #c084fc", "important");                 /* 보라색 테두리 */
-                            mobileBadge.style.setProperty("color", "#e9d5ff", "important");                          /* 연청보라 글씨 */
+                            mobileBadge.classList.add("master-purple"); /* 🎨 관리자 대장 '신검대기' 보라색 비주얼과 100% 동일화 */
                         } else if (liveStatusText === "신검적합" || liveStatusText.includes("적합")) {
                             mobileBadge.innerText = "신검\n적합";
-                            mobileBadge.style.setProperty("background-color", "rgba(22, 163, 74, 0.15)", "important");  /* 연녹색 배경 */
-                            mobileBadge.style.setProperty("border", "1px solid #4ade80", "important");
-                            mobileBadge.style.setProperty("color", "#f0fdf4", "important");
+                            mobileBadge.classList.add("master-green");  /* 🎨 관리자 대장 '신검적합' 녹색 비주얼과 100% 동일화 */
                         } else if (liveStatusText === "참여(소집)" || liveStatusText.includes("소집")) {
                             mobileBadge.innerText = "참여\n(소집)";
-                            mobileBadge.style.setProperty("background-color", "rgba(2, 132, 199, 0.15)", "important");  /* 연청색 배경 */
-                            mobileBadge.style.setProperty("border", "1px solid #38bdf8", "important");
-                            mobileBadge.style.setProperty("color", "#ffffff", "important");
+                            mobileBadge.classList.add("master-blue");   /* 🎨 관리자 대장 '참여(소집)' 청색 비주얼과 100% 동일화 */
                         } else if (liveStatusText === "투약" || liveStatusText.includes("진행")) {
                             mobileBadge.innerText = "진행\n(투약)";
-                            mobileBadge.style.setProperty("background-color", "rgba(2, 132, 199, 0.15)", "important");
-                            mobileBadge.style.setProperty("border", "1px solid #38bdf8", "important");
-                            mobileBadge.style.setProperty("color", "#ffffff", "important");
-                        } else if (liveStatusText === "종료" || liveStatusText.includes("완결")) {
+                            mobileBadge.classList.add("master-blue");   /* 🎨 관리자 대장 '투약' 청색 비주얼과 100% 동일화 */
+                        } else if (liveStatusText === "종료" || liveStatusText === "완결") {
                             mobileBadge.innerText = "정산\n(종료)";
-                            mobileBadge.style.setProperty("background-color", "rgba(71, 85, 105, 0.15)", "important");  /* 연회색 배경 */
-                            mobileBadge.style.setProperty("border", "1px solid #94a3b8", "important");
-                            mobileBadge.style.setProperty("color", "#f8fafc", "important");
+                            mobileBadge.classList.add("master-slate");  /* 🎨 관리자 대장 '종료' 회색 비주얼과 100% 동일화 */
                         } else if (liveStatusText.includes("탈락") || liveStatusText.includes("부적합") || liveStatusText === "시험부적합") {
                             mobileBadge.innerText = "심사\n탈락";
-                            mobileBadge.style.setProperty("background-color", "rgba(190, 18, 60, 0.15)", "important");  /* 연적색 배경 */
-                            mobileBadge.style.setProperty("border", "1px solid #f43f5e", "important");
-                            mobileBadge.style.setProperty("color", "#fff1f2", "important");
+                            mobileBadge.classList.add("master-rose");   /* 🎨 관리자 대장 '탈락' 적색 비주얼과 100% 동일화 */
                         } else {
                             mobileBadge.innerText = liveStatusText.replace("(", "\n(");
-                            mobileBadge.style.setProperty("background-color", "rgba(168, 85, 247, 0.15)", "important");
-                            mobileBadge.style.setProperty("border", "1px solid #c084fc", "important");
-                            mobileBadge.style.setProperty("color", "#e9d5ff", "important");
+                            mobileBadge.classList.add("master-navy");
                         }
                     }
 
-                    // 🚀 [상태 멘트 실시간 미러링]: 모바일 화면 좌측 하단의 상태 텍스트 로그도 실시간으로 원장 문구와 일치화
+                    // 모바일 화면 좌측 하단의 텍스트 로그 영역 동기화
                     const historyLogSlot = document.getElementById('history-log');
                     if (historyLogSlot) {
                         historyLogSlot.innerText = liveStatusText;
                     }
 
-                    // 🎯 [실시간 원격 리스킨 인터셉터]: 원본의 가드 규칙을 안전하게 상속
+                    // 🎯 [순정 원형 로직 가드 계승]
                     if (liveStatusText === "종료" || liveStatusText === "완결") {
                         if (stageTxtSlot) {
                             stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 과제의 정산 청구 및 금융 지급 심사가 정상 완료되었습니다.</span>`;
                         }
 
-                        /* =================================================================
-                           🔥 [순정 무결 상속] 실시간 "시험일정" 버튼 노출 및 기존 제출 버튼 원격 마감 잠금
-                           ================================================================= */
                         const calendarBtn = document.getElementById('ui_calendar_redirect_btn');
                         const submitBtn = document.getElementById('ui_submit_btn');
 
-                        if (calendarBtn) {
-                            calendarBtn.style.setProperty("display", "block", "important");
-                        }
+                        if (calendarBtn) calendarBtn.style.setProperty("display", "block", "important");
                         if (submitBtn) {
                             submitBtn.innerText = "지급 청구 마감 (과제 종료)";
                             submitBtn.disabled = true;
                             submitBtn.style.background = "#1e293b";
                             submitBtn.style.cursor = "not-allowed";
                         }
-                        /* ================================================================= */
                     } else {
                         const calendarBtn = document.getElementById('ui_calendar_redirect_btn');
                         if (calendarBtn) calendarBtn.style.display = "none";
@@ -1531,7 +1568,7 @@
                     }
                 }
 
-                // 🌟 [순정 보존 구역]: 하단 푸시 및 연동 시그널 처리반 (단 한 자의 유실 없이 원형 보존)
+                // 🌟 [순정 보존 구역]: 하단 푸시 및 윈도우 오프너 연동 시그널 처리반 (단 한 자의 유실 없이 원형 보존)
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
                 const cmsBadgeSlot = document.getElementById('cms-badge');
 
@@ -1566,7 +1603,6 @@
                     }
                 }
 
-                // 🚀 [제공해주신 순정 마감 구역 연동선 사수]: 윈도우 오프너 신호 실시간 안착 포착선
                 if (window.opener && !window.opener.closed && window.opener.currentCertifiedUser) {
                     const currentStatus = window.opener.currentCertifiedUser.payStatus;
                     if (currentStatus === "신청가능") {

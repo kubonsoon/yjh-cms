@@ -2119,6 +2119,25 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 return matchTitle && matchTh;
             });
 
+            // 마스터 공고 원장 데이터베이스(dataStoreRecruitment)에서 진짜 배정 정원 수치를 실시간 역추적하는 함수를 이식합니다.
+            function getTrueMasterQuota(rowTitle, rowTh) {
+                const appTitleClean = (rowTitle || "").toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                const appThClean = (rowTh || "").toString().trim();
+
+                if (typeof recruitmentDB !== "undefined" && recruitmentDB.length > 0) {
+                    const matchedRec = recruitmentDB.find(rec => {
+                        const recTitleClean = (rec.title || "").toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        return recTitleClean === appTitleClean && (rec.th || "").toString().trim() === appThClean;
+                    });
+
+                    // 1:1 매칭 성공 시 해당 공고 원장의 순정 정원(예: 46)을 발라내어 분모에 수혈
+                    if (matchedRec && matchedRec.count) {
+                        return matchedRec.count.toString().replace(/[^0-9]/g, "");
+                    }
+                }
+                return "46"; // 일치하는 공고가 아예 유실되었을 때 작동할 기본 안전핀
+            }
+
             if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL' && !window.isCustomSearchActive) displayList = db;
 
             // [하이브리드 투트랙 정렬 체인 마스터 락인]

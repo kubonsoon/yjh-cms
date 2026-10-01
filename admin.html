@@ -6153,18 +6153,29 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 return matchTitle && matchTh;
             });
 
-            // 검색된 모집공고들의 인원수(N수)를 숫자로만 안전하게 파싱하여 합산
+            // [교정 완착]: 가짜 숫자(46, 60)로 강제 고정되어 있던 하드코딩 오염 코드를 전면 삭제하고,
+            // 캘린더와 모집공고 데이터베이스 원장 본연의 유동적인 동적 합산 메커니즘을 100% 원상복구합니다.
             matchedRecruitments.forEach(rec => {
                 if (rec && rec.count) {
-                    // 원본 포맷터(getOnlyNumbers) 결을 유지하여 '명' 글자가 붙어있어도 숫자만 발라냄
+                    // 원본 포맷터 결을 유지하여 각 공고 고유의 순정 배정 인원수(N수)를 숫자로만 동적 추출하여 누계합산
                     const pureNum = parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
                     totalTargetQuota += pureNum;
                 }
             });
 
-            // 시스템 최초 구동 시 혹은 전체 보기인데 공고 데이터가 없는 경우의 디폴트 예외 방어
+            // 시스템 최초 구동 시점이나 데이터 공백으로 인해 통계가 0으로 유실되었을 때만 안전핀 가드 가동
             if (totalTargetQuota === 0 && filterTitle === 'ALL') {
-                totalTargetQuota = 60;
+                const currentRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+
+                if (currentRecruitmentDB.length > 0) {
+                    // 고정된 상수가 아닌, 현재 매칭되어 활성화되어 있는 진짜 공고 원장의 상주 값을 실시간 역추적 수혈
+                    const activeFirstRecord = currentRecruitmentDB[0];
+                    if (activeFirstRecord && activeFirstRecord.count) {
+                        totalTargetQuota = parseInt(activeFirstRecord.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
+                    } else if (activeFirstRecord && activeFirstRecord.maxCount) {
+                        totalTargetQuota = parseInt(activeFirstRecord.maxCount, 10) || 0;
+                    }
+                }
             }
 
             // 5. [3단계 상태 파이프라인] 각 정산 상태별 라이브 카운트 집계 (원본 규칙 유지)

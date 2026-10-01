@@ -5581,22 +5581,21 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     setTimeout(() => {
                         const parentModal = contentZone.closest('.editor-modal-content') || contentZone.closest('.calendar-modal');
                         if (parentModal) {
-                            // 원본 마크업 기반 퀼 에디터 툴바 프레임 역추적
+                            // 1. 퀼 에디터 툴바 박스를 확실하게 숨김 처리
                             const qlToolbar = parentModal.querySelector('.ql-toolbar');
                             if (qlToolbar) {
-                                qlToolbar.style.setProperty("display", "none", "important"); /* 가림막 툴바 완전 제거 */
+                                qlToolbar.style.setProperty("display", "none", "important");
                             }
 
-                            // '게시판 에디터' 문구가 박혀있는 상단 텍스트 레이아웃 제거 가드
-                            const textNodes = parentModal.querySelectorAll('div, p, span');
-                            textNodes.forEach(node => {
-                                if (node.textContent.includes("게시판 에디터") && node.children.length === 0) {
-                                    node.style.setProperty("display", "none", "important");
-                                }
-                            });
+                            // 2. 타이틀이 위치한 상단 헤더 구역 엘리먼트 추적 수술
+                            const titleHeader = parentModal.querySelector('.modal-header') || parentModal.querySelector('.editor-modal-title') || parentModal.firstElementChild;
+                            if (titleHeader) {
+                                // 내부에 숨어있는 모든 "게시판 에디터" 문자열을 공백으로 실시간 도려내기 치료
+                                titleHeader.innerHTML = titleHeader.innerHTML.replace(/게시판\s*에디터/g, "");
+                            }
                         }
 
-                        // 안쪽 리스트 상자의 물리 좌표를 최상단 0점으로 정밀 복구
+                        // 안쪽 리스트 상자의 물리 좌표를 최상단 0점으로 부드럽게 락인
                         const innerScrollBox = document.querySelector('.precaution-list');
                         if (innerScrollBox) {
                             innerScrollBox.scrollTop = 0;

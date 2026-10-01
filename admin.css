@@ -1158,7 +1158,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /*4대 공지 공통 내용창 그릇 상단 패딩(padding-top)을 20px 만큼 시원하게 내려서 개방합니다. */
 #integrated-display-view-area {
-  padding-top: 125px !important; /* 상단 한 줄 분량의 안전 간격 확보 */
+  padding-top: 140px !important; /* 상단 한 줄 분량의 안전 간격 확보 */
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;

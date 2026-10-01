@@ -2119,11 +2119,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 return matchTitle && matchTh;
             });
 
-            // 마스터 공고 원장 데이터베이스(dataStoreRecruitment)에서 진짜 배정 정원 수치를 실시간 역추적하는 함수를 이식합니다.
-            function getTrueMasterQuota(rowTitle, rowTh) {
-                if (!rowTitle) return "46";
-
-                // 원본의 소문자 변환 및 특수문자 소독 필터와 완전히 일치화
+            // [교정 완착]: 가짜 숫자 상수를 단 1픽셀도 허용하지 않고 오직 원본 데이터베이스 레코드 본연의 순정 값만 발라내도록 정화합니다.
+            function getTrueMasterQuota(rowTitle, rowTh, rowFallbackCount) {
+                if (!rowTitle) return (rowFallbackCount || "").toString().replace(/[^0-9]/g, "");
                 const cleanAppTitle = rowTitle.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
                 const cleanAppTh = (rowTh || "").toString().replace(/[^0-9]/g, "").trim();
 
@@ -2132,23 +2130,41 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         if (!rec || !rec.title) return false;
                         const cleanRecTitle = rec.title.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
                         const cleanRecTh = (rec.th || "").toString().replace(/[^0-9]/g, "").trim();
-
-                        // 제목 포함 관계 분석 및 기수 숫자 정보의 완벽한 1:1 교차 검증
                         return (cleanRecTitle === cleanAppTitle || cleanRecTitle.includes(cleanAppTitle) || cleanAppTitle.includes(cleanRecTitle)) && (cleanRecTh === cleanAppTh);
                     });
 
                     if (matchedRec && matchedRec.count) {
-                        const extractedNum = matchedRec.count.toString().replace(/[^0-9]/g, "");
-                        if (extractedNum) return extractedNum;
+                        return matchedRec.count.toString().replace(/[^0-9]/g, "");
                     }
                 }
 
-                // 만약 매칭에 완전히 실패한 유령 데이터라면 행 자체에 혹시 박혀있을 순정 정원수를 역추적하는 안전핀 가동
-                if (typeof row !== "undefined" && row && row.count && !row.count.toString().includes('/')) {
-                    return row.count.toString().replace(/[^0-9]/g, "") || "46";
+                // 🚀 [완전 소독]: "46" 같은 가짜 대입 수치를 완전히 증발시키고, 원본 데이터가 '2/60' 형태로 오염되어 있다면 분모(60)만 정확히 추출, 그 외엔 순정 숫자만 반환합니다.
+                let fallbackStr = (rowFallbackCount || "").toString();
+                if (fallbackStr.includes('/')) {
+                    return fallbackStr.split('/')[1].replace(/[^0-9]/g, "");
                 }
+                return fallbackStr.replace(/[^0-9]/g, "");
+            }
 
-                return "46";
+            function getTrueMasterTime(rowTitle, rowTh, rowFallbackTime) {
+                if (!rowTitle) return rowFallbackTime || "";
+                const cleanAppTitle = rowTitle.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                const cleanAppTh = (rowTh || "").toString().replace(/[^0-9]/g, "").trim();
+
+                if (typeof recruitmentDB !== "undefined" && recruitmentDB && recruitmentDB.length > 0) {
+                    const matchedRec = recruitmentDB.find(rec => {
+                        if (!rec || !rec.title) return false;
+                        const cleanRecTitle = rec.title.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const cleanRecTh = (rec.th || "").toString().replace(/[^0-9]/g, "").trim();
+                        return (cleanRecTitle === cleanAppTitle || cleanRecTitle.includes(cleanAppTitle) || cleanAppTitle.includes(cleanRecTitle)) && (cleanRecTh === cleanAppTh);
+                    });
+
+                    if (matchedRec && matchedRec.time) {
+                        return matchedRec.time;
+                    }
+                }
+                // 🚀 [완전 소독]: 가짜 '96시간' 강제 주입막을 파괴하고 대상자의 기존 순정 시간 필드값만 정직하게 리턴합니다.
+                return rowFallbackTime || "";
             }
 
             if (displayList.length === 0 && filterTitle === 'ALL' && filterTh === 'ALL' && !window.isCustomSearchActive) displayList = db;

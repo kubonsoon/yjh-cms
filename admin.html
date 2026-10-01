@@ -2409,12 +2409,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             <option value="4기" ${row.th === '4기' ? 'selected' : ''}>4기</option>
         </select>
     </td>
-  <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+   <td style="width: 6.5%; vertical-align: middle; text-align: center;">
     <input type="text" 
            id="inline-app-count-${masterIndex}" 
            class="inline-input" 
-           value="${row.count && row.count.toString().includes('/') ? row.count : '1/' + (row.count || '60')}" 
-           style="text-align:center; background: var(--card-color) !important;">
+           value="${row.liveMatchOrderNumber !== undefined ? row.liveMatchOrderNumber : 1}/${getTrueMasterQuota(row.title, row.th, row.count)}" 
+           style="text-align:center; background: var(--card-color) !important;"
+           readonly>
   </td>
     <td style="width: 6%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-period-${masterIndex}" class="inline-input" value="${row.period || ''}" style="text-align:center; background: var(--card-color) !important;">

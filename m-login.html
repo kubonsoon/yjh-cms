@@ -828,7 +828,7 @@
                         <div id="ui_crc_name_zone"></div>
                     </div>
                 </div>
-                <span id="cms-badge" class="badge bg-blue">참여\n(소집)</span>
+                <span id="cms-badge" class="badge bg-blue"></span>
             </div>
             <div class="status-history-bar">
                 <span>실시간 연결: <b style="color:#4ade80;">연결중</b></span>
@@ -1135,8 +1135,8 @@
                     // 정사각형 라운드 배지 텍스트 개행 매핑 안전 이식 완결
                     const cmsBadgeSlot = document.getElementById('cms-badge');
                     if (cmsBadgeSlot && matchedPatientData) {
-                        // 로컬 DB 마스터 대장의 최신 참여상태 필드 실시간 확보
-                        const currentStage = (matchedPatientData.stage || "소집").toString().trim();
+                        // 🚀 [교정 완착]: 옛날 유령 필드(stage)를 폐기하고, 관리자 대장 원장의 진짜 실시간 참여상태 필드인 'status'를 다이렉트 상속합니다.
+                        const currentStage = (matchedPatientData.status || "신검대기").toString().trim();
 
                         if (currentStage === "종료") {
                             // 🎯 관리자가 대장에서 '종료'로 수정해둔 상태라면 즉시 모바일 배지 리스킨
@@ -1145,13 +1145,23 @@
                         } else if (currentStage === "투약") {
                             cmsBadgeSlot.innerText = "진행\n(투약)";
                             cmsBadgeSlot.style.background = "#0ea5e9";
-                        } else {
-                            cmsBadgeSlot.innerText = `참여\n(${currentStage})`;
+                        } else if (currentStage === "신검대기") {
+                            cmsBadgeSlot.innerText = "신검\n대기";
                             cmsBadgeSlot.style.background = "#0056B3"; // 순정 소집 블루 테마 보존
+                        } else if (currentStage === "신검적합") {
+                            cmsBadgeSlot.innerText = "신검\n적합";
+                            cmsBadgeSlot.style.background = "#10B981"; // 에메랄드 그린 스킨
+                        } else if (currentStage === "참여(소집)" || currentStage.includes("소집")) {
+                            cmsBadgeSlot.innerText = "참여\n(소집)";
+                            cmsBadgeSlot.style.background = "#0056B3";
+                        } else {
+                            // 그 외 가변 예외 상태 포맷팅 처리
+                            cmsBadgeSlot.innerText = currentStage.replace("(", "\n(");
+                            cmsBadgeSlot.style.background = "#0056B3";
                         }
 
                         /* =================================================================
-                           🔥 [통합 추가] 최하단 "시험일정" 버튼 노출 및 기존 제출 버튼 가드 잠금
+                           🔥 [순정 완벽 상속] 최하단 "시험일정" 버튼 노출 및 기존 제출 버튼 가드 잠금
                            ================================================================= */
                         const calendarBtn = document.getElementById('ui_calendar_redirect_btn');
                         const submitBtn = document.getElementById('ui_submit_btn');

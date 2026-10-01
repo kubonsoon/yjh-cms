@@ -5538,24 +5538,24 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     const contentZone = document.getElementById('integrated-display-view-area');
                     if (!contentZone) return;
 
-                    // 1. 공통 모달 하드웨어 크기 복구 (순정 가로 유지, 세로 유동 확장)
                     const parentModal = contentZone.closest('.editor-modal-content') || contentZone.closest('.calendar-modal');
                     if (parentModal) {
                         parentModal.style.setProperty("height", "auto", "important");
                         parentModal.style.setProperty("max-height", "95vh", "important");
                     }
 
-                    // 🚀 [핵심 모드 스캔 가드]: 현재 모달이 텍스트 '편집 모드'인지 단순 '보기 리스트 목록' 상태인지 판단합니다.
                     const isEditMode = contentZone.querySelector('.quill-editor') || contentZone.querySelector('textarea') || document.getElementById('noticeTextarea') || contentZone.innerText.includes("게시판 에디터");
 
                     if (isEditMode) {
-                        // 🎯 [A 트랙: 편집 에디터 모드일 때] -> 불필요한 마진과 강제 패딩을 완벽히 소독하여 정위치 밀착 정렬
                         contentZone.style.setProperty("padding-top", "0px", "important");
                         contentZone.style.setProperty("margin-top", "0px", "important");
-                        return; // 편집 기능은 순정 텍스트 상자를 그대로 띄우고 조기 종료하여 꼬임을 차단합니다.
+                        return;
                     }
 
-                    // 🎯 [B 트랙: 순수 보기 목록 리스트일 때] -> 헤더 가림막을 피할 수 있는 정밀 타격 안전 패딩(40px)만 주입
+                    // 🚀 [강제 인출 가드]: 보기 목록일 때 contentZone의 상단 패딩을 60px로 과감하게 개방하여 가림막을 무력화합니다.
+                    contentZone.style.setProperty("padding-top", "60px", "important");
+                    contentZone.style.setProperty("box-sizing", "border-box", "important");
+
                     let textData = targetRow[config.dbField] || '';
                     textData = textData.replace(/(\d+)\./g, "\n\$1.");
                     const lines = textData.split('\n').map(line => line.trim()).filter(line => line !== "");
@@ -5566,8 +5566,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    // padding-top: 42px 분배를 통해 가림막 장막 아래로 1번 "금식·물 섭취" 배지 카드부터 명확하게 사출해 냅니다.
-                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 42px 0 10px 0 !important; margin: 0 !important; box-sizing: border-box !important;">`;
+                    // 내부 리스트의 패딩 간섭을 초기화하고 순수한 한 줄 정렬 매트릭스 가동
+                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);

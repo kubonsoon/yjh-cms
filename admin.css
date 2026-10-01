@@ -836,9 +836,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* -------------------------------------------------------------------------
    B. 모집공고 관리: 주의사항 및 일정 인라인 에디터 팝업 모달 서식
    ------------------------------------------------------------------------- */
-/* 1. 로그인 전이나 호출 전에는 모든 에디터 모달 오버레이를 화면에서 철저히 숨김 잠금 */
 .editor-modal-overlay {
-  display: none !important; /* 🚀 초기 무단 노출을 원천 봉쇄하는 초강력 안전핀 */
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -850,7 +849,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   justify-content: center;
 }
 
-/* 2. 공통 모달 내부 알맹이 그릇 정의 (인라인 간섭 소독) */
 .editor-modal-content {
   background-color: #ffffff; /* 에디터 내부 컨필드 화이트 반전 사수 */
   padding: 25px;
@@ -858,45 +856,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   width: 500px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-start !important;
-}
-
-/* 3. 오직 자바스크립트나 시스템이 active/show 권한을 명시적으로 부여했을 때만 모달 개방 */
-.editor-modal-overlay.active,
-.editor-modal-overlay.show {
-  display: flex !important; /* 🚀 호출되었을 때만 flex로 유연하게 화면 사출 */
-}
-
-/* 4. [주의사항 보기] 목록 단독 대확장 격리 가드 (편집창은 침범하지 않음) */
-.editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
-  .editor-modal-content {
-  height: 760px !important;
-  min-height: 760px !important;
-  max-height: 90vh !important;
-  overflow: hidden !important;
-}
-
-.editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
-  #integrated-display-view-area {
-  height: 600px !important;
-  min-height: 600px !important;
-  max-height: 600px !important;
-  overflow: hidden !important;
-  padding-top: 15px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  box-sizing: border-box !important;
-}
-
-.editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
-  #integrated-display-view-area
-  + div,
-.editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
-  .modal-footer {
-  margin-top: auto !important;
-  padding-top: 15px !important;
 }
 
 .editor-modal-title {
@@ -1199,27 +1158,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* 모집공고 관리> 주의사항 */
 .precaution-list {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 5px 0 !important;
-  box-sizing: border-box !important;
-  max-height: 540px !important;
-  overflow-y: auto !important; /* 안쪽 독점 스크롤바 활성화 */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+  padding: 10px 0;
 }
 
 .precaution-card {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  padding: 12px 16px !important;
-  background: #273549 !important; /* 가독성을 극대화하는 컴팩트 어두운 스킨 */
-  border: 1px solid #334155 !important;
-  border-radius: 6px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 /* 숫자 원형 배지 공통 규격 */
@@ -1238,11 +1191,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* 텍스트 스타일 규격 */
 .precaution-text {
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  color: #f1f5f9 !important; /* 고대비 연청백색 글자 사출 */
-  line-height: 1.4 !important;
-  text-align: left !important;
+  font-size: 15px;
+  font-weight: 500;
+  color: #334155;
 }
 
 /* 🎨 이미지 기반 번호별 고유 색상 매핑 수술 */

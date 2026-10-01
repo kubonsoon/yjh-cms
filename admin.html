@@ -5513,30 +5513,6 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                 // [교정 완착 1]: 백틱(`) 내부 문장 앞의 들여쓰기 공백을 바짝 밀어붙여 데이터 오염을 소독합니다.
                 let rawData = targetRow[config.dbField] || '';
-
-                // 🚀 [원천 데이터 자동 치유 가드]: 로컬스토리지 DB 내부 텍스트가 쉼표(,)를 달고 중복 오염된 경우 자동으로 진짜 순정 텍스트만 추출합니다.
-                if (rawData && rawData.includes(",")) {
-                    // 정규식으로 쪼개어 중복 문장 패턴을 깔끔하게 단 한 문장씩으로만 압축 정화합니다.
-                    const cleanLines = rawData.split('\n').map(line => {
-                        const parts = line.split(',');
-                        if (parts.length > 1) {
-                            // "1. 금식,1. 금식" -> "1. 금식"만 반환
-                            return parts[0].trim();
-                        }
-                        return line.trim();
-                    }).filter(line => line !== "");
-
-                    rawData = cleanLines.join('\n');
-
-                    // 정화된 진짜 데이터를 메모리와 로컬스토리지 영구 데이터베이스에 즉시 동기화 수혈 치료
-                    targetRow[config.dbField] = rawData;
-                    if (realPhysicalIndex !== -1) {
-                        origRecruitmentDB[realPhysicalIndex] = targetRow;
-                        localStorage.setItem('dataStoreRecruitment', JSON.stringify(origRecruitmentDB));
-                    }
-                }
-
-                // 데이터가 완벽히 비어있거나 가짜 더미 안내 문구일 때만 진짜 마스터 12대 준수사항 주입
                 if (!rawData || rawData.includes("주의사항 안내")) {
                     targetRow[config.dbField] = `1. 금식·물 섭취
                     2. 음주·카페인·흡연
@@ -5557,49 +5533,19 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     }
                 }
 
-                // [교정 완착 2]: 깨끗해진 정적 데이터를 바탕으로 150ms 후 비주얼 배지 카드를 사출합니다.
+                // [교정 완착 2]: 외부 함수 없이 이 자리에서 대시보드 스케줄러 타이밍에 직접 결합합니다.
                 setTimeout(() => {
-                    // 1. 시스템 원본 통합 모달의 구역 매핑 추적
                     const contentZone = document.getElementById('integrated-display-view-area');
-                    const parentModal = contentZone ? (contentZone.closest('.editor-modal-content') || contentZone.closest('.calendar-modal')) : null;
+                    if (!contentZone) return;
 
-                    if (!contentZone || !parentModal) return;
-
-                    // 🚀 [편집 모드 인텔리전스 스캔 가드]: 화면에 입력창(textarea, input)이 존재하거나 에디터 활성화 상태인지 실시간 정밀 추적합니다.
-                    const isEditActive = parentModal.querySelector('textarea') ||
-                        parentModal.querySelector('input[type="text"]') ||
-                        parentModal.querySelector('.quill-editor') ||
-                        parentModal.innerHTML.includes("취소") ||
-                        parentModal.innerHTML.includes("저장");
-
-                    // 🎯 [A 트랙: 편집창 모드일 때] -> 그 어떤 가드도 주입하지 않고 원본 500px 순정 크기와 입력 폼을 그대로 보존해 조기 종료합니다.
-                    if (isEditActive) {
-                        parentModal.style.setProperty("height", "520px", "important");
-                        parentModal.style.setProperty("min-height", "520px", "important");
-                        parentModal.style.setProperty("overflow", "visible", "important");
-                        contentZone.style.removeAttribute("height");
-                        contentZone.style.removeAttribute("padding-top");
-                        contentZone.style.removeAttribute("overflow");
-                        return;
+                    // 가로폭 520px은 순정 규격 그대로 고수하고 세로 높이만 유동적으로 auto 확장 처리
+                    const parentModal = contentZone.closest('.editor-modal-content');
+                    if (parentModal) {
+                        parentModal.style.setProperty("height", "auto", "important");
+                        parentModal.style.setProperty("max-height", "90vh", "important");
                     }
 
-                    // 🎯 [B 트랙: 순수 보기 목록 리스트일 때만 단독 대확장 및 배지 공정 가동]
-                    parentModal.style.setProperty("height", "750px", "important");
-                    parentModal.style.setProperty("min-height", "750px", "important");
-                    parentModal.style.setProperty("overflow", "hidden", "important");
-                    parentModal.style.setProperty("display", "flex", "important");
-                    parentModal.style.setProperty("flex-direction", "column", "important");
-
-                    contentZone.style.setProperty("display", "flex", "important");
-                    contentZone.style.setProperty("flex-direction", "column", "important");
-                    contentZone.style.setProperty("height", "600px", "important");
-                    contentZone.style.setProperty("min-height", "600px", "important");
-                    contentZone.style.setProperty("max-height", "600px", "important");
-                    contentZone.style.setProperty("padding-top", "15px", "important");
-                    contentZone.style.setProperty("overflow", "hidden", "important");
-                    contentZone.style.setProperty("box-sizing", "border-box", "important");
-                    contentZone.style.setProperty("margin-bottom", "15px", "important");
-
+                    // 가로로 한 줄로 길게 붙어 유입되는 유령 공백 텍스트 분쇄 가드 가동
                     let textData = targetRow[config.dbField] || '';
                     textData = textData.replace(/(\d+)\./g, "\n\$1.");
                     const lines = textData.split('\n').map(line => line.trim()).filter(line => line !== "");
@@ -5610,7 +5556,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         9: "bg-rose", 10: "bg-purple", 11: "bg-blue", 12: "bg-navy"
                     };
 
-                    let finalHtml = `<div class="precaution-list" id="innerPrecautionScrollBox" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; flex: 1 !important; height: 100% !important; padding: 5px 0 10px 0 !important; margin: 0 !important; box-sizing: border-box !important; overflow-y: auto !important;">`;
+                    // flex-direction: column을 인젝션하여 무조건 세로 한 줄로 차곡차곡 떨어지게 정렬
+                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 5px 0 !important; max-height: 420px !important; overflow-y: auto !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);
@@ -5618,22 +5565,19 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             const num = parseInt(match[1]);
                             const pureText = match[2];
                             const colorClass = colorMap[num] || "bg-navy";
-                            const defaultCardStyle = "border: 1px solid #334155 !important;";
-                            const defaultTextStyle = "color: #f1f5f9 !important;";
+                            const roseCardStyle = num === 9 ? "border: 1px solid #f43f5e !important;" : "border: 1px solid #334155 !important;";
+                            const roseTextStyle = num === 9 ? "color: #fda4af !important;" : "color: #f1f5f9 !important;";
 
                             finalHtml += `
-                                <div class="precaution-card" style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 12px 14px !important; background: #273549 !important; border-radius: 6px !important; ${defaultCardStyle} width: 100% !important; box-sizing: border-box !important;">
+                                <div class="precaution-card" style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 14px !important; background: #273549 !important; border-radius: 6px !important; ${roseCardStyle} width: 100% !important; box-sizing: border-box !important;">
                                     <span class="badge-num ${colorClass}" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 24px !important; height: 24px !important; border-radius: 50% !important; color: #ffffff !important; font-weight: 700 !important; font-size: 12px !important; flex-shrink: 0 !important;">${num}</span>
-                                    <span class="precaution-text" style="font-size: 13px !important; font-weight: 500 !important; ${defaultTextStyle} line-height: 1.4 !important; text-align: left !important;">${pureText}</span>
+                                    <span class="precaution-text" style="font-size: 13px !important; font-weight: 500 !important; ${roseTextStyle} line-height: 1.4 !important; text-align: left !important;">${pureText}</span>
                                 </div>`;
                         }
                     });
 
                     finalHtml += `</div>`;
                     contentZone.innerHTML = finalHtml;
-
-                    const innerBox = document.getElementById('innerPrecautionScrollBox');
-                    if (innerBox) innerBox.scrollTop = 0;
                 }, 150);
 
             } else if (type === 'schedule') {
@@ -7568,7 +7512,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
     </div>
 
     <!-- 모집공고 상세 에디터 모달 팝업 (전체 인라인 스타일 제거 완료) -->
-    <div id="noticeEditorModal" class="editor-modal-overlay notice-edit-window">
+    <div id="noticeEditorModal" class="editor-modal-overlay">
         <div class="editor-modal-content">
             <h3 id="modal-title" class="editor-modal-title">📋 세부 일정 및 주의사항 편집</h3>
 

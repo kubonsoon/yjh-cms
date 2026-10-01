@@ -1081,11 +1081,13 @@
                 // [교정 완착]: 문자열 내부의 역슬래시(\) 및 불필요한 줄바꿈 공백을 완전히 소독하고,
                 // 현재 스코프에 상주하는 유효 변수(currentChannelName, name)가 100% 실제 데이터로 치환되도록 백틱 문법을 완전 개방합니다.
                 document.getElementById('txtPopTitle').innerText = "신규 대상자 본인인증 완료";
+
+                // 💡 중요: 시작과 끝을 무조건 백틱(`)으로 묶어주셔야 변수 데이터가 온전하게 사출됩니다.
                 document.getElementById('txtPopMessage').innerText =
                     `• 연계기관: ${currentChannelName || "간편인증"} 연동모듈
                      • 대상자명: ${name || temporaryVerifiedName}님
-                       양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.
-                       확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
+                     양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.
+                     확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
             }
 
             if (typeof navigateToStep === "function") {

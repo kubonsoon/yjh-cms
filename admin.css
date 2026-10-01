@@ -836,9 +836,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* -------------------------------------------------------------------------
    B. 모집공고 관리: 주의사항 및 일정 인라인 에디터 팝업 모달 서식
    ------------------------------------------------------------------------- */
-/* 기본 공통 모달 기본 스펙트럼 정의선 */
+/* 1. 공통 모달 기본 정렬 세팅 */
 .editor-modal-content {
-  background-color: #ffffff; /* 에디터 내부 컨필드 화이트 반전 사수 */
+  background-color: #ffffff;
   padding: 25px;
   border-radius: 10px;
   width: 500px;
@@ -846,19 +846,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
-  justify-content: flex-start !important;
 }
 
-/* 🚀 오직 주의사항 보기 목록(.precaution-list)이 주입되었을 때만 모달 전체 세로를 760px로 개방 */
-.editor-modal-overlay:has(.precaution-list) .editor-modal-content {
+/* 🚀 [격리 완착]: 편집창(.notice-edit-window)은 절대 건드리지 않고, 
+   오직 비주얼 카드(.precaution-list)가 주입된 진짜 보기용 통합 모달창만 세로 760px로 대확장합니다. */
+.editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
+  .editor-modal-content {
   height: 760px !important;
   min-height: 760px !important;
   max-height: 90vh !important;
   overflow: hidden !important;
 }
 
-/* 🚀 내부 알맹이 박스(contentZone) 지분을 600px로 대확장하여 1~3번 파묻힘 구출 */
-.editor-modal-overlay:has(.precaution-list) #integrated-display-view-area {
+/* 🚀 보기 목록 내부 알맹이 박스(contentZone) 지분만 600px로 대개방하여 1~3번 완벽 구출 */
+.editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
+  #integrated-display-view-area {
   height: 600px !important;
   min-height: 600px !important;
   max-height: 600px !important;
@@ -869,9 +871,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   box-sizing: border-box !important;
 }
 
-/* 🚀 하단 버튼 그룹을 모달창 맨 바닥 밑바닥 레이아웃으로 유연하게 하강 정렬 */
-.editor-modal-overlay:has(.precaution-list) #integrated-display-view-area + div,
-.editor-modal-overlay:has(.precaution-list) .modal-footer {
+/* 🚀 보기 목록일 때 하단 버튼 그룹을 모달창 맨 바닥 밑바닥 레이아웃으로 유연하게 하강 정렬 */
+.editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
+  #integrated-display-view-area
+  + div,
+.editor-modal-overlay:not(.notice-edit-window):has(.precaution-list)
+  .modal-footer {
   margin-top: auto !important;
   padding-top: 15px !important;
 }

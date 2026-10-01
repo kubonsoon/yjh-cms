@@ -5557,7 +5557,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     };
 
                     // flex-direction: column을 인젝션하여 무조건 세로 한 줄로 차곡차곡 떨어지게 정렬
-                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 5px 0 !important; max-height: 420px !important; overflow-y: auto !important;">`;
+                    let finalHtml = `<div class="precaution-list" style="display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; padding: 15px 0 5px 0 !important; box-sizing: border-box !important;">`;
 
                     lines.forEach(line => {
                         const match = line.match(/^(\d+)\.\s*(.*)/);

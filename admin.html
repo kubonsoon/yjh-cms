@@ -5578,6 +5578,13 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     finalHtml += `</div>`;
                     contentZone.innerHTML = finalHtml;
+                    setTimeout(() => {
+                        const innerScrollBox = document.querySelector('.precaution-list');
+                        if (innerScrollBox) {
+                            innerScrollBox.scrollTop = 0;
+                        }
+                    }, 50);
+
                 }, 150);
 
             } else if (type === 'schedule') {

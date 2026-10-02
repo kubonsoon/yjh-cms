@@ -2702,11 +2702,9 @@
                                 ${currentStage}
                             </span>
                         </td>
-                        <td style="width: 9%; vertical-align: middle; text-align: center;">
-                            <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2px;">
-                                ${buildMiniBadgeHTML('1차', row.payStatus1)}
-                                ${buildMiniBadgeHTML('2차', row.payStatus2)}
-                                ${buildMiniBadgeHTML('3차', row.payStatus3)}
+                         <td style="width: 9%; vertical-align: middle; text-align: center;">
+                            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; gap: 2px;">
+                                ${multiLinePayHTML}
                             </div>
                         </td>
                         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isDutyAgreed || '대기'}</span></td>

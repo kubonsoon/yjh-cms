@@ -1684,7 +1684,7 @@
                     try {
                         const packet = JSON.parse(event.newValue);
 
-                        // 현재 모바일 인증 대상자 세션 정보 추출
+                        // 현재 모바일 인증 대상자 세션 정보 실시간 캡처
                         const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
                         const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
 
@@ -1695,21 +1695,24 @@
                             : (packet.targetApplicantKey === cleanSessionName);
 
                         if (isMySignal) {
-                            // 🚀 [핵심 수정 1] 원본 매핑 규칙에 맞춰 변수명을 status(진짜 참여상태) 필드 값으로 수혈
+                            // admin.html에서 사출된 진짜 참여상태 문자열 데이터 수혈
                             const liveStatusText = packet.updatedStatusValue.toString().trim();
 
-                            const mobileBadge = document.getElementById('cms-badge');
-                            const historyLogSlot = document.getElementById('history-log');
-                            const submitBtn = document.getElementById('ui_submit_btn');
+                            const mobileBadge = document.getElementById('cms-badge'); // 우측 사각 라운드 배지 
+                            const historyLogSlot = document.getElementById('history-log'); // ◀ 상태: 영역의 진짜 엘리먼트 ID
+                            const submitBtn = document.getElementById('ui_submit_btn'); // 참여비 최종 신청 버튼
                             const stageTxtSlot = document.getElementById('ui_stage_text');
 
-                            // 1. 배지와 로그 텍스트를 관리자가 수정한 값 그대로 실시간 무새로고침 치환
-                            if (historyLogSlot) historyLogSlot.innerText = liveStatusText;
+                            // 1. 하단 인라인 텍스트 로그 영역을 실시간 무새로고침 치환
+                            if (historyLogSlot) {
+                                historyLogSlot.innerText = liveStatusText;
+                            }
+
+                            // 2. 우측 사각 배지 문자열 개행 및 마스터 클래스 색상 적용 (순정 규칙 100% 동기화)
                             if (mobileBadge) {
                                 mobileBadge.removeAttribute("style");
                                 mobileBadge.className = "badge";
 
-                                // 원본의 배지 문자열 개행 및 마스터 클래스 색상 적용 규칙 100% 계승
                                 if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
                                     mobileBadge.innerText = "신검\n대기";
                                     mobileBadge.classList.add("master-purple");
@@ -1734,21 +1737,47 @@
                                 }
                             }
 
-                            // 🚀 [핵심 수정 2] 업무 규칙 반영: 신검 단계는 참여비 신청 대상이 아니므로 철저히 차단(Lock)
-                            if (liveStatusText === "신검대기" || liveStatusText === "신검통과" || liveStatusText === "신검적합" || liveStatusText.includes("대기") || liveStatusText.includes("탈락") || liveStatusText.includes("부적합")) {
+                            // 3. [업무 규칙 대원칙 준수] 상태 명칭에 '신검'이 포함되면 무조건 참여비 없음 (차단 락인)
+                            if (liveStatusText.includes("신검")) {
                                 if (submitBtn) {
                                     submitBtn.disabled = true;
-                                    submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
-                                    submitBtn.style.background = "#1e293b"; // 암전 잠금 색상 고정
+
+                                    // 각 '신검' 카테고리별 맞춤형 잠금 안내 문구 노출
+                                    if (liveStatusText === "신검통과" || liveStatusText === "신검적합") {
+                                        submitBtn.innerText = "신검 통과 승인 (소집 대기 중)";
+                                    } else if (liveStatusText === "신검탈락" || liveStatusText.includes("탈락")) {
+                                        submitBtn.innerText = "심사 탈락 (부분 지급 신청 대기)";
+                                    } else if (liveStatusText === "신검동철" || liveStatusText.includes("동철")) {
+                                        submitBtn.innerText = "동의 철회 대상자 (신청 불가)";
+                                    } else {
+                                        submitBtn.innerText = "신검 단계 (참여비 지급 신청 없음)";
+                                    }
+
+                                    submitBtn.style.background = "#1e293b"; // 암전 잠금 회색 고정
                                     submitBtn.style.cursor = "not-allowed";
                                 }
                                 if (typeof setMobileFormActive === "function") {
-                                    setMobileFormActive(false); // 입력 폼 전체 잠금 유지
+                                    setMobileFormActive(false); // 은행 선택 및 파일 첨부 박스 전면 락다운
+                                }
+                            }
+                            // 🏁 과제 종료/완결 수렴 시 전면 마감 처리 트랙
+                            else if (liveStatusText === "종료" || liveStatusText === "완결") {
+                                if (stageTxtSlot) {
+                                    stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여비 청구, 금융 지급 완료 및 시험 최종 종료가 정상 완료되었습니다.</span>`;
+                                }
+                                if (submitBtn) {
+                                    submitBtn.innerText = "지급 완료 및 최종 종료 (신청 마감)";
+                                    submitBtn.disabled = true;
+                                    submitBtn.style.background = "#1e293b";
+                                    submitBtn.style.cursor = "not-allowed";
+                                }
+                                if (typeof setMobileFormActive === "function") {
+                                    setMobileFormActive(false);
                                 }
                             }
                         }
                     } catch (e) {
-                        console.error("실시간 패킷 수신 처리 실패:", e);
+                        console.error("실시간 패킷 가로채기 렌더링 실패:", e);
                     }
                 }
             });

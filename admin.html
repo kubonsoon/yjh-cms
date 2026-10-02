@@ -3344,6 +3344,7 @@
             if (!origin) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
             const id = origin.uid;
 
+            // 글로벌 원장 대장 내의 진짜 고유 위치 인덱스 식별값(idx) 정밀 락킹!
             const idx = dataStoreApplicant.findIndex(d => d.uid === id);
             if (idx === -1) return;
 

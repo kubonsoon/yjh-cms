@@ -1768,19 +1768,10 @@
                         <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
                         <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
                         
-                        <!-- 🎯 [6대 대공정 캘린더 안착]: 따옴표와 이중 백틱 충돌을 싱글 따옴표로 완벽 격리 소독 완료한 정품 날짜 슬롯 -->
-                        <td style="width: 150px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap; line-height: 1.5; padding: 6px 0;">
-                            <div style="color: #38bdf8; font-weight: 800;"><i class="fa-regular fa-calendar-check" style="color: #38bdf8;"></i> 소집: ${row.recDate || '미정'}</div>
-                            ${(function () {
-                            let vHtml = "";
-                            if (row.examSchedule) vHtml += "<div style='color: #c084fc; font-size: 11px; margin-top: 2px;'>• 스크리닝: " + row.examSchedule + "</div>";
-                            if (row.visitDate1) vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 1차방문: " + row.visitDate1 + "</div>";
-                            if (row.visitDate2) vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 2차방문: " + row.visitDate2 + "</div>";
-                            if (row.visitDate3) vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 3차방문: " + row.visitDate3 + "</div>";
-                            if (row.visitDate4) vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 4차방문: " + row.visitDate4 + "</div>";
-                            if (row.endExamDate) vHtml += "<div style='color: #34d399; font-size: 11px; font-weight: 800; margin-top: 2px;'>• 종료검사: " + row.endExamDate + "</div>";
-                            return vHtml;
-                        })()}
+                        <!-- 스크리링 및 소집일자만 보여지고 나머지는 카렌다에서  -->
+                        <td style="width: 150px; vertical-align: middle; text-align: center; font-weight: 700; white-space: nowrap; line-height: 1.4; padding: 8px 0; font-size: 12px !important;">
+                            <div style="color: #c084fc; font-weight: 700;">• 스크리닝: ${row.examSchedule || '미정'}</div>
+                            <div style="color: #38bdf8; font-weight: 800; margin-top: 3px;"><i class="fa-regular fa-calendar-check" style="color: #38bdf8; font-size: 11px;"></i> 소집: ${row.recDate || '미정'}</div>
                         </td>
                         <td style="width: 80px; vertical-align: middle; text-align: center;">
                             <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>

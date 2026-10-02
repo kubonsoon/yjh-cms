@@ -2680,14 +2680,14 @@
                 // ----------------======================================================
                 else {
                     tr.innerHTML = `
-                        <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>
+                         <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>
                         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
+                        
+                        <!-- 🎯 [대표님 정품 인원수 수식 완벽 사수]: 100단위 오염 없이 정수 숫자로 완벽 작동! -->
                         <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 700;">${row.liveMatchOrderNumber !== undefined ? row.liveMatchOrderNumber : 1}/${parseInt(getTrueMasterQuota(row.title, row.th, row.count), 10) || 60}명</td>
+                        
                         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
-                        
-                        <!-- 이름 칸 순정 텍스트 정돈 원복 처리 사수 -->
                         <td style="width: 6%; vertical-align: middle; text-align: center; font-weight: 700;">${row.name || ''}</td>
-                        
                         <td style="width: 8.5%; text-align: center; font-size: 14px; color: #ffffff; font-weight: 500; vertical-align: middle;">
                             ${row.ssn ? row.ssn.toString().trim().substring(0, 6) : '-'}
                         </td>
@@ -2702,17 +2702,19 @@
                                 ${currentStage}
                             </span>
                         </td>
-                         <td style="width: 9%; vertical-align: middle; text-align: center;">
+                        
+                        <!-- 🎯 [대표님 정품 참여비 값 사출 명세 완벽 사수]: 태그 유출 없이 순정 데이터 바인딩! -->
+                        <td style="width: 9%; vertical-align: middle; text-align: center;">
                             <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; gap: 3px; font-size: 11px; font-weight: 700; color: #fbbf24; line-height: 1.4;">
                                 <div>1차: ${row.payStatus1 || '대기'}</div>
                                 <div style="margin-top: 1px;">2차: ${row.payStatus2 || '대기'}</div>
                                 <div style="margin-top: 1px;">3차: ${row.payStatus3 || '대기'}</div>
                             </div>
                         </td>
+                        
                         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isDutyAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isDutyAgreed || '대기'}</span></td>
                         <td style="width: 5.5%; vertical-align: middle; text-align: center; white-space: nowrap !important;"><span class="doc-badge ${row.isCallAgreed === '동의' ? 'status-id' : 'status-none'}" style="margin: 0 !important; display: inline-block !important; width: 100% !important; text-align: center;">${row.isCallAgreed || '대기'}</span></td>
                         
-                        <!-- 신분증 / 통장 데이터 패킷 이미지 모달 연동 스펙 무결 보존 -->
                         <td style="width: 10%; vertical-align: middle; text-align: center; white-space: nowrap !important; padding: 0 !important;">
                             ${row.idCardImg && (row.idCardImg.toString().includes('data:image') || row.idCardImg.toString().includes('/uploads/') || row.idCardImg.toString().includes('blob:')) ? `
                                 <span class="doc-badge status-id" onclick="openImageModal('\({row.idCardImg}', '[신분증] \){row.name || ''}')" style="margin: 0 1.5px !important; cursor: pointer !important; font-weight: 700;">신분증</span>

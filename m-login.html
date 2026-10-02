@@ -1490,7 +1490,7 @@
 
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // 성명 + 전화번호 복합 교차 1:1 조준 검문 수색
+            // 성명 + 전화번호 복합 교차 1:1 조준 검문 수색 (순정 구조 100% 무결 상속)
             const liveRecord = adminApplicantDB.find(u => {
                 if (!u || !u.name) return false;
                 const dbNameClean = u.name.toString().replace(/\s/g, "");
@@ -1501,28 +1501,35 @@
 
             if (liveRecord) {
                 const mobileBadge = document.getElementById('cms-badge');
-                const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
+
+                // 🚀 [듀얼 패킷 채널 복원]: 관제탑에서 쏜 패킷 누수를 차단하기 위해 status와 stage를 유기적으로 수혈 적출!
+                const liveStatusText = (liveRecord.status || liveRecord.stage || "신검대기").toString().trim();
 
                 if (mobileBadge) {
                     mobileBadge.removeAttribute("style");
                     mobileBadge.className = "badge";
 
-                    // 🚀 [실물 이미지 기반 1:1 포맷터 바인딩 가드]
+                    // 🚀 [실물 이미지 기반 1:1 포맷터 바인딩 가드 및 19대 평일 정산 신설 분기 완착]
                     if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
                         mobileBadge.innerText = "신검\n대기";
                         mobileBadge.classList.add("master-purple"); /* 보라색 테마 연동 */
                     } else if (liveStatusText === "신검통과" || liveStatusText.includes("통과")) {
                         mobileBadge.innerText = "신검\n통과";
                         mobileBadge.classList.add("master-blue");   /* 파란색 테마 연동 */
-                    } else if (liveStatusText === "신검탈락" || liveStatusText.includes("탈락")) {
+                    } else if (liveStatusText === "신검탈락" || liveStatusText === "검사탈락" || liveStatusText.includes("탈락")) {
                         mobileBadge.innerText = "신검\n탈락";
                         mobileBadge.classList.add("master-rose");   /* 빨간색 테마 연동 */
                     } else if (liveStatusText === "투약" || liveStatusText.includes("진행")) {
                         mobileBadge.innerText = "투약\n";
                         mobileBadge.classList.add("master-green");  /* 초록색 테마 연동 */
-                    } else if (liveStatusText === "종료" || liveStatusText === "완결") {
+                    } else if (liveStatusText === "종료" || liveStatusText === "완결" || liveStatusText.includes("종료")) {
                         mobileBadge.innerText = "정산\n(종료)";
                         mobileBadge.classList.add("master-slate");  /* 회색 테마 연동 */
+                    }
+                    // 🎯 [대표님 지시 지침 각인]: 새로운 1차~4차방문 상태 명세 유입 시 모바일 정산 청구서 자물쇠를 동치 활성화!!
+                    else if (liveStatusText.includes("방문")) {
+                        mobileBadge.innerText = liveStatusText.replace("방문", "\n방문");
+                        mobileBadge.classList.add("master-green");  /* 진행 승인 초록 스킨 매핑 */
                     } else {
                         mobileBadge.innerText = liveStatusText.replace("(", "\n(");
                         mobileBadge.classList.add("master-navy");
@@ -1538,11 +1545,9 @@
         // 전역 윈도우 스코프에 함수를 개방하여 admin.html이 원격으로 다이렉트 강제 호출할 수 있도록 처리
         window.refreshMobileStatusUI = refreshMobileStatusUI;
 
-
-        // 🎯 부모 관리자 시스템 및 m-adm 원격 제어반 글로벌 시그널 폴링 추적 하이브리드 루프
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {
-                // 3중 이름 가드 장착으로 세션명 믹스매치로 인한 루프 마비 버그 전면 박멸
+                // 3중 이름 가드 장착으로 세션명 믹스매치로 인한 루프 마비 버그 전면 박멸 (순정 유지)
                 const rawSessionName = sessionStorage.getItem('certifiedUserName') ||
                     (window.loggedInUser ? window.loggedInUser.name : "") ||
                     myName || "";
@@ -1564,8 +1569,8 @@
                     const submitBtn = document.getElementById('ui_submit_btn'); // 참여비 최종 신청 버튼
                     const stageTxtSlot = document.getElementById('ui_stage_text');
 
-                    // [오류 전면 쇄신] admin.html 수정 저장 즉시 반영을 위한 진짜 참여상태 필드(status) 직접 수혈
-                    const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
+                    // 🚀 [듀얼 패킷 채널 복원]: 관제탑에서 쏜 주파수 누수를 분쇄하기 위해 status와 stage를 유기적으로 수혈 적출!
+                    const liveStatusText = (liveRecord.status || liveRecord.stage || "신검대기").toString().trim();
 
                     // 중앙 인라인 텍스트 로그 영역 무새로고침 실시간 치환
                     if (historyLogSlot) {
@@ -1573,13 +1578,13 @@
                     }
 
                     // ==========================================================================
-                    // 🎯 [삼각 연동 대완결 - Part 2] 14가지 정품 옵션 밸류 100% 무결성 인라인 매퍼
+                    // 🎯 [삼각 연동 대완결 - Part 2] 대표님표 인라인 !important 폭격 엔진 + 19대 차수 배지 완착
                     // ==========================================================================
                     if (mobileBadge) {
                         // 기존 구형 클래스 족쇄 초기화
                         mobileBadge.className = "badge";
 
-                        // 브라우저 CSS 우선순위 차단을 분쇄하는 최상위 인라인 !important 오버라이드 폭격
+                        // 브라우저 CSS 우선순위 차단을 분쇄하는 최상위 인라인 !important 오버라이드 폭격 명세
                         if (liveStatusText === "신검대기") {
                             mobileBadge.innerHTML = "신검<br>대기";
                             mobileBadge.style.setProperty("background", "#7c3aed", "important"); // 🎨 보라색 채우기 완전 고정
@@ -1608,7 +1613,17 @@
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #2563eb", "important");
                         }
-                        else if (liveStatusText === "종료") {
+
+                        // 🎯 [대표님 지시 지침 각인]: 새로운 1차~4차 및 종료방문 정산 대기 상태 유입 시 야광 초록색 스킨과 엠블럼 강제 바인딩!!
+                        else if (liveStatusText.includes("방문")) {
+                            mobileBadge.innerHTML = liveStatusText.replace("방문", "<br>방문");
+                            mobileBadge.style.setProperty("background", "#059669", "important"); // 🎨 야광 딥 에메랄드 그린 완전 락킹
+                            mobileBadge.style.setProperty("background-color", "#059669", "important");
+                            mobileBadge.style.setProperty("color", "#ffffff", "important");
+                            mobileBadge.style.setProperty("border", "1px solid #059669", "important");
+                        }
+
+                        else if (liveStatusText === "종료" || liveStatusText.includes("종료")) {
                             mobileBadge.innerHTML = "정산<br>(종료)";
                             mobileBadge.style.setProperty("background", "#64748b", "important"); // 🎨 회색 채우기 완전 고정
                             mobileBadge.style.setProperty("background-color", "#64748b", "important");
@@ -1622,7 +1637,7 @@
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #475569", "important");
                         }
-                        // 탈락 관련 사유 8형제 통합 (신검탈락, 신검동철, 검사탈락, 개인사정, 규정위반, 임의행동, 욕설폭행, 기타탈락)
+                        // 탈락 관련 사유 8형제 통합
                         else if (liveStatusText === "신검탈락" || liveStatusText === "신검동철" ||
                             liveStatusText === "검사탈락" || liveStatusText === "개인사정" ||
                             liveStatusText === "규정위반" || liveStatusText === "임의행동" ||
@@ -1644,10 +1659,10 @@
                     }
 
                     // ==========================================================================
-                    // 🎯 [삼각 연동 대완결 - Part 3] m-adm.html 무선 인가 신호 처리 및 업무 규칙 락인
+                    // 🎯 [m-login 감시반 대완결 - 2조각] 19대 방문 정산 인가 대개통 및 루프 최종 마감
                     // ==========================================================================
 
-                    // 1. [기획 대원칙] 신검 관련 카테고리 4형제는 직접 신청 불가 장벽 유지
+                    // 1. [기획 대원칙] 신검 관련 카테고리 4형제는 직접 신청 불가 장벽 유지 (순정 수호)
                     if (liveStatusText === "신검대기" || liveStatusText === "신검통과" ||
                         liveStatusText === "신검탈락" || liveStatusText === "신검동철") {
 
@@ -1668,7 +1683,7 @@
                         if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
                     }
 
-                    // 2. [m-adm.html 원격 제어반 실시간 결합] 
+                    // 2. [m-adm.html 원격 제어반 실시간 결합]
                     // m-adm에서 개방(toggleAuth) 신호를 쏘아 올렸을 때만 서식을 유연하게 전면 개방/차단합니다.
                     else {
                         const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
@@ -1694,16 +1709,17 @@
                                 if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
                             }
                         } else {
-                            // m-adm 원격 신호가 아직 유입되지 않은 기본 대기 트랙 제어
-                            if (liveStatusText === "소집" || liveStatusText === "투약") {
+                            // 🚀 [전산망 대개통 핵심 락킹]: m-adm 원격 신호가 아직 유입되지 않은 평시 기본 대기 트랙 제어 개편
+                            // 소집, 투약 단계뿐만 아니라 대표님이 신설하신 1차방문 ~ 4차방문 및 종료방문 단계까지 모두 모바일 자물쇠를 동시 자동 개방 완료!!
+                            if (liveStatusText === "소집" || liveStatusText === "투약" || liveStatusText.includes("방문")) {
                                 if (submitBtn) {
                                     submitBtn.disabled = false;
-                                    submitBtn.innerText = "참여비 지급 신청하기";
+                                    submitBtn.innerText = `${liveStatusText} 정산 청구서 제출하기`;
                                     submitBtn.style.background = "";
                                     submitBtn.style.cursor = "pointer";
                                 }
                                 if (typeof setMobileFormActive === "function") { setMobileFormActive(true); }
-                            } else if (liveStatusText === "종료") {
+                            } else if (liveStatusText === "종료" || liveStatusText.includes("종료")) {
                                 if (stageTxtSlot) {
                                     stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여 정산 및 참여비 지급이 최종 완결되었습니다.</span>`;
                                 }
@@ -1714,7 +1730,7 @@
                                 }
                                 if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
                             } else {
-                                // 나머지 중단/탈락 7형제 기본 락다운 홀딩
+                                // 나머지 중단/탈락 7형제 기본 락다운 홀딩 (순정 유지)
                                 if (submitBtn) {
                                     submitBtn.disabled = true;
                                     submitBtn.innerText = `${liveStatusText} 대상자 (부분 참여비 지급 신청 대기)`;
@@ -1735,7 +1751,6 @@
                     if (cleanPushName === cleanSessionName) {
                         if (pushSignal.status === 'PASS') {
                             if (cmsBadgeSlot) {
-                                // m-adm 통과 처리 작동 구조 상속 결합 보완
                                 cmsBadgeSlot.style.setProperty("background", "#108981", "important");
                                 cmsBadgeSlot.style.setProperty("background-color", "#108981", "important");
                                 cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
@@ -1753,8 +1768,9 @@
                         }
                     }
                 }
-            }, 1000);
-        }
+            }, 1000); // 🔒 1초 초정밀 리얼타임 감시 셔터 영구 종결 마감선
+        } // 🔒 startAdminApprovalMonitor 진짜 최종 완전 대종결
+
 
         // 💥 4단: 최종 정산 데이터 전산 패킷 트랜잭션 전송 및 마스터 대장 원격 불 켜기 공정 완결
         function submitFinalSettlementForm() {

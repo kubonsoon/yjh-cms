@@ -1139,8 +1139,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
    [CSS 최종 교정] admin.css 최하단 추가: 인라인 수정 모드 입력 상자 규격 통제
    ========================================================================= */
 .editing-row .inline-input {
-  width: 100% !important;
-  height: 30px !important; /* 세로로 길어지던 인풋 창들을 컴팩트한 30px 규격으로 제어 */
+  height: 30px !important;
   line-height: 28px !important;
   padding: 0 6px !important;
   background-color: #0b0f19 !important;
@@ -1148,8 +1147,36 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: 4px !important;
   color: #ffffff !important;
   font-size: 13px !important;
-  vertical-align: middle !important; /* 붕 뜨거나 처지는 정렬 축 수평 센터 고정 */
+  vertical-align: middle !important;
   box-sizing: border-box !important;
+}
+
+/* 🚀 [전화번호 칸 82px 초정밀 압착 가드]: 가로폭 가림 주범을 82px로 줄여 간격 분리 성공! */
+.editing-row td input[id^="inline-app-phone-"],
+.editing-row td input[id^="inline-adm-phone-"] {
+  width: 82px !important;
+  font-size: 11px !important;
+  text-align: center !important;
+}
+
+/* 🚀 [참여비 3단 셀렉트 60px 타이 타이트 락킹]: 뚱뚱하던 드롭다운을 60px로 컴팩트화 완료하여 앞칸 침범 전면 분쇄!! */
+.editing-row td select[id^="inline-app-pay"],
+.editing-row td select[id^="inline-adm-pay"] {
+  width: 60px !important;
+  font-size: 11px !important;
+  text-align: center !important;
+  text-align-last: center !important;
+  padding: 0 !important;
+}
+
+/* 🚀 [참여상태 셀렉트 시원한 가시성 대방출]: 75px 너비를 고정 각인하여 '신검대기' 등의 글자 완벽 노출 */
+.editing-row td select[id^="inline-app-stage-"],
+.editing-row td select[id^="inline-adm-stage-"] {
+  width: 75px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  text-align-last: center !important;
 }
 
 /* 수정 모드 내 우측 끝 [저장] [취소] 버튼 정렬 축 밀착 */

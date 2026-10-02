@@ -2605,76 +2605,76 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
     <td style="width: 11%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>
-       <td style="width: 6.5%; vertical-align: middle; text-align: center;">
-                    \${(function() {
-                        // 대상자가 현재 소속된 모집공고의 진짜 기수 숫자(1~4기)를 정밀 필터링 추출
-                        const appTargetThNum = parseInt((row.th || "1").replace(/[^0-9]/g, ""), 10) || 1;
-                        
-                        // 해당 대상자의 차수별 참여비 지급상태가 '완료'인지 실시간 판별 락인 플래그
-                        const isPay1Done = (row.payStatus1 === "완료");
-                        const isPay2Done = (row.payStatus2 === "완료");
-                        const isPay3Done = (row.payStatus3 === "완료");
-                        
-                        // 정품 싱크를 위해 단일화된 참여상태 방인 status (또는 stage 불균형 디펜스)를 캡처
-                        const currentStage = (row.status || row.stage || "신검대기").toString().trim();
+      <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+                    ${(function () {
+                            // 대상자가 현재 소속된 모집공고의 진짜 기수 숫자(1~4기)를 정밀 필터링 추출
+                            const appTargetThNum = parseInt((row.th || "1").replace(/[^0-9]/g, ""), 10) || 1;
 
-                        // 19대 옵션별 주석 분류군 기준에 따른 동적 드롭다운 내부 돔 버퍼 빌드 시동
-                        let selectHtmlBuffer = "<select id='inline-app-stage-" + masterIndex + "' class='inline-input' style='height:30px; padding:2px; background:#1e293b !important; font-weight:700; color:#ffffff !important; text-align:center; cursor:pointer;'>";
-                        
-                        // ❶ 스크리닝 검사 기본 공정 4형제 상시 노출
-                        selectHtmlBuffer += "<option value='신검대기' " + (currentStage === '신검대기' ? "selected" : "") + ">신검대기</option>";
-                        selectHtmlBuffer += "<option value='신검통과' " + (currentStage === '신검통과' ? "selected" : "") + ">신검통과</option>";
-                        selectHtmlBuffer += "<option value='신검탈락' " + (currentStage === '신검탈락' ? "selected" : "") + ">신검탈락</option>";
-                        selectHtmlBuffer += "<option value='신검동철' " + (currentStage === '신검동철' ? "selected" : "") + ">신검동철</option>";
-                        
-                        // ❷ 진행 메인 공정 2형제 상시 노출
-                        selectHtmlBuffer += "<option value='소집' " + (currentStage === '소집' ? "selected" : "") + ">소집</option>";
-                        selectHtmlBuffer += "<option value='투약' " + (currentStage === '투약' ? "selected" : "") + ">투약</option>";
+                            // 해당 대상자의 차수별 참여비 지급상태가 '완료'인지 실시간 판별 락인 플래그
+                            const isPay1Done = (row.payStatus1 === "완료");
+                            const isPay2Done = (row.payStatus2 === "완료");
+                            const isPay3Done = (row.payStatus3 === "완료");
 
-                        // ❸ [대표님 핵심 제어반 인터록]: 모집공고 기수가 1기~4기 중 어디냐에 따라 외래방문 및 기종료 철저히 가두기 필터링!
-                        // 동시에 관리자가 참여비를 '완료' 처리한 시점 뒤에는 해당 차수 옵션을 회색 잠금(disabled)하여 오염 유입 원천 방어!
-                        if (appTargetThNum === 1) {
-                            selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">종료방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='1기종료' " + (currentStage === '1기종료' ? "selected" : "") + ">1기종료</option>";
-                        } 
-                        else if (appTargetThNum === 2) {
-                            selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='3차방문' " + (currentStage === '3차방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">3차방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + ">종료방문</option>";
-                            selectHtmlBuffer += "<option value='2기종료' " + (currentStage === '2기종료' ? "selected" : "") + ">2기종료</option>";
-                        } 
-                        else if (appTargetThNum === 3) {
-                            selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='3차방문' " + (currentStage === '3차방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">3차방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='4차방문' " + (currentStage === '4차방문' ? "selected" : "") + ">4차방문</option>";
-                            selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + ">종료방문</option>";
-                            selectHtmlBuffer += "<option value='3기종료' " + (currentStage === '3기종료' ? "selected" : "") + ">3기종료</option>";
-                        } 
-                        else if (appTargetThNum >= 4) {
-                            selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='3차방문' " + (currentStage === '3차방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">3차방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
-                            selectHtmlBuffer += "<option value='4차방문' " + (currentStage === '4차방문' ? "selected" : "") + ">4차방문</option>";
-                            selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + ">종료방문</option>";
-                            selectHtmlBuffer += "<option value='4기종료' " + (currentStage === '4기종료' ? "selected" : "") + ">4기종료</option>";
-                        }
+                            // 정품 싱크를 위해 단일화된 참여상태 방인 status (또는 stage 불균형 디펜스)를 캡처
+                            const currentStage = (row.status || row.stage || "신검대기").toString().trim();
 
-                        // ❹ 중도 탈락 및 위반/사고군 7형제 상시 노출 마감
-                        selectHtmlBuffer += "<option value='예비귀가' " + (currentStage === '예비귀가' ? "selected" : "") + ">예비귀가</option>";
-                        selectHtmlBuffer += "<option value='검사탈락' " + (currentStage === '검사탈락' ? "selected" : "") + ">검사탈락</option>";
-                        selectHtmlBuffer += "<option value='개인사정' " + (currentStage === '개인사정' ? "selected" : "") + ">개인사정</option>";
-                        selectHtmlBuffer += "<option value='규정위반' " + (currentStage === '규정위반' ? "selected" : "") + ">규정위반</option>";
-                        selectHtmlBuffer += "<option value='임의행동' " + (currentStage === '임의행동' ? "selected" : "") + ">임의행동</option>";
-                        selectHtmlBuffer += "<option value='욕설폭행' " + (currentStage === '욕설폭행' ? "selected" : "") + ">욕설폭행</option>";
-                        selectHtmlBuffer += "<option value='기타탈락' " + (currentStage === '기타탈락' ? "selected" : "") + ">기타탈락</option>";
-                        selectHtmlBuffer += "</select>";
-                        
-                        return selectHtmlBuffer;
-                    })()}
+                            // 19대 옵션별 주석 분류군 기준에 따른 동적 드롭다운 내부 돔 버퍼 빌드 시동
+                            let selectHtmlBuffer = "<select id='inline-app-stage-" + masterIndex + "' class='inline-input' style='height:30px; padding:2px; background:#1e293b !important; font-weight:700; color:#ffffff !important; text-align:center; cursor:pointer;'>";
+
+                            // ❶ 스크리닝 검사 기본 공정 4형제 상시 노출
+                            selectHtmlBuffer += "<option value='신검대기' " + (currentStage === '신검대기' ? "selected" : "") + ">신검대기</option>";
+                            selectHtmlBuffer += "<option value='신검통과' " + (currentStage === '신검통과' ? "selected" : "") + ">신검통과</option>";
+                            selectHtmlBuffer += "<option value='신검탈락' " + (currentStage === '신검탈락' ? "selected" : "") + ">신검탈락</option>";
+                            selectHtmlBuffer += "<option value='신검동철' " + (currentStage === '신검동철' ? "selected" : "") + ">신검동철</option>";
+
+                            // ❷ 진행 메인 공정 2형제 상시 노출
+                            selectHtmlBuffer += "<option value='소집' " + (currentStage === '소집' ? "selected" : "") + ">소집</option>";
+                            selectHtmlBuffer += "<option value='투약' " + (currentStage === '투약' ? "selected" : "") + ">투약</option>";
+
+                            // ❸ [대표님 핵심 제어반 인터록]: 모집공고 기수가 1기~4기 중 어디냐에 따라 외래방문 및 기종료 철저히 가두기 필터링!
+                            // 동시에 관리자가 참여비를 '완료' 처리한 시점 뒤에는 해당 차수 옵션을 회색 잠금(disabled)하여 오염 유입 원천 방어!
+                            if (appTargetThNum === 1) {
+                                selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">종료방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='1기종료' " + (currentStage === '1기종료' ? "selected" : "") + ">1기종료</option>";
+                            }
+                            else if (appTargetThNum === 2) {
+                                selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='3차방문' " + (currentStage === '3차방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">3차방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + ">종료방문</option>";
+                                selectHtmlBuffer += "<option value='2기종료' " + (currentStage === '2기종료' ? "selected" : "") + ">2기종료</option>";
+                            }
+                            else if (appTargetThNum === 3) {
+                                selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='3차방문' " + (currentStage === '3차방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">3차방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='4차방문' " + (currentStage === '4차방문' ? "selected" : "") + ">4차방문</option>";
+                                selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + ">종료방문</option>";
+                                selectHtmlBuffer += "<option value='3기종료' " + (currentStage === '3기종료' ? "selected" : "") + ">3기종료</option>";
+                            }
+                            else if (appTargetThNum >= 4) {
+                                selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='3차방문' " + (currentStage === '3차방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">3차방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
+                                selectHtmlBuffer += "<option value='4차방문' " + (currentStage === '4차방문' ? "selected" : "") + ">4차방문</option>";
+                                selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + ">종료방문</option>";
+                                selectHtmlBuffer += "<option value='4기종료' " + (currentStage === '4기종료' ? "selected" : "") + ">4기종료</option>";
+                            }
+
+                            // ❹ 중도 탈락 및 위반/사고군 7형제 상시 노출 마감
+                            selectHtmlBuffer += "<option value='예비귀가' " + (currentStage === '예비귀가' ? "selected" : "") + ">예비귀가</option>";
+                            selectHtmlBuffer += "<option value='검사탈락' " + (currentStage === '검사탈락' ? "selected" : "") + ">검사탈락</option>";
+                            selectHtmlBuffer += "<option value='개인사정' " + (currentStage === '개인사정' ? "selected" : "") + ">개인사정</option>";
+                            selectHtmlBuffer += "<option value='규정위반' " + (currentStage === '규정위반' ? "selected" : "") + ">규정위반</option>";
+                            selectHtmlBuffer += "<option value='임의행동' " + (currentStage === '임의행동' ? "selected" : "") + ">임의행동</option>";
+                            selectHtmlBuffer += "<option value='욕설폭행' " + (currentStage === '욕설폭행' ? "selected" : "") + ">욕설폭행</option>";
+                            selectHtmlBuffer += "<option value='기타탈락' " + (currentStage === '기타탈락' ? "selected" : "") + ">기타탈락</option>";
+                            selectHtmlBuffer += "</select>";
+
+                            return selectHtmlBuffer;
+                        })()}
                 </td>
     <td style="width: 9%; vertical-align: middle; text-align: center;">
         <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">

@@ -1221,35 +1221,17 @@
             let htmlBuffer = "";
             dataStoreRecruitment.forEach((row, index) => {
 
-                // ==========================================================================
-                // 🔒 [강제 세척 엔진] 로컬스토리지 문신 찌꺼기 데이터를 원천 파괴하고 진짜 정원 숫자만 사출
-                // ==========================================================================
+                // 🎯 [인원수 완전 순정화]: 1/140명 형태의 노이즈가 유입되면 슬래시 뒤의 진짜 총 정원 숫자만 가로챕니다.
                 let cleanCountNum = "60";
-                const currentTitleText = (row.title || "").toString().trim();
-
-                // 백그라운드 캐시가 엉키더라도 대표님이 지정해주신 8대 과제별 고유 정원 숫자를 다이렉트로 강제 매핑합니다.
-                if (currentTitleText.includes("명인제약")) cleanCountNum = "44";
-                else if (currentTitleText.includes("대우제약")) cleanCountNum = "60";
-                else if (currentTitleText.includes("파마사이언스")) cleanCountNum = "74";
-                else if (currentTitleText.includes("삼진제약")) cleanCountNum = "30";
-                else if (currentTitleText.includes("애드파마")) cleanCountNum = "58";
-                else if (currentTitleText.includes("신일제약")) cleanCountNum = "60";
-                else if (currentTitleText.includes("하나제약")) cleanCountNum = "36";
-                else if (currentTitleText.includes("경동제약")) cleanCountNum = "40";
-                else {
-                    // ❶ [인원수 소독 엔진]: 그 외의 경우 분수 형태(1/140명)를 완전히 격파하고 순정 숫자만 추출
-                    if (row.count) {
-                        const countStr = row.count.toString().trim();
-                        if (countStr.includes('/')) {
-                            const tokens = countStr.split('/');
-                            cleanCountNum = tokens[tokens.length - 1].replace(/[^0-9]/g, '');
-                        } else {
-                            cleanCountNum = countStr.replace(/[^0-9]/g, '');
-                        }
+                if (row.count) {
+                    const countStr = row.count.toString().trim();
+                    if (countStr.includes('/')) {
+                        cleanCountNum = countStr.split('/').pop().replace(/[^0-9]/g, '');
+                    } else {
+                        cleanCountNum = countStr.replace(/[^0-9]/g, '');
                     }
                 }
-
-                if (!cleanCountNum || cleanCountNum === "0") cleanCountNum = "60";
+                if (!cleanCountNum || cleanCountNum === "0") cleanCountNum = "40";
 
                 htmlBuffer += `
             <tr data-uid="${row.uid}">
@@ -1258,7 +1240,7 @@
                 </td>
                 <td><span class="text-bold">${row.th}</span></td>
                 
-                <!-- 🎯 [인원수 소독 완착]: 캐시 복원 오염을 전면 무력화시키고 순정 숫자 정원 명세만 고정 사출! -->
+                <!-- 🎯 [모집공고 인원수 철칙]: 가짜 인덱스 조합 분수를 완벽 소독하고 순정 숫자 정원만 사출! -->
                 <td style="text-align: center; color: #38bdf8; font-weight: 700;">${cleanCountNum}명</td>
                 
                 <td>${row.period}시간</td>
@@ -1273,7 +1255,7 @@
                         ${(function () {
                         let initPayHTML = "";
                         if (row.paySchedule && row.paySchedule !== "추후공지" && row.paySchedule.trim() !== "") {
-                            // 🚀 [참여비 4차 제한 락킹]: 5차 유령 찌꺼기 문자열 노이즈 전면 소독 및 강제 슬래시 파싱
+                            // 🚀 [최대 4차 제한 락킹]: 5차 유령 찌꺼기 문자열 노이즈 전면 배제 삭제
                             let cleanSchedule = row.paySchedule.toString()
                                 .replace(/5차:[^/]+/g, '')
                                 .replace(/\/\$/, '')
@@ -1284,12 +1266,9 @@
 
                             tokens.forEach((token) => {
                                 const cleanToken = token.trim();
-                                // 최대 4개 차수까지만 화면 렌더링 출력 허용 (행정 정산 마감 대원칙 사수)
                                 if (cleanToken && displayMaxCount < 4) {
                                     displayMaxCount++;
                                     let finalTokenText = cleanToken;
-
-                                    // 내부 인덱스가 뒤틀려 있다면 순서대로 1차~4차 명칭 강제 리파이닝 재정렬
                                     if (!cleanToken.startsWith(displayMaxCount + "차:")) {
                                         const dateVal = cleanToken.replace(/[^0-9-]/g, '').trim();
                                         finalTokenText = displayMaxCount + "차: " + dateVal;
@@ -1310,7 +1289,7 @@
         `;
             });
             listContainer.innerHTML = htmlBuffer;
-        } // refreshRecruitmentView 끝
+        }
 
 
         // =========================================================================

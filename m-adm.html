@@ -141,23 +141,88 @@
         </div>
 
         <div id="ui_attendance_section" style="display: none; border-top: 1px solid #1E293B; padding-top: 15px;">
-            <h3>2단계: 참여완료 및 탈락 사유 체크</h3>
-            <label class="check-item"><input type="checkbox" id="chk_step1" onclick="handleRules('chk_step1')"> <span>1차
-                    일정 100% 이수 완료</span></label>
-            <label class="check-item"><input type="checkbox" id="chk_step2" onclick="handleRules('chk_step2')"> <span>2차
-                    일정 100% 최종 완료</span></label>
-            <label class="check-item" style="color:#FFD700;"><input type="checkbox" id="chk_first_fail"
-                    onclick="handleRules('chk_first_fail')"> <span>소집일(입원) 탈락</span> </label>
-            <label class="check-item" style="color:#FB923C;"><input type="checkbox" id="chk_self_out"
-                    onclick="handleRules('chk_self_out')"> <span>동의철회 (개인사정)</span> </label>
-            <label class="check-item" style="color:#06B6D4;"><input type="checkbox" id="chk_backup_out"
-                    onclick="handleRules('chk_backup_out')"> <span>시험 예비자 퇴원 귀가 </span></label>
+            <h3>2단계: 참여상태 및 탈락 사유 체크</h3>
+
+            <!-- 🚀 [지능형 동적 렌더러 슬롯]: 기존 하드코딩 라벨 5줄을 완전히 철거 소독하고,
+                 PC 대장에서 변경된 진짜 19대 실시간 status 밸류와 매칭되어 실시간 동적 빌드업됩니다. -->
+            <div id="dynamic-stage-check-container"
+                style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; padding: 12px; background: rgba(255,255,255,0.01); border: 1px solid #1e293b; border-radius: 6px;">
+                <!-- 자바스크립트 엔진에 의해 실시간 네온 스킨과 paySchedule 날짜 파싱본이 주입되는 구역 -->
+            </div>
 
             <h3 style="margin-top:15px;">3단계: 모바일 지급 신청 인가</h3>
             <div class="btn-grid" style="margin-bottom:0;">
                 <button id="btn_allow" onclick="toggleAuth(true)" class="btn btn-allow" disabled>신청가능 개방</button>
                 <button id="btn_block" onclick="toggleAuth(false)" class="btn btn-block" disabled>신청불가 차단</button>
             </div>
+
+            <!-- ⚙️ 2단계 동적 레이아웃 주입 및 paySchedule 마스터 예정일 분할 추출 수혈 유틸리티 -->
+            <script>
+                function updateMobileStageUI(row) {
+                    const container = document.getElementById('dynamic-stage-check-container');
+                    if (!container) return;
+
+                    // 단일화 대원칙에 따라 진짜 참여상태 방인 status (또는 stage 디펜스)를 가로채기 스캔
+                    const currentStage = (row.status || row.stage || "신검대기").toString().trim();
+
+                    // 대표님이 정돈 완료하신 모집공고 원장의 3단 통합 paySchedule 문자열 확보
+                    const payScheduleStr = row.paySchedule || "추후공지";
+                    const tokens = payScheduleStr.split('/');
+
+                    let p1Date = "추후공지", p2Date = "추후공지", p3Date = "추후공지";
+
+                    // 슬래시(/) 기준으로 1차, 2차, 3차 날짜 알맹이 정밀 분할 추출
+                    if (tokens[0]) p1Date = tokens[0].replace("1차:", "").trim();
+                    if (tokens[1]) p2Date = tokens[1].replace("2차:", "").trim();
+                    if (tokens[2]) p3Date = tokens[2].replace("3차:", "").trim();
+
+                    let htmlBuffer = "";
+
+                    // A. 정상 진행 및 차수별 외래방문 공정군 (보라색/청색/하늘색/녹색 스킨 분기)
+                    if (["신검대기", "신검통과", "신검탈락", "신검동철", "소집", "투약", "1차방문", "2차방문", "3차방문", "4차방문", "종료방문", "1기종료", "2기종료", "3기종료", "4기종료"].includes(currentStage)) {
+
+                        let badgeColor = "#7c3aed"; // 신검대기 디폴트
+                        if (currentStage === "소집" || currentStage === "신검통과") badgeColor = "#0ea5e9";
+                        else if (currentStage === "투약" || currentStage.includes("방문")) badgeColor = "#06b6d4";
+                        else if (currentStage.includes("종료")) badgeColor = "#10b981";
+
+                        htmlBuffer += "<div style='display:flex; align-items:center; color:#ffffff; font-size:13px; font-weight:700;'>";
+                        htmlBuffer += "<input type='checkbox' checked disabled style='margin-right:8px; width:16px; height:16px; accent-color:" + badgeColor + ";'>";
+                        htmlBuffer += "<span>현재 진행 상태: <span style='color:" + badgeColor + ";'>[" + currentStage + "]</span></span></div>";
+
+                        // 1차, 2차, 3차 지급일정 세로 바인딩 출력 (해당 차수인 경우 골드색 야광 강조)
+                        htmlBuffer += "<div style='margin-left:24px; font-size:12px; color:#94a3b8; line-height:1.6; margin-top:4px;'>";
+                        htmlBuffer += "<div style='" + (currentStage === '1차방문' ? "color:#fbbf24; font-weight:800;" : "") + "'>• 1차 예정일: " + p1Date + "</div>";
+                        htmlBuffer += "<div style='" + (currentStage === '2차방문' ? "color:#fbbf24; font-weight:800;" : "") + "'>• 2차 예정일: " + p2Date + "</div>";
+                        htmlBuffer += "<div style='" + (currentStage === '종료방문' || currentStage.includes('종료') ? "color:#fbbf24; font-weight:800;" : "") + "'>• 3차(종료) 예정일: " + p3Date + "</div>";
+                        htmlBuffer += "</div>";
+                    }
+                    // B. 중도 탈락 및 위반/사고군 7형제 매칭 (감액 정산 사유 다이렉트 긴급 출력)
+                    else {
+                        htmlBuffer += "<div style='display:flex; align-items:center; color:#f87171; font-size:13px; font-weight:700;'>";
+                        htmlBuffer += "<input type='checkbox' checked disabled style='margin-right:8px; width:16px; height:16px; accent-color:#ef4444;'>";
+                        htmlBuffer += "<span>중도 탈락 감지: <span style='color:#f87171; text-decoration:underline;'>[" + currentStage + "]</span></span></div>";
+                        htmlBuffer += "<div style='margin-left:24px; margin-top:6px; font-size:12px; color:#cbd5e1; background:rgba(239,68,68,0.06); padding:8px; border:1px dashed #ef4444; border-radius:4px; line-height:1.5;'>";
+                        htmlBuffer += "⚠️ <b>[정산 패널티 분류]</b> 해당 대상자는 관리자가 마스터 원장에 지정한 사유 <b>\"" + currentStage + "\"</b>로 인해 단계별 일정비율 자동 감액 정산 처리반 대상자로 강제 분류 홀딩되었습니다.</div>";
+                    }
+
+                    container.innerHTML = htmlBuffer;
+
+                    // 🚀 [자물쇠 인터록 락킹 연동]: 19대 공정에 맞춘 3단계 버튼 자동 활성화/비활성화 가동
+                    const btnAllow = document.getElementById('btn_allow');
+                    const btnBlock = document.getElementById('btn_block');
+                    if (btnAllow && btnBlock) {
+                        if (["소집", "투약", "1차방문", "2차방문", "3차방문", "4차방문", "종료방문"].includes(currentStage)) {
+                            btnAllow.removeAttribute('disabled');
+                            btnBlock.removeAttribute('disabled');
+                        } else {
+                            // 신검대기, 기종료, 규정위반 등은 원격 개방을 원천 잠금 처리
+                            btnAllow.setAttribute('disabled', 'true');
+                            btnBlock.removeAttribute('disabled');
+                        }
+                    }
+                }
+            </script>
         </div>
     </div>
 

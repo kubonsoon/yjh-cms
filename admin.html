@@ -449,13 +449,43 @@
                         <div class="form-group">
                             <label>참여상태</label>
                             <select id="form-app-stage">
+                                <!--스크리닝검사: 참여비 지급 및 신청대상 아님-->
                                 <option value="신검대기" selected>신검대기</option>
                                 <option value="신검통과">신검통과</option>
                                 <option value="신검탈락">신검탈락</option>
                                 <option value="신검동철">신검동철</option>
+                                <!--신검통과 후 : 일정비율의 참여비 지급대상/ 신청대상-->
                                 <option value="소집">소집</option>
                                 <option value="투약">투약</option>
-                                <option value="종료">종료</option>
+                                <!--1기 경우: 일정비율의 참여비 지급대상/신청대상: 좋료방문까지 완료해야 100% 지급 단계별로 일정비율 감액대상 -->
+                                <option value="1차방문">1차방문</option>
+                                <option value="2차방문">2차방문</option>
+                                <option value="3차방문">3차방문</option>
+                                <option value="4차방문">4차방문</option>
+                                <option value="종료방문">종료방문</option>
+                                <option value="1기종료">1기종료</option>
+                                <!--2기 경우: 일정비율의 참여비 지급대상/신청대상: 좋료방문까지 완료해야 100% 지급 단계별로 일정비율 감액대상 -->
+                                <option value="1차방문">1차방문</option>
+                                <option value="2차방문">2차방문</option>
+                                <option value="3차방문">3차방문</option>
+                                <option value="4차방문">4차방문</option>
+                                <option value="종료방문">종료방문</option>
+                                <option value="2기종료">2기종료</option>
+                                <!--3기 경우: 일정비율의 참여비 지급대상/신청대상: 좋료방문까지 완료해야 100% 지급 단계별로 일정비율 감액대상 -->
+                                <option value="1차방문">1차방문</option>
+                                <option value="2차방문">2차방문</option>
+                                <option value="3차방문">3차방문</option>
+                                <option value="4차방문">4차방문</option>
+                                <option value="종료방문">종료방문</option>
+                                <option value="3기종료">3기종료</option>
+                                <!--4기 경우: 일정비율의 참여비 지급대상/신청대상: 좋료방문까지 완료해야 100% 지급 단계별로 일정비율 감액대상 -->
+                                <option value="1차방문">1차방문</option>
+                                <option value="2차방문">2차방문</option>
+                                <option value="3차방문">3차방문</option>
+                                <option value="4차방문">4차방문</option>
+                                <option value="종료방문">종료방문</option>
+                                <option value="4기종료">4기종료</option>
+                                <!--탈락의 경우: 일정비율의 참여비 지급대상/신청대상: 좋료방문까지 완료해야 100% 지급 단계별로 일정비율 감액대상 -->
                                 <option value="예비귀가">예비귀가</option>
                                 <option value="검사탈락">검사탈락</option>
                                 <option value="개인사정">개인사정</option>
@@ -827,69 +857,68 @@
         function initializeCMSDatabase() {
             let isUpdated = false;
 
-            // 1. 데이터가 완전히 비어있는 최초 접속 시 프리셋 적재 (8인 마스터 체제 전면 전환)
             if (dataStoreApplicant.length === 0) {
                 dataStoreApplicant = [
                     {
                         uid: 301, name: "김정환", ssn: "900102-1", phone: "010-9182-6414",
-                        isDefault: true, recDate: "2025-07-22",
-                        title: "[생동] 명인제약 아고멜라틴", th: "1기", count: "46", period: "10",
+                        isDefault: true, recDate: "2026-10-14", // ❶ [명인제약 소집일]
+                        title: "[생동] 명인제약 아고멜라틴", th: "1기", count: "1/46", period: "10",
                         result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true,
                         status: "신검대기" // 🔒 stage를 전면 폐기하고 오직 정품 status 단일 룸 셋팅
                     },
                     {
                         uid: 302, name: "정은영", ssn: "950405-2", phone: "010-6543-1234",
-                        isDefault: true, recDate: "2025-08-14",
-                        title: "대우제약 피타+에제", th: "2기", count: "60", period: "72",
+                        isDefault: true, recDate: "2026-10-16", // ❷ [대우제약 소집일]
+                        title: "대우제약 피타+에제", th: "2기", count: "1/60", period: "72",
                         result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true,
                         status: "신검대기"
                     },
                     {
                         uid: 303, name: "이정용", ssn: "821208-1", phone: "010-7896-9522",
-                        isDefault: true, recDate: "2025-10-17",
-                        title: "삼진제약 팔보시클립", th: "3기", count: "30", period: "96",
+                        isDefault: true, recDate: "2026-10-19", // ❸ [파마사이언스 소집일]
+                        title: "[임상] 파마사이언스 룩소리틴", th: "4기", count: "1/48", period: "24",
                         result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true,
                         status: "신검대기"
                     },
                     {
                         uid: 304, name: "김태희", ssn: "851023-2", phone: "010-3574-7476",
-                        isDefault: true, recDate: "2025-10-17",
-                        title: "[임상] 파마사이언스 룩소리틴", th: "4기", count: "48", period: "24",
+                        isDefault: true, recDate: "2026-10-22", // ❹ [삼진제약 소집일]
+                        title: "삼진제약 팔보시클립", th: "3기", count: "1/30", period: "96",
                         result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true,
                         status: "신검대기"
                     },
                     {
                         uid: 201, name: "홍길동", ssn: "950505-1", phone: "010-1234-5678",
-                        isDefault: true, recDate: "2026-08-10",
-                        title: "애드파마 로잘탄+로수+에제", th: "2기", count: "44", period: "72",
+                        isDefault: true, recDate: "2026-12-03", // ❺ [애드파마 소집일]
+                        title: "애드파마 로잘탄+로수+에제", th: "2기", count: "1/44", period: "72",
                         result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true,
                         status: "신검대기"
                     },
                     {
                         uid: 202, name: "강남구", ssn: "980101-1", phone: "010-9095-6763",
-                        isDefault: true, recDate: "2026-08-22",
-                        title: "신일제약 사쿠+발사", th: "4기", count: "46", period: "96",
+                        isDefault: true, recDate: "2026-12-05", // ❻ [신일제약 소집일]
+                        title: "신일제약 사쿠+발사", th: "4기", count: "1/46", period: "96",
                         result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true,
                         status: "신검대기"
                     },
                     {
                         uid: 305, name: "김수지", ssn: "780406-2", phone: "010-8520-7878",
-                        isDefault: true, recDate: "2026-09-26",
-                        title: "[생동] 하나제약 로수+에제", th: "3기", count: "60", period: "72",
+                        isDefault: true, recDate: "2026-12-08", // ❼ [하나제약 소집일]
+                        title: "[생동] 하나제약 로수+에제", th: "3기", count: "1/60", period: "72",
                         result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true,
                         status: "신검대기"
                     },
                     {
                         uid: 203, name: "진재영", ssn: "050607-4", phone: "010-2346-9876",
-                        isDefault: true, recDate: "2026-10-17",
-                        title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96",
+                        isDefault: true, recDate: "2026-12-11", // ❽ [경동제약 소집일]
+                        title: "경동제약 식후 임상시험", th: "4기", count: "1/46", period: "96",
                         result: "대기", payStatus: "대기", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기",
                         isDutyAgreed: "대기", isCallAgreed: "대기", idCard: true, bankbook: true,
                         status: "신검대기"
@@ -898,25 +927,43 @@
                 isUpdated = true;
             } else {
                 dataStoreApplicant.forEach(row => {
-                    // 기존 캐시 데이터 보정 시에도 식별자 속성 강제 주입
                     if (["김정환", "정은영", "이정용", "김태희", "홍길동", "강남구", "김수지", "진재영"].includes(row.name)) {
                         row.isDefault = true;
-                        if (!row.recDate) {
-                            if (row.name === "김정환") row.recDate = "2025-07-22";
-                            if (row.name === "정은영") row.recDate = "2025-08-14";
-                            if (row.name === "이정용") row.recDate = "2025-10-17";
-                            if (row.name === "김태희") row.recDate = "2025-10-17";
-                            if (row.name === "홍길동") row.recDate = "2026-08-10";
-                            if (row.name === "강남구") row.recDate = "2026-08-22";
-                            if (row.name === "김수지") row.recDate = "2026-09-26";
-                            if (row.name === "진재영") row.recDate = "2026-10-17";
-                        }
+                        // 🚀 운영 시점 변동에 따른 소집일 타임라인 강제 싱크 동치화
+                        if (row.name === "김정환") row.recDate = "2026-10-14";
+                        if (row.name === "정은영") row.recDate = "2026-10-16";
+                        if (row.name === "이정용") row.recDate = "2026-10-19";
+                        if (row.name === "김태희") row.recDate = "2026-10-22";
+                        if (row.name === "홍길동") row.recDate = "2026-12-03";
+                        if (row.name === "강남구") row.recDate = "2026-12-05";
+                        if (row.name === "김수지") row.recDate = "2026-12-08";
+                        if (row.name === "진재영") row.recDate = "2026-12-11";
+
+                        // 가수가 변경되었으므로 정산 서식 '1/정원' 포맷 일괄 고정 리셋 세척
+                        if (row.name === "김정환") row.count = "1/44";
+                        if (row.name === "정은영") row.count = "1/60";
+                        if (row.name === "이정용") row.count = "1/74";
+                        if (row.name === "김태희") row.count = "1/30";
+                        if (row.name === "홍길동") row.count = "1/58";
+                        if (row.name === "강남구") row.count = "1/60";
+                        if (row.name === "김수지") row.count = "1/36";
+                        if (row.name === "진재영") row.count = "1/40";
+
                         isUpdated = true;
                     }
                     if (row.isDutyAgreed === undefined || row.isDutyAgreed === null || row.isDutyAgreed === "") row.isDutyAgreed = "대기";
                     if (row.isCallAgreed === undefined || row.isCallAgreed === null || row.isCallAgreed === "") row.isCallAgreed = "대기";
 
+                    // 🚀 [사후 누수 보정]: 구형 찌꺼기 방 stage 제거 및 최신 status 동기화 강제 락인
                     if (row.stage) delete row.stage;
+                    if (["김정환", "정은영", "이정용", "김태희", "홍길동", "강남구", "김수지", "진재영"].includes(row.name)) {
+                        row.status = "신검대기";
+                        row.result = "대기";
+                        row.payStatus = "대기";
+                        row.payStatus1 = "대기";
+                        row.payStatus2 = "대기";
+                        row.payStatus3 = "대기";
+                    }
                 });
             }
 
@@ -924,7 +971,6 @@
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             }
         }
-
 
         /**
                * 🎯 [전면 교정] 마스터 초기 프리셋 데이터 적재 제어 스케줄러
@@ -940,60 +986,92 @@
             if (dataStoreRecruitment.length === 0) {
                 dataStoreRecruitment = [
                     {
-                        uid: 101, title: "[생동] 명인제약 아고멜라틴", th: "1기", count: "46", period: "10", crc: "이선경",
-                        notice: "지정식 이외 취식 금지 및 지각 시 입소 불가", examSchedule: "2025-07-22",
-                        paySchedule: "1차: 2025-08-02", recDate: "2025-07-22"
+                        uid: 101, title: "[생동] 명인제약 아고멜라틴", th: "1기", count: "1/44", period: "10", crc: "이선경",
+                        notice: "지정식 이외 취식 금지 및 지각 시 입소 불가",
+                        examSchedule: "2026-10-07", recDate: "2026-10-14",
+                        visitDate1: "2026-10-21", visitDate2: "2026-10-28", visitDate3: "", visitDate4: "", endExamDate: "2026-11-04",
+                        paySchedule: "1차: 2026-10-26/2차: 2026-11-02/3차: 2026-11-18"
                     },
                     {
-                        uid: 102, title: "대우제약 피타+에제", th: "2기", count: "60", period: "72", crc: "유성은",
-                        notice: "공복 유지 필수 및 소집 10분 전 대기", examSchedule: "2025-08-14",
-                        paySchedule: "1차: 2025-09-10", recDate: "2025-08-14"
+                        uid: 102, title: "대우제약 피타+에제", th: "2기", count: "1/60", period: "72", crc: "유성은",
+                        notice: "공복 유지 필수 및 소집 10분 전 대기",
+                        examSchedule: "2026-10-09", recDate: "2026-10-16",
+                        visitDate1: "2026-10-23", visitDate2: "2026-10-30", visitDate3: "", visitDate4: "", endExamDate: "2026-11-06",
+                        paySchedule: "1차: 2026-10-26/2차: 2026-11-02/3차: 2026-11-20"
                     },
                     {
-                        uid: 103, title: "삼진제약 팔보시클립", th: "3기", count: "30", period: "96", crc: "최미현",
-                        notice: "지정식 이외 취식 금지 및 격리 규정 준수", examSchedule: "2025-10-17",
-                        paySchedule: "1차: 2025-11-23", recDate: "2025-10-17"
+                        uid: 103, title: "[임상] 파마사이언스 룩소리틴", th: "4기", count: "1/74", period: "24", crc: "손해리",
+                        notice: "임상 지침 준수 및 이상 반응 시 즉시 보고",
+                        examSchedule: "2026-10-12", recDate: "2026-10-19",
+                        visitDate1: "2026-10-26", visitDate2: "2026-11-02", visitDate3: "2026-11-09", visitDate4: "2026-11-16", endExamDate: "2026-11-23",
+                        paySchedule: "1차: 2026-10-29/2차: 2026-11-05/3차: 2026-11-12/4차: 2026-11-19/5차: 2026-12-07"
                     },
                     {
-                        uid: 104, title: "[임상] 파마사이언스 룩소리틴", th: "4기", count: "48", period: "24", crc: "손해리",
-                        notice: "임상 지침 준수 및 이상 반응 시 즉시 보고", examSchedule: "2025-10-17",
-                        paySchedule: "1차: 2025-11-23", recDate: "2025-10-17"
+                        uid: 104, title: "삼진제약 팔보시클립", th: "3기", count: "1/30", period: "96", crc: "최미현",
+                        notice: "지정식 이외 취식 금지 및 격리 규정 준수",
+                        examSchedule: "2026-10-15", recDate: "2026-10-22",
+                        visitDate1: "2026-10-29", visitDate2: "2026-11-05", visitDate3: "2026-11-12", visitDate4: "2026-11-19", endExamDate: "2026-11-26",
+                        paySchedule: "1차: 2026-11-02/2차: 2026-11-09/3차: 2026-11-16/4차: 2026-11-23/5차: 2026-12-10"
                     },
                     {
-                        uid: 105, title: "애드파마 로잘탄+로수+에제", th: "2기", count: "44", period: "72", crc: "석정은",
-                        notice: "공복 유지 필수 및 복용 약물 상시 점검", examSchedule: "2026-08-10",
-                        paySchedule: "1차: 2025-09-10/2차: 2025-10-16/3차: 2026-11-30", recDate: "2026-08-10"
+                        uid: 105, title: "애드파마 로잘탄+로수+에제", th: "2기", count: "1/58", period: "72", crc: "석정은",
+                        notice: "공복 유지 필수 및 복용 약물 상시 점검",
+                        examSchedule: "2026-11-26", recDate: "2026-12-03",
+                        visitDate1: "2026-12-10", visitDate2: "2026-12-17", visitDate3: "", visitDate4: "", endExamDate: "2026-12-24",
+                        paySchedule: "1차: 2026-12-14/2차: 2026-12-21/3차: 2026-12-24"
                     },
                     {
-                        uid: 106, title: "신일제약 사쿠+발사", th: "4기", count: "46", period: "96", crc: "이은정",
-                        notice: "격리 수칙 준수 및 통제 구역 출입 금지", examSchedule: "2026-08-22",
-                        paySchedule: "1차: 2026-09-24/2차: 2025-11-18/3차: 2026-12-08", recDate: "2026-08-22"
+                        uid: 106, title: "신일제약 사쿠+발사", th: "4기", count: "1/60", period: "96", crc: "이은정",
+                        notice: "격리 수칙 준수 및 통제 구역 출입 금지",
+                        examSchedule: "2026-11-28", recDate: "2026-12-05",
+                        visitDate1: "2026-12-12", visitDate2: "2026-12-19", visitDate3: "", visitDate4: "", endExamDate: "2026-12-26",
+                        paySchedule: "1차: 2026-12-15/2차: 2026-12-22/3차: 2027-01-11"
                     },
                     {
-                        uid: 107, title: "[생동] 하나제약 로수+에제", th: "3기", count: "60", period: "72", crc: "이승호",
-                        notice: "카페인 및 금지 식품 섭취 절대 불가", examSchedule: "2026-09-26",
-                        paySchedule: "1차: 2026-10-15/2차: 2025-11-26/3차: 2026-12-28", recDate: "2026-09-26"
+                        uid: 107, title: "[생동] 하나제약 로수+에제", th: "3기", count: "1/36", period: "72", crc: "이승호",
+                        notice: "카페인 및 금지 식품 섭취 절대 불가",
+                        examSchedule: "2026-12-01", recDate: "2026-12-08",
+                        visitDate1: "2026-12-15", visitDate2: "2026-12-22", visitDate3: "2026-12-29", visitDate4: "2027-01-05", endExamDate: "2027-01-12",
+                        paySchedule: "1차: 2026-12-18/2차: 2026-12-25/3차: 2027-01-01/4차: 2027-01-08/5차: 2027-01-26"
                     },
                     {
-                        uid: 108, title: "경동제약 식후 임상시험", th: "4기", count: "46", period: "96", crc: "강은애",
-                        notice: "식후 검사 시간 엄수 및 개인 행동 금지", examSchedule: "2026-10-17",
-                        paySchedule: "1차: 2026-11-26/2차: 2025-11-24/3차: 2026-12-30", recDate: "2026-10-17"
+                        uid: 108, title: "경동제약 식후 임상시험", th: "4기", count: "1/40", period: "96", crc: "강은애",
+                        notice: "식후 검사 시간 엄수 및 개인 행동 금지",
+                        examSchedule: "2026-12-04", recDate: "2026-12-11",
+                        visitDate1: "2026-12-18", visitDate2: "2026-12-25", visitDate3: "2027-01-01", visitDate4: "2027-01-08", endExamDate: "2027-01-15",
+                        paySchedule: "1차: 2026-12-21/2차: 2026-12-28/3차: 2027-01-04/4차: 2027-01-11/5차: 2027-01-29"
                     }
                 ];
                 isUpdated = true;
             } else {
                 // 브라우저 저장소 디폴트 날짜 복원 단원 (버그 전면 박멸 구역)
                 dataStoreRecruitment.forEach(row => {
+                    // 기수 정합성이 어긋나거나 깨진 포맷(년 글자 유입 등)이 감지될 때 정품 미래 타임라인으로 정밀 복원
                     if (!row.recDate || row.recDate === "미정" || row.recDate.trim() === "" || row.recDate.includes("년")) {
-                        if (row.uid == 101 || row.title.includes("명인제약")) { row.recDate = "2025-07-22"; isUpdated = true; }
-                        else if (row.uid == 102 || row.title.includes("대우제약")) { row.recDate = "2025-08-14"; isUpdated = true; }
-                        else if (row.uid == 103 || row.title.includes("삼진제약")) { row.recDate = "2025-10-17"; isUpdated = true; }
-                        else if (row.uid == 104 || row.title.includes("파마사이언스")) { row.recDate = "2025-10-17"; isUpdated = true; }
-                        else if (row.uid == 105 || row.title.includes("애드파마")) { row.recDate = "2026-08-10"; isUpdated = true; }
-                        else if (row.uid == 106 || row.title.includes("신일제약")) { row.recDate = "2026-08-22"; isUpdated = true; }
-                        else if (row.uid == 107 || row.title.includes("하나제약")) { row.recDate = "2026-09-26"; isUpdated = true; }
-                        else if (row.uid == 108 || row.title.includes("경동제약")) { row.recDate = "2026-10-17"; isUpdated = true; }
-                    } // 💡 ⭕ [교정 마감 안전핀]: 유실되었던 외곽 if문의 닫는 중괄호 복구 완료!
+                        if (row.uid == 101 || row.title.includes("명인제약")) { row.recDate = "2026-10-14"; isUpdated = true; }
+                        else if (row.uid == 102 || row.title.includes("대우제약")) { row.recDate = "2026-10-16"; isUpdated = true; }
+                        else if (row.uid == 103 || row.title.includes("파마사이언스")) { row.recDate = "2026-10-19"; isUpdated = true; }
+                        else if (row.uid == 104 || row.title.includes("삼진제약")) { row.recDate = "2026-10-22"; isUpdated = true; }
+                        else if (row.uid == 105 || row.title.includes("애드파마")) { row.recDate = "2026-11-26"; isUpdated = true; }
+                        else if (row.uid == 106 || row.title.includes("신일제약")) { row.recDate = "2026-11-28"; isUpdated = true; }
+                        else if (row.uid == 107 || row.title.includes("하나제약")) { row.recDate = "2026-12-01"; isUpdated = true; }
+                        else if (row.uid == 108 || row.title.includes("경동제약")) { row.recDate = "2026-12-04"; isUpdated = true; }
+                    }
+
+                    // 🚀 [N수 스케마 덮어쓰기 오염 차단]: 기존 캐시 찌꺼기가 역성장하지 못하도록 정원 수치까지 실시간 강제 일치화 처리!
+                    if (row.uid == 101 || row.title.includes("명인제약")) { row.count = "1/44"; }
+                    else if (row.uid == 102 || row.title.includes("대우제약")) { row.count = "1/60"; }
+                    else if (row.uid == 103 || row.title.includes("파마사이언스")) { row.count = "1/74"; }
+                    else if (row.uid == 104 || row.title.includes("삼진제약")) { row.count = "1/30"; }
+                    else if (row.uid == 105 || row.title.includes("애드파마")) { row.count = "1/58"; }
+                    else if (row.uid == 106 || row.title.includes("신일제약")) { row.count = "1/60"; }
+                    else if (row.uid == 107 || row.title.includes("하나제약")) { row.count = "1/36"; }
+                    else if (row.uid == 108 || row.title.includes("경동제약")) { row.count = "1/40"; }
+
+                    // 지워진 가짜 날짜방 찌꺼기가 잔존해 있을 경우 백그라운드에서 완전히 소독 증발
+                    if (row.payDate1) delete row.payDate1;
+                    if (row.payDate2) delete row.payDate2;
+                    if (row.payDate3) delete row.payDate3;
                 });
             }
 
@@ -2303,47 +2381,63 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     row.stage = "종료";
                 }
 
-                const currentStage = row.stage ? row.stage.toString().trim() : "신검대기";
+                // 🚀 단일화 대원칙에 따라 구형 stage 참조를 소독하고, 진짜 실시간 참여상태 방인 status 축을 직격 스캔!
+                const currentStage = (row.status || row.stage || "신검대기").toString().trim();
 
-                // 2. 피드백 사양 반영: 4대 배지 스타일 및 소집 상태 시 이름 링크 클릭 완전 봉쇄 
                 let stageBadgeStyle = "";
                 let nameLinkActionHTML = "";
 
+                // ❶ [스크리닝 검사 카테고리 4형제] -> 참여비 신청 원천 차단 / 소집전이므로 이름 링크 강력 잠금
                 if (currentStage === "신검대기") {
-                    // 신검대기: 인디고 보라색 배지 + 초기 돔 크래시 방어선 이름 링크 잠금 락인
                     stageBadgeStyle = "color: #c084fc !important; background: rgba(168, 85, 247, 0.15) !important; border: 1px solid #a855f7 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
-                    nameLinkActionHTML = `<a style="pointer-events: none !important; opacity: 0.65; cursor: not-allowed; text-decoration: none; color: #94a3b8;">${row.name || '-'}</a>`;
+                    nameLinkActionHTML = "<a style='pointer-events: none !important; opacity: 0.65; cursor: not-allowed; text-decoration: none; color: #94a3b8;'>" + (row.name || '-') + "</a>";
                 }
-                else if (currentStage === "신검통과" || currentStage === "소집통과" || currentStage === "소집") {
-                    // 🔒 [파란색 계열 통합]: 통과 및 소집 관련 자원은 수동 상태수정의 파란색 테마 색상으로 1:1 완전 동기화!
-                    stageBadgeStyle = "color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                else if (currentStage === "신검통과") {
+                    stageBadgeStyle = "color: #22c55e !important; background: rgba(34,197,94,0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = "<a style='cursor: pointer; color: #ffffff; text-decoration: underline;' onclick='openAppHistoryDetailModal(" + index + ")'>" + (row.name || '-') + "</a>";
+                }
+                else if (currentStage === "신검탈락") {
+                    stageBadgeStyle = "color: #ef4444 !important; background: rgba(239,68,68,0.15) !important; border: 1px solid #ef4444 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = "<a style='cursor: pointer; color: #ffffff; text-decoration: underline;' onclick='openAppHistoryDetailModal(" + index + ")'>" + (row.name || '-') + "</a>";
+                }
+                else if (currentStage === "신검동철") {
+                    stageBadgeStyle = "color: #f97316 !important; background: rgba(249,115,22,0.15) !important; border: 1px solid #f97316 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = "<a style='cursor: pointer; color: #ffffff; text-decoration: underline;' onclick='openAppHistoryDetailModal(" + index + ")'>" + (row.name || '-') + "</a>";
+                }
 
-                    // 신검대기/소집(대기)이 아니므로 이력 모달 연동 링크 전면 개방
-                    if (currentStage === "소집") {
-                        nameLinkActionHTML = `<a style="pointer-events: none !important; opacity: 0.65; cursor: not-allowed; text-decoration: none; color: #94a3b8;">${row.name || '-'}</a>`;
-                    } else {
-                        nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
-                    }
+                // ❷ [신검통과 후 진행 메인 공정 2형제] -> 소집 시점에는 이름 링크 잠금 가드 발동
+                else if (currentStage === "소집") {
+                    stageBadgeStyle = "color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = "<a style='pointer-events: none !important; opacity: 0.65; cursor: not-allowed; text-decoration: none; color: #94a3b8;'> " + (row.name || '-') + "</a>";
                 }
                 else if (currentStage === "투약") {
-                    // 🔒 [연두색 계열 사수]: 수동 상태수정 내 투약 고유의 연두색 테마 컬러셋 100% 보존
-                    stageBadgeStyle = "color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
-                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+                    stageBadgeStyle = "color: #06b6d4 !important; background: rgba(6, 182, 212, 0.15) !important; border: 1px solid #06b6d4 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = "<a style='cursor: pointer; color: #ffffff; text-decoration: underline;' onclick='openAppHistoryDetailModal(" + index + ")'>" + (row.name || '-') + "</a>";
                 }
-                else if (currentStage === "신검동철" || currentStage === "동의철회" || currentStage === "개인사정") {
-                    // 🔒 [주황/오렌지 계열 통합]: 동의철회 및 개인사정 사유는 화사한 네온 오렌지색 배지로 통일 맵핑!
-                    stageBadgeStyle = "color: #fb923c !important; background: rgba(249, 115, 22, 0.15) !important; border: 1px solid #f97316 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
-                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+
+                // ❸ [차수별 가변 외래방문 및 종료방문 통합 카테고리] -> 네온 스카이블루 스킨 바인딩
+                else if (currentStage.includes("방문") && !currentStage.includes("종료")) {
+                    stageBadgeStyle = "color: #60a5fa !important; background: rgba(96, 165, 250, 0.12) !important; border: 1px solid #3b82f6 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = "<a style='cursor: pointer; color: #ffffff; text-decoration: underline;' onclick='openAppHistoryDetailModal(" + index + ")'>" + (row.name || '-') + "</a>";
                 }
-                else if (currentStage === "종료") {
-                    // 종료: 회색 배지 [순정 규격 보존]
-                    stageBadgeStyle = "color: #cbd5e1 !important; background: rgba(148, 163, 184, 0.15) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
-                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+
+                // ❹ [차수별 기수 최종 완료 4형제] -> 정산 대완결 다크 네온그린 스킨 바인딩
+                else if (currentStage.includes("기종료")) {
+                    stageBadgeStyle = "color: #34d399 !important; background: rgba(52, 211, 153, 0.15) !important; border: 1px solid #10b981 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = "<a style='cursor: pointer; color: #ffffff; text-decoration: underline;' onclick='openAppHistoryDetailModal(" + index + ")'>" + (row.name || '-') + "</a>";
                 }
-                else {
-                    // 🔒 [빨간색 계열 통합]: 신검탈락, 검사탈락, 탈락 및 그 외 엑셀에 적혀 유입되는 모든 기타 탈락사유 분류 일괄 적용!
+
+                // ❺ [중도 탈락 및 위반/사고군 7형제 사유 통합] -> 감액 정산 주의 경고 크림슨레드 스킨 바인딩
+                else if (currentStage === "예비귀가" || currentStage === "검사탈락" || currentStage === "개인사정" ||
+                    currentStage === "규정위반" || currentStage === "임의행동" || currentStage === "욕설폭행" || currentStage === "기타탈락") {
                     stageBadgeStyle = "color: #f87171 !important; background: rgba(239, 68, 68, 0.15) !important; border: 1px solid #ef4444 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
-                    nameLinkActionHTML = `<a style="cursor: pointer; color: #ffffff; text-decoration: underline;" onclick="openAppHistoryDetailModal(${index})">${row.name || '-'}</a>`;
+                    nameLinkActionHTML = "<a style='cursor: pointer; color: #ffffff; text-decoration: underline;' onclick='openAppHistoryDetailModal(" + index + ")'>" + (row.name || '-') + "</a>";
+                }
+
+                // ❻ 예외 폴백 마감 세척
+                else {
+                    stageBadgeStyle = "color: #cbd5e1 !important; background: rgba(148, 163, 184, 0.15) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                    nameLinkActionHTML = "<a style='cursor: pointer; color: #ffffff; text-decoration: underline;' onclick='openAppHistoryDetailModal(" + index + ")'>" + (row.name || '-') + "</a>";
                 }
 
                 const renderGender = typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(row.ssn, row.name) : "미정";
@@ -2485,27 +2579,77 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
     <td style="width: 11%; vertical-align: middle; text-align: center;">
         <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important;">
     </td>
-      <td style="width: 6.5%; vertical-align: middle; text-align: center;">
-<select id="inline-app-stage-${masterIndex}" class="inline-input" style="height: 30px; padding: 2px; background: #1e293b !important; font-weight: 700; color: #ffffff !important; text-align: center; cursor: pointer; ">
-<!-- 정상 진행 프로세스 표준 단계 옵션 매핑 (기존 '참여' 탈피) -->
-<option value="신검대기" ${row.stage === '신검대기' || !row.stage ? 'selected' : ''}>신검대기</option>
-<option value="신검통과" ${row.stage === '신검통과' ? 'selected' : ''}>신검통과</option>
-<option value="신검탈락" ${row.stage === '신검탈락' ? 'selected' : ''}>신검탈락</option>
-<option value="신검동철" ${row.stage === '신검동철' ? 'selected' : ''}>신검동철</option>
-<option value="소집" ${row.stage === '소집' ? 'selected' : ''}>소집 </option>
-<option value="투약" ${row.stage === '투약' ? 'selected' : ''}>투약</option>
-<option value="종료" ${row.stage === '종료' ? 'selected' : ''}>종료</option>
+       <td style="width: 6.5%; vertical-align: middle; text-align: center;">
+                    \${(function() {
+                        // 대상자가 현재 소속된 모집공고의 진짜 기수 숫자(1~4기)를 정밀 필터링 추출
+                        const appTargetThNum = parseInt((row.th || "1").replace(/[^0-9]/g, ""), 10) || 1;
+                        
+                        // 해당 대상자의 차수별 참여비 지급상태가 '완료'인지 실시간 판별 락인 플래그
+                        const isPay1Done = (row.payStatus1 === "완료");
+                        const isPay2Done = (row.payStatus2 === "완료");
+                        const isPay3Done = (row.payStatus3 === "완료");
+                        
+                        // 정품 싱크를 위해 단일화된 참여상태 방인 status (또는 stage 불균형 디펜스)를 캡처
+                        const currentStage = (row.status || row.stage || "신검대기").toString().trim();
 
-<!-- 중도탈락군 표준 사유 사양 유지 -->
-<option value="예비귀가" ${row.stage === '예비귀가' ? 'selected' : ''}>예비귀가</option>
-<option value="검사탈락" ${row.stage === '검사탈락' ? 'selected' : ''}>검사탈락</option>
-<option value="개인사정" ${row.stage === '개인사정' ? 'selected' : ''}>개인사정</option>
-<option value="규정위반" ${row.stage === '규정위반' ? 'selected' : ''}>규정위반</option>
-<option value="임의행동" ${row.stage === '임의행동' ? 'selected' : ''}>임의행동</option>
-<option value="욕설폭행" ${row.stage === '욕설폭행' ? 'selected' : ''}>욕설폭행</option>
-<option value="기타탈락" ${row.stage === '기타탈락' ? 'selected' : ''}>기타탈락</option>
-</select>
-</td>
+                        // 19대 옵션별 주석 분류군 기준에 따른 동적 드롭다운 내부 돔 버퍼 빌드 시동
+                        let selectHtmlBuffer = "<select id='inline-app-stage-" + masterIndex + "' class='inline-input' style='height:30px; padding:2px; background:#1e293b !important; font-weight:700; color:#ffffff !important; text-align:center; cursor:pointer;'>";
+                        
+                        // ❶ 스크리닝 검사 기본 공정 4형제 상시 노출
+                        selectHtmlBuffer += "<option value='신검대기' " + (currentStage === '신검대기' ? "selected" : "") + ">신검대기</option>";
+                        selectHtmlBuffer += "<option value='신검통과' " + (currentStage === '신검통과' ? "selected" : "") + ">신검통과</option>";
+                        selectHtmlBuffer += "<option value='신검탈락' " + (currentStage === '신검탈락' ? "selected" : "") + ">신검탈락</option>";
+                        selectHtmlBuffer += "<option value='신검동철' " + (currentStage === '신검동철' ? "selected" : "") + ">신검동철</option>";
+                        
+                        // ❷ 진행 메인 공정 2형제 상시 노출
+                        selectHtmlBuffer += "<option value='소집' " + (currentStage === '소집' ? "selected" : "") + ">소집</option>";
+                        selectHtmlBuffer += "<option value='투약' " + (currentStage === '투약' ? "selected" : "") + ">투약</option>";
+
+                        // ❸ [대표님 핵심 제어반 인터록]: 모집공고 기수가 1기~4기 중 어디냐에 따라 외래방문 및 기종료 철저히 가두기 필터링!
+                        // 동시에 관리자가 참여비를 '완료' 처리한 시점 뒤에는 해당 차수 옵션을 회색 잠금(disabled)하여 오염 유입 원천 방어!
+                        if (appTargetThNum === 1) {
+                            selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">종료방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='1기종료' " + (currentStage === '1기종료' ? "selected" : "") + ">1기종료</option>";
+                        } 
+                        else if (appTargetThNum === 2) {
+                            selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='3차방문' " + (currentStage === '3차방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">3차방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + ">종료방문</option>";
+                            selectHtmlBuffer += "<option value='2기종료' " + (currentStage === '2기종료' ? "selected" : "") + ">2기종료</option>";
+                        } 
+                        else if (appTargetThNum === 3) {
+                            selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='3차방문' " + (currentStage === '3차방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">3차방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='4차방문' " + (currentStage === '4차방문' ? "selected" : "") + ">4차방문</option>";
+                            selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + ">종료방문</option>";
+                            selectHtmlBuffer += "<option value='3기종료' " + (currentStage === '3기종료' ? "selected" : "") + ">3기종료</option>";
+                        } 
+                        else if (appTargetThNum >= 4) {
+                            selectHtmlBuffer += "<option value='1차방문' " + (currentStage === '1차방문' ? "selected" : "") + " " + (isPay1Done ? "disabled style='color:#64748b;'" : "") + ">1차방문 " + (isPay1Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='2차방문' " + (currentStage === '2차방문' ? "selected" : "") + " " + (isPay2Done ? "disabled style='color:#64748b;'" : "") + ">2차방문 " + (isPay2Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='3차방문' " + (currentStage === '3차방문' ? "selected" : "") + " " + (isPay3Done ? "disabled style='color:#64748b;'" : "") + ">3차방문 " + (isPay3Done ? "(지급완료)" : "") + "</option>";
+                            selectHtmlBuffer += "<option value='4차방문' " + (currentStage === '4차방문' ? "selected" : "") + ">4차방문</option>";
+                            selectHtmlBuffer += "<option value='종료방문' " + (currentStage === '종료방문' ? "selected" : "") + ">종료방문</option>";
+                            selectHtmlBuffer += "<option value='4기종료' " + (currentStage === '4기종료' ? "selected" : "") + ">4기종료</option>";
+                        }
+
+                        // ❹ 중도 탈락 및 위반/사고군 7형제 상시 노출 마감
+                        selectHtmlBuffer += "<option value='예비귀가' " + (currentStage === '예비귀가' ? "selected" : "") + ">예비귀가</option>";
+                        selectHtmlBuffer += "<option value='검사탈락' " + (currentStage === '검사탈락' ? "selected" : "") + ">검사탈락</option>";
+                        selectHtmlBuffer += "<option value='개인사정' " + (currentStage === '개인사정' ? "selected" : "") + ">개인사정</option>";
+                        selectHtmlBuffer += "<option value='규정위반' " + (currentStage === '규정위반' ? "selected" : "") + ">규정위반</option>";
+                        selectHtmlBuffer += "<option value='임의행동' " + (currentStage === '임의행동' ? "selected" : "") + ">임의행동</option>";
+                        selectHtmlBuffer += "<option value='욕설폭행' " + (currentStage === '욕설폭행' ? "selected" : "") + ">욕설폭행</option>";
+                        selectHtmlBuffer += "<option value='기타탈락' " + (currentStage === '기타탈락' ? "selected" : "") + ">기타탈락</option>";
+                        selectHtmlBuffer += "</select>";
+                        
+                        return selectHtmlBuffer;
+                    })()}
+                </td>
     <td style="width: 9%; vertical-align: middle; text-align: center;">
         <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; align-items: center; width: 100%;">
             <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:22px; font-size:11px; padding:0 2px; color:#ffffff !important; background:#0f172a !important; width:75px; cursor: pointer; font-weight:700;">
@@ -3003,6 +3147,56 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 }
 
                 // ==========================================================================
+                // 🎯 [19대 대공정 개량] 상단 인풋 폼 저장 완료 시점에도 동일 주파수 벼락 패킷 사출!!
+                // ==========================================================================
+                let formAuthAllow = false;
+                let formAuthStage = 0;
+                // 단일화 대원칙에 따라 오직 정품 상태방인 status 축을 직격 타격
+                const formStageVal = payload.status || "신검대기";
+
+                // 🚀 [업무 규칙 반영]: 소집, 투약 단계뿐만 아니라 새로운 '1차~4차방문', '종료방문' 단계까지 모두 모바일 지급신청 자물쇠를 활짝 열어줍니다!
+                if (formStageVal === "소집" || formStageVal === "투약" || formStageVal.includes("방문")) {
+                    formAuthAllow = true;
+
+                    // 차수별 매핑 코드 조율 (소집=1, 투약=2, 외래방문 및 종료방문 정산 대기=5)
+                    if (formStageVal === "소집") formAuthStage = 1;
+                    else if (formStageVal === "투약") formAuthStage = 2;
+                    else formAuthStage = 5; // 외래 방문 청구서 개방 트랙 코드 부여
+                }
+                // 각 차수 기수가 완벽하게 정산 종결 최종 마감된 찰나 ➡️ 100% 종결 처리 잠금
+                else if (formStageVal.includes("기종료")) {
+                    formAuthStage = 6; // 기수 대완결 종결 코드 바인딩 (신청 불가 회귀)
+                }
+                else if (formStageVal === "예비귀가") {
+                    formAuthStage = 4; // 예비자 귀가 코딩 매핑
+                }
+                else if (formStageVal === "신검대기" || formStageVal === "신검통과" || formStageVal === "신검탈락" || formStageVal === "신검동철") {
+                    formAuthStage = 0; // 스크리닝 단계 신청불가 홀딩
+                }
+                else {
+                    formAuthStage = 3; // 규정위반, 임의행동, 욕설폭행 등 나머지 중단/탈락 예외 사유 부분 정산 대기 매핑
+                }
+
+                // m-login.html 자물쇠 제어반으로 인가 권한 다이렉트 무선 살포
+                localStorage.setItem('msg_auth_signal', JSON.stringify({
+                    name: n,
+                    isAllow: formAuthAllow,
+                    stageCode: formAuthStage,
+                    time: Date.now()
+                }));
+
+                // m-adm.html 무선 푸시 규격 실시간 방출 호응
+                let formPushVal = "FAIL";
+                if (formStageVal === "신검통과" || formStageVal === "소집" || formStageVal === "투약" || formStageVal.includes("종료") || formStageVal.includes("방문")) {
+                    formPushVal = "PASS";
+                }
+                localStorage.setItem('msg_push_signal', JSON.stringify({
+                    name: n,
+                    status: formPushVal,
+                    time: Date.now()
+                }));
+
+                // ==========================================================================
                 // 🎯 [마스터 대완결 - Part 3] resetForm() 엔진 완벽 가동 및 지연 통계 리액터 마감
                 // ==========================================================================
                 // 내부 입력 폼 초기화 헬퍼 함수 구역 (대표님 오리지널 소독 세척 로직 100% 완벽 보존)
@@ -3284,16 +3478,36 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         time: Date.now()
                     }));
 
-                    // m-login.html 자물쇠 인가 제어반 연동을 위한 msg_auth_signal 번개 패킷 연속 방출
+                    // m-login.html 자물쇠 인가 제어반(setMobileFormActive) 연동을 위한 msg_auth_signal 번개 패킷 연속 방출
                     let authAllowValue = false;
-                    let authStageCode = 0; // 디폴트 대기
+                    let authStageCode = 0; // 디폴트 신청불가 대기 스펙
 
-                    if (nextStage === "소집" || nextStage === "투약") {
+                    // 🚀 [업무 규칙 반영]: 소집, 투약 단계뿐만 아니라 새로운 '1차~4차방문', '종료방문' 단계까지 모두 모바일 지급신청 자물쇠를 활짝 열어줍니다!
+                    if (nextStage === "소집" || nextStage === "투약" || nextStage.includes("방문")) {
                         authAllowValue = true;
-                        authStageCode = (nextStage === "소집") ? 1 : 2;
-                    } else if (nextStage === "예비귀가") { authStageCode = 4; }
-                    else if (nextStage === "신검대기" || nextStage === "신검통과" || nextStage === "신검탈락" || nextStage === "신검동철") { authStageCode = 0; }
-                    else { authStageCode = 3; }
+
+                        // 차수별 매핑 코드 조율 (소집=1, 투약=2, 외래방문 및 종료방문 정산 대기=5)
+                        if (nextStage === "소집") {
+                            authStageCode = 1;
+                        } else if (nextStage === "투약") {
+                            authStageCode = 2;
+                        } else {
+                            authStageCode = 5; // 외래 방문 청구서 개방 트랙 코드 부여
+                        }
+                    }
+                    // 각 차수 기수가 완벽하게 정산 종결 최종 마감된 찰나 ➡️ 100% 종결 처리 잠금
+                    else if (nextStage.includes("기종료")) {
+                        authStageCode = 6; // 기수 대완결 종결 코드 바인딩 (신청 불가 회귀)
+                    }
+                    else if (nextStage === "예비귀가") {
+                        authStageCode = 4; // 예비자 귀가 코딩 매핑
+                    }
+                    else if (nextStage === "신검대기" || nextStage === "신검통과" || nextStage === "신검탈락" || nextStage === "신검동철") {
+                        authStageCode = 0; // 스크리닝 단계 신청불가 홀딩
+                    }
+                    else {
+                        authStageCode = 3; // 규정위반, 임의행동, 욕설폭행 등 나머지 중단/탈락 예외 사유 부분 정산 대기 매핑
+                    }
 
                     localStorage.setItem('msg_auth_signal', JSON.stringify({
                         name: currentTargetData.name || n,
@@ -4726,152 +4940,80 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 2. 대상자 관리 데이터베이스 3인방 명단 완벽 매칭 주입
             let adminApplicantDB = [
                 {
-                    title: "경동제약 식후 임상시험",
-                    th: "4기",
-                    count: "46",
-                    period: "96",
-                    name: "진재영",
-                    ssn: "050607-2", // 이미지 속 생년월일 050607 / 성별 여(-2) 동기화 [INDEX: 0.1.32]
-                    phone: "01023459876",
-                    payStatus1: "완료", // 이미지 속 1차 지급 상태 초록색 [완료] 배지 매핑 [INDEX: 0.1.32]
-                    payStatus2: "대기",
-                    payStatus3: "대기",
-                    payStatus: "완료",
-                    result: "완료",
-                    isAgreed: "동의",
-                    idCardImg: "무",
-                    bankBookImg: "무",
-                    stage: "4 기 [1 차 차수분] 분할 사례비"
+                    title: "경동제약 식후 임상시험", th: "4기",
+                    count: "1/40", // 🚀 [대표님 최신 정품 N수 매칭 반영]
+                    period: "96", name: "진재영", ssn: "050607-4", phone: "01023469876",
+                    recDate: "2026-12-11", // 🚀 19대 분산형 평일 정산 소집일 일치화
+                    payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus: "대기", result: "대기",
+                    isAgreed: "대기", idCardImg: "무", bankBookImg: "무",
+                    status: "신검대기" // 유령 stage 찌꺼기를 삭제하고 정품 status 축 고정
                 },
                 {
-                    title: "[생동] 하나제약 로수+에제",
-                    th: "3기",
-                    count: "60",
-                    period: "72",
-                    name: "김수지",
-                    ssn: "780406-2", // 이미지 속 생년월일 780406 / 성별 여(-2) 동기화
-                    phone: "01095207978",
-                    payStatus1: "접수", // 이미지 속 1차 지급 상태 파란색 [접수] 배지 매핑
-                    payStatus2: "대기",
-                    payStatus3: "대기",
-                    payStatus: "접수",
-                    result: "접수",
-                    isAgreed: "동의",
-                    idCardImg: "무",
-                    bankBookImg: "무",
-                    stage: "3 기 [1 차 차수분] 분할 사례비"
+                    title: "[생동] 하나제약 로수+에제", th: "3기",
+                    count: "1/36", // 🚀 [대표님 최신 정품 N수 매칭 반영]
+                    period: "72", name: "김수지", ssn: "780406-2", phone: "01085207878",
+                    recDate: "2026-12-08", // 🚀 19대 분산형 평일 정산 소집일 일치화
+                    payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus: "대기", result: "대기",
+                    isAgreed: "대기", idCardImg: "무", bankBookImg: "무",
+                    status: "신검대기"
                 },
                 {
-                    title: "신일제약 사쿠+발사",
-                    th: "4기",
-                    count: "46",
-                    period: "96",
-                    name: "강남구",
-                    ssn: "980101-1", // 이미지 속 생년월일 980101 / 성별 남(-1) 동기화
-                    phone: "01090956763",
-                    payStatus1: "처리중", // 이미지 속 1차 지급 상태 노란색 [처리중] 배지 매핑
-                    payStatus2: "대기",
-                    payStatus3: "대기",
-                    payStatus: "처리중",
-                    result: "처리중",
-                    isAgreed: "동의",
-                    idCardImg: "무",
-                    bankBookImg: "무",
-                    stage: "4 기 [1 차 차수분] 분할 사례비"
+                    title: "신일제약 사쿠+발사", th: "4기",
+                    count: "1/60", // 🚀 [대표님 최신 정품 N수 매칭 반영]
+                    period: "96", name: "강남구", ssn: "980101-1", phone: "01090956763",
+                    recDate: "2026-12-05", // 🚀 19대 분산형 평일 정산 소집일 일치화
+                    payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus: "대기", result: "대기",
+                    isAgreed: "대기", idCardImg: "무", bankBookImg: "무",
+                    status: "신검대기"
                 },
                 {
-                    title: "애드파마 로잘탄+로수+에제",
-                    th: "2기",
-                    count: "44",
-                    period: "72",
-                    name: "홍길동",
-                    ssn: "950505-1", // 이미지 속 생년월일 950505 / 성별 남(-1) 동기화
-                    phone: "01012345678",
-                    payStatus1: "접수", // 이미지 속 1차 지급 상태 파란색 [접수] 배지 매핑
-                    payStatus2: "대기",
-                    payStatus3: "대기",
-                    payStatus: "접수",
-                    result: "접수",
-                    isAgreed: "동의",
-                    idCardImg: "무",
-                    bankBookImg: "무",
-                    stage: "2 기 [1 차 차수분] 분할 사례비"
+                    title: "애드파마 로잘탄+로수+에제", th: "2기",
+                    count: "1/58", // 🚀 [대표님 최신 정품 N수 매칭 반영]
+                    period: "72", name: "홍길동", ssn: "950505-1", phone: "01012345678",
+                    recDate: "2026-12-03", // 🚀 19대 분산형 평일 정산 소집일 일치화
+                    payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus: "대기", result: "대기",
+                    isAgreed: "대기", idCardImg: "무", bankBookImg: "무",
+                    status: "신검대기"
                 },
                 {
-                    title: "[임상] 파마사이언스 룩소리틴",
-                    th: "4기",
-                    count: "48",
-                    period: "24",
-                    name: "김태희",
-                    ssn: "851023-2", // 이미지 속 생년월일 851023 / 성별 여(-2) 동기화
-                    phone: "01035747476",
-                    payStatus1: "처리중", // 이미지 속 1차 지급 상태 노란색 [처리중] 배지 매핑
-                    payStatus2: "대기",
-                    payStatus3: "대기",
-                    payStatus: "처리중",
-                    result: "처리중",
-                    isAgreed: "동의",
-                    idCardImg: "무",
-                    bankBookImg: "무",
-                    stage: "4 기 [1 차 차수분] 분할 사례비"
+                    title: "[임상] 파마사이언스 룩소리틴", th: "4기",
+                    count: "1/74", // 🚀 [대표님 최신 정품 N수 매칭 반영]
+                    period: "24", name: "김태희", ssn: "851023-2", phone: "01035747476",
+                    recDate: "2026-10-22", // 🚀 19대 분산형 평일 정산 소집일 일치화
+                    payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus: "대기", result: "대기",
+                    isAgreed: "대기", idCardImg: "무", bankBookImg: "무",
+                    status: "신검대기"
                 },
                 {
-                    title: "삼진제약 팔보시클립",
-                    th: "3기",
-                    count: "30",
-                    period: "96",
-                    name: "이정용",
-                    ssn: "821208-1", // 이미지 속 생년월일 821208 / 성별 남(-1) 동기화
-                    phone: "01078059522",
-                    payStatus1: "완료", // 이미지 속 1차 지급 상태 초록색 [완료] 배지 매핑
-                    payStatus2: "대기",
-                    payStatus3: "대기",
-                    payStatus: "완료",
-                    result: "완료",
-                    isAgreed: "동의",
-                    idCardImg: "무",
-                    bankBookImg: "무",
-                    stage: "3 기 [1 차 차수분] 분할 사례비"
+                    title: "삼진제약 팔보시클립", th: "3기",
+                    count: "1/30", // 🚀 [대표님 최신 정품 N수 매칭 반영]
+                    period: "96", name: "이정용", ssn: "821208-1", phone: "01078969522",
+                    recDate: "2026-10-19", // 🚀 19대 분산형 평일 정산 소집일 일치화
+                    payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus: "대기", result: "대기",
+                    isAgreed: "대기", idCardImg: "무", bankBookImg: "무",
+                    status: "신검대기"
                 },
                 {
-                    title: "대우제약 피타+에제",
-                    th: "2기",
-                    count: "60",
-                    period: "72",
-                    name: "정은영",
-                    ssn: "950405-2", // 이미지 속 생년월일 950405 / 성별 여(-2) 동기화
-                    phone: "01065431234",
-                    payStatus1: "처리중", // 이미지 속 1차 지급 상태 노란색 [처리중] 배지 매핑
-                    payStatus2: "대기",
-                    payStatus3: "대기",
-                    payStatus: "처리중",
-                    result: "처리중",
-                    isAgreed: "동의",
-                    idCardImg: "무",
-                    bankBookImg: "무",
-                    stage: "2 기 [1 차 차수분] 분할 사례비"
+                    title: "대우제약 피타+에제", th: "2기",
+                    count: "1/60", // 🚀 [대표님 최신 정품 N수 매칭 반영]
+                    period: "72", name: "정은영", ssn: "950405-2", phone: "01065431234",
+                    recDate: "2026-10-16", // 🚀 19대 분산형 평일 정산 소집일 일치화
+                    payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus: "대기", result: "대기",
+                    isAgreed: "대기", idCardImg: "무", bankBookImg: "무",
+                    status: "신검대기"
                 },
                 {
-                    title: "[생동] 명인제약 아고멜라틴",
-                    th: "1기",
-                    count: "46",
-                    period: "10",
-                    name: "김정관",
-                    ssn: "900102-1", // 이미지 속 생년월일 900102 / 성별 남(-1) 동기화 [INDEX: 0.1.31]
-                    phone: "01091825414",
-                    payStatus1: "접수", // 이미지 속 1차 지급 상태 파란색 [접수] 배지 매핑
-                    payStatus2: "대기",
-                    payStatus3: "대기",
-                    payStatus: "접수",
-                    result: "접수",
-                    isAgreed: "동의",
-                    idCardImg: "무",
-                    bankBookImg: "무",
-                    stage: "1 기 [1 차 차수분] 분할 사례비"
+                    title: "[생동] 명인제약 아고멜라틴", th: "1기",
+                    count: "1/44", // 🚀 [대표님 최신 정품 N수 매칭 반영]
+                    period: "10", name: "김정환", ssn: "900102-1", phone: "01091826414",
+                    recDate: "2026-10-14", // 🚀 19대 분산형 평일 정산 소집일 일치화
+                    payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus: "대기", result: "대기",
+                    isAgreed: "대기", idCardImg: "무", bankBookImg: "무",
+                    status: "신검대기"
                 }
             ];
             localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-            console.log("[통합 동기화] 대상자 관리 명단 8종 마스터 명칭 싱크 결합 완료.");
+            console.log("[하단 동기화] 최하단 8종 대상자 대장 원장 N수 및 19대 평일 정산 소집일 전면 동치화 마감 완료.");
 
             // 3. 브라우저 로딩이 끝나면 양쪽 뷰 포트를 일제히 강제 출력 리프레시
             window.addEventListener('load', function () {

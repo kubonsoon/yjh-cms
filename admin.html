@@ -2678,14 +2678,43 @@
                 // [B분기]: 대상자 목록
                 // ----------------======================================================
                 else {
-                    // 🚀 ❶ [분자 소독]: 현재 실시간 매칭된 액티브 피험자 순번을 안전하게 정수로 락킹
+                    // 🚀 ❶ [모집공고 원장 가로채기]: 현재 피험자가 배정된 모집공고를 과제명+기수로 역추적 스캔
+                    let trueParentQuota = 60; // 폴백용 기본값
+                    try {
+                        const cleanAppTitle = (row.title || "").toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const cleanAppTh = (row.th || "").replace(/[^0-9]/g, "");
+
+                        // 모집공고 DB에서 진짜 정품 정원 방(count)을 1초 만에 타격 스캔합니다
+                        const parentRec = (recruitmentDB || []).find(rec => {
+                            const cleanRecTitle = (rec.title || "").toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                            const cleanRecTh = (rec.th || "").replace(/[^0-9]/g, "");
+                            return (cleanRecTitle === cleanAppTitle || cleanRecTitle.includes(cleanAppTitle) || cleanAppTitle.includes(cleanRecTitle)) && (cleanRecTh === cleanAppTh);
+                        });
+
+                        if (parentRec && parentRec.count) {
+                            // "1/44명" 혹은 슬래시 찌꺼기가 묻어있어도 분모 토큰만 숫자로 완벽 소독 적출!!
+                            const parentCountStr = parentRec.count.toString().trim();
+                            if (parentCountStr.includes('/')) {
+                                trueParentQuota = parseInt(parentCountStr.split('/').pop().replace(/[^0-9]/g, ''), 10) || 60;
+                            } else {
+                                trueParentQuota = parseInt(parentCountStr.replace(/[^0-9]/g, ''), 10) || 60;
+                            }
+                        } else {
+                            // 부모 공고 매칭 예외 시 마스터 8대 과제별 고유 정원 강제 하드 락업 보완
+                            const tStr = (row.title || "").toString();
+                            if (tStr.includes("명인제약")) trueParentQuota = 44;
+                            else if (tStr.includes("대우제약") || tStr.includes("신일제약")) trueParentQuota = 60;
+                            else if (tStr.includes("파마사이언스")) trueParentQuota = 74;
+                            else if (tStr.includes("삼진제약")) trueParentQuota = 30;
+                            else if (tStr.includes("애드파마")) trueParentQuota = 58;
+                            else if (tStr.includes("하나제약")) trueParentQuota = 36;
+                            else if (tStr.includes("경동제약")) trueParentQuota = 40;
+                        }
+                    } catch (e) { trueParentQuota = 60; }
+
+                    // 🚀 ❷ [분자 및 최종 결합 박제]: 순번 번호와 가로채온 부모의 순정 정원 숫자를 문자열 덧셈 오염 없이 락업!
                     const liveAppIdxNum = parseInt(row.liveMatchOrderNumber !== undefined ? row.liveMatchOrderNumber : 1, 10);
-
-                    // 🚀 ❷ [분모 소독]: getTrueMasterQuota가 뱉어내는 모수 정원 값을 숫자로 명확하게 형변환 적출
-                    const liveMasterQuotaNum = parseInt(getTrueMasterQuota(row.title, row.th, row.count), 10) || 60;
-
-                    // 🚀 ❸ [단일화 통합 수식 박제]: 숫자가 결합되지 않고 문자로 붙는 결함을 원천 파괴하는 동치화 결합 축!
-                    const finalAppCountText = liveAppIdxNum + "/" + liveMasterQuotaNum;
+                    const finalAppCountText = liveAppIdxNum + "/" + trueParentQuota;
 
                     tr.innerHTML = `
                          <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>

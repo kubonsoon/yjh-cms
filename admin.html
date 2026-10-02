@@ -1651,6 +1651,7 @@
                     tr.style.setProperty("pointer-events", "auto", "important");
                     tr.style.cursor = "default";
 
+                    // 📅 소집일(recDate) 포맷 안전 가드 소독
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
                     if (defaultDateVal === "미정" || !defaultDateVal || defaultDateVal.includes("년")) {
                         const today = new Date();
@@ -1660,19 +1661,29 @@
                         defaultDateVal = `${yyyy}-${mm}-${dd}`;
                     }
 
+                    // 💰 [5차수 지급일정 역추적]: 어떠한 객체 유입도 글자로 강제 전환하여 .replace 오류를 원천 차단
                     let p1 = "", p2 = "", p3 = "", p4 = "", pEnd = "";
                     try {
-                        const rawSchedule = row.paySchedule || "";
+                        const rawSchedule = (row.paySchedule || "").toString().trim();
                         if (rawSchedule && rawSchedule !== "추후공지") {
                             const tokens = rawSchedule.split("/");
-                            const extractDate = (str) => str ? str.replace(/.*:/, "").replace(/[^0-9-]/g, "").trim() : "";
-                            if (tokens) p1 = extractDate(tokens);
-                            if (tokens) p2 = extractDate(tokens);
-                            if (tokens) p3 = extractDate(tokens);
-                            if (tokens) p4 = extractDate(tokens);
-                            if (tokens) pEnd = extractDate(tokens);
+
+                            // 🔒 [치료 핵심 가드]: 들어온 값을 강제로 toString() 변환 처리하여 .replace 포인터 참조 유실 박멸
+                            const extractDate = (targetToken) => {
+                                if (!targetToken) return "";
+                                const cleanStr = targetToken.toString().trim();
+                                return cleanStr.replace(/.*:/, "").replace(/[^0-9-]/g, "").trim();
+                            };
+
+                            if (tokens[0]) p1 = extractDate(tokens[0]);
+                            if (tokens[1]) p2 = extractDate(tokens[1]);
+                            if (tokens[2]) p3 = extractDate(tokens[2]);
+                            if (tokens[3]) p4 = extractDate(tokens[3]);
+                            if (tokens[4]) pEnd = extractDate(tokens[4]);
                         }
-                    } catch (e) { console.error(e); }
+                    } catch (e) {
+                        console.error("[지급일 역추적 최종 가드 작동]", e);
+                    }
 
                     tr.innerHTML = `
         <td style="vertical-align: middle; padding-left: 15px; text-align: left;">

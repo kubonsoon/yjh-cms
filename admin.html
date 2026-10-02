@@ -3295,61 +3295,53 @@
         * (상단 등록 폼을 오염시키지 않고 목록 자체에서 실시간 세이브 및 성별 기호를 보존 처리합니다)
         */
         function saveInlineApplicantRecord(index) {
-
-            if (typeof index === 'undefined' && typeof masterIndex !== 'undefined') {
-                index = masterIndex;
-            }
-            // 💡 [대표님 필수 로직 안전 상속]: 마스터 인덱스 컨텍스트가 유실되었거나 가상 DB가 비어있으면 트랜잭션을 원천 차단합니다
-            if (typeof index === 'undefined' || !db || !db[index]) {
-                alert("수정 대상자 데이터의 메모리 인덱스를 포착하지 못했습니다.");
+            // 🚀 [역순 뒤틀림 완파 코어 단원]: 줄 번호(index)에 속지 않기 위해 현재 불이 켜진 수정 행(.editing-row)을 포착
+            const targetRowDOM = document.querySelector(`.editing-row`);
+            if (!targetRowDOM) {
+                alert("수정 대상자 행(Row)의 메모리 컨텍스트를 포착하지 못했습니다.");
                 return;
             }
 
-            // 🚀 ⚡ [최종 수술 단원: 역순 배치 및 검색 필터 뒤틀림 원천 분쇄 가드]
-            // 가변 차수 대공정 탑재로 뒤집힌 화면 줄 번호에 속지 않고, 실시간 불이 켜진 수정 행 노드를 다이렉트 조준 캡처!
+            // 줄 번호 대신, 행에 바인딩된 고유 주소 식별자(masterIndex)를 확실하게 추출
             let masterIndex = index;
-            const targetRowDOM = document.querySelector(`.editing-row`);
-
-            if (targetRowDOM && targetRowDOM.getAttribute('data-master-index')) {
-                // 🔒 엇갈림 없이 오직 내가 눈으로 보고 고친 진짜 그 피험자의 마스터 원장 주소방 번호를 100% 명중 확보합니다.
+            if (targetRowDOM.getAttribute('data-master-index')) {
                 masterIndex = parseInt(targetRowDOM.getAttribute('data-master-index'), 10);
-            } else {
-                if (!document.getElementById(`inline-app-name-${masterIndex}`) && document.getElementById(`inline-app-name-${index}`)) {
-                    masterIndex = index;
-                }
             }
 
-            // 1. 해당 행의 인라인 입력 컴포넌트 실시간 캡처 락인 [masterIndex 주파수 1:1 완벽 정합 사출]
-            const elTitle = document.getElementById(`inline-app-title-${masterIndex}`);
-            const elTh = document.getElementById(`inline-app-th-${masterIndex}`);
-            const elCount = document.getElementById(`inline-app-count-${masterIndex}`);
-            const elPeriod = document.getElementById(`inline-app-period-${masterIndex}`);
-            const elName = document.getElementById(`inline-app-name-${masterIndex}`);
-            const elSsn = document.getElementById(`inline-app-ssn-${masterIndex}`);
-            const elPhone = document.getElementById(`inline-app-phone-${masterIndex}`);
+            // 가상 DB 대장 원본 로드
+            let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
+                applicantDB = dataStoreApplicant;
+            }
 
-            // 차수별 3단 셀렉트 박스 감지 파이프라인 일치화 완착
-            const elPay1 = document.getElementById(`inline-app-pay1-${masterIndex}`);
-            const elPay2 = document.getElementById(`inline-app-pay2-${masterIndex}`);
-            const elPay3 = document.getElementById(`inline-app-pay3-${masterIndex}`);
-
-            const elDuty = document.getElementById(`inline-app-duty-${masterIndex}`);
-            const elCall = document.getElementById(`inline-app-call-${masterIndex}`);
-            const elCategory = document.getElementById(`inline-app-category-${masterIndex}`);
-            const elStage = document.getElementById(`inline-app-stage-${masterIndex}`);
-
-            // ==========================================================================
-            // 🎯 [삼각 관제망 대완결 - 2조각] stage+status 듀얼 수혈 및 무선 번개 패킷 마감 셔터
-            // ==========================================================================
-
-            // 2. 기존 마스터 데이터베이스에서 불변 키값(UID, 카테고리 등) 상속 보존 가드 (masterIndex 축 연동 정합)
-            const origin = dataStoreApplicant[masterIndex] || dataStoreApplicant[index];
+            // 🎯 [UID 직격 스캔]: 화면 순서와 무관한 피험자의 불변 고유 키(uid)를 원본 데이터에서 직접 추출 확보!
+            const origin = applicantDB[masterIndex] || applicantDB[index];
             if (!origin) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
             const id = origin.uid;
 
-            const idx = dataStoreApplicant.findIndex(d => d.uid === id);
-            if (idx === -1) return;
+            // 🚀 [순서 파괴 수호]: 데이터베이스 대장 원본 배열 내에서 진짜 일치하는 고유 키의 절대 방 번호(idx)를 명중 락인!!
+            const idx = applicantDB.findIndex(d => d.uid === id);
+            if (idx === -1) return alert("전산망 원장 패킷 매칭 실패: 데이터 고유 키 위치를 유실했습니다.");
 
+            // 2. 화면에 활성화된 13대 실물 인풋 컴포넌트들로부터 화면 입력 알맹이 값을 강제 가로채 수거!
+            const elTitle = document.getElementById(`inline-app-title-${masterIndex}`) || document.getElementById(`inline-app-title-${index}`);
+            const elTh = document.getElementById(`inline-app-th-${masterIndex}`) || document.getElementById(`inline-app-th-${index}`);
+            const elCount = document.getElementById(`inline-app-count-${masterIndex}`) || document.getElementById(`inline-app-count-${index}`);
+            const elPeriod = document.getElementById(`inline-app-period-${masterIndex}`) || document.getElementById(`inline-app-period-${index}`);
+            const elName = document.getElementById(`inline-app-name-${masterIndex}`) || document.getElementById(`inline-app-name-${index}`);
+            const elSsn = document.getElementById(`inline-app-ssn-${masterIndex}`) || document.getElementById(`inline-app-ssn-${index}`);
+            const elPhone = document.getElementById(`inline-app-phone-${masterIndex}`) || document.getElementById(`inline-app-phone-${index}`);
+
+            const elPay1 = document.getElementById(`inline-app-pay1-${masterIndex}`) || document.getElementById(`inline-app-pay1-${index}`);
+            const elPay2 = document.getElementById(`inline-app-pay2-${masterIndex}`) || document.getElementById(`inline-app-pay2-${index}`);
+            const elPay3 = document.getElementById(`inline-app-pay3-${masterIndex}`) || document.getElementById(`inline-app-pay3-${index}`);
+
+            const elDuty = document.getElementById(`inline-app-duty-${masterIndex}`) || document.getElementById(`inline-app-duty-${index}`);
+            const elCall = document.getElementById(`inline-app-call-${masterIndex}`) || document.getElementById(`inline-app-call-${index}`);
+            const elCategory = document.getElementById(`inline-app-category-${masterIndex}`) || document.getElementById(`inline-app-category-${index}`);
+            const elStage = document.getElementById(`inline-app-stage-${masterIndex}`) || document.getElementById(`inline-app-stage-${index}`);
+
+            // 🎯 [무결성 보정 구조 선언]: 컴포넌트 노드가 유실되었을 때 원본 데이터를 안전 보존 상속합니다.
             const t = elTitle ? elTitle.value.trim() : origin.title;
             const th = elTh ? elTh.value.trim() : origin.th;
             const p = elPeriod ? elPeriod.value.trim() : origin.period;
@@ -3361,7 +3353,11 @@
                 return alert("알림: 빈 필드를 허용할 수 없습니다. 모든 칸을 채워주세요.");
             }
 
-            let finalCountVal = dataStoreApplicant[idx].count || "1/60";
+            // ==========================================================================
+            // 🎯 [저장 함수 대완결 - 2조각] 감사 로그 추적 및 무결성 패킷 페이로드 조립 구역
+            // ==========================================================================
+            // '1/정원' 포맷 문자열 중복 복사 방어막 (순정 수호)
+            let finalCountVal = applicantDB[idx].count || "1/60";
             if (elCount) {
                 let rawCountText = elCount.value.trim();
                 if (rawCountText.includes('/') || rawCountText.includes('-')) {
@@ -3380,14 +3376,15 @@
                 return v.toString().trim();
             };
 
-            const nextPay1 = elPay1 ? cleanPayVal(elPay1.value, "대기") : (dataStoreApplicant[idx].payStatus1 || "대기");
-            const nextPay2 = elPay2 ? cleanPayVal(elPay2.value, "대기") : (dataStoreApplicant[idx].payStatus2 || "대기");
-            const nextPay3 = elPay3 ? cleanPayVal(elPay3.value, "대기") : (dataStoreApplicant[idx].payStatus3 || "대기");
+            const nextPay1 = elPay1 ? cleanPayVal(elPay1.value, "대기") : (applicantDB[idx].payStatus1 || "대기");
+            const nextPay2 = elPay2 ? cleanPayVal(elPay2.value, "대기") : (applicantDB[idx].payStatus2 || "대기");
+            const nextPay3 = elPay3 ? cleanPayVal(elPay3.value, "대기") : (applicantDB[idx].payStatus3 || "대기");
 
-            const nextDuty = elDuty ? elDuty.value : (dataStoreApplicant[idx].isDutyAgreed || "대기");
-            const nextCall = elCall ? elCall.value : (dataStoreApplicant[idx].isCallAgreed || "대기");
-            const nextStage = elStage ? elStage.value.trim() : (dataStoreApplicant[idx].stage || "신검대기");
+            const nextDuty = elDuty ? elDuty.value : (applicantDB[idx].isDutyAgreed || "대기");
+            const nextCall = elCall ? elCall.value : (applicantDB[idx].isCallAgreed || "대기");
+            const nextStage = elStage ? elStage.value.trim() : (applicantDB[idx].stage || "신검대기");
 
+            // 변동 내역 추적 엔진 가동
             let changedItems = [];
             if (origin.title !== t) changedItems.push("시험명");
             if (origin.th !== th) changedItems.push("기수");
@@ -3403,6 +3400,7 @@
             else if (nextPay1 === "처리중" || nextPay2 === "처리중" || nextPay3 === "처리중") finalPipelineStatus = "처리중";
             else if (nextPay1 === "접수" || nextPay2 === "접수" || nextPay3 === "접수") finalPipelineStatus = "접수";
 
+            // 최종 수혈 페이로드 조립
             const updatedPayload = {
                 ...origin,
                 uid: id,
@@ -3423,37 +3421,47 @@
                 isCallAgreed: nextCall,
                 category: elCategory ? elCategory.value : (origin.category || "수동등록"),
 
-                // 🚀 [삼각 대통합 핵심 가드]: 누수 도미노 크래시를 내뿜던 stage 와 status 채널에 정품 상태값을 1:1 동시 기장 수혈!!
+                // 🚀 [삼각 대연동 핵심 가드]: stage와 status 채널에 동시 상태 수혈!!
                 stage: nextStage,
                 status: nextStage
             };
 
+            // ==========================================================================
+            // 🎯 [저장 함수 대완결 - 3조각] db 화면 버퍼 동치화 및 무선 번개 패킷 최종 마감
+            // ==========================================================================
             try {
-                dataStoreApplicant[idx] = updatedPayload;
-                if (typeof db !== 'undefined') {
-                    // 🚀 화면 리렌더러 버퍼인 db 배열까지 masterIndex 축으로 철통 연동 마감
-                    db[masterIndex] = updatedPayload;
+                // 원장 배열 절대 위치 방 교체 복착
+                applicantDB[idx] = updatedPayload;
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
+                if (typeof dataStoreApplicant !== "undefined") dataStoreApplicant = applicantDB;
+
+                // 🚀 🎯 [화면 버퍼 정렬 주파수 동치화 완착]: 
+                // 실시간 화면 테이블 리스너인 db 배열 내부에서도, 고유 키(uid) 대조를 통해 똑같은 피험자 방을 찾아 업데이트 타격!!
+                if (typeof db !== 'undefined' && db.length > 0) {
+                    const dbIdx = db.findIndex(item => item && item.uid === id);
+                    if (dbIdx !== -1) {
+                        db[dbIdx] = updatedPayload;
+                    } else {
+                        db[masterIndex] = updatedPayload;
+                    }
                 }
 
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                window.dataStoreApplicant = dataStoreApplicant;
-
+                // 시스템 감사 로그 기장
                 if (changedItems.length > 0) {
                     const logMsg = `대상자[${n}] 참여비 지급 설정 및 상태 변경 처리(변경항목: ${changedItems.join(", ")})`;
                     if (typeof insertSystemAuditLog === "function") { insertSystemAuditLog("수정", logMsg); }
                 }
 
                 window.currentAppEditingIndex = null;
+                if (typeof currentAppEditingIndex !== 'undefined') currentAppEditingIndex = null;
 
-                // 🚀 무선 번개 패킷 최종 동시 살포 파이프라인 기동
-                let latestApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                const currentTargetData = latestApplicantDB[idx];
-
+                // 무선 번개 패킷 실시간 살포 
+                const currentTargetData = applicantDB[idx];
                 if (currentTargetData) {
                     const dbNameClean = (currentTargetData.name || n || "").toString().replace(/\s/g, "");
                     const cleanPhoneNum = (currentTargetData.phone || "").toString().replace(/[^0-9]/g, "").trim();
                     currentTargetData.masterCombinedKey = `${dbNameClean}_${cleanPhoneNum}`;
-                    localStorage.setItem('dataStoreApplicant', JSON.stringify(latestApplicantDB));
+                    localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
 
                     let pushStatusValue = "FAIL";
                     if (nextStage === "신검통과" || nextStage === "소집" || nextStage === "투약" || nextStage.includes("방문") || nextStage === "종료") {
@@ -3466,11 +3474,11 @@
                     localStorage.setItem('msg_auth_signal', JSON.stringify({ name: currentTargetData.name, isAllow: authAllowValue, stageCode: authStageCode, time: Date.now() }));
                 }
 
+                // 크로스 UI 리프레시 엔진 최종 가동
                 if (typeof refreshApplicantView === "function") refreshApplicantView();
                 if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
                 if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
 
-                // 🎯 [정밀 수리 최종 안착 피드백]: 내가 입력하고 수정한 실물 참여비 상태 데이터셋이 알림창에 투명하게 매핑 사출 노출됩니다!
                 alert(`📋 대상자의 차수별 참여비 정산 상태가 안전하게 영구 저장되었습니다.\n[1차: ${nextPay1} | 2차: ${nextPay2} | 3차: ${nextPay3}]`);
 
             } catch (error) {

@@ -3356,7 +3356,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 const currentTargetData = dataStoreApplicant[idx]; // 현재 수정 성공한 대상자 데이터 원장
                 const relayPacket = {
                     targetApplicantKey: currentTargetData.uid || currentTargetData.ssn || currentTargetData.name, // 대상자 식별 고유 키
-                    updatedStatusValue: currentTargetData.stage, // 수정 모드 셀렉트 박스에서 변경되어 최종 저장된 최신 참여상태 값
+                    updatedStatusValue: currentTargetData.status, // 🚀 [필드 버그 정밀 수정] stage에서 status(진짜 참여상태 문자열)로 변경 수혈
                     transmissionTimestamp: Date.now() // 실시간 인터셉트용 타임스탬프
                 };
 

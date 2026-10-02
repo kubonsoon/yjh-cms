@@ -1690,13 +1690,26 @@
         <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; background: var(--card-color) !important; width: 100%;"></td>
         <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; background: var(--card-color) !important; width: 100%;"></td>
         <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; background: var(--card-color) !important; width: 100%;"></td>
-         <td style="width: 130px; vertical-align: middle; text-align: center; display: none;">
-            <input type="date" id="inline-rec-examSchedule-${index}" value="${window.pureExamScheduleVal || row.examSchedule || ''}">
-            <input type="date" id="inline-rec-visitDate1-${index}" value="${row.visitDate1 || ''}">
-            <input type="date" id="inline-rec-visitDate2-${index}" value="${row.visitDate2 || ''}">
-            <input type="date" id="inline-rec-visitDate3-${index}" value="${row.visitDate3 || ''}">
-            <input type="date" id="inline-rec-visitDate4-${index}" value="${row.visitDate4 || ''}">
-            <input type="date" id="inline-rec-endExamDate-${index}" value="${row.endExamDate || ''}">
+        <td style="width: 130px; vertical-align: middle; text-align: center; padding: 4px 0; box-sizing: border-box;">
+            <div style="display: flex; flex-direction: column; gap: 3px; align-items: center; width: 100%;">
+                <!-- 🚀 신검일 (가로폭 110px 압착으로 130px 셀 공간 확보) -->
+                <div style="position: relative; width: 110px;">
+                    <input type="date" id="inline-rec-examSchedule-${index}" class="inline-input" value="${window.pureExamScheduleVal || row.examSchedule || ''}" style="color: #c084fc !important; font-size: 11px; font-weight: 700; height: 23px; width: 100%; background: #0f172a !important; border: 1px solid #c084fc; border-radius: 4px; padding-left: 4px; text-align: left; cursor: pointer;">
+                    <span style="position: absolute; right: 24px; top: 50%; transform: translateY(-50%); font-size: 9px; color: #c084fc; font-weight: 800; pointer-events: none;">신검</span>
+                </div>
+                <!-- 🚀 소집일자 -->
+                <div style="position: relative; width: 110px;">
+                    <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #38bdf8 !important; font-weight: 700; font-size: 11px; height: 23px; width: 100%; background: #0f172a !important; border: 1px solid #38bdf8; border-radius: 4px; padding-left: 4px; text-align: left; cursor: pointer;">
+                    <span style="position: absolute; right: 24px; top: 50%; transform: translateY(-50%); font-size: 9px; color: #38bdf8; font-weight: 800; pointer-events: none;">소집</span>
+                </div>
+            </div>
+            
+            <!-- 백그라운드 스케줄용 숨김 가드선 유지 (원안 보존) -->
+            <input type="date" id="inline-rec-visitDate1-${index}" value="${row.visitDate1 || ''}" style="display: none;">
+            <input type="date" id="inline-rec-visitDate2-${index}" value="${row.visitDate2 || ''}" style="display: none;">
+            <input type="date" id="inline-rec-visitDate3-${index}" value="${row.visitDate3 || ''}" style="display: none;">
+            <input type="date" id="inline-rec-visitDate4-${index}" value="${row.visitDate4 || ''}" style="display: none;">
+            <input type="date" id="inline-rec-endExamDate-${index}" value="${row.endExamDate || ''}" style="display: none;">
         </td>
         <td style="width: 130px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; background: var(--card-color) !important; cursor: pointer !important;"></td>
         <td style="width: 80px; vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button></td>

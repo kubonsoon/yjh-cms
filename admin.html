@@ -2563,7 +2563,7 @@
                         
                         <!-- ❽ 🎯 [전화번호 너비 85px 압착]: 뚱뚱하던 폭을 85px로 긴축하여 오른쪽 참여상태 칸을 위한 가시성 마진 확보! -->
                         <td style="width: 11%; vertical-align: middle; text-align: center;">
-                            <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important; width: 85px !important; font-size: 11px;">
+                        <input type="text" id="inline-app-phone-${masterIndex}" class="inline-input" value="${row.phone || ''}" style="text-align:center; background: var(--card-color) !important; width: 85px !important; font-size: 11px;">
                         </td>
                         
                         <!-- 🎯 [참여상태 동적 버퍼 시동 구역]: 대표님 순정 19대 업무 규칙 가드 로직 결합 -->
@@ -2633,26 +2633,26 @@
                         
                         <!-- 🎯 [참여비 지급 3단 드롭다운 너비 62px 락킹]: 62px로 컴팩트 슬림화 완료하여 앞칸 침범 전면 분쇄 -->
                         <td style="width: 9%; vertical-align: middle; text-align: center;">
-                            <div style="display: flex; flex-direction: column; gap: 2px; align-items: center; width: 100%;">
-                                <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:20px; font-size:11px; padding:0; color:#ffffff !important; background:#0f172a !important; width:62px !important; cursor: pointer; font-weight:700; text-align:center; text-align-last:center;">
-                                    <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차:대기</option>
-                                    <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>1차:접수</option>
-                                    <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>1차:처리중</option>
-                                    <option value="완료" ${row.payStatus1 === '완료' ? 'selected' : ''}>1차:완료</option>
-                                </select>
-                                <select id="inline-app-pay2-${masterIndex}" class="inline-input" style="height:20px; font-size:11px; padding:0; color:#ffffff !important; background:#0f172a !important; width:62px !important; cursor: pointer; font-weight:700; text-align:center; text-align-last:center;">
-                                    <option value="대기" ${row.payStatus2 === '대기' ? 'selected' : ''}>2차:대기</option>
-                                    <option value="접수" ${row.payStatus2 === '접수' ? 'selected' : ''}>2차:접수</option>
-                                    <option value="처리중" ${row.payStatus2 === '처리중' ? 'selected' : ''}>2차:처리중</option>
-                                    <option value="완료" ${row.payStatus2 === '완료' ? 'selected' : ''}>2차:완료</option>
-                                </select>
-                                <select id="inline-app-pay3-${masterIndex}" class="inline-input" style="height:20px; font-size:11px; padding:0; color:#ffffff !important; background:#0f172a !important; width:62px !important; cursor: pointer; font-weight:700; text-align:center; text-align-last:center;">
-                                    <option value="대기" ${row.payStatus3 === '대기' ? 'selected' : ''}>3차:대기</option>
-                                    <option value="접수" ${row.payStatus3 === '접수' ? 'selected' : ''}>3차:접수</option>
-                                    <option value="처리중" ${row.payStatus3 === '처리중' ? 'selected' : ''}>3차:처리중</option>
-                                    <option value="완료" ${row.payStatus3 === '완료' ? 'selected' : ''}>3차:완료</option>
-                                </select>
-                            </div>
+                          <div style="display: flex; flex-direction: column; gap: 2px; align-items: center; width: 100%;">
+                            <select id="inline-app-pay1-${masterIndex}" class="inline-input" style="height:20px; font-size:11px; padding:0; color:#ffffff !important; background:#0f172a !important; width:62px !important; cursor: pointer; font-weight:700; text-align:center; text-align-last:center;">
+                              <option value="대기" ${row.payStatus1 === '대기' ? 'selected' : ''}>1차: 대기</option>
+                              <option value="접수" ${row.payStatus1 === '접수' ? 'selected' : ''}>1차: 접수</option>
+                              <option value="처리중" ${row.payStatus1 === '처리중' ? 'selected' : ''}>1차: 처리중</option>
+                              <option value="완료" ${row.payStatus1 === '완료' ? 'selected' : ''}>1차: 완료</option>
+                            </select>
+                            <select id="inline-app-pay2-${masterIndex}" class="inline-input" style="height:20px; font-size:11px; padding:0; color:#ffffff !important; background:#0f172a !important; width:62px !important; cursor: pointer; font-weight:700; text-align:center; text-align-last:center;">
+                              <option value="대기" ${row.payStatus2 === '대기' ? 'selected' : ''}>2차: 대기</option>
+                              <option value="접수" ${row.payStatus2 === '접수' ? 'selected' : ''}>2차: 접수</option>
+                              <option value="처리중" ${row.payStatus2 === '처리중' ? 'selected' : ''}>2차: 처리중</option>
+                              <option value="완료" ${row.payStatus2 === '완료' ? 'selected' : ''}>2차: 완료</option>
+                            </select>
+                            <select id="inline-app-pay3-${masterIndex}" class="inline-input" style="height:20px; font-size:11px; padding:0; color:#ffffff !important; background:#0f172a !important; width:62px !important; cursor: pointer; font-weight:700; text-align:center; text-align-last:center;">
+                              <option value="대기" ${row.payStatus3 === '대기' ? 'selected' : ''}>3차: 대기</option>
+                              <option value="접수" ${row.payStatus3 === '접수' ? 'selected' : ''}>3차: 접수</option>
+                              <option value="처리중" ${row.payStatus3 === '처리중' ? 'selected' : ''}>3차: 처리중</option>
+                              <option value="완료" ${row.payStatus3 === '완료' ? 'selected' : ''}>3차: 완료</option>
+                            </select>
+                          </div>
                         </td>
                         
                         <td style="width: 5.5%; vertical-align: middle; text-align: center;">

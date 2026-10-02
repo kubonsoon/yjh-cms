@@ -1701,7 +1701,14 @@
         <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; background: var(--card-color) !important; width: 100%;"></td>
         <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; background: var(--card-color) !important; width: 100%;"></td>
         <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; background: var(--card-color) !important; width: 100%;"></td>
-        <td style="width: 130px; vertical-align: middle; text-align: center; padding: 6px 0; line-height: 1.4; box-sizing: border-box;">
+        <td style="width: 130px; vertical-align: middle; text-align: center; padding: 6px 0; line-height: 1.4; box-sizing: border-box;"
+            id="backup-rec-metadata-holder-${index}"
+            data-v1="${row.visitDate1 || ''}"
+            data-v2="${row.visitDate2 || ''}"
+            data-v3="${row.visitDate3 || ''}"
+            data-v4="${row.visitDate4 || ''}"
+            data-vend="${row.endExamDate || ''}">
+            
             <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 4px;">
                 <div style="text-align: center; width: 100%;">
                     <span style="color: #c084fc; font-weight: 700; font-size: 11px; display: block; margin-bottom: 2px;">• 신검일자</span>
@@ -1711,13 +1718,6 @@
                     <span style="color: #38bdf8; font-weight: 700; font-size: 11px; display: block; margin-bottom: 2px;">• 소집일자</span>
                     <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; font-size: 11.5px; height: 24px; width: 115px; background: #0f172a !important; border: 1px solid #38bdf8; text-align: center; padding: 0 4px;">
                 </div>
-                
-                <!-- 🔒 [간섭 파괴 디펜스 가드]: 저장 함수 전달용 히든 인풋들을 소집일 TD 안쪽 div 최하단으로 격리 이동하여 다른 칸 침범을 완벽 원천 차단!! -->
-                <input type="hidden" id="inline-rec-visitDate1-${index}" value="${row.visitDate1 || ''}">
-                <input type="hidden" id="inline-rec-visitDate2-${index}" value="${row.visitDate2 || ''}">
-                <input type="hidden" id="inline-rec-visitDate3-${index}" value="${row.visitDate3 || ''}">
-                <input type="hidden" id="inline-rec-visitDate4-${index}" value="${row.visitDate4 || ''}">
-                <input type="hidden" id="inline-rec-endExamDate-${index}" value="${row.endExamDate || ''}">
             </div>
         </td>
         <td style="width: 130px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; background: var(--card-color) !important; cursor: pointer !important;"></td>

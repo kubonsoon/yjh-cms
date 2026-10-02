@@ -1542,39 +1542,44 @@
         // 🎯 부모 관리자 시스템 및 m-adm 원격 제어반 글로벌 시그널 폴링 추적 하이브리드 루프
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {
-                const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || myName;
-                const cleanSessionName = currentVerifiedSessionName.toString().replace(/\s/g, "");
+                // 1. 현재 모바일 화면에 민간인증 로그인 안착해 있는 내 진짜 인적 세션 정보 추출 및 여백 소독
+                const currentVerifiedSessionName = (sessionStorage.getItem('certifiedUserName') || myName || "").toString().replace(/\s/g, "");
+                const currentVerifiedSessionSsn = (sessionStorage.getItem('certifiedUserSsn') || (window.loggedInUser ? window.loggedInUser.ssn : "") || "050607").toString().replace(/\s/g, "");
+                const currentVerifiedSessionGender = (sessionStorage.getItem('certifiedUserGender') || (window.loggedInUser ? window.loggedInUser.gender : "") || "여").toString().replace(/\s/g, "");
 
                 const sessionPhone = sessionStorage.getItem('certifiedUserPhone') || (window.loggedInUser ? window.loggedInUser.phone : "");
                 const cleanSessionPhone = sessionPhone.toString().replace(/[^0-9]/g, "").trim();
 
-                // 🚀 1. 관리자 대장 데이터베이스 마스터 원장 실시간 직접 캡처 스캔
+                // 내 로그인 정보로 조합한 유일무이한 마스터 수신 주파수 키 빌드
+                const myMasterCombinedKey = `${currentVerifiedSessionName}_${currentVerifiedSessionSsn}_${currentVerifiedSessionGender}_${cleanSessionPhone}`;
+
+                // 🚀 2. [참여비 버튼 성공 방식 100% 이식] 마스터 로컬스토리지 원장 실시간 직접 캡처 스캔
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                // 동명 이인 및 유령 레코드 간섭을 분쇄하는 복합 인적 정보 1:1 조준 매칭
+                // 오염되기 쉬운 가변 변수 대신, 4단 복합 식별 키가 1:1로 명중 일치하는 내 데이터 행 추적 find
                 const liveRecord = adminApplicantDB.find(u => {
-                    if (!u || !u.name) return false;
-                    const dbNameClean = u.name.toString().replace(/\s/g, "");
-                    const dbPhoneClean = (u.phone || "").toString().replace(/[^0-9]/g, "").trim();
-                    if (!cleanSessionPhone) return dbNameClean === cleanSessionName;
-                    return dbNameClean === cleanSessionName && (dbPhoneClean === cleanSessionPhone || dbPhoneClean.includes(cleanSessionPhone));
+                    if (!u) return false;
+                    // 신규 등록 등으로 키가 누락되었을 경우를 대비한 하이브리드 이름+번호 필터 백업 가동
+                    if (u.masterCombinedKey) return u.masterCombinedKey === myMasterCombinedKey;
+                    return u.name.toString().replace(/\s/g, "") === currentVerifiedSessionName &&
+                        (u.phone || "").toString().replace(/[^0-9]/g, "").trim() === cleanSessionPhone;
                 });
 
                 if (liveRecord) {
-                    const mobileBadge = document.getElementById('cms-badge');
+                    const mobileBadge = document.getElementById('cms-badge'); // 우측 상단 사각 배지
+                    const historyLogSlot = document.getElementById('history-log'); // 중앙 실시간 연결바 우측 ◀ 상태: 영역
+                    const submitBtn = document.getElementById('ui_submit_btn'); // 참여비 최종 신청 버튼
                     const stageTxtSlot = document.getElementById('ui_stage_text');
-                    const submitBtn = document.getElementById('ui_submit_btn'); // 최종 신청 버튼 추적
 
-                    // 🚀 2. [오류 전면 쇄신] 진짜 관리자 화면의 실시간 저장 참여상태 데이터(status) 수혈
+                    // 🚀 3. [오류 전면 쇄신] 참여비 버튼처럼 진짜 관리자 화면의 참여상태(status) 필드를 1초마다 직접 무지연 수혈
                     const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
 
-                    // ◀ 상태: 영역 로그 실시간 무새로고침 치환
-                    const historyLogSlot = document.getElementById('history-log');
+                    // [이미지 반영 1] 중앙 인라인 텍스트 로그 영역을 최대 1초 이내에 실시간 치환
                     if (historyLogSlot) {
                         historyLogSlot.innerText = liveStatusText;
                     }
 
-                    // 우측 사각 배지 텍스트 및 마스터 클래스 색상 실시간 강제 반전 동기화
+                    // [이미지 반영 2] 우측 상단 사각 배지의 개행 및 마스터 클래스 색상 클래스 강제 반전 주입
                     if (mobileBadge) {
                         mobileBadge.removeAttribute("style");
                         mobileBadge.className = "badge";
@@ -1594,7 +1599,7 @@
                         } else if (liveStatusText === "종료" || liveStatusText === "완결") {
                             mobileBadge.innerText = "정산\n(종료)";
                             mobileBadge.classList.add("master-slate");  // 회색 스킨 반전
-                        } else if (liveStatusText.includes("탈락") || liveStatusText.includes("부적합") || liveStatusText === "시험부적합") {
+                        } else if (liveStatusText.includes("탈락") || liveStatusText.includes("부적합") || liveStatusText === "시험부적합" || liveStatusText.includes("위반")) {
                             mobileBadge.innerText = "심사\n탈락";
                             mobileBadge.classList.add("master-rose");   // 적색 스킨 반전
                         } else {
@@ -1603,27 +1608,29 @@
                         }
                     }
 
-                    // 🚀 3. [업무 규칙 대원칙 강제 인터록] 단어에 "신검"이 들어가면 이유 여하를 막론하고 참여비 없음 (신청 불가 잠금 고정)
-                    if (liveStatusText.includes("신검")) {
+                    // 🚀 4. [기획 대원칙 인터록 확실 바인딩] 단어에 "신검"이 포함되거나 비정상 상태(규정위반 등) 포착 시 원천 락다운 고정
+                    if (liveStatusText.includes("신검") || liveStatusText.includes("위반") || liveStatusText.includes("탈락") || liveStatusText.includes("취소")) {
                         if (submitBtn) {
                             submitBtn.disabled = true;
                             if (liveStatusText === "신검통과" || liveStatusText === "신검적합") {
                                 submitBtn.innerText = "신검 통과 승인 (소집 대기 중)";
-                            } else if (liveStatusText === "신검탈락" || liveStatusText.includes("탈락")) {
+                            } else if (liveStatusText.includes("탈락")) {
                                 submitBtn.innerText = "심사 탈락 (부분 지급 신청 대기)";
-                            } else if (liveStatusText === "신검동철" || liveStatusText.includes("동철")) {
+                            } else if (liveStatusText.includes("동철")) {
                                 submitBtn.innerText = "동의 철회 대상자 (신청 불가)";
+                            } else if (liveStatusText.includes("위반")) {
+                                submitBtn.innerText = "규정 위반 대상자 (신청 불가)";
                             } else {
-                                submitBtn.innerText = "신검 단계 (참여비 지급 신청 없음)";
+                                submitBtn.innerText = "참여비 지급 신청 대상 아님";
                             }
-                            submitBtn.style.background = "#1e293b"; // 암전 잠금 색상 강제 오버라이드
-                            submitBtn.style.cursor = "not-allowed";
+                            submitBtn.style.setProperty("background", "#1e293b", "important"); // 구형 opener 강제 개방 소독
+                            submitBtn.style.setProperty("cursor", "not-allowed", "important");
                         }
                         if (typeof setMobileFormActive === "function") {
                             setMobileFormActive(false); // 🔒 엉뚱하게 열리던 서식 자물쇠를 물리적으로 원천 잠금 차단!
                         }
                     }
-                    // 🚀 4. 실제 시험 참여 단계 진입 시 자물쇠 부분 개방 허용 분기
+                    // 🚀 5. 실제 시험 참여 및 진행 단계 진입 시 자물쇠 정식 개방 활성화
                     else if (liveStatusText === "참여(소집)" || liveStatusText === "투약" || liveStatusText.includes("진행")) {
                         if (submitBtn) {
                             submitBtn.disabled = false;
@@ -1632,10 +1639,10 @@
                             submitBtn.style.cursor = "pointer";
                         }
                         if (typeof setMobileFormActive === "function") {
-                            setMobileFormActive(true); // 🔓 실제 참여 단계만 개방
+                            setMobileFormActive(true); // 🔓 실제 참여 및 투약 트랙만 개방 허용
                         }
                     }
-                    // 🚀 5. 최종 종료/완결 마감 트랙
+                    // 🚀 6. 최종 과제 완결 종료 마감 트랙
                     else if (liveStatusText === "종료" || liveStatusText === "완결") {
                         if (stageTxtSlot) {
                             stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여비 청구, 금융 지급 완료 및 시험 최종 종료가 정상 완료되었습니다.</span>`;
@@ -1643,15 +1650,15 @@
                         if (submitBtn) {
                             submitBtn.innerText = "지급 완료 및 최종 종료 (신청 마감)";
                             submitBtn.disabled = true;
-                            submitBtn.style.background = "#1e293b";
-                            submitBtn.style.cursor = "not-allowed";
+                            submitBtn.style.setProperty("background", "#1e293b", "important");
+                            submitBtn.style.setProperty("cursor", "not-allowed", "important");
                         }
                         if (typeof setMobileFormActive === "function") {
                             setMobileFormActive(false);
                         }
                     }
 
-                    // ⚠️ 오동작을 유발하던 window.opener 구형 코드는 이 내부에서 원천 소독 및 제거되었습니다.
+                    // ⚠️기존에 덮어쓰기 왜곡을 유발하던 window.opener 구형 찌꺼기 코드는 이 내부에서 전면 소독 및 제거되었습니다.
                 }
 
                 // 🌟 하단 푸시 시그널 처리반 (기존 순정 로직 원형 보존)
@@ -1677,127 +1684,6 @@
                     }
                 }
             }, 1000);
-
-            // ==========================================================================
-            // 🚨 [4단 마스터 키 결합] 동명이인 완전 배제 및 "신검/규정위반" 실시간 차단 리스너
-            // ==========================================================================
-            window.addEventListener('storage', function (event) {
-                if (event.key === 'window_admin_status_relay_signal' && event.newValue) {
-                    try {
-                        const packet = JSON.parse(event.newValue);
-
-                        // 현재 모바일 화면에 로그인된 내 진짜 인적 세션 정보 실시간 캡처 및 소독
-                        const currentVerifiedSessionName = (sessionStorage.getItem('certifiedUserName') || myName || "").toString().replace(/\s/g, "");
-                        const currentVerifiedSessionSsn = (sessionStorage.getItem('certifiedUserSsn') || (window.loggedInUser ? window.loggedInUser.ssn : "") || "050607").toString().replace(/\s/g, "");
-                        const currentVerifiedSessionGender = (sessionStorage.getItem('certifiedUserGender') || (window.loggedInUser ? window.loggedInUser.gender : "") || "여").toString().replace(/\s/g, "");
-
-                        const sessionPhone = sessionStorage.getItem('certifiedUserPhone') || (window.loggedInUser ? window.loggedInUser.phone : "");
-                        const cleanSessionPhone = sessionPhone.toString().replace(/[^0-9]/g, "").trim();
-
-                        // 현재 내 로그인 정보로 조합한 4단 마스터 수신 주파수 빌드
-                        const myMasterCombinedKey = `${currentVerifiedSessionName}_${currentVerifiedSessionSsn}_${currentVerifiedSessionGender}_${cleanSessionPhone}`;
-
-                        // 1. [보안 철벽 방어] 발사된 4단 마스터 키가 내 고유 주파수와 1:1로 완벽히 일치하는 순간만 포착
-                        if (packet.targetApplicantMasterKey === myMasterCombinedKey) {
-
-                            const liveStatusText = packet.updatedStatusValue.toString().trim(); // 최신 참여상태 수혈
-
-                            const mobileBadge = document.getElementById('cms-badge'); // 우측 사각 배지
-                            const historyLogSlot = document.getElementById('history-log'); // ◀ 상태: 영역
-                            const submitBtn = document.getElementById('ui_submit_btn'); // 참여비 최종 신청 버튼
-                            const stageTxtSlot = document.getElementById('ui_stage_text');
-
-                            // 2. 하단 인라인 텍스트 로그 영역 무새로고침 실시간 치환
-                            if (historyLogSlot) {
-                                historyLogSlot.innerText = liveStatusText;
-                            }
-
-                            // 3. 우측 사각 배지 문자열 개행 및 마스터 클래스 색상 적용 (순정 규칙 100% 동기화)
-                            if (mobileBadge) {
-                                mobileBadge.removeAttribute("style");
-                                mobileBadge.className = "badge";
-
-                                if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
-                                    mobileBadge.innerText = "신검\n대기";
-                                    mobileBadge.classList.add("master-purple");
-                                } else if (liveStatusText === "신검통과" || liveStatusText === "신검적합" || liveStatusText.includes("적합")) {
-                                    mobileBadge.innerText = "신검\n적합";
-                                    mobileBadge.classList.add("master-green");
-                                } else if (liveStatusText === "참여(소집)" || liveStatusText.includes("소집")) {
-                                    mobileBadge.innerText = "참여\n(소집)";
-                                    mobileBadge.classList.add("master-blue");
-                                } else if (liveStatusText === "투약" || liveStatusText.includes("진행")) {
-                                    mobileBadge.innerText = "진행\n(투약)";
-                                    mobileBadge.classList.add("master-blue");
-                                } else if (liveStatusText === "종료" || liveStatusText === "완결") {
-                                    mobileBadge.innerText = "정산\n(종료)";
-                                    mobileBadge.classList.add("master-slate");
-                                } else if (liveStatusText.includes("탈락") || liveStatusText.includes("부적합") || liveStatusText === "시험부적합" || liveStatusText.includes("위반")) {
-                                    mobileBadge.innerText = "심사\n탈락";
-                                    mobileBadge.classList.add("master-rose");
-                                } else {
-                                    mobileBadge.innerText = liveStatusText.replace("(", "\n(");
-                                    mobileBadge.classList.add("master-navy");
-                                }
-                            }
-
-                            // 4. [업무 규칙 대원칙 락인] '신검' 단어가 포함되거나 비정상 중단 상태(규정위반 등) 시 참여비 없음 (차단)
-                            if (liveStatusText.includes("신검") || liveStatusText.includes("위반") || liveStatusText.includes("탈락") || liveStatusText.includes("취소")) {
-                                if (submitBtn) {
-                                    submitBtn.disabled = true;
-
-                                    if (liveStatusText === "신검통과" || liveStatusText === "신검적합") {
-                                        submitBtn.innerText = "신검 통과 승인 (소집 대기 중)";
-                                    } else if (liveStatusText.includes("탈락")) {
-                                        submitBtn.innerText = "심사 탈락 (부분 지급 신청 대기)";
-                                    } else if (liveStatusText.includes("동철")) {
-                                        submitBtn.innerText = "동의 철회 대상자 (신청 불가)";
-                                    } else if (liveStatusText.includes("위반")) {
-                                        submitBtn.innerText = "규정 위반 대상자 (신청 불가)";
-                                    } else {
-                                        submitBtn.innerText = "참여비 지급 신청 대상 아님";
-                                    }
-
-                                    submitBtn.style.setProperty("background", "#1e293b", "important"); // 잠금 암전 색상 고정
-                                    submitBtn.style.setProperty("cursor", "not-allowed", "important");
-                                }
-                                if (typeof setMobileFormActive === "function") {
-                                    setMobileFormActive(false); // 은행 선택 및 파일 첨부 박스 전면 락다운
-                                }
-                            }
-                            // 🔓 실제 시험 참여/진행 단계 진입 시 자물쇠 완전 개방 트랙
-                            else if (liveStatusText === "참여(소집)" || liveStatusText === "투약" || liveStatusText.includes("진행")) {
-                                if (submitBtn) {
-                                    submitBtn.disabled = false;
-                                    submitBtn.innerText = "참여비 지급 신청하기";
-                                    submitBtn.style.background = "";
-                                    submitBtn.style.cursor = "pointer";
-                                }
-                                if (typeof setMobileFormActive === "function") {
-                                    setMobileFormActive(true); // 입력 서식 전면 해제 개방
-                                }
-                            }
-                            // 🏁 과제 최종 완결 종료 마감 트랙
-                            else if (liveStatusText === "종료" || liveStatusText === "완결") {
-                                if (stageTxtSlot) {
-                                    stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여비 청구, 금융 지급 완료 및 시험 최종 종료가 정상 완료되었습니다.</span>`;
-                                }
-                                if (submitBtn) {
-                                    submitBtn.innerText = "지급 완료 및 최종 종료 (신청 마감)";
-                                    submitBtn.disabled = true;
-                                    submitBtn.style.setProperty("background", "#1e293b", "important");
-                                    submitBtn.style.setProperty("cursor", "not-allowed", "important");
-                                }
-                                if (typeof setMobileFormActive === "function") {
-                                    setMobileFormActive(false);
-                                }
-                            }
-                        }
-                    } catch (e) {
-                        console.error("4단 마스터 패킷 실시간 리렌더링 실패:", e);
-                    }
-                }
-            });
         }
 
 

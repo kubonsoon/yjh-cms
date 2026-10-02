@@ -3344,31 +3344,26 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
 
             // ==========================================================================
-            // 🚨 [4단 마스터 키 결합] 대상자 목록 수정 저장 즉시 모바일 실시간 브로드캐스트 사출
+            // 🚨 [4단 복합 키 설계] 모바일 직접 스캔 엔진을 위한 마스터 데이터 전산망 정렬
             // ==========================================================================
             try {
-                const currentTargetData = dataStoreApplicant[idx]; // 현재 수정 성공한 대상자 데이터 원장
+                // 현재 수정 성공한 대상자의 데이터 원장을 명중 타격
+                const currentTargetData = dataStoreApplicant[idx];
 
-                // 전화번호 포맷 믹스매치 방지를 위한 하이픈 및 공백 전면 소독 (숫자만 추출)
+                // 공백 및 하이픈 소독 과정을 거쳐 완벽한 고유 식별 주파수 확보
                 const cleanPhoneNum = (currentTargetData.phone || "").toString().replace(/[^0-9]/g, "").trim();
                 const dbNameClean = (currentTargetData.name || "").toString().replace(/\s/g, "");
                 const dbSsnClean = (currentTargetData.ssn || "").toString().replace(/\s/g, "");
                 const dbGenderClean = (currentTargetData.gender || "").toString().replace(/\s/g, "");
 
-                // [보안 고도화] 동명이인 오작동을 원천 차단하는 유일무이한 4단 복합 마스터 주파수 생성
-                const masterCombinedKey = `${dbNameClean}_${dbSsnClean}_${dbGenderClean}_${cleanPhoneNum}`;
+                // 가변 번호에 영향을 받지 않는 유일무이한 마스터 결합 키를 데이터 원장에 동적 주입
+                currentTargetData.masterCombinedKey = `${dbNameClean}_${dbSsnClean}_${dbGenderClean}_${cleanPhoneNum}`;
 
-                const relayPacket = {
-                    targetApplicantMasterKey: masterCombinedKey, // 🚀 4단 결합 가상 고유 ID 사출
-                    updatedStatusValue: currentTargetData.status, // 진짜 참여상태(status) 문자열 데이터 수혈
-                    transmissionTimestamp: Date.now()
-                };
-
-                // 공용 스토리지 통신 채널에 패킷 주입 및 강제 StorageEvent 발사 후 세션 플러시
-                localStorage.setItem('window_admin_status_relay_signal', JSON.stringify(relayPacket));
-                localStorage.removeItem('window_admin_status_relay_signal');
+                // 최종 정제된 상태(status)와 결합 키를 포함하여 로컬스토리지 원장 최종 마그네틱 커밋
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
+                window.dataStoreApplicant = dataStoreApplicant;
             } catch (e) {
-                console.error("실시간 모바일 동기화 패킷 사출 실패:", e);
+                console.error("마스터 원장 식별 키 주입 실패:", e);
             }
             // ==========================================================================
 

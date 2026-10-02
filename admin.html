@@ -3554,8 +3554,32 @@
 
                 if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
 
-                // 💰 5차수 최종 확정 얼럿 알림창 사출
-                alert(`📋 대상자의 차수별 참여비 정산 상태가 안전하게 영구 저장되었습니다.\n[1차: ${nextPay1} | 2차: ${nextPay2} | 3차: ${nextPay3} | 4차: ${nextPay4} | 종료: ${nextPay5}]`);
+                // 최종수정한 사항 알림창 사출
+                let alertDetails = [];
+                if (origin.title !== t) alertDetails.push(`시험명 : ${t}`);
+                if (origin.th !== th) alertDetails.push(`기수 : ${th}`);
+                if (origin.count !== finalCountString) alertDetails.push(`인원수 : ${pureQuotaNum}명`);
+                if (origin.period !== p) alertDetails.push(`시간 : ${p}시간`);
+                if (origin.name !== n) alertDetails.push(`이름 : ${n}`);
+                if (origin.phone !== ph) alertDetails.push(`전화번호 : ${ph}`);
+                if (origin.stage !== nextStage) alertDetails.push(`참여상태 : ${nextStage}`);
+
+                // 💰 5차 참여비 가변 정산 필드 실시간 변경 탐지 셋업
+                if (origin.payStatus1 !== nextPay1) alertDetails.push(`참여비 1차 : ${nextPay1}`);
+                if (origin.payStatus2 !== nextPay2) alertDetails.push(`참여비 2차 : ${nextPay2}`);
+                if (origin.payStatus3 !== nextPay3) alertDetails.push(`참여비 3차 : ${nextPay3}`);
+                if ((origin.payStatus4 || "대기") !== nextPay4) alertDetails.push(`참여비 4차 : ${nextPay4}`);
+                if ((origin.payStatusEnd || "대기") !== nextPay5) alertDetails.push(`참여비 종료 : ${nextPay5}`);
+
+                if ((origin.isDutyAgreed || "대기") !== nextDuty) alertDetails.push(`당직동의 : ${nextDuty}`);
+                if ((origin.isCallAgreed || "대기") !== nextCall) alertDetails.push(`소집동의 : ${nextCall}`);
+
+                // 📝 알림창 최종 빌드 사출 (변경된 내용이 있다면 목록화하여 출력, 없으면 기본 완료 안내)
+                if (alertDetails.length > 0) {
+                    alert(`📋 [대상자 목록 수정 완료]\n\n대상자: ${n}\n-------------------------\n${alertDetails.join('\n')}`);
+                } else {
+                    alert(`📋 [대상자 목록 수정 완료]\n\n대상자 ${n}님의 변경 사항이 원장에 안전하게 저장되었습니다.`);
+                }
 
             } catch (error) {
                 console.error("대상자 인라인 세이브 최종 마비 오류:", error);

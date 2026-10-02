@@ -3452,7 +3452,8 @@
             try {
                 dataStoreApplicant[idx] = updatedPayload;
                 if (typeof db !== 'undefined') {
-                    db[index] = updatedPayload;
+                    // 🚀 [최종 대종결]: 화면 리렌더러 버퍼인 db 배열까지 진짜 고유 주소인 masterIndex 축으로 무결 락인!!
+                    db[masterIndex] = updatedPayload;
                 }
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));

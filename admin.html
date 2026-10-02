@@ -3335,29 +3335,33 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
             window.dataStoreApplicant = dataStoreApplicant;
 
-            if (typeof commitToLocalStorage === "function") {
-                commitToLocalStorage();
-            }
-
+            if (typeof commitToLocalStorage === "function") { commitToLocalStorage(); }
             window.currentAppEditingIndex = null;
-            if (typeof currentAppEditingIndex !== 'undefined') {
-                currentAppEditingIndex = null;
-            }
+            if (typeof currentAppEditingIndex !== 'undefined') { currentAppEditingIndex = null; }
             currentEditingUid = null;
 
-            // 대시보드 4단 상단 현황판 및 대장 명단 테이블 새로고침 없이 즉시 리렌더링
             if (typeof calculateLiveDashboardStats === 'function') { calculateLiveDashboardStats(); }
             if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
 
             // ==========================================================================
-            // 🚨 [최종 대완결 수정] 대상자 목록 수정 저장 즉시 모바일(m-login) 실시간 브로드캐스트 사출
+            // 🚨 [4단 마스터 키 결합] 대상자 목록 수정 저장 즉시 모바일 실시간 브로드캐스트 사출
             // ==========================================================================
             try {
                 const currentTargetData = dataStoreApplicant[idx]; // 현재 수정 성공한 대상자 데이터 원장
+
+                // 전화번호 포맷 믹스매치 방지를 위한 하이픈 및 공백 전면 소독 (숫자만 추출)
+                const cleanPhoneNum = (currentTargetData.phone || "").toString().replace(/[^0-9]/g, "").trim();
+                const dbNameClean = (currentTargetData.name || "").toString().replace(/\s/g, "");
+                const dbSsnClean = (currentTargetData.ssn || "").toString().replace(/\s/g, "");
+                const dbGenderClean = (currentTargetData.gender || "").toString().replace(/\s/g, "");
+
+                // [보안 고도화] 동명이인 오작동을 원천 차단하는 유일무이한 4단 복합 마스터 주파수 생성
+                const masterCombinedKey = `${dbNameClean}_${dbSsnClean}_${dbGenderClean}_${cleanPhoneNum}`;
+
                 const relayPacket = {
-                    targetApplicantKey: currentTargetData.uid || currentTargetData.ssn || currentTargetData.name, // 대상자 식별 고유 키
-                    updatedStatusValue: currentTargetData.status, // 🚀 stage가 아닌 진짜 참여상태(status) 문자열 데이터 수혈
-                    transmissionTimestamp: Date.now() // 실시간 인터셉트용 타임스탬프
+                    targetApplicantMasterKey: masterCombinedKey, // 🚀 4단 결합 가상 고유 ID 사출
+                    updatedStatusValue: currentTargetData.status, // 진짜 참여상태(status) 문자열 데이터 수혈
+                    transmissionTimestamp: Date.now()
                 };
 
                 // 공용 스토리지 통신 채널에 패킷 주입 및 강제 StorageEvent 발사 후 세션 플러시

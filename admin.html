@@ -3305,29 +3305,38 @@
                 return;
             }
 
-            // 1. 해당 행의 인라인 입력 컴포넌트 실시간 캡처 락인 [이전 장전 완착 스펙 100% 보존]
-            const elTitle = document.getElementById(`inline - app - title - ${index} `);
-            const elTh = document.getElementById(`inline - app - th - ${index} `);
-            const elCount = document.getElementById(`inline - app - count - ${index} `); // 🎯 인원수 돔 포인터
-            const elPeriod = document.getElementById(`inline - app - period - ${index} `);
-            const elName = document.getElementById(`inline - app - name - ${index} `);
-            const elSsn = document.getElementById(`inline - app - ssn - ${index} `);
-            const elPhone = document.getElementById(`inline - app - phone - ${index} `);
+            // 🚀 ⚡ [최종 수술 단원: 데이터 유실 원천 분쇄 가드]
+            // 화면 번호(index)에 속지 않고, 현재 행(tr)의 고유 속성에서 진짜 데이터 고유 식별 번호(masterIndex)를 정밀 적출 확보합니다!
+            let masterIndex = index;
+            const targetRowDOM = document.querySelectorAll('#dom-applicant-table tr')[index] || document.querySelector(`.editing-row`);
+            if (targetRowDOM && targetRowDOM.getAttribute('data-master-index')) {
+                masterIndex = parseInt(targetRowDOM.getAttribute('data-master-index'), 10);
+            } else {
+                if (!document.getElementById(`inline-app-name-${masterIndex}`) && document.getElementById(`inline-app-name-${index}`)) {
+                    masterIndex = index;
+                }
+            }
 
-            // 차수별 3단 셀렉트 박스로 감지 대상 완벽 전환 반영
-            const elPay1 = document.getElementById(`inline - app - pay1 - ${index} `);
-            const elPay2 = document.getElementById(`inline - app - pay2 - ${index} `);
-            const elPay3 = document.getElementById(`inline - app - pay3 - ${index} `);
+            // 1. 해당 행의 인라인 입력 컴포넌트 실시간 캡처 락인 [masterIndex 주파수 일치화 수혈!!]
+            const elTitle = document.getElementById(`inline-app-title-${masterIndex}`);
+            const elTh = document.getElementById(`inline-app-th-${masterIndex}`);
+            const elCount = document.getElementById(`inline-app-count-${masterIndex}`);
+            const elPeriod = document.getElementById(`inline-app-period-${masterIndex}`);
+            const elName = document.getElementById(`inline-app-name-${masterIndex}`);
+            const elSsn = document.getElementById(`inline-app-ssn-${masterIndex}`);
+            const elPhone = document.getElementById(`inline-app-phone-${masterIndex}`);
 
-            const elDuty = document.getElementById(`inline - app - duty - ${index} `);
-            const elCall = document.getElementById(`inline - app - call - ${index} `);
+            const elPay1 = document.getElementById(`inline-app-pay1-${masterIndex}`);
+            const elPay2 = document.getElementById(`inline-app-pay2-${masterIndex}`);
+            const elPay3 = document.getElementById(`inline-app-pay3-${masterIndex}`);
 
-            // 신설 2대 필드 인라인 돔 수집 포인터 100% 유지 계승
-            const elCategory = document.getElementById(`inline - app - category - ${index} `);
-            const elStage = document.getElementById(`inline - app - stage - ${index} `);
+            const elDuty = document.getElementById(`inline-app-duty-${masterIndex}`);
+            const elCall = document.getElementById(`inline-app-call-${masterIndex}`);
+            const elCategory = document.getElementById(`inline-app-category-${masterIndex}`);
+            const elStage = document.getElementById(`inline-app-stage-${masterIndex}`);
 
             // 2. 기존 마스터 데이터베이스에서 불변 키값(UID, 카테고리 등) 상속 보존 가드
-            const origin = dataStoreApplicant[index];
+            const origin = dataStoreApplicant[masterIndex] || dataStoreApplicant[index];
             if (!origin) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
             const id = origin.uid;
 
@@ -3352,21 +3361,20 @@
             let finalCountVal = dataStoreApplicant[idx].count || "1/60";
             if (elCount) {
                 let rawCountText = elCount.value.trim();
-
-                // 슬래시(/)나 하이픈(-)이 걸린 채 화면 통계 포맷이 통째로 감지된 조건문 파싱
                 if (rawCountText.includes('/') || rawCountText.includes('-')) {
                     const separator = rawCountText.includes('/') ? '/' : '-';
                     const tokens = rawCountText.split(separator);
                     const pureQuotaNum = tokens[tokens.length - 1].replace(/[^0-9]/g, '');
-                    finalCountVal = `1 / ${pureQuotaNum || '60'} `;
+                    finalCountVal = `1/${pureQuotaNum || '60'}`;
                 } else {
                     const pureQuotaNum = rawCountText.replace(/[^0-9]/g, '');
-                    finalCountVal = `1 / ${pureQuotaNum || '60'} `;
+                    finalCountVal = `1/${pureQuotaNum || '60'}`;
                 }
             }
-            /* ================================================================= */
 
-            // 수집된 참여비 상태값 정화 가이드 (4대 순정 단어 보장)
+            // ==========================================================================
+            // 🎯 [저장 함수 대완결 - 2조각] 감사 로그 추적 및 무결성 패킷 페이로드 조립 구역
+            // ==========================================================================
             const cleanPayVal = (v, fallback) => {
                 if (!v) return fallback || "대기";
                 return v.toString().trim();
@@ -3384,7 +3392,7 @@
             let changedItems = [];
             if (origin.title !== t) changedItems.push("시험명");
             if (origin.th !== th) changedItems.push("기수");
-            if (origin.count !== finalCountVal) changedItems.push("인원수"); // 정밀 세척 밸류 대조
+            if (origin.count !== finalCountVal) changedItems.push("인원수");
             if (origin.period !== p) changedItems.push("시간");
             if (origin.name !== n) changedItems.push("이름");
             if (origin.ssn !== s) changedItems.push("생년월일");
@@ -3396,11 +3404,8 @@
             if (origin.isDutyAgreed !== nextDuty) changedItems.push("당직동의");
             if (origin.isCallAgreed !== nextCall) changedItems.push("소집동의");
 
-            // ==========================================================================
-            // 🎯 [마스터 대완결 - Part 2 개량] 가변 페이로드 조립 및 명칭 불일치 완벽 소독 적재
-            // ==========================================================================
             // 💡 [4대 순정 단어 보장 파이프라인 조립 규칙 매칭]
-            let finalPipelineStatus = "접수";
+            let finalPipelineStatus = "대기";
             if (nextPay1 === "완료" && nextPay2 === "완료" && nextPay3 === "완료") {
                 finalPipelineStatus = "완료";
             } else if (nextPay1 === "처리중" || nextPay2 === "처리중" || nextPay3 === "처리중") {
@@ -3412,89 +3417,69 @@
             }
 
             const updatedPayload = {
-                ...origin, // 기존 서류 파일 경로, 이미지 주소 등 핵심 원본 구조 일체 상속
+                ...origin,
                 uid: id,
                 title: t,
                 th: th,
                 count: finalCountVal,
                 period: typeof getOnlyNumbers === "function" ? getOnlyNumbers(p) : p.replace(/[^0-9]/g, ''),
                 name: n,
-                ssn: s ? s.toUpperCase() : origin.ssn, // 입력한 성별 식별 기호 실시간 보존
-
-                // ⚡ [대표님 특허 성별 미정 변환 버그 진압 로직 100% 완벽 계승]
+                ssn: s ? s.toUpperCase() : origin.ssn,
                 gender: (elSsn && s !== origin.ssn && typeof parseGenderFromSsn === "function") ? parseGenderFromSsn(s.toUpperCase(), n) : (origin.gender || "남"),
                 phone: typeof getOnlyNumbers === "function" ? getOnlyNumbers(ph) : ph.replace(/[^0-9]/g, ''),
-
                 payStatus1: nextPay1,
                 payStatus2: nextPay2,
                 payStatus3: nextPay3,
-
-                // 💡 [무결성 연동 가드]: 메인 상태는 '1차 참여비 지급 상태'와 완벽 동기화 상속
                 result: finalPipelineStatus,
                 payStatus: finalPipelineStatus,
-
                 isDutyAgreed: nextDuty,
                 isCallAgreed: nextCall,
                 isAgreed: origin.isAgreed || "대기",
                 category: elCategory ? elCategory.value : (origin.category || "수동등록"),
 
-                // 🚀 [명칭 불일치 버그 전면 소독]: 오염을 유발하던 가짜 stage방 구문을 완전히 영구 배제 삭제하고,
-                // 오직 m-login.html 1초 감시 루프가 무지연 실시간 수혈해가는 진짜 참여상태 방인 status 필드 하나만 명중 기입합니다!
+                // 🚀 [삼각 연동 동치화 개통 핵심 락킹]: stage 와 status 양쪽 방에 상태를 동시 더블 각인 기장 완료!!
                 stage: nextStage,
                 status: nextStage
             };
 
+            // ==========================================================================
+            // 🎯 [저장 함수 대완결 - 3조각] 무선 번개 패킷 살포 및 관제 시스템 리프레시 대마감
+            // ==========================================================================
             try {
-                // 가상 데이터베이스 배열 요소 교체 및 글로벌 변수 db 축 최신본 오버라이딩 체인지
                 dataStoreApplicant[idx] = updatedPayload;
                 if (typeof db !== 'undefined') {
                     db[index] = updatedPayload;
                 }
 
-                // 로컬스토리지 파일 시스템 영구 저장 커밋 트랜잭션 구동
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                window.dataStoreApplicant = dataStoreApplicant; // 메모리 컨텍스트 일치화
+                window.dataStoreApplicant = dataStoreApplicant;
 
-                // 대표님표 시스템 감사 로그 동기화 엔진 가동
                 if (changedItems.length > 0) {
                     const logMsg = `대상자[${n}] 참여비 지급 설정 및 상태 변경 처리(변경항목: ${changedItems.join(", ")})`;
                     if (typeof insertSystemAuditLog === "function") { insertSystemAuditLog("수정", logMsg); }
-                    else if (typeof window.insertSystemAuditLog === "function") { window.insertSystemAuditLog("수정", logMsg); }
                 }
 
                 if (typeof commitToLocalStorage === "function") {
                     commitToLocalStorage();
                 }
 
-                // 인라인 수정 모드 해제
                 window.currentAppEditingIndex = null;
                 if (typeof currentAppEditingIndex !== 'undefined') { currentAppEditingIndex = null; }
                 if (typeof currentEditingUid !== 'undefined') { currentEditingUid = null; }
 
-                // 오리지널 통계 엔진 및 렌더러 연쇄 구동 리프레시 상속 구동
-                if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-                if (typeof refreshApplicantView === "function") refreshApplicantView();
-                if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
-
-                // ==========================================================================
-                // 🚨 [마스터 대완결 - Part 3 최종형] 모든 연쇄 리셋 종료 직후 무선 번개 패킷 최종 살포
-                // ==========================================================================
                 let latestApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || window.dataStoreApplicant || [];
                 const currentTargetData = latestApplicantDB[idx];
 
                 if (currentTargetData) {
                     const dbNameClean = (currentTargetData.name || n || "").toString().replace(/\s/g, "");
                     const cleanPhoneNum = (currentTargetData.phone || "").toString().replace(/[^0-9]/g, "").trim();
-
-                    // 가변 번호 발급에 연동이 끊어지지 않는 무결성 마스터 주파수 각인 임베딩
-                    currentTargetData.masterCombinedKey = `${dbNameClean}_${cleanPhoneNum} `;
+                    currentTargetData.masterCombinedKey = `${dbNameClean}_${cleanPhoneNum}`;
 
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(latestApplicantDB));
                     window.dataStoreApplicant = latestApplicantDB;
 
-                    // m-adm.html 무선 푸시 규격과 호응하는 msg_push_signal 번개 패킷 실시간 방출
                     let pushStatusValue = "FAIL";
-                    if (nextStage === "신검통과" || nextStage === "소집" || nextStage === "투약" || nextStage === "종료") {
+                    if (nextStage === "신검통과" || nextStage === "소집" || nextStage === "투약" || nextStage === "종료" || nextStage.includes("방문")) {
                         pushStatusValue = "PASS";
                     }
                     localStorage.setItem('msg_push_signal', JSON.stringify({
@@ -3503,35 +3488,22 @@
                         time: Date.now()
                     }));
 
-                    // m-login.html 자물쇠 인가 제어반(setMobileFormActive) 연동을 위한 msg_auth_signal 번개 패킷 연속 방출
                     let authAllowValue = false;
-                    let authStageCode = 0; // 디폴트 신청불가 대기 스펙
+                    let authStageCode = 0;
 
-                    // 🚀 [업무 규칙 반영]: 소집, 투약 단계뿐만 아니라 새로운 '1차~4차방문', '종료방문' 단계까지 모두 모바일 지급신청 자물쇠를 활짝 열어줍니다!
                     if (nextStage === "소집" || nextStage === "투약" || nextStage.includes("방문")) {
                         authAllowValue = true;
-
-                        // 차수별 매핑 코드 조율 (소집=1, 투약=2, 외래방문 및 종료방문 정산 대기=5)
-                        if (nextStage === "소집") {
-                            authStageCode = 1;
-                        } else if (nextStage === "투약") {
-                            authStageCode = 2;
-                        } else {
-                            authStageCode = 5; // 외래 방문 청구서 개방 트랙 코드 부여
-                        }
-                    }
-                    // 각 차수 기수가 완벽하게 정산 종결 최종 마감된 찰나 ➡️ 100% 종결 처리 잠금
-                    else if (nextStage.includes("기종료")) {
-                        authStageCode = 6; // 기수 대완결 종결 코드 바인딩 (신청 불가 회귀)
-                    }
-                    else if (nextStage === "예비귀가") {
-                        authStageCode = 4; // 예비자 귀가 코딩 매핑
-                    }
-                    else if (nextStage === "신검대기" || nextStage === "신검통과" || nextStage === "신검탈락" || nextStage === "신검동철") {
-                        authStageCode = 0; // 스크리닝 단계 신청불가 홀딩
-                    }
-                    else {
-                        authStageCode = 3; // 규정위반, 임의행동, 욕설폭행 등 나머지 중단/탈락 예외 사유 부분 정산 대기 매핑
+                        if (nextStage === "소집") authStageCode = 1;
+                        else if (nextStage === "투약") authStageCode = 2;
+                        else authStageCode = 5;
+                    } else if (nextStage.includes("기종료")) {
+                        authStageCode = 6;
+                    } else if (nextStage === "예비귀가") {
+                        authStageCode = 4;
+                    } else if (nextStage === "신검대기" || nextStage === "신검통과" || nextStage === "신검탈락") {
+                        authStageCode = 0;
+                    } else {
+                        authStageCode = 3;
                     }
 
                     localStorage.setItem('msg_auth_signal', JSON.stringify({
@@ -3542,20 +3514,24 @@
                     }));
                 }
 
-                // 순정 크로스 하이브리드 리프레시 시그널 보존 사출
                 if (window.opener && !window.opener.closed) {
                     if (typeof window.opener.refreshMobileStatusUI === "function") window.opener.refreshMobileStatusUI();
                 }
                 if (typeof refreshMobileStatusUI === "function") refreshMobileStatusUI();
 
-                // 모든 무선 안테나 사출망 적재가 마감된 최종 시점에 정통 참여비 세부 정산 완료 알림창 확인 팝업 (오류 소독 대완결)
+                if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
+                if (typeof refreshApplicantView === "function") refreshApplicantView();
+                if (typeof refreshRecruitmentView === "function") refreshRecruitmentView();
+
+                // 🎯 [정밀 수리 안착 확인]: 대표님이 타이핑하신 진짜 차수별 참여비 상태가 알림창에 실물 그대로 대연동 표출됩니다!
                 alert(`📋 대상자의 차수별 참여비 정산 상태가 안전하게 영구 저장되었습니다.\n[1차: ${nextPay1} | 2차: ${nextPay2} | 3차: ${nextPay3}]`);
 
             } catch (error) {
                 console.error("목록 인라인 저장 중 치명적 오류 발생:", error);
                 alert("시스템 오류: 목록 데이터 저장에 실패했습니다.");
             }
-        }
+        } // 🔒 saveInlineApplicantRecord
+
 
         // 💡 구형 이름 경로 링크 전산망 인터페이스 융합 마감
         function saveApplicantRecord(index) {

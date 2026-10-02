@@ -3474,6 +3474,9 @@
                     localStorage.setItem('msg_auth_signal', JSON.stringify({ name: currentTargetData.name, isAllow: authAllowValue, stageCode: authStageCode, time: Date.now() }));
                 }
 
+                // 🚀 [최종 대종결]: commitToLocalStorage가 뒤틀어놓은 역순 오염을 박멸하고, 화면 출력 버퍼 db 배열을 진짜 순정 원장 배열과 1:1 강제 대칭 동치화!!
+                if (typeof db !== 'undefined' && typeof dataStoreApplicant !== 'undefined') { db = [...dataStoreApplicant]; }
+
                 // 크로스 UI 리프레시 엔진 최종 가동
                 if (typeof refreshApplicantView === "function") refreshApplicantView();
                 if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();

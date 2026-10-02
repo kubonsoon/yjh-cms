@@ -1564,7 +1564,7 @@
                     const submitBtn = document.getElementById('ui_submit_btn'); // 참여비 최종 신청 버튼
                     const stageTxtSlot = document.getElementById('ui_stage_text');
 
-                    // 참여비 형태처럼 진짜 관리자 화면의 참여상태(status) 필드를 1초마다 직접 무지연 수혈
+                    // [오류 전면 쇄신] admin.html 수정 저장 즉시 반영을 위한 진짜 참여상태 필드(status) 직접 수혈
                     const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
 
                     // 중앙 인라인 텍스트 로그 영역 무새로고침 실시간 치환
@@ -1573,7 +1573,7 @@
                     }
 
                     // ==========================================================================
-                    // 🎯 [최종 대완결 - Part 2] 14가지 정품 옵션 밸류 100% 무결성 인라인 매퍼
+                    // 🎯 [삼각 연동 대완결 - Part 2] 14가지 정품 옵션 밸류 100% 무결성 인라인 매퍼
                     // ==========================================================================
                     if (mobileBadge) {
                         // 기존 구형 클래스 족쇄 초기화
@@ -1588,14 +1588,13 @@
                             mobileBadge.style.setProperty("border", "1px solid #7c3aed", "important");
                         }
                         else if (liveStatusText === "신검통과") {
-                            mobileBadge.innerHTML = "신검<br>통과";
+                            mobileBadge.innerHTML = "신검<br>적합";
                             mobileBadge.style.setProperty("background", "#10b981", "important"); // 🎨 녹색 채우기 완전 고정
                             mobileBadge.style.setProperty("background-color", "#10b981", "important");
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #10b981", "important");
                         }
                         else if (liveStatusText === "소집") {
-                            // 관리자가 select에서 고른 진짜 값인 '소집'을 명중 타격하여 청색 반전
                             mobileBadge.innerHTML = "참여<br>(소집)";
                             mobileBadge.style.setProperty("background", "#2563eb", "important"); // 🎨 청색 채우기 완전 고정
                             mobileBadge.style.setProperty("background-color", "#2563eb", "important");
@@ -1629,7 +1628,6 @@
                             liveStatusText === "규정위반" || liveStatusText === "임의행동" ||
                             liveStatusText === "욕설폭행" || liveStatusText === "기타탈락") {
 
-                            // 관리자가 어떤 탈락 사유를 골라도 즉시 적색 마스터 심사탈락 배지로 실시간 리스킨
                             mobileBadge.innerHTML = "심사<br>탈락";
                             mobileBadge.style.setProperty("background", "#f43f5e", "important"); // 🎨 적색 채우기 완전 고정
                             mobileBadge.style.setProperty("background-color", "#f43f5e", "important");
@@ -1637,7 +1635,6 @@
                             mobileBadge.style.setProperty("border", "1px solid #f43f5e", "important");
                         }
                         else {
-                            // 혹시 모를 대장 내 기타 예외 문자열 통합 가드
                             mobileBadge.innerHTML = liveStatusText.replace("(", "<br>(");
                             mobileBadge.style.setProperty("background", "#1e3a8a", "important");
                             mobileBadge.style.setProperty("background-color", "#1e3a8a", "important");
@@ -1647,11 +1644,10 @@
                     }
 
                     // ==========================================================================
-                    // 🎯 [최종 대완결 - Part 3] 정리해주신 업무 규칙 반영 참여비 신청 제어반 마스터 락인
+                    // 🎯 [삼각 연동 대완결 - Part 3] m-adm.html 무선 인가 신호 처리 및 업무 규칙 락인
                     // ==========================================================================
 
-                    // 🛑 [트랙 A] 신검 관련 카테고리 4형제 (신검대기, 신검통과, 신검탈락, 신검동철)
-                    // 당장 직접 신청이 불가능하므로 자물쇠를 철저히 차단(Lock)합니다.
+                    // 1. [기획 대원칙] 신검 관련 카테고리 4형제는 직접 신청 불가 장벽 유지
                     if (liveStatusText === "신검대기" || liveStatusText === "신검통과" ||
                         liveStatusText === "신검탈락" || liveStatusText === "신검동철") {
 
@@ -1666,64 +1662,68 @@
                             } else {
                                 submitBtn.innerText = "신검 승인 대기 중 (신청 불가)";
                             }
-                            submitBtn.style.setProperty("background", "#1e293b", "important"); // 🔒 암전 잠금 색상 고정
-                            submitBtn.style.setProperty("cursor", "not-allowed", "important");
-                        }
-                        if (typeof setMobileFormActive === "function") {
-                            setMobileFormActive(false); // 은행 및 파일 첨부 서식 전면 잠금 유지
-                        }
-                    }
-
-                    // 🚀 [트랙 B] 실제 시험 진행 카테고리 2형제 (소집, 투약)
-                    // 참여비 지급 신청 권한을 실시간으로 100% 전면 개방(Unlock)합니다.
-                    else if (liveStatusText === "소집" || liveStatusText === "투약") {
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.innerText = "참여비 지급 신청하기";
-                            submitBtn.style.background = ""; // 원본 인라인 하드코딩 족쇄 해제 활성화
-                            submitBtn.style.cursor = "pointer";
-                        }
-                        if (typeof setMobileFormActive === "function") {
-                            setMobileFormActive(true); // 🔓 은행 선택 및 통장/신분증 업로드 파이프라인 전면 개방!
-                        }
-                    }
-
-                    // 🏁 [트랙 C] 최종 완결 마감 카테고리 (종료)
-                    // 참여, 투약, 채혈 완료 및 참여비 지급이 완결되었으므로 최종 마감 처리합니다.
-                    else if (liveStatusText === "종료" || liveStatusText === "완결") {
-                        if (stageTxtSlot) {
-                            stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여, 투약, 채혈 완료 및 참여비 지급 정산이 최종 완결되었습니다.</span>`;
-                        }
-                        if (submitBtn) {
-                            submitBtn.innerText = "지급 완료 및 시험 최종 종료 (마감)";
-                            submitBtn.disabled = true;
                             submitBtn.style.setProperty("background", "#1e293b", "important");
                             submitBtn.style.setProperty("cursor", "not-allowed", "important");
                         }
-                        if (typeof setMobileFormActive === "function") {
-                            setMobileFormActive(false); // 영구 잠금
-                        }
+                        if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
                     }
 
-                    // ⚠️ [트랙 D] 나머지 중단/탈락 예외 사유 7형제 (예비귀가, 검사탈락, 개인사정, 규정위반, 임의행동, 욕설폭행, 기타탈락)
-                    // 나중에 '부분적 참여비 지급 신청'을 할 수 있도록 유연한 신청 불가 대기 트랙으로 격리합니다.
-                    else if (liveStatusText === "예비귀가" || liveStatusText === "검사탈락" ||
-                        liveStatusText === "개인사정" || liveStatusText === "규정위반" ||
-                        liveStatusText === "임의행동" || liveStatusText === "욕설폭행" ||
-                        liveStatusText === "기타탈락") {
+                    // 2. [m-adm.html 원격 제어반 실시간 결합] 
+                    // m-adm에서 개방(toggleAuth) 신호를 쏘아 올렸을 때만 서식을 유연하게 전면 개방/차단합니다.
+                    else {
+                        const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
 
-                        if (submitBtn) {
-                            submitBtn.disabled = true;
-                            submitBtn.innerText = `${liveStatusText} 대상자 (부분 참여비 지급 신청 대기)`;
-                            submitBtn.style.setProperty("background", "#1e293b", "important"); // 정산 전까지 잠금 홀딩
-                            submitBtn.style.setProperty("cursor", "not-allowed", "important");
-                        }
-                        if (typeof setMobileFormActive === "function") {
-                            setMobileFormActive(false); // 서식 일시 잠금 유지
+                        if (authSignal && authSignal.name && authSignal.name.toString().replace(/\s/g, "") === cleanSessionName) {
+                            if (authSignal.isAllow === true) {
+                                // 🔓 모바일 관리자가 지급신청 허용 개방 처리한 찰나
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerText = "참여비 지급 신청하기";
+                                    submitBtn.style.background = ""; // 잠금 오버라이드 해제
+                                    submitBtn.style.cursor = "pointer";
+                                }
+                                if (typeof setMobileFormActive === "function") { setMobileFormActive(true); }
+                            } else {
+                                // 🔒 모바일 관리자가 신청불가 차단 처리한 찰나
+                                if (submitBtn) {
+                                    submitBtn.disabled = true;
+                                    submitBtn.innerText = "참여비 청구 권한 홀딩 (신청 불가)";
+                                    submitBtn.style.setProperty("background", "#1e293b", "important");
+                                    submitBtn.style.setProperty("cursor", "not-allowed", "important");
+                                }
+                                if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
+                            }
+                        } else {
+                            // m-adm 원격 신호가 아직 유입되지 않은 기본 대기 트랙 제어
+                            if (liveStatusText === "소집" || liveStatusText === "투약") {
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerText = "참여비 지급 신청하기";
+                                    submitBtn.style.background = "";
+                                    submitBtn.style.cursor = "pointer";
+                                }
+                                if (typeof setMobileFormActive === "function") { setMobileFormActive(true); }
+                            } else if (liveStatusText === "종료") {
+                                if (stageTxtSlot) {
+                                    stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여 정산 및 참여비 지급이 최종 완결되었습니다.</span>`;
+                                }
+                                if (submitBtn) {
+                                    submitBtn.innerText = "지급 완료 및 시험 최종 종료 (마감)";
+                                    submitBtn.disabled = true;
+                                    submitBtn.style.setProperty("background", "#1e293b", "important");
+                                }
+                                if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
+                            } else {
+                                // 나머지 중단/탈락 7형제 기본 락다운 홀딩
+                                if (submitBtn) {
+                                    submitBtn.disabled = true;
+                                    submitBtn.innerText = `${liveStatusText} 대상자 (부분 참여비 지급 신청 대기)`;
+                                    submitBtn.style.setProperty("background", "#1e293b", "important");
+                                }
+                                if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
+                            }
                         }
                     }
-
-                    // ⚠️ 기존에 덮어쓰기 왜곡을 유발하던 window.opener 구형 코드는 완벽히 제거되었습니다.
                 }
 
                 // 🌟 하단 푸시 시그널 처리반 (기존 순정 로직 원형 보존)
@@ -1735,14 +1735,19 @@
                     if (cleanPushName === cleanSessionName) {
                         if (pushSignal.status === 'PASS') {
                             if (cmsBadgeSlot) {
-                                cmsBadgeSlot.className = "badge bg-blue state-pass";
-                                cmsBadgeSlot.innerText = "통과\n(지급)";
+                                // m-adm 통과 처리 작동 구조 상속 결합 보완
+                                cmsBadgeSlot.style.setProperty("background", "#108981", "important");
+                                cmsBadgeSlot.style.setProperty("background-color", "#108981", "important");
+                                cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
+                                cmsBadgeSlot.innerHTML = "통과<br>(지급)";
                             }
                             document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
                         } else if (pushSignal.status === 'FAIL') {
                             if (cmsBadgeSlot) {
-                                cmsBadgeSlot.className = "badge bg-blue state-fail";
-                                cmsBadgeSlot.innerText = "탈락\n(정산)";
+                                cmsBadgeSlot.style.setProperty("background", "#f43f5e", "important");
+                                cmsBadgeSlot.style.setProperty("background-color", "#f43f5e", "important");
+                                cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
+                                cmsBadgeSlot.innerHTML = "탈락<br>(정산)";
                             }
                             document.getElementById('history-log').innerHTML = "<span style='color:#F43F5E; font-weight:700;'>심사 탈락 반려</span>";
                         }
@@ -1750,7 +1755,6 @@
                 }
             }, 1000);
         }
-
 
         // 💥 4단: 최종 정산 데이터 전산 패킷 트랜잭션 전송 및 마스터 대장 원격 불 켜기 공정 완결
         function submitFinalSettlementForm() {

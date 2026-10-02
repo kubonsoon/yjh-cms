@@ -1583,7 +1583,7 @@
                     thBadgeClass = "lvl-4\" style=\"color: #fbbf24 !important; background: rgba(245, 158, 11, 0.15) !important; border: 1px solid #f59e0b !important; font-weight: 800 !important;\"";
                 }
 
-                // 참여 인원수 연산과 동시에 '동의/미동의/대기' 상태 집계 및 오늘 확장된 탈락군 제외 정화 가드
+                // [지능형 분자 카운터 완착]: 오늘 확장된 중도 탈락군 사유 및 기수 종료자 자동 배제 정화 가드
                 let groupMatchCount = 0;
                 let dutyAgreedCnt = 0, dutyDisagreedCnt = 0, dutyWaitCnt = 0;
                 let callAgreedCnt = 0, callDisagreedCnt = 0, callWaitCnt = 0;
@@ -1598,7 +1598,6 @@
                         const isTitleMatched = (itemTitleClean === currentRecTitleClean || itemTitleClean.includes(currentRecTitleClean) || currentRecTitleClean.includes(itemTitleClean));
                         const isThMatched = (rowThNum === itemThNum && rowThNum !== "");
 
-                        // 🚀 [오늘 추가 작업 연동]: 중도탈락군 7형제 사유와 차수별 기종료가 적재된 피험자는 분자 머릿수 집계에서 정밀 배제 커트!
                         const currentAppStage = (item.status || item.stage || "신검대기").toString().trim();
                         const isDroppedOrFinished = [
                             "종료", "1기종료", "2기종료", "3기종료", "4기종료",
@@ -1608,7 +1607,7 @@
                         return isTitleMatched && isThMatched && !isDroppedOrFinished;
                     });
 
-                    // 🚀 문자로 붙지 않도록 숫자로 완벽 정수형 변환 락인 (100단위 오염 원천 파괴)
+                    // 숫자로 완전 박제하여 100단위 오염 문자열 접합 결함을 원천 파괴 차단!
                     groupMatchCount = parseInt(matchedApplicants.length, 10) || 0;
 
                     matchedApplicants.forEach(item => {
@@ -1625,10 +1624,10 @@
                     });
                 } catch (e) { groupMatchCount = 0; }
 
-                const dutyStatsText = `동의\${dutyAgreedCnt}명/미동의\${dutyDisagreedCnt}명/대기\${dutyWaitCnt}명`;
-                const callStatsText = `동의\${callAgreedCnt}명/미동의\${callDisagreedCnt}명/대기\${callWaitCnt}명`;
+                const dutyStatsText = `동의${dutyAgreedCnt}명/미동의${dutyDisagreedCnt}명/대기${dutyWaitCnt}명`;
+                const callStatsText = `동의${callAgreedCnt}명/미동의${callDisagreedCnt}명/대기${callWaitCnt}명`;
 
-                // 🚀 [순정 분모 정원 추출 수술 완착]: "1/44" 찌꺼기에서 오직 슬래시 뒤쪽의 숫자 모수 정수만 형변환 적출!!
+                // [순정 분모 정원 추출]: "1/44" 등의 원장 데이터에서 진짜 총 배정 정원 숫자만 숫자로 적출
                 let pureQuotaNum = 60;
                 if (row.count) {
                     const countStr = row.count.toString().trim();
@@ -1639,14 +1638,16 @@
                     }
                 }
 
-                const finalLiveCountText = currentActiveCount + "/" + pureQuotaNum;
+                // 단일화 통합 수식 축 수립 (분자 / 분모 완벽 결합)
+                const finalLiveCountText = groupMatchCount + "/" + pureQuotaNum;
+
                 const isRecEditing = (window.currentEditingRecruitmentIndex === index) || (typeof currentEditingRecruitmentIndex !== 'undefined' && currentEditingRecruitmentIndex === index);
                 const displayTitle = row.title || "미지정 과제";
                 const displayTh = row.th || "1기";
-                const modalMetaText = `\${displayTitle} \${displayTh}`;
+                const modalMetaText = `${displayTitle} ${displayTh}`;
 
                 // ==========================================================================
-                // 🎯 [A분기 모집공고 수정모드
+                // 🎯 [A분기] 모집공고 수정모드
                 // ==========================================================================
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
@@ -1716,7 +1717,7 @@
                 }
 
                 // ==========================================================================
-                // 🎯 [B분기 모집공고 목록일반 모드
+                // 🎯 [B분기] 모집공고 일반 목록 
                 // ==========================================================================
                 else {
                     const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
@@ -1729,6 +1730,7 @@
                     const dutyBtnStyle = hasCustomDuty ? "background: rgba(168, 85, 247, 0.15); border: 1px solid #c084fc; color: #c084fc;" : "background: #475569; border: none; color: #ffffff;";
                     const callBtnStyle = hasCustomCall ? "background: rgba(96, 165, 250, 0.15); border: 1px solid #60a5fa; color: #60a5fa;" : "background: #475569; border: none; color: #ffffff;";
 
+                    // 무제한 가변 지급차수 개방 파서 엔진
                     let multiLinePayHTML = "";
                     if (row.paySchedule && row.paySchedule !== "추후공지" && row.paySchedule.trim() !== "") {
                         let cleanSchedule = row.paySchedule.toString().replace(/\/\$/, '').replace(/\/\/+/g, '/');
@@ -1760,25 +1762,25 @@
                             <span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
                         </td>
                         
-                        <!-- 🎯 [인원수 100단위 오염 완파]: groupMatchCount와 pureQuotaNum 조합 싱크로 동치 사출 -->
-                        <td style="width: 100px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 700;">\${finalLiveCountText}명</td>
+                        <!-- 🎯 [인원수 100단위 오염 완전 진압]: 수식 충돌 오차 없이 진짜 숫자로 결합 동치 사출 완착! -->
+                        <td style="width: 100px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 700;">${finalLiveCountText}명</td>
                         
                         <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
                         <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
                         
-                        <!-- 🎯 [6대 대공정 캘린더 안착]: 따옴표와 역슬래시 단선 없이 완벽 결합 완료된 정품 날짜 인젝터 슬롯 -->
+                        <!-- 🎯 [6대 대공정 캘린더 안착]: 따옴표와 이중 백틱 충돌을 싱글 따옴표로 완벽 격리 소독 완료한 정품 날짜 슬롯 -->
                         <td style="width: 150px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap; line-height: 1.5; padding: 6px 0;">
-                            <div style="color: #38bdf8; font-weight: 800;"><i class="fa-regular fa-calendar-check" style="color: #38bdf8;"></i> 소집: \${row.recDate || '미정'}</div>
-                            \${(function(){
-                                let vHtml = "";
-                                if(row.examSchedule) vHtml += "<div style='color: #c084fc; font-size: 11px; margin-top: 2px;'>• 스크리닝: " + row.examSchedule + "</div>";
-                                if(row.visitDate1)   vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 1차방문: " + row.visitDate1 + "</div>";
-                                if(row.visitDate2)   vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 2차방문: " + row.visitDate2 + "</div>";
-                                if(row.visitDate3)   vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 3차방문: " + row.visitDate3 + "</div>";
-                                if(row.visitDate4)   vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 4차방문: " + row.visitDate4 + "</div>";
-                                if(row.endExamDate)  vHtml += "<div style='color: #34d399; font-size: 11px; font-weight: 800; margin-top: 2px;'>• 종료검사: " + row.endExamDate + "</div>";
-                                return vHtml;
-                            })()}
+                            <div style="color: #38bdf8; font-weight: 800;"><i class="fa-regular fa-calendar-check" style="color: #38bdf8;"></i> 소집: ${row.recDate || '미정'}</div>
+                            ${(function () {
+                            let vHtml = "";
+                            if (row.examSchedule) vHtml += "<div style='color: #c084fc; font-size: 11px; margin-top: 2px;'>• 스크리닝: " + row.examSchedule + "</div>";
+                            if (row.visitDate1) vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 1차방문: " + row.visitDate1 + "</div>";
+                            if (row.visitDate2) vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 2차방문: " + row.visitDate2 + "</div>";
+                            if (row.visitDate3) vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 3차방문: " + row.visitDate3 + "</div>";
+                            if (row.visitDate4) vHtml += "<div style='color: #60a5fa; font-size: 11px; margin-top: 2px;'>• 4차방문: " + row.visitDate4 + "</div>";
+                            if (row.endExamDate) vHtml += "<div style='color: #34d399; font-size: 11px; font-weight: 800; margin-top: 2px;'>• 종료검사: " + row.endExamDate + "</div>";
+                            return vHtml;
+                        })()}
                         </td>
                         <td style="width: 80px; vertical-align: middle; text-align: center;">
                             <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
@@ -1808,7 +1810,7 @@
 
                 tbody.appendChild(tr);
             });
-        } // 🔒 refreshRecruitmentView
+        } // 🔒 refreshRecruitmentView 
 
 
         /**

@@ -1224,21 +1224,18 @@
             let htmlBuffer = "";
             dataStoreRecruitment.forEach((row, index) => {
 
-                // ❶ [지능형 분자 카운터 가동]: 현재 순회 중인 공고의 '과제명(title)'과 '기수(th)'가 완벽히 일치하는 진짜 대상자만 전수 필터링 스캔!
+                // ❶ [지능형 분자 카운터]: 과제명과 기수가 일치하는 현재 진짜 살아 숨 쉬는 '액티브 피험자 분자 수' 카운트
                 const matchedApplicants = latestApplicantDB.filter(app => {
                     const appTitle = (app.title || "").toString().trim();
                     const recTitle = (row.title || "").toString().trim();
                     const appTh = (app.th || "").toString().trim();
                     const recTh = (row.th || "").toString().trim();
-
-                    // 과제명과 기수 코드가 완벽히 매칭되고, 중도 탈락군이나 종료자가 아닌 현재 진짜 살아 숨 쉬는 '액티브 피험자 분자 수' 카운트
                     return appTitle === recTitle && appTh === recTh && app.status !== "종료" && app.status !== "기타탈락";
                 });
 
-                // 실시간 살아있는 진짜 참여자 분자 숫자 확보
                 const currentActiveCount = matchedApplicants.length;
 
-                // ❷ [순정 분모 정원 세척]: 분모 자리에는 오염 찌꺼기 없이 마스터 프리셋의 정품 정원 숫자만 추출
+                // ❷ [순정 분모 정원 세척]: 분모 자리에는 마스터 프리셋의 정품 정원 숫자만 정확히 발라냅니다.
                 let pureQuotaNum = "60";
                 if (row.count) {
                     const countStr = row.count.toString().trim();
@@ -1249,14 +1246,14 @@
                     }
                 }
 
-                // 🚀 [대표님 특허 실시간 정원 마감 서식 체제 대통합 완착]: 현재분자 / 총분모 포맷 빌드업!!
                 const finalLiveCountText = `${currentActiveCount}/${pureQuotaNum}`;
 
-                // ❸ [참여비 4차 제한 파서]: 5차 유령 찌꺼기 문자열 노이즈 전면 배제 삭제
+                // ❸ [5차 이상 가변 차수 무제한 개방 파서]: 제한 자물쇠(displayMaxCount < 4)를 완벽히 철거 소독!
+                // 슬래시(/) 기호로 들어오는 5차, 6차, 7차 정산 기일 문장 전체를 하이딩 없이 세로 개행으로 100% 전수 사출합니다.
                 let initPayHTML = "";
                 if (row.paySchedule && row.paySchedule !== "추후공지" && row.paySchedule.trim() !== "") {
+                    // 유령 노이즈 기호만 깨끗하게 다듬어 세척
                     let cleanSchedule = row.paySchedule.toString()
-                        .replace(/5차:[^/]+/g, '')
                         .replace(/\/\$/, '')
                         .replace(/\/\/+/g, '/');
 
@@ -1265,9 +1262,12 @@
 
                     tokens.forEach((token) => {
                         const cleanToken = token.trim();
-                        if (cleanToken && displayMaxCount < 4) {
+                        // 🚀 [자물쇠 철거 완착]: displayMaxCount < 4 조건문을 과감히 도려내어 5차 이상 무제한 출력 허용!
+                        if (cleanToken) {
                             displayMaxCount++;
                             let finalTokenText = cleanToken;
+
+                            // 내부 차수 레이블이 어긋나 있다면 순서대로 n차 명칭 강제 동기화 재정렬
                             if (!cleanToken.startsWith(displayMaxCount + "차:")) {
                                 const dateVal = cleanToken.replace(/[^0-9-]/g, '').trim();
                                 finalTokenText = displayMaxCount + "차: " + dateVal;
@@ -1280,7 +1280,7 @@
                     initPayHTML = "<span style='color:#94a3b8; font-size:12px;'>추후공지</span>";
                 }
 
-                // ❹ [역슬래시 전면 숙청 및 정품 12개 컬럼 바인딩 사출]
+                // ❹ [12개 정품 컬럼 순서 완전 사수 및 역슬래시 문법 오류 완전 소독 사출]
                 htmlBuffer += `
             <tr data-uid="${row.uid}">
                 <td style="text-align: left; padding-left: 15px;">
@@ -1288,7 +1288,7 @@
                 </td>
                 <td><span class="text-bold">${row.th}</span></td>
                 
-                <!-- 🎯 [실시간 정원 제어반]: 수동/모바일/파일 등록 즉시 분자 숫자가 파닥파닥 동적으로 새로고침 없이 늘어납니다! -->
+                <!-- 🎯 [실시간 정원 연동망]: 분자/분모 서식 실시간 증가 완착 -->
                 <td style="text-align: center; color: #38bdf8; font-weight: 700;">${finalLiveCountText}명</td>
                 
                 <td>${row.period}시간</td>
@@ -1298,8 +1298,10 @@
                 <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'schedule')">보기</button></td>
                 <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'duty')">보기</button></td>
                 <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'call')">보기</button></td>
+                
+                <!-- 🎯 [5차 무제한 개방 컬럼 완착]: 파마사이언스, 삼진제약 등의 진짜 5차 종료정산기일까지 완벽 사출 출력! -->
                 <td>
-                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
+                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; line-height:1.4;">
                         ${initPayHTML}
                     </div>
                 </td>

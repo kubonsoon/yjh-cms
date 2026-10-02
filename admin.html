@@ -3315,12 +3315,12 @@
             }
 
             // 🎯 [UID 직격 스캔]: 화면 순서와 무관한 피험자의 불변 고유 키(uid)를 원본 데이터에서 직접 추출 확보!
-            const origin = applicantDB[masterIndex] || applicantDB[index];
+            const origin = dataStoreApplicant[masterIndex] || dataStoreApplicant[index];
             if (!origin) return alert("오류: 대상 원본 레코드를 역추적할 수 없습니다.");
             const id = origin.uid;
 
-            // 🚀 [순서 파괴 수호]: 데이터베이스 대장 원본 배열 내에서 진짜 일치하는 고유 키의 절대 방 번호(idx)를 명중 락인!!
-            const idx = applicantDB.findIndex(d => d.uid === id);
+            // 글로벌 원장 대장 내의 진짜 고유 위치 인덱스 식별값(idx) 정밀 락킹!
+            const idx = dataStoreApplicant.findIndex(d => d.uid === id);
             if (idx === -1) return alert("전산망 원장 패킷 매칭 실패: 데이터 고유 키 위치를 유실했습니다.");
 
             // 2. 화면에 활성화된 13대 실물 인풋 컴포넌트들로부터 화면 입력 알맹이 값을 강제 가로채 수거!

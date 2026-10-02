@@ -1675,8 +1675,7 @@
                     } catch (e) { console.error(e); }
 
                     tr.innerHTML = `
-        <td style="vertical-align: middle; padding-left: 15px; text-align: left; font-weight:700;">${index + 1}</td>
-        <td style="vertical-align: middle; text-align: left;">
+        <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
             <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important; width: 100%;">
         </td>
         <td style="width: 80px; text-align: center !important; vertical-align: middle; position: relative;">
@@ -1688,36 +1687,39 @@
             </select>
             <span style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: #ffffff !important; font-size: 8px; pointer-events: none; font-weight: bold;">▼</span>
         </td>
-        <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; background: var(--card-color) !important;"></td>
-        <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; background: var(--card-color) !important;"></td>
-        <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; background: var(--card-color) !important;"></td>
-        
-        <!-- 📅 [7대 소집일정 원본 값 복원 바인딩 축선] -->
-        <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-examSchedule-${index}" class="inline-input" value="${row.examSchedule || ''}" style="color: #fff !important; font-size:11.5px; height: 32px; text-align: center; background: var(--card-color) !important;"></td>
-        <td style="width: 130px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #0ea5e9 !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; background: var(--card-color) !important;"></td>
-        <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-visitDate1-${index}" class="inline-input" value="${row.visitDate1 || ''}" style="color: #fff !important; font-size:11.5px; height: 32px; text-align: center; background: var(--card-color) !important;"></td>
-        <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-visitDate2-${index}" class="inline-input" value="${row.visitDate2 || ''}" style="color: #fff !important; font-size:11.5px; height: 32px; text-align: center; background: var(--card-color) !important;"></td>
-        <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-visitDate3-${index}" class="inline-input" value="${row.visitDate3 || ''}" style="color: #fff !important; font-size:11.5px; height: 32px; text-align: center; background: var(--card-color) !important;"></td>
-        <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-visitDate4-${index}" class="inline-input" value="${row.visitDate4 || ''}" style="color: #fff !important; font-size:11.5px; height: 32px; text-align: center; background: var(--card-color) !important;"></td>
-        <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-endExamDate-${index}" class="inline-input" value="${row.endExamDate || ''}" style="color: #8b5cf6 !important; font-weight: 700; font-size:11.5px; height: 32px; text-align: center; background: var(--card-color) !important;"></td>
-  <td style="width: 150px; vertical-align: middle; text-align: center; padding: 4px 6px;">
+        <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; background: var(--card-color) !important; width: 100%;"></td>
+        <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; background: var(--card-color) !important; width: 100%;"></td>
+        <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; background: var(--card-color) !important; width: 100%;"></td>
+        <td style="width: 130px; vertical-align: middle; text-align: center; display: none;">
+            <input type="date" id="inline-rec-examSchedule-${index}" value="${row.examSchedule || ''}">
+            <input type="date" id="inline-rec-visitDate1-${index}" value="${row.visitDate1 || ''}">
+            <input type="date" id="inline-rec-visitDate2-${index}" value="${row.visitDate2 || ''}">
+            <input type="date" id="inline-rec-visitDate3-${index}" value="${row.visitDate3 || ''}">
+            <input type="date" id="inline-rec-visitDate4-${index}" value="${row.visitDate4 || ''}">
+            <input type="date" id="inline-rec-endExamDate-${index}" value="${row.endExamDate || ''}">
+        </td>
+        <td style="width: 130px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; background: var(--card-color) !important; cursor: pointer !important;"></td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button></td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'schedule')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button></td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'duty')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button></td>
+        <td style="width: 80px; vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'call')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button></td>
+  <td style="width: 150px; vertical-align: middle; text-align: center;">
             <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; pointer-events: auto !important; align-items: center; width: 100%;">
-                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted);">1차:</span><input type="date" id="inline-rec-pay1-${index}" class="inline-input" value="${p1}" style="height:22px; font-size:11px; padding:0 2px; color:#38bdf8; background:#0f172a !important; width:110px;"></div>
-                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted);">2차:</span><input type="date" id="inline-rec-pay2-${index}" class="inline-input" value="${p2}" style="height:22px; font-size:11px; padding:0 2px; color:#38bdf8; background:#0f172a !important; width:110px;"></div>
-                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted);">3차:</span><input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${p3}" style="height:22px; font-size:11px; padding:0 2px; color:#38bdf8; background:#0f172a !important; width:110px;"></div>
-                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted);">4차:</span><input type="date" id="inline-rec-pay4-${index}" class="inline-input" value="${p4}" style="height:22px; font-size:11px; padding:0 2px; color:#38bdf8; background:#0f172a !important; width:110px;"></div>
-                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted);">종료:</span><input type="date" id="inline-rec-pay5-${index}" class="inline-input" value="${pEnd}" style="height:22px; font-size:11px; padding:0 2px; color:#8b5cf6; background:#0f172a !important; width:110px;"></div>
+                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted); width:20px; text-align:right;">1차:</span><input type="date" id="inline-rec-pay1-${index}" class="inline-input" value="${p1}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:100px; pointer-events: auto !important;"></div>
+                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted); width:20px; text-align:right;">2차:</span><input type="date" id="inline-rec-pay2-${index}" class="inline-input" value="${p2}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:100px; pointer-events: auto !important;"></div>
+                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted); width:20px; text-align:right;">3차:</span><input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${p3}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:100px; pointer-events: auto !important;"></div>
+                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted); width:20px; text-align:right;">4차:</span><input type="date" id="inline-rec-pay4-${index}" class="inline-input" value="${p4}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:100px; pointer-events: auto !important;"></div>
+                <div style="display:flex; align-items:center; gap:2px;"><span style="font-size:9px; color:var(--text-muted); width:20px; text-align:right;">종료:</span><input type="date" id="inline-rec-pay5-${index}" class="inline-input" value="${pEnd}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:100px; pointer-events: auto !important;"></div>
             </div>
         </td>
         <td style="width: 140px; vertical-align: middle !important; text-align: center; padding-right: 15px;">
-            <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; padding-top: 4px !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
+            <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; padding-top: 4px !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important; white-space: nowrap !important;">
                 <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none; height:30px;">저장</button>
                 <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; height:30px;">취소</button>
             </div>
         </td>
     `;
                 }
-
 
                 // ==========================================================================
                 // 🎯 [B분기] 모집공고 일반 목록 

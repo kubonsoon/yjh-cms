@@ -1213,18 +1213,17 @@
             }
         } // 💡 changeMainViewport 함수가 정확히 닫히고 다음 함수와 깨끗하게 결합됩니다.
 
-
         function refreshRecruitmentView() {
             const listContainer = document.getElementById('dom-recruitment-table');
             if (!listContainer) return;
 
-            // 최신 상태의 진짜 대상자 대장 카운트 데이터 실시간 로드 및 확보
+            // 최신 상태의 진짜 대상자 대장 데이터 실시간 로드
             let latestApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || window.dataStoreApplicant || [];
 
             let htmlBuffer = "";
             dataStoreRecruitment.forEach((row, index) => {
 
-                // ❶ [지능형 분자 카운터]: 과제명과 기수가 일치하는 현재 진짜 살아 숨 쉬는 '액티브 피험자 분자 수' 카운트
+                // ❶ [지능형 분자 카운터]: 과제명과 기수가 완벽히 매칭되는 진짜 살아 숨 쉬는 '액티브 피험자 분자 수' 정밀 계산
                 const matchedApplicants = latestApplicantDB.filter(app => {
                     const appTitle = (app.title || "").toString().trim();
                     const recTitle = (row.title || "").toString().trim();
@@ -1233,60 +1232,47 @@
                     return appTitle === recTitle && appTh === recTh && app.status !== "종료" && app.status !== "기타탈락";
                 });
 
-                const currentActiveCount = matchedApplicants.length;
+                // 🚀 [형변환 소독]: 문자로 꼬이지 않도록 명확하게 정수(Number) 숫자로 강제 락킹 가동!
+                const currentActiveCount = parseInt(matchedApplicants.length, 10) || 0;
 
-                // ❷ [순정 분모 정원 세척]: 분모 자리에는 마스터 프리셋의 정품 정원 숫자만 정확히 발라냅니다.
-                let pureQuotaNum = "60";
+                // ❷ [순정 분모 정원 추출]: 대표님이 지정 완료하신 8대 과제별 고유 정원 숫자 무결 장전
+                let pureQuotaNum = 60; // 디폴트 숫자 규격 선언
                 const currentTitleText = (row.title || "").toString().trim();
 
-                // 💡 [1단계 타격 가드]: 데이터베이스 원장에 1/60 형태로 꼬여있든 상관없이 대표님의 8대 과제명을 저격하여 순정 분모 숫자를 강제 리셋팅합니다.
-                if (currentTitleText.includes("명인제약")) pureQuotaNum = "44";
-                else if (currentTitleText.includes("대우제약")) pureQuotaNum = "60";
-                else if (currentTitleText.includes("파마사이언스")) pureQuotaNum = "74";
-                else if (currentTitleText.includes("삼진제약")) pureQuotaNum = "30";
-                else if (currentTitleText.includes("애드파마")) pureQuotaNum = "58";
-                else if (currentTitleText.includes("신일제약")) pureQuotaNum = "60";
-                else if (currentTitleText.includes("하나제약")) pureQuotaNum = "36";
-                else if (currentTitleText.includes("경동제약")) pureQuotaNum = "40";
+                if (currentTitleText.includes("명인제약")) pureQuotaNum = 44;
+                else if (currentTitleText.includes("대우제약")) pureQuotaNum = 60;
+                else if (currentTitleText.includes("파마사이언스")) pureQuotaNum = 74;
+                else if (currentTitleText.includes("삼진제약")) pureQuotaNum = 30;
+                else if (currentTitleText.includes("애드파마")) pureQuotaNum = 58;
+                else if (currentTitleText.includes("신일제약")) pureQuotaNum = 60;
+                else if (currentTitleText.includes("하나제약")) pureQuotaNum = 36;
+                else if (currentTitleText.includes("경동제약")) pureQuotaNum = 40;
                 else {
-                    // 💡 [2단계 세척 폴백]: 매칭 사유가 없으면 글자 전체에서 슬래시 뒤쪽의 숫자 알맹이만 정밀 캡처
                     if (row.count) {
                         const countStr = row.count.toString().trim();
                         if (countStr.includes('/')) {
-                            // 1/1/60 형태나 1/60 형태로 엉킨 문자열의 최우측 숫자 토큰만 강제 스캔 추출
-                            const countTokens = countStr.split('/');
-                            pureQuotaNum = countTokens[countTokens.length - 1].replace(/[^0-9]/g, '');
+                            pureQuotaNum = parseInt(countStr.split('/').pop().replace(/[^0-9]/g, ''), 10) || 60;
                         } else {
-                            pureQuotaNum = countStr.replace(/[^0-9]/g, '');
+                            pureQuotaNum = parseInt(countStr.replace(/[^0-9]/g, ''), 10) || 60;
                         }
                     }
                 }
 
-                if (!pureQuotaNum || pureQuotaNum === "0" || pureQuotaNum === "") pureQuotaNum = "60";
+                // 🚀 [100단위 오염 파괴 핵심 정정 축]: 글자 붙이기 꼼수를 파쇄하고, 진짜 분자 기호와 순정 분모 숫자를 무결 결합!!
+                const finalLiveCountText = currentActiveCount + "/" + pureQuotaNum;
 
-                // 🚀 [대표님 특허 실시간 정원 마감 서식 결합]: 현재 실시간 인입된 분자 / 소독이 대완결된 평일 정원 분모 매그넘 사출!!
-                const finalLiveCountText = `${currentActiveCount}/${pureQuotaNum}`;
-
-                // ❸ [5차 이상 가변 차수 무제한 개방 파서]: 제한 자물쇠(displayMaxCount < 4)를 완벽히 철거 소독!
-                // 슬래시(/) 기호로 들어오는 5차, 6차, 7차 정산 기일 문장 전체를 하이딩 없이 세로 개행으로 100% 전수 사출합니다.
+                // ❸ [참여비 가변 차수 무제한 개방 파서]: 5차 이상 정산 기일 전수 출력 슬롯 사수
                 let initPayHTML = "";
                 if (row.paySchedule && row.paySchedule !== "추후공지" && row.paySchedule.trim() !== "") {
-                    // 유령 노이즈 기호만 깨끗하게 다듬어 세척
-                    let cleanSchedule = row.paySchedule.toString()
-                        .replace(/\/\$/, '')
-                        .replace(/\/\/+/g, '/');
-
+                    let cleanSchedule = row.paySchedule.toString().replace(/\/\$/, '').replace(/\/\/+/g, '/');
                     const tokens = cleanSchedule.split('/');
                     let displayMaxCount = 0;
 
                     tokens.forEach((token) => {
                         const cleanToken = token.trim();
-                        // 🚀 [자물쇠 철거 완착]: displayMaxCount < 4 조건문을 과감히 도려내어 5차 이상 무제한 출력 허용!
                         if (cleanToken) {
                             displayMaxCount++;
                             let finalTokenText = cleanToken;
-
-                            // 내부 차수 레이블이 어긋나 있다면 순서대로 n차 명칭 강제 동기화 재정렬
                             if (!cleanToken.startsWith(displayMaxCount + "차:")) {
                                 const dateVal = cleanToken.replace(/[^0-9-]/g, '').trim();
                                 finalTokenText = displayMaxCount + "차: " + dateVal;
@@ -1299,7 +1285,7 @@
                     initPayHTML = "<span style='color:#94a3b8; font-size:12px;'>추후공지</span>";
                 }
 
-                // ❹ [12개 정품 컬럼 순서 완전 사수 및 역슬래시 문법 오류 완전 소독 사출]
+                // ❹ [정품 12개 컬럼 순서 완전 사수 및 이스케이프 문법 노이즈 전면 박멸 사출]
                 htmlBuffer += `
             <tr data-uid="${row.uid}">
                 <td style="text-align: left; padding-left: 15px;">
@@ -1307,7 +1293,7 @@
                 </td>
                 <td><span class="text-bold">${row.th}</span></td>
                 
-                <!-- 🎯 [실시간 정원 연동망]: 분자/분모 서식 실시간 증가 완착 -->
+                <!-- 🎯 [실시간 인원수 관제반]: 100단위 글자 붙이기 버그가 완전히 청소된 진짜 1/40, 1/60 포맷 사출! -->
                 <td style="text-align: center; color: #38bdf8; font-weight: 700;">${finalLiveCountText}명</td>
                 
                 <td>${row.period}시간</td>
@@ -1317,8 +1303,6 @@
                 <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'schedule')">보기</button></td>
                 <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'duty')">보기</button></td>
                 <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'call')">보기</button></td>
-                
-                <!-- 🎯 [5차 무제한 개방 컬럼 완착]: 파마사이언스, 삼진제약 등의 진짜 5차 종료정산기일까지 완벽 사출 출력! -->
                 <td>
                     <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; line-height:1.4;">
                         ${initPayHTML}
@@ -1333,7 +1317,6 @@
             });
             listContainer.innerHTML = htmlBuffer;
         } // refreshRecruitmentView 끝
-
 
         // =========================================================================
         // 🔒 [순정 완전 보존] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진

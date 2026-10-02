@@ -411,24 +411,28 @@ tr:hover {
 }
 
 /* 모집공고 목록내에 작업 버튼 위치조정? */
-.editing-row #dom-recruitment-table td:last-child,
-#dom-recruitment-table .editing-row td:last-child,
-#dom-recruitment-table td:last-child {
-  /* 🚀 40px 상단 쏠림을 완전 철거하고, 앞 라인 높이에 맞춰 실시간 수직 정중앙 미들 고정! */
-  padding: 0 10px !important;
+#dom-recruitment-table td:last-child,
+#applicantView #dom-applicant-table td:last-child,
+#dom-member-table td:last-child {
+  /* 🚀 혼자 붕 뜨거나 찢어지던 독립 레이아웃을 폐기하고, 다른 td들과 똑같이 middle 정렬 고정! */
+  display: table-cell !important;
   vertical-align: middle !important;
   text-align: center !important;
+  padding: 12px 10px !important;
+
+  /* 🚀 [대표님 철칙 각인]: 별도의 줄 간격을 쓰지 않고, 다른 칸들과 완벽히 일치하는 순정 밑줄 공유!! */
+  border-bottom: 1px solid var(--border-color) !important;
+  height: auto !important;
+  min-height: initial !important;
 }
 
-/* 내부 레이어가 존재하더라도 공중부양 간섭을 원천 진압하는 철통 가두리 */
+/* 🎯 버튼 박스 내부에서 절대 좌표나 뜬금없는 위치 이동이 일어나지 않도록 순정 정렬만 부여 */
 .action-btn-wrapper {
-  display: flex !important;
-  flex-direction: row !important;
+  display: inline-flex !important;
   justify-content: center !important;
   align-items: center !important;
   gap: 6px !important;
   width: 100% !important;
-  height: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
 }

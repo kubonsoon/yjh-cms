@@ -1213,97 +1213,6 @@
             }
         } // 💡 changeMainViewport 함수가 정확히 닫히고 다음 함수와 깨끗하게 결합됩니다.
 
-        function refreshRecruitmentView() {
-            const listContainer = document.getElementById('dom-recruitment-table');
-            if (!listContainer) return;
-
-            // 최신 상태의 진짜 대상자 대장 데이터 실시간 로드
-            let latestApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || window.dataStoreApplicant || [];
-
-            let htmlBuffer = "";
-            dataStoreRecruitment.forEach((row, index) => {
-                // [지능형 분자 카운터]: 과제명과 기수가 완벽히 매칭되는 진짜 살아 숨 쉬는 '액티브 피험자 분자 수' 정밀 계산
-                const matchedApplicants = latestApplicantDB.filter(app => {
-                    const appTitle = (app.title || "").toString().trim();
-                    const recTitle = (row.title || "").toString().trim();
-                    const appTh = (app.th || "").toString().trim();
-                    const recTh = (row.th || "").toString().trim();
-                    return appTitle === recTitle && appTh === recTh && app.status !== "종료" && app.status !== "기타탈락";
-                });
-
-                // 🚀 [형변환 소독 1]: 분자 값이 문자로 오접합되는 것을 방어하기 위해 정수(Number) 형변환 고정!
-                const currentActiveCount = parseInt(matchedApplicants.length, 10) || 0;
-
-                // [순정 분모 정원 추출]: 데이터가 '1/44' 문자열 형태로 꼬여있더라도 우측 분모만 완벽히 적출
-                let pureQuotaNum = 60;
-                if (row.count) {
-                    const countStr = row.count.toString().trim();
-                    if (countStr.includes('/')) {
-                        // 🚀 [형변환 소독 2]: 분모 자리가 문자열로 변해 결합 버그를 내지 않도록 명확하게 정수(Number) 숫자로 강제 락업!!
-                        pureQuotaNum = parseInt(countStr.split('/').pop().replace(/[^0-9]/g, ''), 10) || 60;
-                    } else {
-                        pureQuotaNum = parseInt(countStr.replace(/[^0-9]/g, ''), 10) || 60;
-                    }
-                }
-
-                // 🚀 [100단위 오염 파괴 핵심 정정 축]: 완벽하게 숫자로 박제된 두 변수를 슬래시 기호로 격리 무결 결합!!
-                const finalLiveCountText = currentActiveCount + "/" + pureQuotaNum;
-
-                // [참여비 가변 차수 무제한 개방 파서]: 5차 이상 정산 기일 전수 출력 슬롯 사수
-                let initPayHTML = "";
-                if (row.paySchedule && row.paySchedule !== "추후공지" && row.paySchedule.trim() !== "") {
-                    let cleanSchedule = row.paySchedule.toString().replace(/\/\\$/, '').replace(/\/\/+/g, '/');
-                    const tokens = cleanSchedule.split('/');
-                    let displayMaxCount = 0;
-
-                    tokens.forEach((token) => {
-                        const cleanToken = token.trim();
-                        if (cleanToken) {
-                            displayMaxCount++;
-                            let finalTokenText = cleanToken;
-                            if (!cleanToken.startsWith(displayMaxCount + "차:")) {
-                                const dateVal = cleanToken.replace(/[^0-9-]/g, '').trim();
-                                finalTokenText = displayMaxCount + "차: " + dateVal;
-                            }
-                            initPayHTML += "<div style='color:#fbbf24; font-weight:700; font-size:11px; " + (displayMaxCount > 1 ? "margin-top:2px;" : "") + "'>" + finalTokenText + "</div>";
-                        }
-                    });
-                }
-                if (!initPayHTML) {
-                    initPayHTML = "<span style='color:#94a3b8; font-size:12px;'>추후공지</span>";
-                }
-
-                htmlBuffer += `
-            <tr data-uid="${row.uid}">
-                <td style="text-align: left; padding-left: 15px;">
-                    <a class="exam-title-link" onclick="openIndependentEditorModal(${index}, 'title')">${row.title}</a>
-                </td>
-                <td><span class="text-bold">${row.th}</span></td>
-                
-                <!-- 🎯 [인원수 관제반 완착]: 문자열 결합 버그가 완벽하게 청소된 진짜 현재인원/총정원 명세 사출! -->
-                <td style="text-align: center; color: #38bdf8; font-weight: 700;">\${finalLiveCountText}명</td>
-                
-                <td>${row.period}시간</td>
-                <td>${row.crc}</td>
-                <td>${row.recDate || '미정'}</td>
-                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'notice')">보기</button></td>
-                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'schedule')">보기</button></td>
-                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'duty')">보기</button></td>
-                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'call')">보기</button></td>
-                <td>
-                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; line-height:1.4;">
-                        \${initPayHTML}
-                    </div>
-                </td>
-                <td style="padding-right: 15px;">
-                    <button class="btn-inline edit" onclick="enableInlineRecruitmentEdit(${index})">수정</button>
-                    <button class="btn-inline delete" onclick="deleteRecruitmentRecord(${row.uid})">삭제</button>
-                </td>
-            </tr>
-        `;
-            });
-            listContainer.innerHTML = htmlBuffer;
-        } // refreshRecruitmentView 끝
 
         // =========================================================================
         // 🔒 [순정 완전 보존] 비관리자 로그인 시 '보고서 및 통계' 탭 통합 원장 차단 엔진
@@ -1626,26 +1535,22 @@
             }
         }
 
-        // ========================================================
-        // 모집공고 실시간 해당 라인 수정
-        // ========================================================
-        window.currentEditingRecruitmentIndex = null; // 현재 인라인 수정 중인 행 번호 슬롯 (초기값 null)
-
-        /**
-         * 1. 테이블 행 내부에서 직접 편집창을 열어주는 렌더링 함수
-         */
+        // ==========================================================================
+        // 🎯 [모집공고 목록 완결 - Part 1] 100단위 형변환 누수 정밀 진압 연산 엔진
+        // ==========================================================================
         function refreshRecruitmentView() {
             const tbody = document.getElementById('dom-recruitment-table');
-            if (!tbody) return; tbody.innerHTML = '';
+            if (!tbody) return;
+            tbody.innerHTML = '';
 
-            // 최신 로컬스토리지 대장 확보 및 전역 싱크 제어 
+            // 최신 로컬스토리지 대장 확보 및 전역 싱크 제어
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
             if (typeof dataStoreRecruitment !== "undefined" && dataStoreRecruitment.length > 0) {
                 recruitmentDB = dataStoreRecruitment;
             }
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-            // [소집일자 기준 정렬 가속기] 최근일자(미래/최신)가 위로, 과거일자가 아래로 오도록 내림차순 정렬 (문자열 비교 정밀 기법)
+            // [소집일자 기준 정렬 가속기] 내림차순 정렬 
             recruitmentDB.sort((a, b) => {
                 const dateA = a.recDate ? a.recDate.replace(/[^0-9-]/g, "").trim() : "0000-00-00";
                 const dateB = b.recDate ? b.recDate.replace(/[^0-9-]/g, "").trim() : "0000-00-00";
@@ -1654,7 +1559,6 @@
                 return 0;
             });
 
-            // 문자열 공백 및 기호 제거 포맷터 (원본 알고리즘 유지)
             const cleanString = (str) => {
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -1668,19 +1572,18 @@
                 const thNumMatch = (activeTargetTh || "").toString().match(/\d+/);
                 const thNum = thNumMatch ? parseInt(thNumMatch, 10) : 1;
 
-                // [기수별 4색 독립 디자인 시스템 구축] 어두운 대시보드 화면에 최적화된 고대비 컬러 매핑
                 let thBadgeClass = "lvl-1";
                 if (thNum === 1) {
-                    thBadgeClass = "lvl-1\" style=\"color: #f8fafc !important; background: rgba(248, 250, 252, 0.12) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important;";
+                    thBadgeClass = "lvl-1\" style=\"color: #f8fafc !important; background: rgba(248, 250, 252, 0.12) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important;\"";
                 } else if (thNum === 2) {
-                    thBadgeClass = "lvl-2\" style=\"color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important;";
+                    thBadgeClass = "lvl-2\" style=\"color: #38bdf8 !important; background: rgba(14, 165, 233, 0.15) !important; border: 1px solid #0ea5e9 !important; font-weight: 800 !important;\"";
                 } else if (thNum === 3) {
-                    thBadgeClass = "lvl-3\" style=\"color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important;";
+                    thBadgeClass = "lvl-3\" style=\"color: #4ade80 !important; background: rgba(74, 222, 128, 0.15) !important; border: 1px solid #22c55e !important; font-weight: 800 !important;\"";
                 } else if (thNum >= 4) {
-                    thBadgeClass = "lvl-4\" style=\"color: #fbbf24 !important; background: rgba(245, 158, 11, 0.15) !important; border: 1px solid #f59e0b !important; font-weight: 800 !important;";
+                    thBadgeClass = "lvl-4\" style=\"color: #fbbf24 !important; background: rgba(245, 158, 11, 0.15) !important; border: 1px solid #f59e0b !important; font-weight: 800 !important;\"";
                 }
 
-                // 참여 인원수 연산과 동시에 '동의/미동의/대기' 상태를 한 번에 전수 집계
+                // 참여 인원수 연산과 동시에 '동의/미동의/대기' 상태 집계 및 오늘 확장된 탈락군 제외 정화 가드
                 let groupMatchCount = 0;
                 let dutyAgreedCnt = 0, dutyDisagreedCnt = 0, dutyWaitCnt = 0;
                 let callAgreedCnt = 0, callDisagreedCnt = 0, callWaitCnt = 0;
@@ -1694,10 +1597,19 @@
                         const itemThNum = (item.th || "").replace(/[^0-9]/g, "");
                         const isTitleMatched = (itemTitleClean === currentRecTitleClean || itemTitleClean.includes(currentRecTitleClean) || currentRecTitleClean.includes(itemTitleClean));
                         const isThMatched = (rowThNum === itemThNum && rowThNum !== "");
-                        return isTitleMatched && isThMatched;
+
+                        // 🚀 [오늘 추가 작업 연동]: 중도탈락군 7형제 사유와 차수별 기종료가 적재된 피험자는 분자 머릿수 집계에서 정밀 배제 커트!
+                        const currentAppStage = (item.status || item.stage || "신검대기").toString().trim();
+                        const isDroppedOrFinished = [
+                            "종료", "1기종료", "2기종료", "3기종료", "4기종료",
+                            "신검탈락", "검사탈락", "규정위반", "임의행동", "욕설폭행", "기타탈락", "개인사정", "예비귀가", "신검동철"
+                        ].includes(currentAppStage);
+
+                        return isTitleMatched && isThMatched && !isDroppedOrFinished;
                     });
 
-                    groupMatchCount = matchedApplicants.length;
+                    // 🚀 문자로 붙지 않도록 숫자로 완벽 정수형 변환 락인 (100단위 오염 원천 파괴)
+                    groupMatchCount = parseInt(matchedApplicants.length, 10) || 0;
 
                     matchedApplicants.forEach(item => {
                         const dStatus = (item.isDutyAgreed || "대기").toString().trim();
@@ -1713,20 +1625,29 @@
                     });
                 } catch (e) { groupMatchCount = 0; }
 
-                const dutyStatsText = `동의${dutyAgreedCnt}명/미동의${dutyDisagreedCnt}명/대기${dutyWaitCnt}명`;
-                const callStatsText = `동의${callAgreedCnt}명/미동의${callDisagreedCnt}명/대기${callWaitCnt}명`;
+                const dutyStatsText = `동의\${dutyAgreedCnt}명/미동의\${dutyDisagreedCnt}명/대기\${dutyWaitCnt}명`;
+                const callStatsText = `동의\${callAgreedCnt}명/미동의\${callDisagreedCnt}명/대기\${callWaitCnt}명`;
 
-                const rawQuota = row.count || "60";
-                const pureQuotaNum = parseInt(rawQuota.toString().replace(/[^0-9]/g, ''), 10) || 60;
+                // 🚀 [순정 분모 정원 추출 수술 완착]: "1/44" 찌꺼기에서 오직 슬래시 뒤쪽의 숫자 모수 정수만 형변환 적출!!
+                let pureQuotaNum = 60;
+                if (row.count) {
+                    const countStr = row.count.toString().trim();
+                    if (countStr.includes('/')) {
+                        pureQuotaNum = parseInt(countStr.split('/').pop().replace(/[^0-9]/g, ''), 10) || 60;
+                    } else {
+                        pureQuotaNum = parseInt(countStr.replace(/[^0-9]/g, ''), 10) || 60;
+                    }
+                }
+
+                const finalLiveCountText = currentActiveCount + "/" + pureQuotaNum;
                 const isRecEditing = (window.currentEditingRecruitmentIndex === index) || (typeof currentEditingRecruitmentIndex !== 'undefined' && currentEditingRecruitmentIndex === index);
-
                 const displayTitle = row.title || "미지정 과제";
                 const displayTh = row.th || "1기";
-                const modalMetaText = `${displayTitle} ${displayTh}`;
+                const modalMetaText = `\${displayTitle} \${displayTh}`;
 
-                // ----------------======================================================
-                //  [A분기]: 모집공고 수정 모드 활성화 상태 마크업 사출
-                // ----------------------------------------------------------------======
+                // ==========================================================================
+                // 🎯 [A분기 모집공고 수정모드
+                // ==========================================================================
                 if (isRecEditing) {
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
                     if (defaultDateVal === "미정" || !defaultDateVal || defaultDateVal.includes("년")) {
@@ -1734,7 +1655,7 @@
                         const yyyy = today.getFullYear();
                         const mm = String(today.getMonth() + 1).padStart(2, '0');
                         const dd = String(today.getDate()).padStart(2, '0');
-                        defaultDateVal = `${yyyy}-${mm}-${dd}`;
+                        defaultDateVal = `\${yyyy}-\({mm}-\){dd}`;
                     }
 
                     tr.className = "editing-row";
@@ -1743,41 +1664,40 @@
 
                     tr.innerHTML = `
                 <td style="vertical-align: middle; padding-left: 15px; text-align: left;">
-                    <input type="text" id="inline-rec-title-${index}" class="inline-input" value="${row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-title-\({index}" class="inline-input" value="\){row.title || ''}" style="font-weight:700; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; text-align: center !important; vertical-align: middle; position: relative;">
-                    <select id="inline-rec-th-${index}" class="inline-input" style="height: 32px; padding: 2px 20px 2px 6px !important; text-align: center; text-align-last: center; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; color: #ffffff !important; background: #0f172a !important; border: 2px solid var(--warning-color) !important; cursor: pointer !important; pointer-events: auto !important; width: 100% !important; box-sizing: border-box !important;">
-                        <option value="1기" ${row.th === '1기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">1기</option>
-                        <option value="2기" ${row.th === '2기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">2기</option>
-                        <option value="3기" ${row.th === '3기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">3기</option>
-                        <option value="4기" ${row.th === '4기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">4기</option>
+                    <select id="inline-rec-th-\${index}" class="inline-input" style="height: 32px; padding: 2px 20px 2px 6px !important; text-align: center; text-align-last: center; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; color: #ffffff !important; background: #0f172a !important; border: 2px solid var(--warning-color) !important; cursor: pointer !important; pointer-events: auto !important; width: 100% !important; box-sizing: border-box !important;">
+                        <option value="1기" \${row.th === '1기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">1기</option>
+                        <option value="2기" \${row.th === '2기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">2기</option>
+                        <option value="3기" \${row.th === '3기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">3기</option>
+                        <option value="4기" \${row.th === '4기' ? 'selected' : ''} style="background: #0f172a; color: #ffffff !important;">4기</option>
                     </select>
-                    <!-- 우측 끝 공간에 상시 박제되는 순백색 역삼각형 화살표 아이콘 -->
                     <span style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: #ffffff !important; font-size: 8px; pointer-events: none; user-select: none; font-weight: bold;">▼</span>
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-count-\({index}" class="inline-input" value="\){pureQuotaNum}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 100px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-period-\({index}" class="inline-input" value="\){row.period || '0'}" style="text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 110px; vertical-align: middle; text-align: center;">
-                    <input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
+                    <input type="text" id="inline-rec-crc-\({index}" class="inline-input" value="\){row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; pointer-events: auto !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 130px; vertical-align: middle; text-align: center;">
-                    <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
+                    <input type="date" id="inline-rec-date-\({index}" class="inline-input" value="\){defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; pointer-events: auto !important; cursor: pointer !important; background: var(--card-color) !important;">
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModalByIndex(${index}, 'notice', '주의사항 안내 [${modalMetaText}]')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModalByIndex(${index}, 'schedule', '시험일정 안내 [${modalMetaText}]')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'schedule')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModalByIndex(${index}, 'duty', '당직공지 안내 [${modalMetaText}]')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'duty')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModalByIndex(${index}, 'call', '소집공지 안내 [${modalMetaText}]')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
+                    <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'call')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button>
                 </td>
                 <td style="width: 150px; vertical-align: middle; text-align: center;">
                     <div style="display: flex; flex-direction: column; gap: 3px; white-space: nowrap; pointer-events: auto !important; align-items: center; width: 100%;">
@@ -1786,22 +1706,19 @@
                         <input type="date" id="inline-rec-pay3-${index}" class="inline-input" value="${row.payDate3 || ''}" style="height:22px; font-size:11px; padding:0 2px; color:#fbbf24; background:#0f172a !important; width:110px; pointer-events: auto !important; cursor: pointer !important;">
                     </div>
                 </td>
-                        <td style="width: 140px; vertical-align: middle !important; text-align: center; padding-right: 15px;">
-            <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; padding-top: 4px !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important; white-space: nowrap !important;">
-                <button type="button" class="btn-inline save"
-onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color,
-#4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor:
-pointer !important; font-size: 13px; border:none;">저장</button>
-                <button type="button" class="btn-inline edit"
-onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
-            </div>
-        </td>
-            `;
+                <td style="width: 140px; vertical-align: middle !important; text-align: center; padding-right: 15px;">
+                    <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; padding-top: 4px !important; gap: 4px !important; width: 100% !important; pointer-events: auto !important; white-space: nowrap !important;">
+                        <button type="button" class="btn-inline save" onclick="saveInlineRecruitmentRecord(${index})" style="background: var(--success-color, #4ade80); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px; border:none;">저장</button>
+                        <button type="button" class="btn-inline edit" onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer !important; font-size: 13px;">취소</button>
+                    </div>
+                </td>
+            </tr>
+          `;
                 }
 
-                // ----------------======================================================
-                // 💡 [B분기]: 일반 읽기 전용 상태 리스트 모드일 때 
-                // ----------------======================================================
+                // ==========================================================================
+                // 🎯 [B분기 모집공고 목록일반 모드
+                // ==========================================================================
                 else {
                     const hasCustomNotice = row.customNoticeHTML && row.customNoticeHTML.length > 5;
                     const hasCustomSchedule = row.customScheduleHTML && row.customScheduleHTML.length > 5;
@@ -1813,67 +1730,82 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     const dutyBtnStyle = hasCustomDuty ? "background: rgba(168, 85, 247, 0.15); border: 1px solid #c084fc; color: #c084fc;" : "background: #475569; border: none; color: #ffffff;";
                     const callBtnStyle = hasCustomCall ? "background: rgba(96, 165, 250, 0.15); border: 1px solid #60a5fa; color: #60a5fa;" : "background: #475569; border: none; color: #ffffff;";
 
+                    // 무제한 가변 지급차수 개방 파서 엔진
                     let multiLinePayHTML = "";
                     if (row.paySchedule && row.paySchedule !== "추후공지" && row.paySchedule.trim() !== "") {
-                        // 슬래시(/) 기호를 정밀 타격하여 배열로 쪼개기 분리
-                        const payTokens = row.paySchedule.split('/');
+                        let cleanSchedule = row.paySchedule.toString().replace(/\/\$/, '').replace(/\/\/+/g, '/');
+                        const payTokens = cleanSchedule.split('/');
+                        let displayMaxCount = 0;
 
-                        payTokens.forEach((token, tIdx) => {
+                        payTokens.forEach((token) => {
                             const cleanToken = token.trim();
                             if (cleanToken) {
-                                // 1차, 2차, 3차 각각의 일정을 고대비 골드 폰트 컬러셋 레이아웃으로 차곡차곡 개행 주입
-                                multiLinePayHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px; ${tIdx > 0 ? 'margin-top:2px;' : ''}">${cleanToken}</div>`;
+                                displayMaxCount++;
+                                let finalTokenText = cleanToken;
+                                if (!cleanToken.startsWith(displayMaxCount + "차:")) {
+                                    const dateVal = cleanToken.replace(/[^0-9-]/g, '').trim();
+                                    finalTokenText = displayMaxCount + "차: " + dateVal;
+                                }
+                                multiLinePayHTML += `<div style="color:#fbbf24; font-weight:700; font-size:11px; \${displayMaxCount > 1 ? 'margin-top:2px;' : ''}">\${finalTokenText}</div>`;
                             }
                         });
                     }
 
-                    // 만약 공고 원장에 아무런 약속 일정이 잡혀있지 않을 때만 안전 폴백 구동
                     if (!multiLinePayHTML) {
                         multiLinePayHTML = `<span style="color:#94a3b8; font-size:12px;">추후공지</span>`;
                     }
 
                     tr.style.display = "table-row";
                     tr.innerHTML = `
-                <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">${row.title}</td>
-                <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
-                </td>
-                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">${groupMatchCount}/${pureQuotaNum}명</td>
-                <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
-                <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
-                <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> ${row.recDate || '미정'}</td>
-                
-                <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice', '주의사항 안내 [${modalMetaText}]');" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
-                </td>
-                <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule', '시험일정 안내 [${modalMetaText}]');" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
-                </td>
-                <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty', '당직공지 안내 [${modalMetaText}]'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '당직공지', 'dutyNoticeText');" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
-                </td>
-                <td style="width: 80px; vertical-align: middle; text-align: center;">
-                    <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call', '소집공지 안내 [${modalMetaText}]'); if(typeof window.setupSchedulerButtonLink==='function') window.setupSchedulerButtonLink(${index}, '소집공지', 'callNoticeText');" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
-                </td>
-                
-                <td style="width: 150px; vertical-align: middle; text-align: center; padding-top: 10px; padding-bottom: 10px;">
-                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
-                        ${multiLinePayHTML}
-                    </div>
-                </td>
-                <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
-                    <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
-                        <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
-                        <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
-                    </div>
-                </td>
-            `;
+                        <td style="font-weight: 700; color: #ffffff !important; vertical-align: middle; padding-left: 15px; text-align: left;">\${row.title}</td>
+                        <td style="width: 80px; vertical-align: middle; text-align: center;">
+                            <span class="lvl-badge \${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">\${row.th}</span>
+                        </td>
+                        
+                        <!-- 🎯 [100단위 오염 파괴 완전체]: 이중 결합 현상이 완벽 청소 소독된 진짜 실시간 카운팅 정원 명세 출력 -->
+                        <td style="width: 100px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 700;">\${finalLiveCountText}명</td>
+                        
+                        <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">\${row.period}시간</td>
+                        <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">\${row.crc || '-'}</td>
+                        <td style="width: 130px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #ffffff;"></i> \${row.recDate || '미정'}</td>
+                        <td style="width: 80px; vertical-align: middle; text-align: center;">
+                            <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(\${index}, 'notice')" style="\${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                        </td>
+                        <td style="width: 80px; vertical-align: middle; text-align: center;">
+                            <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(\${index}, 'schedule')" style="\${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                        </td>
+                        <td style="width: 80px; vertical-align: middle; text-align: center;">
+                            <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(\-- \${index}, 'duty')" style="\${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                        </td>
+                        <td style="width: 80px; vertical-align: middle; text-align: center;">
+                            <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(\-- \sub \${index}, 'call')" style="\sub \${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                        </td>
+                        
+                         <td style="width: 150px; vertical-align: middle; text-align: center; color: #ffffff !important; font-weight: 700; white-space: nowrap; line-height: 1.5; padding: 6px 0;">
+                            <div style="color: #38bdf8; font-weight: 800;"><i class="fa-regular fa-calendar-check" style="color: #38bdf8;"></i> 소집: \${row.recDate || '미정'}</div>
+                            \${(function(){
+                                let vHtml = "";
+                                if(row.examSchedule) vHtml += \`<div style="color: #c084fc; font-size: 11px; margin-top: 2px;">• 스크리닝: \${row.examSchedule}</div>\`;
+                                if(row.visitDate1)   vHtml += \`<div style="color: #60a5fa; font-size: 11px; margin-top: 2px;">• 1차방문: \${row.visitDate1}</div>\`;
+                                if(row.visitDate2)   vHtml += \`<div style="color: #60a5fa; font-size: 11px; margin-top: 2px;">• 2차방문: \${row.visitDate2}</div>\`;
+                                if(row.visitDate3)   vHtml += \`<div style="color: #60a5fa; font-size: 11px; margin-top: 2px;">• 3차방문: \${row.visitDate3}</div>\`;
+                                if(row.visitDate4)   vHtml += \`<div style="color: #60a5fa; font-size: 11px; margin-top: 2px;">• 4차방문: \${row.visitDate4}</div>\`;
+                                if(row.endExamDate)  vHtml += \`<div style="color: #34d399; font-size: 11px; font-weight: 800; margin-top: 2px;">• 종료검사: \${row.endExamDate}</div>\`;
+                                return vHtml;
+                            })()}
+                        </td>
+                        <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
+                            <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
+                                <button type="button" class="btn-inline edit" onclick="enableInlineRecruitmentEdit(\sub \${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
+                                <button type="button" class="btn-inline delete" onclick="deleteRecruitmentRecord(\sub \${row.uid})" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
+                            </div>
+                        </td>
+                     `;
                 }
 
                 tbody.appendChild(tr);
             });
-        }
-
+        } // 🔒 refreshRecruitmentView
 
 
         /**
@@ -1908,15 +1840,15 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             }
 
             // 🎯 [오류 원천 분쇄 가드]: 테이블 돔 요소를 안전하게 스캔하기 위해 값 존재 여부 가드 장착 (row.uid 매핑 규격 변환 완료)
-            const elTitle = document.getElementById(`inline-rec-title-${index}`);
-            const elTh = document.getElementById(`inline-rec-th-${index}`);
-            const elCrc = document.getElementById(`inline-rec-crc-${index}`);
-            const elDate = document.getElementById(`inline-rec-date-${index}`);
+            const elTitle = document.getElementById(`inline - rec - title - ${index} `);
+            const elTh = document.getElementById(`inline - rec - th - ${index} `);
+            const elCrc = document.getElementById(`inline - rec - crc - ${index} `);
+            const elDate = document.getElementById(`inline - rec - date - ${index} `);
 
             // 🎯 [교정 완결]: 타 탭(inline-app-) 간섭 원인을 원천 차단하고 순정 모집공고용 ID로만 깔끔하게 단일화 스캔
-            const elPay1 = document.getElementById(`inline-rec-pay1-${index}`);
-            const elPay2 = document.getElementById(`inline-rec-pay2-${index}`);
-            const elPay3 = document.getElementById(`inline-rec-pay3-${index}`);
+            const elPay1 = document.getElementById(`inline - rec - pay1 - ${index} `);
+            const elPay2 = document.getElementById(`inline - rec - pay2 - ${index} `);
+            const elPay3 = document.getElementById(`inline - rec - pay3 - ${index} `);
 
             if (!elTitle || !elTh || !elCrc || !elDate) {
                 return alert("시스템 알림: 인라인 수정 필드 엘리먼트를 추적할 수 없습니다.");
@@ -1931,7 +1863,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 🎯 [인라인 저장단 소독] 인풋창에 어떠한 오염 수치가 들어와도 정품 정원수만 강제 세이브!
             // ==========================================================================
             let finalCount = "60"; // 폴백용 기본값
-            const elCount = document.getElementById(`inline-rec-count-${index}`);
+            const elCount = document.getElementById(`inline - rec - count - ${index} `);
             const currentRecTitleText = (targetRecord.title || "").toString().trim(); // 현재 행의 진짜 과제명 스캔
 
             // 🚀 [대표님 특허 원천 가드 주입]: 인풋 필드의 입력값 오염 여부와 상관없이 과제명을 직격 타격하여 진짜 정원 숫자만 원장에 박제합니다!
@@ -1957,7 +1889,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             // 임상 기간(시간) 필드도 돔 인터페이스 오염 대비 디펜스 스케줄 동일 적용
             let finalPeriod = targetRecord.period || "72";
-            const elPeriod = document.getElementById(`inline-rec-period-${index}`);
+            const elPeriod = document.getElementById(`inline - rec - period - ${index} `);
             if (elPeriod) {
                 let inputPeriodValue = elPeriod.value.trim();
                 if (inputPeriodValue.includes("/")) {
@@ -2008,9 +1940,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             if (targetRecord.payDate2 !== nextPay2) changedRecItems.push("참여비 2차");
             if (targetRecord.payDate3 !== nextPay3) changedRecItems.push("참여비 3차");
 
-            let auditLogMessage = `모집공고 [${nextTitle} ${nextTh}] 가변 차수별 참여비 일정 편집 완료`;
+            let auditLogMessage = `모집공고[${nextTitle} ${nextTh}] 가변 차수별 참여비 일정 편집 완료`;
             if (changedRecItems.length > 0) {
-                auditLogMessage = `모집공고 [${nextTitle} ${nextTh}] 정보 수정 완료 (변경항목: ${changedRecItems.join(", ")})`;
+                auditLogMessage = `모집공고[${nextTitle} ${nextTh}] 정보 수정 완료(변경항목: ${changedRecItems.join(", ")})`;
             }
 
             // 🎯 마스터 데이터베이스 대장(로컬스토리지 복사본)에 가변 오버라이드 커밋 실행
@@ -2108,9 +2040,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             // 차수 조립
             let paySchedulesArray = [];
-            if (pay1) paySchedulesArray.push(`1차: ${pay1}`);
-            if (pay2) paySchedulesArray.push(`2차: ${pay2}`);
-            if (pay3) paySchedulesArray.push(`3차: ${pay3}`);
+            if (pay1) paySchedulesArray.push(`1차: ${pay1} `);
+            if (pay2) paySchedulesArray.push(`2차: ${pay2} `);
+            if (pay3) paySchedulesArray.push(`3차: ${pay3} `);
 
             if (paySchedulesArray.length === 0) {
                 paySchedulesArray.push("추후공지");
@@ -2184,7 +2116,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         function openNoticeEditor(uid) {
             const data = dataStoreRecruitment.find(item => String(item.uid) === String(uid)); if (!data) return alert("공고 데이터를 불러오지 못했습니다.");
             document.getElementById('modal-rec-id').value = data.uid;
-            document.getElementById('modal-title').textContent = `📝 [${data.title}] 세부 편집`;
+            document.getElementById('modal-title').textContent = `📝[${data.title}] 세부 편집`;
             document.getElementById('modal-rec-notice').value = data.notice || '';
             document.getElementById('modal-rec-examSchedule').value = data.examSchedule || '';
             document.getElementById('modal-rec-paySchedule').value = data.paySchedule || '';
@@ -2377,8 +2309,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     return dateB.localeCompare(dateA); // 소집일자 날짜 역순 정렬
                 }
 
-                const keyA = `${cleanString(a.title)}_${a.th}_${a.count}_${a.period}`;
-                const keyB = `${cleanString(b.title)}_${b.th}_${b.count}_${b.period}`;
+                const keyA = `${cleanString(a.title)}_${a.th}_${a.count}_${a.period} `;
+                const keyB = `${cleanString(b.title)}_${b.th}_${b.count}_${b.period} `;
 
                 if (keyA === keyB) {
                     const idxA = db.findIndex(item => item.uid === a.uid);
@@ -2528,12 +2460,12 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 const hasBank = row.bankbook === true || row.bankbook === "true" || (row.bankBookImg && row.bankBookImg.length > 20);
                 let idSrc = row.idCardImg || "placeholder", bankSrc = row.bankBookImg || "placeholder";
 
-                let docsHTML = `<div style="display:flex; gap:4px; justify-content:center;">`;
-                if (hasId && idSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${idSrc}', '${cleanName}-신분증')" style="padding:4px 8px; font-size:11px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4); font-weight:700; cursor:pointer;">신분증</button>`;
-                else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(148,163,184,0.2); border-radius:4px; font-weight:700;">신분증</span>`;
-                if (hasBank && bankSrc !== "placeholder") docsHTML += `<button type="button" class="btn-inline list" onclick="openDocModal('${bankSrc}', '${cleanName}-통장')" style="padding:4px 8px; font-size:11px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); font-weight:700; cursor:pointer;">통장</button>`;
-                else docsHTML += `<span style="padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;">통장</span>`;
-                docsHTML += `</div>`;
+                let docsHTML = `< div style = "display:flex; gap:4px; justify-content:center;" > `;
+                if (hasId && idSrc !== "placeholder") docsHTML += `< button type = "button" class="btn-inline list" onclick = "openDocModal('${idSrc}', '${cleanName}-신분증')" style = "padding:4px 8px; font-size:11px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.4); font-weight:700; cursor:pointer;" > 신분증</button > `;
+                else docsHTML += `< span style = "padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(148,163,184,0.2); border-radius:4px; font-weight:700;" > 신분증</span > `;
+                if (hasBank && bankSrc !== "placeholder") docsHTML += `< button type = "button" class="btn-inline list" onclick = "openDocModal('${bankSrc}', '${cleanName}-통장')" style = "padding:4px 8px; font-size:11px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); font-weight:700; cursor:pointer;" > 통장</button > `;
+                else docsHTML += `< span style = "padding:4px 8px; font-size:11px; background:rgba(14,165,233,0.08); color:#64748b; border:1px solid rgba(14,165,233,0.2); border-radius:4px; font-weight:700;" > 통장</span > `;
+                docsHTML += `</div > `;
 
                 // [모집공고 기준 4색 완벽 일치]: 기존 thClass 변수에 모집공고와 똑같은 고대비 인라인 폰트 컬러 스타일을 인젝션합니다.
                 const thNum = parseInt((row.th || "").replace(/[^0-9]/g, "")) || 1;
@@ -2570,7 +2502,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     } else if (s === '완료') {
                         st = "background: rgba(52, 211, 153, 0.1); color: #34d399; border: 1px solid #34d399;";
                     }
-                    return `<div style="display:flex; align-items:center; gap:4px; margin-top:2px;"><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s}</span></div>`;
+                    return `< div style = "display:flex; align-items:center; gap:4px; margin-top:2px;" ><span style="color:#64748b; font-size:10px; font-weight:700; width:22px; text-align:right;">${label}:</span><span class="lvl-badge" style="${st} padding:1px 5px; border-radius:4px; font-size:10px; font-weight:700; display:inline-block; min-width:44px; text-align:center;">${s}</span></div > `;
                 };
 
                 const buildMiniBadgeHTML = buildCoreMiniStatusBadgeHTML;
@@ -2580,7 +2512,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     let st = "background: rgba(71, 85, 105, 0.1); color: #94a3b8; border: 1px solid #475569;";
                     if (s === '동의') st = "background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); text-shadow: 0 0 6px rgba(52,211,153,0.2);";
                     else if (s === '미동의') st = "background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); text-shadow: 0 0 6px rgba(248,113,113,0.2);";
-                    return `<span class="lvl-badge" style="${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;">${s}</span>`;
+                    return `< span class="lvl-badge" style = "${st} padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 800; display: inline-block; min-width: 54px; text-align: center;" > ${s}</span > `;
                 };
 
                 const dutyAgreed = (row.isDutyAgreed || "대기").trim();
@@ -2593,7 +2525,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     tr.className = "editing-row";
                     tr.innerHTML = `
 
-      <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important;">
+                        < td style = "min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important;" >
         <input type="text" id="inline-app-title-${masterIndex}" class="inline-input" value="${row.title || ''}" style="font-weight:700; background: var(--card-color) !important; padding-left: 4px !important;">
     </td>
     <td style="width: 6%; vertical-align: middle; text-align: center;">
@@ -2743,7 +2675,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
         </div>
     </td>
-`;
+                    `;
                 }
 
 
@@ -2752,7 +2684,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 // ----------------======================================================
                 else {
                     tr.innerHTML = `
-        <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>
+                        < td style = "min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold" > ${row.title || ''}</td >
         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
       <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #eeeeee; font-weight: 700;">
             ${row.liveMatchOrderNumber !== undefined ? row.liveMatchOrderNumber : 1}/${getTrueMasterQuota(row.title, row.th, row.count)}명
@@ -2806,7 +2738,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                   <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})" style="padding: 5px 6px !important; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">삭제</button>
             </div>
         </td>
-    `;
+                    `;
                 }
 
                 tbody.appendChild(tr);
@@ -2819,17 +2751,17 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             if (currentTotalCount > APPLICANT_PAGE_SIZE && paginator) {
                 let paginationHTML = '';
-                paginationHTML += `<button type="button" onclick="window.currentApplicantPage--; refreshApplicantView();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};"><i class="fa-solid fa-angle-left"></i> 이전</button>`;
+                paginationHTML += `< button type = "button" onclick = "window.currentApplicantPage--; refreshApplicantView();" ${window.currentApplicantPage === 1 ? 'disabled' : ''} class="btn-inline list" style = "padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === 1 ? 0.3 : 1};" > <i class="fa-solid fa-angle-left"></i> 이전</button > `;
 
                 for (let p = 1; p <= totalPages; p++) {
                     const isCurrent = (p === window.currentApplicantPage);
                     const activeBtnStyle = isCurrent
-                        ? `background: var(--secondary-color) !important; color: #ffffff !important; border: 1px solid var(--secondary-color);`
-                        : `background: #1a233a; color: var(--text-muted); border: 1px solid var(--border-color);`;
-                    paginationHTML += `<button type="button" onclick="window.currentApplicantPage = ${p}; refreshApplicantView();" style="padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}">${p}</button>`;
+                        ? `background: var(--secondary - color)!important; color: #ffffff!important; border: 1px solid var(--secondary - color); `
+                        : `background: #1a233a; color: var(--text - muted); border: 1px solid var(--border - color); `;
+                    paginationHTML += `< button type = "button" onclick = "window.currentApplicantPage = ${p}; refreshApplicantView();" style = "padding: 6px 12px; font-size: 12px; min-width: 32px; font-weight: 700; border-radius: 6px; cursor: pointer; ${activeBtnStyle}" > ${p}</button > `;
                 }
 
-                paginationHTML += `<button type="button" onclick="window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};">다음 <i class="fa-solid fa-angle-right"></i></button>`;
+                paginationHTML += `< button type = "button" onclick = "window.currentApplicantPage++; refreshApplicantView();" ${window.currentApplicantPage === totalPages ? 'disabled' : ''} class="btn-inline list" style = "padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: ${window.currentApplicantPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${window.currentApplicantPage === totalPages ? 0.3 : 1};" > 다음 < i class="fa-solid fa-angle-right" ></i ></button > `;
 
                 // 돔 슬롯에 최종 동적 사출 커밋
                 paginator.innerHTML = paginationHTML;
@@ -2869,7 +2801,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 if (targetIndex !== null && targetIndex !== undefined && targetIndex >= 0) {
                     // 브라우저 기본 엔터 동작(페이지 새로고침)을 원천 차단하고 저장 트랜잭션 강제 트리거
                     event.preventDefault();
-                    console.log(`🎯 [엔터 키 감지] 고장난 화면 버튼을 우회하여 ${targetIndex}번 대상자 강제 세이브 파이프라인 가동`);
+                    console.log(`🎯[엔터 키 감지] 고장난 화면 버튼을 우회하여 ${targetIndex}번 대상자 강제 세이브 파이프라인 가동`);
                     saveApplicantInline(targetIndex);
                 }
             }
@@ -2891,22 +2823,22 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             try {
                 // 인라인 테이블 활성화 폼의 핵심 엘리먼트 실시간 추적 스캔
-                const elTitle = document.getElementById(`inline-app-title-${index}`);
-                const elTh = document.getElementById(`inline-app-th-${index}`);
-                const elCount = document.getElementById(`inline-app-count-${index}`);
-                const elPeriod = document.getElementById(`inline-app-period-${index}`);
-                const elName = document.getElementById(`inline-app-name-${index}`);
-                const elSsn = document.getElementById(`inline-app-ssn-${index}`);
-                const elPhone = document.getElementById(`inline-app-phone-${index}`);
+                const elTitle = document.getElementById(`inline - app - title - ${index} `);
+                const elTh = document.getElementById(`inline - app - th - ${index} `);
+                const elCount = document.getElementById(`inline - app - count - ${index} `);
+                const elPeriod = document.getElementById(`inline - app - period - ${index} `);
+                const elName = document.getElementById(`inline - app - name - ${index} `);
+                const elSsn = document.getElementById(`inline - app - ssn - ${index} `);
+                const elPhone = document.getElementById(`inline - app - phone - ${index} `);
 
                 // 🎯 화면 고정 한 칸 안에 사출된 1, 2, 3차 각각의 가변 드롭다운 상자 ID 개별 격리 추적
-                const elS1 = document.getElementById(`inline-app-payStatus1-${index}`) || document.getElementById(`inline-pay-status1-${index}`);
-                const elS2 = document.getElementById(`inline-app-payStatus2-${index}`) || document.getElementById(`inline-pay-status2-${index}`);
-                const elS3 = document.getElementById(`inline-app-payStatus3-${index}`) || document.getElementById(`inline-pay-status3-${index}`);
+                const elS1 = document.getElementById(`inline - app - payStatus1 - ${index} `) || document.getElementById(`inline - pay - status1 - ${index} `);
+                const elS2 = document.getElementById(`inline - app - payStatus2 - ${index} `) || document.getElementById(`inline - pay - status2 - ${index} `);
+                const elS3 = document.getElementById(`inline - app - payStatus3 - ${index} `) || document.getElementById(`inline - pay - status3 - ${index} `);
 
                 // 새로 개편된 대기/동의/미동의 가변 다크 셀렉터 드롭다운 돔 캡처
-                const elDuty = document.getElementById(`inline-app-duty-${index}`);
-                const elCall = document.getElementById(`inline-app-call-${index}`);
+                const elDuty = document.getElementById(`inline - app - duty - ${index} `);
+                const elCall = document.getElementById(`inline - app - call - ${index} `);
 
                 if (elName && !elName.value.trim()) {
                     return alert("대상자 성명은 필수 입력사항입니다.");
@@ -3104,7 +3036,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 });
 
                 if (isCurrentlyActiveApplicant) {
-                    return alert(`⚠️ 중복 등록 불가 안내\n\n대상자 [${n}]님은 현재 참여 중이거나 심사 대기 중인 임상시험 과제가 존재하므로 중복 등록할 수 없습니다.`);
+                    return alert(`⚠️ 중복 등록 불가 안내\n\n대상자[${n}]님은 현재 참여 중이거나 심사 대기 중인 임상시험 과제가 존재하므로 중복 등록할 수 없습니다.`);
                 }
             }
 
@@ -3112,7 +3044,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 🎯 [마스터 대완결 - Part 2] 가변 페이로드 조립 및 유령 stage 방 전면 소독 삭제
             // ==========================================================================
             const payload = {
-                uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : dataStoreApplicant[editIndex].uid,
+                uid: editIndex === "" ? `${Date.now()}_${Math.random().toString(36).substr(2, 9)} ` : dataStoreApplicant[editIndex].uid,
                 regTimestamp: editIndex === "" ? Date.now() : (dataStoreApplicant[editIndex].regTimestamp || 0),
                 isDefault: editIndex === "" ? false : (dataStoreApplicant[editIndex].isDefault || false),
 
@@ -3164,9 +3096,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     // 대표님 고유 시스템 보안 감사 로그 실시간 사출 적재
                     if (typeof insertSystemAuditLog === "function") {
-                        insertSystemAuditLog("등록", `대상자 [${n}] 신규등록처리 (참여경로: ${payload.category || "수동등록"})`);
+                        insertSystemAuditLog("등록", `대상자[${n}]신규등록처리(참여경로: ${payload.category || "수동등록"})`);
                     }
-                    alert(`📢 신규 대상자 [${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
+                    alert(`📢 신규 대상자[${n}]님이 대장에 성공적으로 등록 보존되었습니다.`);
 
                 } else {
                     // [B. 기존 인풋 폼 수정 완료 분기 상속]
@@ -3183,7 +3115,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     dataStoreApplicant[editIndex] = payload;
 
                     if (typeof insertSystemAuditLog === "function") {
-                        insertSystemAuditLog("수정", `대상자 [${n}] 인풋 폼 정보 갱신 처리 (상태: ${payload.status || "신검대기"})`);
+                        insertSystemAuditLog("수정", `대상자[${n}] 인풋 폼 정보 갱신 처리(상태: ${payload.status || "신검대기"})`);
                     }
                     alert(`📋 정보 갱신 완료: [${n}] 대상자의 마스터 레코드가 업데이트되었습니다.`);
                 }
@@ -3299,7 +3231,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     // 필터 가드를 전체보기로 복구하여 신규 데이터가 강제 마운트되도록 제어
                     if (filterTitle) filterTitle.value = "ALL";
-                    if (filterTh) filterTh.innerHTML = `<option value="ALL">— 전체 기수 —</option>`;
+                    if (filterTh) filterTh.innerHTML = `< option value = "ALL" >— 전체 기수 —</option > `;
                     if (filterTh) filterTh.value = "ALL";
 
                     if (typeof initDashboardFilter === "function") initDashboardFilter();
@@ -3332,25 +3264,25 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             }
 
             // 1. 해당 행의 인라인 입력 컴포넌트 실시간 캡처 락인 [이전 장전 완착 스펙 100% 보존]
-            const elTitle = document.getElementById(`inline-app-title-${index}`);
-            const elTh = document.getElementById(`inline-app-th-${index}`);
-            const elCount = document.getElementById(`inline-app-count-${index}`); // 🎯 인원수 돔 포인터
-            const elPeriod = document.getElementById(`inline-app-period-${index}`);
-            const elName = document.getElementById(`inline-app-name-${index}`);
-            const elSsn = document.getElementById(`inline-app-ssn-${index}`);
-            const elPhone = document.getElementById(`inline-app-phone-${index}`);
+            const elTitle = document.getElementById(`inline - app - title - ${index} `);
+            const elTh = document.getElementById(`inline - app - th - ${index} `);
+            const elCount = document.getElementById(`inline - app - count - ${index} `); // 🎯 인원수 돔 포인터
+            const elPeriod = document.getElementById(`inline - app - period - ${index} `);
+            const elName = document.getElementById(`inline - app - name - ${index} `);
+            const elSsn = document.getElementById(`inline - app - ssn - ${index} `);
+            const elPhone = document.getElementById(`inline - app - phone - ${index} `);
 
             // 차수별 3단 셀렉트 박스로 감지 대상 완벽 전환 반영
-            const elPay1 = document.getElementById(`inline-app-pay1-${index}`);
-            const elPay2 = document.getElementById(`inline-app-pay2-${index}`);
-            const elPay3 = document.getElementById(`inline-app-pay3-${index}`);
+            const elPay1 = document.getElementById(`inline - app - pay1 - ${index} `);
+            const elPay2 = document.getElementById(`inline - app - pay2 - ${index} `);
+            const elPay3 = document.getElementById(`inline - app - pay3 - ${index} `);
 
-            const elDuty = document.getElementById(`inline-app-duty-${index}`);
-            const elCall = document.getElementById(`inline-app-call-${index}`);
+            const elDuty = document.getElementById(`inline - app - duty - ${index} `);
+            const elCall = document.getElementById(`inline - app - call - ${index} `);
 
             // 신설 2대 필드 인라인 돔 수집 포인터 100% 유지 계승
-            const elCategory = document.getElementById(`inline-app-category-${index}`);
-            const elStage = document.getElementById(`inline-app-stage-${index}`);
+            const elCategory = document.getElementById(`inline - app - category - ${index} `);
+            const elStage = document.getElementById(`inline - app - stage - ${index} `);
 
             // 2. 기존 마스터 데이터베이스에서 불변 키값(UID, 카테고리 등) 상속 보존 가드
             const origin = dataStoreApplicant[index];
@@ -3384,10 +3316,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     const separator = rawCountText.includes('/') ? '/' : '-';
                     const tokens = rawCountText.split(separator);
                     const pureQuotaNum = tokens[tokens.length - 1].replace(/[^0-9]/g, '');
-                    finalCountVal = `1/${pureQuotaNum || '60'}`;
+                    finalCountVal = `1 / ${pureQuotaNum || '60'} `;
                 } else {
                     const pureQuotaNum = rawCountText.replace(/[^0-9]/g, '');
-                    finalCountVal = `1/${pureQuotaNum || '60'}`;
+                    finalCountVal = `1 / ${pureQuotaNum || '60'} `;
                 }
             }
             /* ================================================================= */
@@ -3482,7 +3414,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                 // 대표님표 시스템 감사 로그 동기화 엔진 가동
                 if (changedItems.length > 0) {
-                    const logMsg = `대상자 [${n}] 참여비 지급 설정 및 상태 변경 처리 (변경항목: ${changedItems.join(", ")})`;
+                    const logMsg = `대상자[${n}] 참여비 지급 설정 및 상태 변경 처리(변경항목: ${changedItems.join(", ")})`;
                     if (typeof insertSystemAuditLog === "function") { insertSystemAuditLog("수정", logMsg); }
                     else if (typeof window.insertSystemAuditLog === "function") { window.insertSystemAuditLog("수정", logMsg); }
                 }
@@ -3512,7 +3444,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     const cleanPhoneNum = (currentTargetData.phone || "").toString().replace(/[^0-9]/g, "").trim();
 
                     // 가변 번호 발급에 연동이 끊어지지 않는 무결성 마스터 주파수 각인 임베딩
-                    currentTargetData.masterCombinedKey = `${dbNameClean}_${cleanPhoneNum}`;
+                    currentTargetData.masterCombinedKey = `${dbNameClean}_${cleanPhoneNum} `;
 
                     localStorage.setItem('dataStoreApplicant', JSON.stringify(latestApplicantDB));
                     window.dataStoreApplicant = latestApplicantDB;
@@ -3600,7 +3532,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 console.log("안내: 대상자 관리 탭이 활성화되지 않아 기수 필터 초기화를 예약 상태로 둡니다.");
                 return;
             }
-            filterTh.innerHTML = `<option value="ALL">— 시험을 먼저 선택하세요 —</option>`;
+            filterTh.innerHTML = `< option value = "ALL" >— 시험을 먼저 선택하세요 —</option > `;
         }
 
         function enableInlineEditMode(id) { currentEditingUid = id; refreshApplicantView(); }
@@ -3634,7 +3566,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 const targetName = targetRow ? targetRow.name : "미상";
 
                 if (typeof insertSystemAuditLog === "function") {
-                    insertSystemAuditLog("삭제", `대상자 [${targetName}] 전산망 명단 정보 영구 삭제 처리`);
+                    insertSystemAuditLog("삭제", `대상자[${targetName}] 전산망 명단 정보 영구 삭제 처리`);
                 }
                 /* ========================================================================= */
 
@@ -3673,7 +3605,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 if (memberEditingSabun === row.sabun) {
                     tr.classList.add('editing-row');
                     tr.innerHTML = `
-                <td style="color:var(--secondary-color); font-weight:700;">${row.sabun}</td>
+                        < td style = "color:var(--secondary-color); font-weight:700;" > ${row.sabun}</td >
                 <td><input type="text" id="inline-mem-name" class="inline-input" value="${row.name}"></td>
                 <td><input type="text" id="inline-mem-dept" class="inline-input" value="${row.dept}"></td>
                 <td><select id="inline-mem-duty" class="inline-input">
@@ -3695,16 +3627,16 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                         <button class="btn-inline list" onclick="cancelAdminMemberInlineMode()">취소</button>
                     </div>
                 </td>
-                `;
+                    `;
 
                 } else {
                     // 🟢 [수정 완료]: 상단 탑바와 완벽한 통일성을 갖추도록 차분한 연주황 오렌지색 테마(rgba 조합 + border 라인)로 고정
-                    const pBtn = isMasterAdmin ? `<button class="btn-inline" style="background: rgba(251, 191, 36, 0.15) !important; border: 1px solid #fbbf24 !important; font-size: 11px; padding: 4px 8px; color: #fbbf24 !important; font-weight: 700; border-radius: 4px; cursor: pointer;" onclick="openSelfPasswordModal('${row.sabun}')"><i class="fa-solid fa-key"></i> 비밀번호 수정</button>` : '';
+                    const pBtn = isMasterAdmin ? `< button class="btn-inline" style = "background: rgba(251, 191, 36, 0.15) !important; border: 1px solid #fbbf24 !important; font-size: 11px; padding: 4px 8px; color: #fbbf24 !important; font-weight: 700; border-radius: 4px; cursor: pointer;" onclick = "openSelfPasswordModal('${row.sabun}')" > <i class="fa-solid fa-key"></i> 비밀번호 수정</button > ` : '';
 
                     // 🟢 [수정 완료]: 수정 단추를 인디고 딥 블루(#1e40af)로 적용하고, 대표님 지시대로 간격을 시원하게 gap: 10px !important 스펙으로 격리 마감
-                    const aBtn = isMasterAdmin ? `<div style="display:inline-flex !important; justify-content:center !important; gap:10px !important; align-items:center !important; vertical-align:middle !important;"><button class="btn-inline edit" style="background: #1e293b !important; color: #fff !important; font-weight: 700; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" onclick="enableAdminMemberInlineMode('${row.sabun}')">수정</button><button class="btn-inline delete" onclick="removeAdminMemberRecord('${row.sabun}')">삭제</button></div>` : '';
+                    const aBtn = isMasterAdmin ? `< div style = "display:inline-flex !important; justify-content:center !important; gap:10px !important; align-items:center !important; vertical-align:middle !important;" ><button class="btn-inline edit" style="background: #1e293b !important; color: #fff !important; font-weight: 700; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" onclick="enableAdminMemberInlineMode('${row.sabun}')">수정</button><button class="btn-inline delete" onclick="removeAdminMemberRecord('${row.sabun}')">삭제</button></div > ` : '';
 
-                    tr.innerHTML = `<td style="color:var(--secondary-color); font-weight:700;">${row.sabun}</td><td class="text-bold">${row.name}</td><td>${row.dept}</td><td><span class="text-bold" style="color:#fff;">${row.duty}</span></td><td><span class="lvl-badge lvl-${lvl}"><i class="fa-solid fa-shield"></i> ${lvl}레벨 등급</span></td><td>${pBtn}</td><td style="text-align: center; vertical-align: middle;">${aBtn}</td>`;
+                    tr.innerHTML = `< td style = "color:var(--secondary-color); font-weight:700;" > ${row.sabun}</td ><td class="text-bold">${row.name}</td><td>${row.dept}</td><td><span class="text-bold" style="color:#fff;">${row.duty}</span></td><td><span class="lvl-badge lvl-${lvl}"><i class="fa-solid fa-shield"></i> ${lvl}레벨 등급</span></td><td>${pBtn}</td><td style="text-align: center; vertical-align: middle;">${aBtn}</td>`;
                 }
                 tbody.appendChild(tr);
             });
@@ -3777,7 +3709,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             document.getElementById('form-mem-id').value = '';
             document.getElementById('form-mem-name').value = '';
             document.getElementById('form-mem-dept').value = '';
-            alert(`🎉 사원 등록 완료: ${n} 님의 초기 패스워드는 [사번:${s}]으로 사전 할당 보존되었습니다.`);
+            alert(`🎉 사원 등록 완료: ${n} 님의 초기 패스워드는[사번:${s}]으로 사전 할당 보존되었습니다.`);
         }
 
         function removeAdminMemberRecord(k) {
@@ -3958,7 +3890,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                             (u.th + "").replace(/\s/g, "") === (extractedTh + "").replace(/\s/g, "")
                         ).length;
 
-                        console.log(`📊 [기준 데이터 연산] 기존 기등록 인원: ${baseExistingCount}명`);
+                        console.log(`📊[기준 데이터 연산] 기존 기등록 인원: ${baseExistingCount} 명`);
 
                         // ================================================================
                         // [2단계] 4행(인덱스 3)부터 반복 돌며 인적사항 정제 및 데이터 조립
@@ -4193,7 +4125,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 2. 가상 DB 순회하며 로우 데이터 로깅 가공 처리
             const counterMap = {};
             dataStoreApplicant.forEach(row => {
-                const groupKey = `${row.title}_${row.th}`;
+                const groupKey = `${row.title}_${row.th} `;
                 if (!counterMap[groupKey]) counterMap[groupKey] = 0;
                 counterMap[groupKey]++;
 
@@ -4215,7 +4147,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                 // 한 줄 단위 로우 데이터 가공 조립
                 // 🎯 [로우 데이터 교정]: 헤더 구조와 1:1 싱크를 맞추어 ssn 대입 변수 뒤에 gender 연산 변수를 안전하게 사출 주입합니다.
-                csvContent += `${order},${title},${th},${name},${ssn},${gender},${phone},${payState},${agreed},${account}\n`;
+                csvContent += `${order},${title},${th},${name},${ssn},${gender},${phone},${payState},${agreed},${account} \n`;
             });
 
             // 3. 브라우저 메모리 가상 파일 Blob 바이너리 인터페이스 인스턴스 생성
@@ -4272,7 +4204,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             // 2. 기존 비밀번호 모달창 양식(.modal-content / .modal-header / .modal-body) 컴포넌트 이식
             modalOverlay.innerHTML = `
-        <div class="modal-content" style="background: var(--bg-card, #1e293b); border: 1px solid var(--border-color, #334155); padding: 24px; border-radius: 12px; width: 100%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); font-family: sans-serif;">
+                        < div class="modal-content" style = "background: var(--bg-card, #1e293b); border: 1px solid var(--border-color, #334155); padding: 24px; border-radius: 12px; width: 100%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); font-family: sans-serif;" >
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color, #334155); padding-bottom: 12px;">
                 <h3 style="margin: 0; font-size: 16px; color: var(--text-primary, #ffffff); font-weight: 700;">📋 서류 증빙 전산 검수</h3>
                 <button onclick="document.getElementById('admin-global-doc-modal').style.display='none'" style="background: none; border: none; color: var(--text-muted, #94a3b8); cursor: pointer; font-size: 18px;">&times;</button>
@@ -4290,8 +4222,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 <button onclick="executeAdminPopupDownload('${targetImgSrc}', '${targetUser.name}_${docType}')" class="btn-inline" style="flex: 1; padding: 10px; background: #0ea5e9; color: #fff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px;">💥 로컬 저장</button>
                 <button onclick="document.getElementById('admin-global-doc-modal').style.display='none'" class="btn-inline" style="padding: 10px 16px; background: #475569; color: #fff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px;">닫기</button>
             </div>
-        </div>
-    `;
+        </div >
+                        `;
 
             // flex로 설정하여 화면 정중앙 배치 렌더링
             modalOverlay.style.display = "flex";
@@ -4377,9 +4309,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                     // 이미 매칭 완료된 account 객체의 이름 정보와 입력된 사번(id)을 바인딩하여 로그 기록
                     if (typeof insertSystemAuditLog === "function") {
-                        insertSystemAuditLog("로그인", `관리자 [${account.name}] 전산망 시스템 접속 인증 성공`, id);
+                        insertSystemAuditLog("로그인", `관리자[${account.name}] 전산망 시스템 접속 인증 성공`, id);
                     } else if (typeof window.insertSystemAuditLog === "function") {
-                        window.insertSystemAuditLog("로그인", `관리자 [${account.name}] 전산망 시스템 접속 인증 성공`, id);
+                        window.insertSystemAuditLog("로그인", `관리자[${account.name}] 전산망 시스템 접속 인증 성공`, id);
                     }
 
                     // 대시보드 화면 전환 처리
@@ -4409,9 +4341,9 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 }
 
                 if (typeof insertSystemAuditLog === "function") {
-                    insertSystemAuditLog("로그아웃", `관리자 [${currentAdminName}] 전산망 세션 파기 및 안전 로그아웃 완료`);
+                    insertSystemAuditLog("로그아웃", `관리자[${currentAdminName}] 전산망 세션 파기 및 안전 로그아웃 완료`);
                 } else if (typeof window.insertSystemAuditLog === "function") {
-                    window.insertSystemAuditLog("로그아웃", `관리자 [${currentAdminName}] 전산망 세션 파기 및 안전 로그아웃 완료`);
+                    window.insertSystemAuditLog("로그아웃", `관리자[${currentAdminName}] 전산망 세션 파기 및 안전 로그아웃 완료`);
                 }
 
                 sessionStorage.clear();
@@ -4571,14 +4503,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                 if (docCell) {
                     // 다른 앞쪽 칸(인원수, 기간 등)은 일절 건드리지 않고, 오직 첨부서류 칸에만 신분증/통장 배지를 인젝션합니다.
                     docCell.innerHTML = `
-                <span class="doc-badge status-id" style="display:inline-block; padding:4px 6px; background:rgba(74,222,128,0.15); border:1px solid #4ade80; color:#4ade80; border-radius:4px; font-size:11px; font-weight:700; margin:2px; cursor:pointer;" onclick="openAdminDocModal('${pName}', 'idCard')">신분증</span>
-                <span class="doc-badge status-bank" style="display:inline-block; padding:4px 6px; background:rgba(14,165,233,0.15); border:1px solid #0ea5e9; color:#38bdf8; border-radius:4px; font-size:11px; font-weight:700; margin:2px; cursor:pointer;" onclick="openAdminDocModal('${pName}', 'bankBook')">통장</span>
-            `;
+                        < span class="doc-badge status-id" style = "display:inline-block; padding:4px 6px; background:rgba(74,222,128,0.15); border:1px solid #4ade80; color:#4ade80; border-radius:4px; font-size:11px; font-weight:700; margin:2px; cursor:pointer;" onclick = "openAdminDocModal('${pName}', 'idCard')" > 신분증</span >
+                            <span class="doc-badge status-bank" style="display:inline-block; padding:4px 6px; background:rgba(14,165,233,0.15); border:1px solid #0ea5e9; color:#38bdf8; border-radius:4px; font-size:11px; font-weight:700; margin:2px; cursor:pointer;" onclick="openAdminDocModal('${pName}', 'bankBook')">통장</span>
+                    `;
                 }
 
-                console.log(`[연동 성공] [접수] 배지 없이 정확한 첨부서류 열에 증빙 배지만 안착되었습니다.`);
+                console.log(`[연동 성공][접수] 배지 없이 정확한 첨부서류 열에 증빙 배지만 안착되었습니다.`);
             } else {
-                console.error(`[연동 실패] 대시보드 명단에서 [${pName}] 대상자 행을 찾지 못했습니다.`);
+                console.error(`[연동 실패] 대시보드 명단에서[${pName}] 대상자 행을 찾지 못했습니다.`);
             }
 
             // 4. 상단 '청구서 접수 현황' 스코어보드 통계 실시간 동기화 (+1)
@@ -4602,14 +4534,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     let docCell = row.querySelector(".target-doc-cell") || row.cells[6]; // 임의 지정
                     if (docCell) {
                         docCell.innerHTML = `
-                    <span class="doc-badge status-id" onclick="openAdminDocModal('${patientName}', 'idCard')"><i class="fa-solid fa-id-card"></i> 신분증</span>
-                    <span class="doc-badge status-bank" onclick="openAdminDocModal('${patientName}', 'bankBook')"><i class="fa-solid fa-wallet"></i> 통장</span>
-                `;
+                        < span class="doc-badge status-id" onclick = "openAdminDocModal('${patientName}', 'idCard')" > <i class="fa-solid fa-id-card"></i> 신분증</span >
+                            <span class="doc-badge status-bank" onclick="openAdminDocModal('${patientName}', 'bankBook')"><i class="fa-solid fa-wallet"></i> 통장</span>
+                    `;
                     }
                     // 전체 대장 대지 상태값 레이블도 "접수" 상태로 전환 처리
                     let statusCell = row.querySelector(".target-status-cell") || row.cells[7];
                     if (statusCell) {
-                        statusCell.innerHTML = `<span class="lvl-badge lvl-2">접수</span>`;
+                        statusCell.innerHTML = `< span class="lvl-badge lvl-2" > 접수</span > `;
                     }
                 }
             });
@@ -4629,7 +4561,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const downloadBtn = document.getElementById('adminDocDownloadBtn');
 
             const docLabel = docType === 'idCard' ? '신분증' : '통장사본';
-            modalTitle.innerHTML = `💥 [국책정산 증빙] ${patientName} 대상자 님의 정밀 검수 - [${docLabel}]`;
+            modalTitle.innerHTML = `💥[국책정산 증빙] ${patientName} 대상자 님의 정밀 검수 - [${docLabel}]`;
 
             // Base64 데이터 스레드를 이미지 소스 인젝션 처리
             modalImg.src = userDocs[docType];
@@ -4657,10 +4589,10 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             var printWindow = window.open('', '_blank', 'width=850,height=650');
             var htmlContent = `
-        <html><head><title>임상관리원 정산증빙출력</title></head>
+                        < html ><head><title>임상관리원 정산증빙출력</title></head>
         <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#ffffff;">
             <img src="${imgElement.src}" style="max-width:100%; max-height:100vh; object-fit:contain;" onload="window.print(); window.close();">
-        </body></html>`;
+        </body></html > `;
             printWindow.document.write(htmlContent);
             printWindow.document.close();
         }
@@ -4696,7 +4628,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             // 1. 목록 내에서 특정 대상자 버튼을 명확히 클릭하여 진입한 경우
             if (specificUser) {
                 window.currentCertifiedUser = specificUser;
-                console.log(`[직접 지정 제어] 목록에서 선택된 대상자로 허브 락업: ${specificUser.name}`);
+                console.log(`[직접 지정 제어] 목록에서 선택된 대상자로 허브 락업: ${specificUser.name} `);
             }
             // 2. 인자 없이 상단 테스트 버튼 등으로 진입한 경우
             else {
@@ -4704,7 +4636,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     alert("위험: 아직 민간인증(join_login)을 성공한 대상자가 없거나 목록에서 선택된 유저가 없습니다.\n인증을 먼저 완료하거나 대장에서 대상자를 선택해주세요.");
                     return;
                 }
-                console.log(`[인증 기반 제어] 민간인증을 성공한 대상자로 제어반 오픈: ${window.currentCertifiedUser.name}`);
+                console.log(`[인증 기반 제어] 민간인증을 성공한 대상자로 제어반 오픈: ${window.currentCertifiedUser.name} `);
             }
 
             // adm_mem.html을 오픈하여 부모의 window.currentCertifiedUser 주소값을 강제 바인딩하게 유도
@@ -4744,14 +4676,14 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
                 // 교정된 개별 이미지 스트림을 LocalStorage 가상 DB에 최종 커밋
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-                console.log(`🎯 [정렬 성공] ${payload.patientName}님의 신분증 및 통장 원본 데이터가 대장에 각각 격리 저장되었습니다.`);
+                console.log(`🎯[정렬 성공] ${payload.patientName}님의 신분증 및 통장 원본 데이터가 대장에 각각 격리 저장되었습니다.`);
 
                 // 12개 컬럼 마스터 테이블 목록 실시간 리렌더링 호출
                 if (typeof refreshApplicantView === "function") {
                     refreshApplicantView();
                 }
             } else {
-                console.warn(`⚠️ [연동 실패] 수신된 성명(${payload.patientName})과 일치하는 대상자를 찾지 못했습니다.`);
+                console.warn(`⚠️[연동 실패] 수신된 성명(${payload.patientName})과 일치하는 대상자를 찾지 못했습니다.`);
             }
         }
 
@@ -4860,7 +4792,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const frameDoc = printFrame.contentWindow.document;
             frameDoc.open();
             frameDoc.write(`
-        <html>
+                        < html >
         <head>
             <title>${modalTitle}</title>
             <style>
@@ -4872,8 +4804,8 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         <body>
             <img src="${modalImg.src}" onload="window.focus(); window.print(); setTimeout(function(){ window.frameElement.remove(); }, 1000);">
         </body>
-        </html>
-    `);
+        </html >
+                        `);
             frameDoc.close();
         }
 
@@ -5078,7 +5010,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         function openRecruitmentDetails(index) {
             if (!window.dataStoreRecruitment || !dataStoreRecruitment[index]) return;
             const target = dataStoreRecruitment[index];
-            alert(`📋 [모집공고 상세조회]\n\n● 과제명: ${target.title}\n● 적용기수: ${target.th}\n● 담당 CRC: ${target.crc || '-'}\n● 배정인원: ${target.count}명\n● 임상기간: ${target.period}시간\n\n📢 [주의사항 및 특이사항]\n👉 ${target.notice || '등록된 내용이 없습니다.'}`);
+            alert(`📋[모집공고 상세조회]\n\n● 과제명: ${target.title} \n● 적용기수: ${target.th} \n● 담당 CRC: ${target.crc || '-'} \n● 배정인원: ${target.count} 명\n● 임상기간: ${target.period} 시간\n\n📢[주의사항 및 특이사항]\n👉 ${target.notice || '등록된 내용이 없습니다.'} `);
         }
 
         /**
@@ -5112,7 +5044,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             if (!window.dataStoreRecruitment || !dataStoreRecruitment[index]) return;
             const target = dataStoreRecruitment[index];
 
-            if (confirm(`⚠️ 정말로 [${target.title}] 모집공고 데이터를 영구 삭제하시겠습니까?\n삭제 후에는 복구가 불가능합니다.`)) {
+            if (confirm(`⚠️ 정말로[${target.title}] 모집공고 데이터를 영구 삭제하시겠습니까 ?\n삭제 후에는 복구가 불가능합니다.`)) {
                 // 배열에서 해당 항목 제거
                 dataStoreRecruitment.splice(index, 1);
 
@@ -5135,24 +5067,24 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
         (function () {
             const linkDestroyer = document.createElement('style');
             linkDestroyer.innerHTML = `
-        /* 테이블 내부의 a 태그 자체를 일반 평범한 글자(text) 상태로 박제합니다 */
-        #dom-recruitment-table a,
-        #dom-recruitment-table td,
-        .exam-title-link {
-            text-decoration: none !important;
-            border-bottom: none !important;
-            color: #ffffff !important;
-            font-weight: 700 !important;
-            cursor: default !important; /* 손가락 모양 원천 제거 */
-            pointer-events: none !important; /* 클릭 이벤트 자체를 차단하여 링크 기능 파괴 */
-        }
-        /* 테이블 안의 버튼들은 마우스 손가락 모양이 정상 작동해야 하므로 플렉스 예외 복구 */
-        #dom-recruitment-table button,
-        #dom-recruitment-table .btn-inline {
-            pointer-events: auto !important;
-            cursor: pointer !important;
-        }
-    `;
+                    /* 테이블 내부의 a 태그 자체를 일반 평범한 글자(text) 상태로 박제합니다 */
+                    #dom - recruitment - table a,
+                        #dom - recruitment - table td,
+        .exam - title - link {
+                        text - decoration: none!important;
+                        border - bottom: none!important;
+                        color: #ffffff!important;
+                        font - weight: 700!important;
+                        cursor: default !important; /* 손가락 모양 원천 제거 */
+                        pointer - events: none!important; /* 클릭 이벤트 자체를 차단하여 링크 기능 파괴 */
+                    }
+                    /* 테이블 안의 버튼들은 마우스 손가락 모양이 정상 작동해야 하므로 플렉스 예외 복구 */
+                    #dom - recruitment - table button,
+                        #dom - recruitment - table.btn - inline {
+                        pointer - events: auto!important;
+                        cursor: pointer!important;
+                    }
+                    `;
             document.head.appendChild(linkDestroyer);
             console.log("[시스템 가드] 물리적 하이퍼링크 기능이 완벽하게 소멸 처리되었습니다.");
         })();
@@ -5199,7 +5131,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
                     dataStoreApplicant = adminApplicantDB;
                 }
 
-                alert(`🗑️ [${deletedName}] 대상자의 마스터 레코드가 대장에서 안전하게 영구 삭제되었습니다.`);
+                alert(`🗑️[${deletedName}] 대상자의 마스터 레코드가 대장에서 안전하게 영구 삭제되었습니다.`);
 
                 // 하단 테이블 다시 그리기
                 if (typeof refreshApplicantView === "function") {
@@ -5295,7 +5227,7 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
 
             // 1. 🎯 '전체 시험 보기' 상태일 때는 기수 선택지를 완전히 가림 (안내문구 고정)
             if (selectedTitle === "ALL" || !selectedTitle) {
-                filterTh.innerHTML = `<option value="ALL">— 시험을 먼저 선택하세요 —</option>`;
+                filterTh.innerHTML = `< option value = "ALL" >— 시험을 먼저 선택하세요 —</option > `;
                 filterTh.value = "ALL";
 
                 if (typeof calculateLiveDashboardStats === "function") {
@@ -5340,11 +5272,11 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             const availableThs = [...new Set(matchedThs)];
 
             // 4. 추출된 공고 기준 기수 데이터로 드롭다운 옵션 태그 동적 세팅 (1기~4기)
-            let htmlOptions = `<option value="ALL">— 전체 기수 —</option>`;
+            let htmlOptions = `< option value = "ALL" >— 전체 기수 —</option > `;
 
             // 자연스러운 숫자식 정렬 후 옵션 추가
             availableThs.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })).forEach(th => {
-                htmlOptions += `<option value="${th}">${th}</option>`;
+                htmlOptions += `< option value = "${th}" > ${th}</option > `;
             });
 
             filterTh.innerHTML = htmlOptions;

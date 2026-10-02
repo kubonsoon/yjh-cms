@@ -1552,7 +1552,7 @@
                 // 1초 간격으로 마스터 로컬스토리지 대장 원장 직접 캡처 스캔
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                // 4단 복합 키 유실 환경을 우회하여 오직 정제된 식별 이름으로 1:1 정밀 타격 매칭
+                // 오염되기 쉬운 가변 변수 대신, 오직 정제된 식별 이름으로 1:1 정밀 타격 매칭
                 const liveRecord = adminApplicantDB.find(u => {
                     if (!u || !u.name) return false;
                     return u.name.toString().replace(/\s/g, "") === cleanSessionName;
@@ -1564,7 +1564,7 @@
                     const submitBtn = document.getElementById('ui_submit_btn'); // 참여비 최종 신청 버튼
                     const stageTxtSlot = document.getElementById('ui_stage_text');
 
-                    // 🚀 2. [오류 전면 쇄신] 진짜 관리자 화면의 실시간 저장 참여상태 데이터(status) 수혈
+                    // 🚀 2. 진짜 관리자 화면의 실시간 저장 참여상태 데이터(status) 수혈
                     const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
 
                     // [이미지 반영 1] 중앙 인라인 텍스트 로그 영역 무새로고침 실시간 치환
@@ -1572,16 +1572,19 @@
                         historyLogSlot.innerText = liveStatusText;
                     }
 
-                    // [이미지 반영 2] 우측 상단 사각 배지 문자열 개행 및 마스터 클래스 색상 강제 반전 주입
+                    // [이미지 반영 2] 우측 상단 사각 배지 내부 레이어 전면 청소 및 강제 재조립
                     if (mobileBadge) {
-                        // 🎨 [핵심 수정 1] 순정 CSS 내부에 족쇄처럼 채워져 있던 파란색 알맹이 배경색을 물리적으로 전면 소독하여 투명화
+                        // 🎨 [핵심 수정 1] 옛날 스타일을 움켜쥐고 방해하던 자식 레이어 찌꺼기를 원천 박멸 (도화지 클리어)
+                        mobileBadge.innerHTML = "";
+
+                        // 인라인에 하드코딩되어 박혀있던 파란색 배경 족쇄를 물리적으로 완전히 투명화 소독
                         mobileBadge.style.setProperty("background", "none", "important");
                         mobileBadge.style.setProperty("background-color", "transparent", "important");
 
                         // 기존에 묻어있을 수 있는 색상 클래스 5형제 정밀 청소 가동
                         mobileBadge.classList.remove("master-purple", "master-green", "master-blue", "master-slate", "master-rose", "master-navy");
 
-                        // 🎨 [핵심 수정 2] 수혈받은 글자 그대로 텍스트 치환 및 정품 야광 배지 색상 스킨 안전 투과
+                        // 🎨 [핵심 수정 2] 수혈받은 글자 그대로 배지 내부에 강제 텍스트 주입 및 정품 야광 색상 클래스 강제 폭격
                         if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
                             mobileBadge.innerText = "신검\n대기";
                             mobileBadge.classList.add("master-purple"); // 보라색 정품 스킨 주입
@@ -1601,7 +1604,7 @@
                             mobileBadge.innerText = "심사\n탈락";
                             mobileBadge.classList.add("master-rose");   // 적색 정품 스킨 반전
                         } else {
-                            // 리스트에 정의되지 않은 기타 참여상태 문자열(예: 규정위반 등) 처리
+                            // 리스트에 정의되지 않은 기타 참여상태 문자열 처리
                             mobileBadge.innerText = liveStatusText.replace("(", "\n(");
                             mobileBadge.classList.add("master-navy");
                         }

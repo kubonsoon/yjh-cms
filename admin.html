@@ -1821,20 +1821,30 @@
          */
         function editInlineRecruitmentRecord(index) {
             try {
-                // ❶ [A/B 분기 스위치 개통]: 렌더링 엔진이 수정 서식창(A분기)을 그리도록 강제 허용 락 해제
+                // ❶ 렌더링 엔진이 수정 서식창(A분기)을 그리도록 플래그 스위치 개통
                 isRecEditing = true;
 
-                // ❷ 인덱스 락인 복원 명세 (원래 전산망 변수 축선 그대로 상속 보존)
+                // ❷ 타겟 인덱스 세션 락인
                 window.currentEditingRecruitmentIndex = index;
 
-                // ❸ 실시간 렌더러 즉시 연쇄 가동 (수정 서식창으로 실시간 전면 리스킨)
+                // ❸ [핵심 버그 소독 가드]: 대장에 상주하는 진짜 스크리닝 데이터를 강제로 가로채 메모리에 박제
+                const currentRec = dataStoreRecruitment[index];
+                if (currentRec) {
+                    // 원장에 스크리닝 날짜가 누락되어 있다면 공백 유실을 방지하기 위해 기본값 세척 처리
+                    if (!currentRec.examSchedule) currentRec.examSchedule = "";
+
+                    // 7대 일정 구조가 런타임 메모리에서 증발하지 않도록 불변 락킹 실행
+                    window.pureExamScheduleVal = currentRec.examSchedule;
+                }
+
+                // ❹ 실시간 렌더러 연쇄 가동 (수정 서식창으로 실시간 전면 리스킨)
                 if (typeof refreshRecruitmentView === "function") {
                     refreshRecruitmentView();
                 } else if (typeof renderRecruitmentTable === "function") {
                     renderRecruitmentTable();
                 }
 
-                console.log(`[관제탑 인프라 가동] 모집공고 인덱스 ${index}번이 수정 모드(A분기) 세션에 바인딩되었습니다.`);
+                console.log(`[관제탑 데이터 복원 완착] 모집공고 ${index}번의 스크리닝 일자(${window.pureExamScheduleVal})가 엔진에 바인딩되었습니다.`);
             } catch (err) {
                 console.error("[인라인 수정 진입 마비 오류]", err);
             }

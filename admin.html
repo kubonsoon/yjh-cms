@@ -1733,7 +1733,7 @@
                     const dutyBtnStyle = hasCustomDuty ? "background: rgba(168, 85, 247, 0.15); border: 1px solid #c084fc; color: #c084fc;" : "background: #475569; border: none; color: #ffffff;";
                     const callBtnStyle = hasCustomCall ? "background: rgba(96, 165, 250, 0.15); border: 1px solid #60a5fa; color: #60a5fa;" : "background: #475569; border: none; color: #ffffff;";
 
-                    // 💰 [5차수 참여비 지급일정 자동 인코더 엔진]
+                    // 💰 5차 참여비 지급일정 순정 개방 파서
                     let multiLinePayHTML = "";
                     if (row.paySchedule && row.paySchedule !== "추후공지" && row.paySchedule.trim() !== "") {
                         let cleanSchedule = row.paySchedule.toString().replace(/\/\$/, '').replace(/\/\/+/g, '/');
@@ -1768,20 +1768,17 @@
                         <td style="width: 80px; vertical-align: middle; text-align: center;">
                             <span class="lvl-badge ${thBadgeClass}" style="padding: 4px 8px; font-size:12px; display: inline-block;">${row.th}</span>
                         </td>
-                        <td style="width: 70px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 700;">${finalLiveCountText}명</td>
+                        <td style="width: 100px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 700;">${finalLiveCountText}명</td>
                         <td style="width: 100px; vertical-align: middle; text-align: center; color: #eeeeee;">${row.period}시간</td>
-                        <td style="width: 90px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
+                        <td style="width: 110px; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 600;">${row.crc || '-'}</td>
                         
-                        <!-- 📅 [7대 일정 동치 마운트]: 스크리닝, 소집일, 방문 1~4차, 종료방문 일자 개별 컬럼 순차 출력 -->
-                        <td style="width: 110px; vertical-align: middle; text-align: center; color: #c084fc; font-weight: 600; font-size: 11.5px;">${row.examSchedule || '-'}</td>
-                        <td style="width: 110px; vertical-align: middle; text-align: center; color: #0ea5e9; font-weight: 700; font-size: 11.5px;">${row.recDate || '-'}</td>
-                        <td style="width: 110px; vertical-align: middle; text-align: center; color: #eeeeee; font-size: 11.5px;">${row.visitDate1 || '-'}</td>
-                        <td style="width: 110px; vertical-align: middle; text-align: center; color: #eeeeee; font-size: 11.5px;">${row.visitDate2 || '-'}</td>
-                        <td style="width: 110px; vertical-align: middle; text-align: center; color: #eeeeee; font-size: 11.5px;">${row.visitDate3 || '-'}</td>
-                        <td style="width: 110px; vertical-align: middle; text-align: center; color: #eeeeee; font-size: 11.5px;">${row.visitDate4 || '-'}</td>
-                        <td style="width: 110px; vertical-align: middle; text-align: center; color: #8b5cf6; font-weight: 700; font-size: 11.5px;">${row.endExamDate || '-'}</td>
+                        <!-- 📅 [원래 너비 보존]: 150px 셀 크기 내에 세분화된 스크리닝 및 소집일자 정밀 렌더링 -->
+                        <td style="width: 150px; vertical-align: middle; text-align: center; font-weight: 700; white-space: nowrap; line-height: 1.4; padding: 8px 0; font-size: 12px !important;">
+                            <div style="color: #c084fc; font-weight: 700;">• 스크리닝: ${row.examSchedule || '미정'}</div>
+                            <div style="color: #38bdf8; font-weight: 800; margin-top: 3px;"><i class="fa-regular fa-calendar-check" style="color: #38bdf8; font-size: 11px;"></i> 소집: ${row.recDate || '미정'}</div>
+                        </td>
                         
-                        <!-- 독립 서식 서브 모달 링크 구역 -->
+                        <!-- 원래 보기 단추 구역 (크기 및 스타일 100% 원형 유지) -->
                         <td style="width: 80px; vertical-align: middle; text-align: center;">
                             <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                         </td>
@@ -1795,18 +1792,18 @@
                             <button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                         </td>
                         
-                        <!-- 💰 참여비 지급일정 5차수 수직 로드 슬롯 -->
-                        <td style="width: 150px; vertical-align: middle !important; text-align: center; padding-top: 6px; padding-bottom: 6px; box-sizing: border-box;">
+                        <!-- 원래 참여비 지급일 영역 (150px 너비 및 스타일 복원) -->
+                        <td style="width: 150px; vertical-align: middle !important; text-align: center; padding-top: 10px; padding-bottom: 10px; box-sizing: border-box;">
                             <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
                                 ${multiLinePayHTML}
                             </div>
                         </td>
                         
-                        <!-- 관제탑 인프라 수정/삭제 액션 단추 제어반 -->
+                        <!-- 원래 액션 제어반 버튼 및 140px 너비 가드 복원 -->
                         <td style="width: 140px; vertical-align: middle !important; text-align: center; padding-right: 15px; box-sizing: border-box !important;">
                             <div class="action-btn-wrapper" style="display: flex !important; flex-direction: row !important; justify-content: center !important; align-items: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important; margin: 0 !important; padding: 0 !important; height: 100% !important; min-height: 100% !important;">
-                                <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155 !important; color: #ffffff !important; padding: 5px 10px !important; border: none !important; border-radius: 4px !important; font-weight: 700 !important; cursor: pointer !important; font-size: 13px !important; line-height: 1.2 !important;">수정</button>
-                                <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15) !important; border: 1px solid #f87171 !important; color: #f87171 !important; padding: 5px 10px !important; border-radius: 4px !important; font-weight: 700 !important; cursor: pointer !important; font-size: 13px !important; line-height: 1.2 !important;">삭제</button>
+                                <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155 !important; color: #ffffff !important; padding: 5px 10px !important; border: none !important; border-radius: 4px !important; font-weight: 700 !important; cursor: pointer !important; font-size: 13px !important; line-height: 1.2 !important; box-shadow: none !important; transform: none !important; position: static !important;">수정</button>
+                                <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15) !important; border: 1px solid #f87171 !important; color: #f87171 !important; padding: 5px 10px !important; border-radius: 4px !important; font-weight: 700 !important; cursor: pointer !important; font-size: 13px !important; line-height: 1.2 !important; box-shadow: none !important; transform: none !important; position: static !important;">삭제</button>
                             </div>
                         </td>
                     `;
@@ -1814,7 +1811,7 @@
 
                 tbody.appendChild(tr);
             });
-        } // 🔒 refreshRecruitmentView 마감 완료
+        } // 🔒 refreshRecruitmentView 마감
 
 
         /**

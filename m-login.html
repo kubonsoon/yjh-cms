@@ -1544,23 +1544,17 @@
             const monitorInterval = setInterval(function () {
                 // 1. 현재 모바일 화면에 민간인증 로그인 안착해 있는 내 진짜 인적 세션 정보 추출 및 여백 소독
                 const currentVerifiedSessionName = (sessionStorage.getItem('certifiedUserName') || myName || "").toString().replace(/\s/g, "");
-                const sessionPhone = sessionStorage.getItem('certifiedUserPhone') || (window.loggedInUser ? window.loggedInUser.phone : "");
-                const cleanSessionPhone = sessionPhone.toString().replace(/[^0-9]/g, "").trim();
 
-                if (!currentVerifiedSessionName || !cleanSessionPhone) return;
+                if (!currentVerifiedSessionName) return;
 
-                // 내 로그인 정보로 조합한 유일무이한 마스터 수신 주파수 키 빌드
-                const myMasterCombinedKey = `${currentVerifiedSessionName}_${cleanSessionPhone}`;
-
-                // 🚀 2. 마스터 로컬스토리지 원장 실시간 직접 캡처 스캔
+                // 🚀 2. [참여비 버튼 성공 방식 100% 이식] 마스터 로컬스토리지 원장 실시간 직접 캡처 스캔
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                // 오염되기 쉬운 가변 변수 대신, 이름과 번호 복합 식별 키가 1:1로 명중 일치하는 내 데이터 행 추적 find
+                // [전화번호 오염 가드 우회] '숫자만' 등 가짜 안내 데이터로 인한 매칭 파괴를 방어하기 위해
+                // 현재 로그인 세션의 '이름' 변수 하나만을 단일 고유 ID 주파수로 역추적 타격 매칭
                 const liveRecord = adminApplicantDB.find(u => {
-                    if (!u) return false;
-                    if (u.masterCombinedKey) return u.masterCombinedKey === myMasterCombinedKey;
-                    return u.name.toString().replace(/\s/g, "") === currentVerifiedSessionName &&
-                        (u.phone || "").toString().replace(/[^0-9]/g, "").trim() === cleanSessionPhone;
+                    if (!u || !u.name) return false;
+                    return u.name.toString().replace(/\s/g, "") === currentVerifiedSessionName;
                 });
 
                 if (liveRecord) {
@@ -1569,7 +1563,7 @@
                     const submitBtn = document.getElementById('ui_submit_btn'); // 참여비 최종 신청 버튼
                     const stageTxtSlot = document.getElementById('ui_stage_text');
 
-                    // 진짜 관리자 화면의 참여상태(status) 필드를 1초마다 직접 무지연 수혈
+                    // 🚀 3. [원본 누락 알맹이 수혈] 참여비 버튼처럼 진짜 관리자 화면의 참여상태(status) 필드를 1초마다 직접 무지연 수혈
                     const liveStatusText = (liveRecord.status || "신검대기").toString().trim();
 
                     // [이미지 반영 1] 중앙 인라인 텍스트 로그 영역을 최대 1초 이내에 실시간 치환
@@ -1579,13 +1573,13 @@
 
                     // [이미지 반영 2] 우측 상단 사각 배지의 개행 및 마스터 클래스 색상 클래스 강제 반전 주입
                     if (mobileBadge) {
-                        // 🚀 [비주얼 버그 전면 소독] 순정 디자인 뼈대 클래스(badge 등) 파괴 구문 완전 제거
+                        // [비주얼 버그 전면 소독] 순정 디자인 뼈대 클래스 파괴 구문 완전 제거
                         // 대신 기존에 묻어있을 수 있는 색상 클래스 5형제만 골라서 정밀 청소 장치 가동
                         mobileBadge.classList.remove("master-purple", "master-green", "master-blue", "master-slate", "master-rose", "master-navy");
 
                         if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
                             mobileBadge.innerText = "신검\n대기";
-                            mobileBadge.classList.add("master-purple"); // 🎨 [정밀 수정] 순정 라운드 디자인 위로 오직 보라색 스킨만 안전하게 인젝션!
+                            mobileBadge.classList.add("master-purple"); // 순정 디자인 위로 오직 보라색 스킨만 안전하게 인젝션
                         } else if (liveStatusText === "신검통과" || liveStatusText === "신검적합" || liveStatusText.includes("적합")) {
                             mobileBadge.innerText = "신검\n적합";
                             mobileBadge.classList.add("master-green");  // 녹색 스킨 반전
@@ -1607,7 +1601,7 @@
                         }
                     }
 
-                    // 🚀 3. [기획 대원칙 인터록 확실 바인딩] 단어에 "신검"이 포함되거나 비정상 상태(규정위반 등) 포착 시 원천 락다운 고정
+                    // 🚀 4. [기획 대원칙 인터록 확실 바인딩] 단어에 "신검"이 포함되거나 비정상 상태(규정위반 등) 포착 시 원천 락다운 고정
                     if (liveStatusText.includes("신검") || liveStatusText.includes("위반") || liveStatusText.includes("탈락") || liveStatusText.includes("취소")) {
                         if (submitBtn) {
                             submitBtn.disabled = true;
@@ -1629,7 +1623,7 @@
                             setMobileFormActive(false); // 🔒 엉뚱하게 열리던 서식 자물쇠를 물리적으로 원천 잠금 차단!
                         }
                     }
-                    // 🚀 4. 실제 시험 참여 및 진행 단계 진입 시 자물쇠 정식 개방 활성화
+                    // 🚀 5. 실제 시험 참여 및 진행 단계 진입 시 자물쇠 정식 개방 활성화
                     else if (liveStatusText === "참여(소집)" || liveStatusText === "투약" || liveStatusText.includes("진행")) {
                         if (submitBtn) {
                             submitBtn.disabled = false;
@@ -1641,7 +1635,7 @@
                             setMobileFormActive(true); // 🔓 실제 참여 및 투약 트랙만 개방 허용
                         }
                     }
-                    // 🚀 5. 최종 과제 완결 종료 마감 트랙
+                    // 🚀 6. 최종 과제 완결 종료 마감 트랙
                     else if (liveStatusText === "종료" || liveStatusText === "완결") {
                         if (stageTxtSlot) {
                             stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여비 청구, 금융 지급 완료 및 시험 최종 종료가 정상 완료되었습니다.</span>`;

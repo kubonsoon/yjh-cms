@@ -1236,9 +1236,10 @@
                 const currentActiveCount = parseInt(matchedApplicants.length, 10) || 0;
 
                 // ❷ [순정 분모 정원 추출]: 대표님이 지정 완료하신 8대 과제별 고유 정원 숫자 무결 장전
-                let pureQuotaNum = 60; // 디폴트 숫자 규격 선언
+                let pureQuotaNum = 60; // 폴백용 기본값
                 const currentTitleText = (row.title || "").toString().trim();
 
+                // 대표님이 확립해 주신 과제명 명세 추적 기반 다이렉트 숫자 주입 (문자열 결합 버그 완벽 원천 진압)
                 if (currentTitleText.includes("명인제약")) pureQuotaNum = 44;
                 else if (currentTitleText.includes("대우제약")) pureQuotaNum = 60;
                 else if (currentTitleText.includes("파마사이언스")) pureQuotaNum = 74;
@@ -1247,19 +1248,10 @@
                 else if (currentTitleText.includes("신일제약")) pureQuotaNum = 60;
                 else if (currentTitleText.includes("하나제약")) pureQuotaNum = 36;
                 else if (currentTitleText.includes("경동제약")) pureQuotaNum = 40;
-                else {
-                    if (row.count) {
-                        const countStr = row.count.toString().trim();
-                        if (countStr.includes('/')) {
-                            pureQuotaNum = parseInt(countStr.split('/').pop().replace(/[^0-9]/g, ''), 10) || 60;
-                        } else {
-                            pureQuotaNum = parseInt(countStr.replace(/[^0-9]/g, ''), 10) || 60;
-                        }
-                    }
-                }
 
-                // 🚀 [100단위 오염 파괴 핵심 정정 축]: 글자 붙이기 꼼수를 파쇄하고, 진짜 분자 기호와 순정 분모 숫자를 무결 결합!!
+                // 🚀 [대표님 특허 실시간 정원 마감 서식 결합 축]: 현재 실시간 인입된 분자 + 진짜 순정 분모 정수 완벽 결합!!
                 const finalLiveCountText = currentActiveCount + "/" + pureQuotaNum;
+                //
 
                 // ❸ [참여비 가변 차수 무제한 개방 파서]: 5차 이상 정산 기일 전수 출력 슬롯 사수
                 let initPayHTML = "";
@@ -1287,7 +1279,7 @@
 
                 // ❹ [정품 12개 컬럼 순서 완전 사수 및 이스케이프 문법 노이즈 전면 박멸 사출]
                 htmlBuffer += `
-            <tr data-uid="${row.uid}">
+               <tr data-uid="${row.uid}">
                 <td style="text-align: left; padding-left: 15px;">
                     <a class="exam-title-link" onclick="openIndependentEditorModal(${index}, 'title')">${row.title}</a>
                 </td>

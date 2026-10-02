@@ -342,8 +342,8 @@ tr:hover {
 #dom-recruitment-table tr:hover td,
 #dom-recruitment-table a:hover {
   text-decoration: none !important;
-  color: #57a7fd !important;
-  cursor: pointer;
+  color: #57a7fd !important; /* 💡 원래의 선명한 스카이블루 광채 효과 100% 원형 보존 */
+  cursor: default !important; /* 👈 악성 손가락 모양을 파괴하고 순정 화살표 커서로 강제 박제 */
 }
 
 /* 2. 작업 컬럼 (마지막 셀): 수정/삭제 버튼 줄바꿈 현상을 물리적으로 원천 차단 */
@@ -1297,16 +1297,4 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 #dom-applicant-table td select {
   text-align: center !important;
   text-align-last: center !important;
-}
-
-/* 🚀 [시스템 가드] 모집공고 목록 마우스 오버 시 하이퍼링크 손가락 커서 발생을 전면 불허 처리 */
-#recruitment_master_render_slot tr,
-#recruitment_master_render_slot tr td,
-#recruitment_master_render_slot tr:hover {
-  cursor: default !important; /* 👈 마우스를 올려도 손가락으로 변하지 않고 순정 화살표 유지 */
-}
-
-/* 💡 [동작 시그널 통제] 클릭할 수 있는 링크라는 오해를 주지 않도록 오버 시 배경색 변동 잔상도 차단 */
-#recruitment_master_render_slot tr:hover {
-  background-color: transparent !important;
 }

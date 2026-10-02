@@ -2682,7 +2682,7 @@
                     tr.innerHTML = `
                         <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ''}</td>
                         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || '-'}</span></td>
-                        <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 700;">${row.liveMatchOrderNumber !== undefined ? row.liveMatchOrderNumber : 1}/${getTrueMasterQuota(row.title, row.th, row.count)}명</td>
+                        <td style="width: 6.5%; vertical-align: middle; text-align: center; color: #38bdf8; font-weight: 700;">${finalAppCountText}명</td>
                         <td style="width: 6%; vertical-align: middle; text-align: center;">${formatPeriod(row.period)}</td>
                         
                         <!-- 이름 칸 순정 텍스트 정돈 원복 처리 사수 -->

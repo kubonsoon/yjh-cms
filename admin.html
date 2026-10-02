@@ -1231,21 +1231,20 @@
                     return appTitle === recTitle && appTh === recTh && app.status !== "종료" && app.status !== "기타탈락";
                 });
 
-                // 🚀 [형변환 소독]: 문자로 오접합되어 100단위가 되는 누수를 차단하기 위해 정수(Number) 형변환 락업 강제 가동!
+                // 🚀 [형변환 소독 1]: 분자 값이 문자로 오접합되는 것을 방어하기 위해 정수(Number) 형변환 고정!
                 const currentActiveCount = parseInt(matchedApplicants.length, 10) || 0;
 
-                // [순정 분모 정원 추출]: 대표님이 지정 완료하신 8대 과제별 고유 정원 숫자 무결 장전
-                let pureQuotaNum = 60; // 폴백용 기본값
-                const currentTitleText = (row.title || "").toString().trim();
-
-                if (currentTitleText.includes("명인제약")) pureQuotaNum = 44;
-                else if (currentTitleText.includes("대우제약")) pureQuotaNum = 60;
-                else if (currentTitleText.includes("파마사이언스")) pureQuotaNum = 74;
-                else if (currentTitleText.includes("삼진제약")) pureQuotaNum = 30;
-                else if (currentTitleText.includes("애드파마")) pureQuotaNum = 58;
-                else if (currentTitleText.includes("신일제약")) pureQuotaNum = 60;
-                else if (currentTitleText.includes("하나제약")) pureQuotaNum = 36;
-                else if (currentTitleText.includes("경동제약")) pureQuotaNum = 40;
+                // [순정 분모 정원 추출]: 데이터가 '1/44' 문자열 형태로 꼬여있더라도 우측 분모만 완벽히 적출
+                let pureQuotaNum = 60;
+                if (row.count) {
+                    const countStr = row.count.toString().trim();
+                    if (countStr.includes('/')) {
+                        // 🚀 [형변환 소독 2]: 분모 자리가 문자열로 변해 결합 버그를 내지 않도록 명확하게 정수(Number) 숫자로 강제 락업!!
+                        pureQuotaNum = parseInt(countStr.split('/').pop().replace(/[^0-9]/g, ''), 10) || 60;
+                    } else {
+                        pureQuotaNum = parseInt(countStr.replace(/[^0-9]/g, ''), 10) || 60;
+                    }
+                }
 
                 // 🚀 [100단위 오염 파괴 핵심 정정 축]: 완벽하게 숫자로 박제된 두 변수를 슬래시 기호로 격리 무결 결합!!
                 const finalLiveCountText = currentActiveCount + "/" + pureQuotaNum;
@@ -1275,30 +1274,30 @@
                 }
 
                 htmlBuffer += `
-            <tr data-uid="\${row.uid}">
+            <tr data-uid="${row.uid}">
                 <td style="text-align: left; padding-left: 15px;">
-                    <a class="exam-title-link" onclick="openIndependentEditorModal(\${index}, 'title')">\${row.title}</a>
+                    <a class="exam-title-link" onclick="openIndependentEditorModal(${index}, 'title')">${row.title}</a>
                 </td>
-                <td><span class="text-bold">\${row.th}</span></td>
+                <td><span class="text-bold">${row.th}</span></td>
                 
                 <!-- 🎯 [인원수 관제반 완착]: 문자열 결합 버그가 완벽하게 청소된 진짜 현재인원/총정원 명세 사출! -->
                 <td style="text-align: center; color: #38bdf8; font-weight: 700;">\${finalLiveCountText}명</td>
                 
-                <td>\${row.period}시간</td>
-                <td>\${row.crc}</td>
-                <td>\${row.recDate || '미정'}</td>
-                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(\${index}, 'notice')">보기</button></td>
-                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(\${index}, 'schedule')">보기</button></td>
-                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(\${index}, 'duty')">보기</button></td>
-                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(\${index}, 'call')">보기</button></td>
+                <td>${row.period}시간</td>
+                <td>${row.crc}</td>
+                <td>${row.recDate || '미정'}</td>
+                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'notice')">보기</button></td>
+                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'schedule')">보기</button></td>
+                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'duty')">보기</button></td>
+                <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'call')">보기</button></td>
                 <td>
                     <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; line-height:1.4;">
                         \${initPayHTML}
                     </div>
                 </td>
                 <td style="padding-right: 15px;">
-                    <button class="btn-inline edit" onclick="enableInlineRecruitmentEdit(\${index})">수정</button>
-                    <button class="btn-inline delete" onclick="deleteRecruitmentRecord(\${row.uid})">삭제</button>
+                    <button class="btn-inline edit" onclick="enableInlineRecruitmentEdit(${index})">수정</button>
+                    <button class="btn-inline delete" onclick="deleteRecruitmentRecord(${row.uid})">삭제</button>
                 </td>
             </tr>
         `;

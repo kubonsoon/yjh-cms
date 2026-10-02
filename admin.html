@@ -1792,18 +1792,18 @@
                             <div style="color: #38bdf8; font-weight: 800; margin-top: 3px;"><i class="fa-regular fa-calendar-check" style="color: #38bdf8; font-size: 11px;"></i> 소집: ${row.recDate || '미정'}</div>
                         </td>
                         
-                        <!-- 원래 보기 단추 구역 (크기 및 스타일 100% 원형 유지) -->
-                        <td style="width: 80px; vertical-align: middle; text-align: center;">
-                            <button type="button" class="btn-inline list" onclick="openRecruitmentDetails(${index})" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                        <!-- 4대 공지 (주의사항/일정안내/당직공지/소집공지) -->
+                      <td style="width: 80px; vertical-align: middle; text-align: center;">
+                            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'notice')" style="${noticeBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                         </td>
                         <td style="width: 80px; vertical-align: middle; text-align: center;">
-                            <button type="button" class="btn-inline list" onclick="openRecruitmentDetails(${index})" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'schedule')" style="${scheduleBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                         </td>
                         <td style="width: 80px; vertical-align: middle; text-align: center;">
-                            <button type="button" class="btn-inline list" onclick="openRecruitmentDetails(${index})" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'duty')" style="${dutyBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                         </td>
                         <td style="width: 80px; vertical-align: middle; text-align: center;">
-                            <button type="button" class="btn-inline list" onclick="openRecruitmentDetails(${index})" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
+                            <button type="button" class="btn-inline list" onclick="openIntegratedBoardModal(${index}, 'call')" style="${callBtnStyle} padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px; transition: all 0.2s; box-sizing: border-box;">보기</button>
                         </td>
                         
                         <!-- 원래 참여비 지급일 영역 (150px 너비 및 스타일 복원) -->

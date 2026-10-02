@@ -1787,9 +1787,12 @@
                                 ${multiLinePayHTML}
                             </div>
                         </td>
-                        <td style="width: 140px; vertical-align: middle !important; text-align: center; padding-right: 15px; box-sizing: border-box !important;">
-                            <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155 !important; color: #ffffff !important; padding: 5px 10px !important; border: none !important; border-radius: 4px !important; font-weight: 700 !important; cursor: pointer !important; font-size: 13px !important; display: inline-block !important; margin-right: 3px !important;">수정</button>
-                            <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15) !important; border: 1px solid #f87171 !important; color: #f87171 !important; padding: 5px 10px !important; border-radius: 4px !important; font-weight: 700 !important; cursor: pointer !important; font-size: 13px !important; display: inline-block !important;">삭제</button>
+                         <td style="width: 140px; vertical-align: middle !important; text-align: center; padding-right: 15px; box-sizing: border-box !important;">
+                            <!-- 🚀 외부 CSS 클래스의 악성 정렬을 무력화하기 위해 내부 인라인 스타일로 vertical 수평/수직 정중앙 락을 강제 각인 주입!! -->
+                            <div class="action-btn-wrapper" style="display: flex !important; flex-direction: row !important; justify-content: center !important; align-items: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important; margin: 0 !important; padding: 0 !important; height: 100% !important; min-height: 100% !important;">
+                                <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155 !important; color: #ffffff !important; padding: 5px 10px !important; border: none !important; border-radius: 4px !important; font-weight: 700 !important; cursor: pointer !important; font-size: 13px !important; line-height: 1.2 !important; box-shadow: none !important; transform: none !important; position: static !important;">수정</button>
+                                <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15) !important; border: 1px solid #f87171 !important; color: #f87171 !important; padding: 5px 10px !important; border-radius: 4px !important; font-weight: 700 !important; cursor: pointer !important; font-size: 13px !important; line-height: 1.2 !important; box-shadow: none !important; transform: none !important; position: static !important;">삭제</button>
+                            </div>
                         </td>
                     `;
                 }

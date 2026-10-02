@@ -412,8 +412,25 @@ tr:hover {
 
 /* 모집공고 목록내에 작업 버튼 위치조정? */
 .editing-row #dom-recruitment-table td:last-child,
-#dom-recruitment-table .editing-row td:last-child {
-  padding-top: 40px !important;
+#dom-recruitment-table .editing-row td:last-child,
+#dom-recruitment-table td:last-child {
+  /* 🚀 40px 상단 쏠림을 완전 철거하고, 앞 라인 높이에 맞춰 실시간 수직 정중앙 미들 고정! */
+  padding: 0 10px !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+}
+
+/* 내부 레이어가 존재하더라도 공중부양 간섭을 원천 진압하는 철통 가두리 */
+.action-btn-wrapper {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* 대상자 테이블 행(tr) 내부 모든 셀(td)의 높이 슬림 균등화 및 세로축 센터 집중 */

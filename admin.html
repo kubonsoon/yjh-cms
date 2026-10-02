@@ -1651,7 +1651,7 @@
                     tr.style.setProperty("pointer-events", "auto", "important");
                     tr.style.cursor = "default";
 
-                    // 📅 소집일(recDate) 포맷 안전 가드 소독
+                    // 📅 소집일(recDate) 포맷 안전 가드 소독 및 자동 보정
                     let defaultDateVal = row.recDate ? row.recDate.trim() : "";
                     if (defaultDateVal === "미정" || !defaultDateVal || defaultDateVal.includes("년")) {
                         const today = new Date();
@@ -1661,20 +1661,16 @@
                         defaultDateVal = `${yyyy}-${mm}-${dd}`;
                     }
 
-                    // 💰 [5차수 지급일정 역추적]: 어떠한 객체 유입도 글자로 강제 전환하여 .replace 오류를 원천 차단
+                    // 💰 5차수 지급일정 디코딩 (글자 강제 세척 가드 마운트)
                     let p1 = "", p2 = "", p3 = "", p4 = "", pEnd = "";
                     try {
                         const rawSchedule = (row.paySchedule || "").toString().trim();
                         if (rawSchedule && rawSchedule !== "추후공지") {
                             const tokens = rawSchedule.split("/");
-
-                            // 🔒 [치료 핵심 가드]: 들어온 값을 강제로 toString() 변환 처리하여 .replace 포인터 참조 유실 박멸
                             const extractDate = (targetToken) => {
                                 if (!targetToken) return "";
-                                const cleanStr = targetToken.toString().trim();
-                                return cleanStr.replace(/.*:/, "").replace(/[^0-9-]/g, "").trim();
+                                return targetToken.toString().trim().replace(/.*:/, "").replace(/[^0-9-]/g, "").trim();
                             };
-
                             if (tokens[0]) p1 = extractDate(tokens[0]);
                             if (tokens[1]) p2 = extractDate(tokens[1]);
                             if (tokens[2]) p3 = extractDate(tokens[2]);
@@ -1682,7 +1678,7 @@
                             if (tokens[4]) pEnd = extractDate(tokens[4]);
                         }
                     } catch (e) {
-                        console.error("[지급일 역추적 최종 가드 작동]", e);
+                        console.error(e);
                     }
 
                     tr.innerHTML = `
@@ -1701,25 +1697,20 @@
         <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-count-${index}" class="inline-input" value="${pureQuotaNum}" style="text-align:center; background: var(--card-color) !important; width: 100%;"></td>
         <td style="width: 100px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-period-${index}" class="inline-input" value="${row.period || '0'}" style="text-align:center; background: var(--card-color) !important; width: 100%;"></td>
         <td style="width: 110px; vertical-align: middle; text-align: center;"><input type="text" id="inline-rec-crc-${index}" class="inline-input" value="${row.crc || '-'}" style="color: #38bdf8; font-weight:600; text-align:center; background: var(--card-color) !important; width: 100%;"></td>
-        <td style="width: 130px; vertical-align: middle; text-align: center; padding: 6px 0; line-height: 1.4; box-sizing: border-box;"
-            id="backup-rec-metadata-holder-${index}"
-            data-v1="${row.visitDate1 || ''}"
-            data-v2="${row.visitDate2 || ''}"
-            data-v3="${row.visitDate3 || ''}"
-            data-v4="${row.visitDate4 || ''}"
-            data-vend="${row.endExamDate || ''}">
-            
-            <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 4px;">
-                <div style="text-align: center; width: 100%;">
-                    <span style="color: #c084fc; font-weight: 700; font-size: 11px; display: block; margin-bottom: 2px;">• 신검일자</span>
-                    <input type="date" id="inline-rec-examSchedule-${index}" class="inline-input" value="${window.pureExamScheduleVal || row.examSchedule || ''}" style="color: #ffffff !important; font-size: 11.5px; height: 24px; width: 115px; background: #0f172a !important; border: 1px solid #c084fc; text-align: center; padding: 0 4px;">
-                </div>
-                <div style="text-align: center; width: 100%; margin-top: 2px;">
-                    <span style="color: #38bdf8; font-weight: 700; font-size: 11px; display: block; margin-bottom: 2px;">• 소집일자</span>
-                    <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; font-size: 11.5px; height: 24px; width: 115px; background: #0f172a !important; border: 1px solid #38bdf8; text-align: center; padding: 0 4px;">
-                </div>
-            </div>
-        </td>
+       <td style="width: 130px; vertical-align: middle; text-align: center; padding: 6px 0; line-height: 1.4; box-sizing: border-box;"
+                            id="backup-rec-metadata-holder-${index}"
+                            data-v1="${row.visitDate1 || ''}" data-v2="${row.visitDate2 || ''}" data-v3="${row.visitDate3 || ''}" data-v4="${row.visitDate4 || ''}" data-vend="${row.endExamDate || ''}">
+                            <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 4px;">
+                                <div style="text-align: center; width: 100%;">
+                                    <span style="color: #c084fc; font-weight: 700; font-size: 11px; display: block; margin-bottom: 2px;">• 신검일자</span>
+                                    <input type="date" id="inline-rec-examSchedule-${index}" class="inline-input" value="${window.pureExamScheduleVal || row.examSchedule || ''}" style="color: #ffffff !important; font-size: 11.5px; height: 24px; width: 115px; background: #0f172a !important; border: 1px solid #c084fc; text-align: center; padding: 0 4px;">
+                                </div>
+                                <div style="text-align: center; width: 100%; margin-top: 2px;">
+                                    <span style="color: #38bdf8; font-weight: 700; font-size: 11px; display: block; margin-bottom: 2px;">• 소집일자</span>
+                                    <input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; font-size: 11.5px; height: 24px; width: 115px; background: #0f172a !important; border: 1px solid #38bdf8; text-align: center; padding: 0 4px;">
+                                </div>
+                            </div>
+                        </td>
         <td style="width: 130px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; background: var(--card-color) !important; cursor: pointer !important;"></td>
         <td style="width: 80px; vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button></td>
         <td style="width: 80px; vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'schedule')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button></td>

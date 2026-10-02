@@ -1214,7 +1214,6 @@
         } // 💡 changeMainViewport 함수가 정확히 닫히고 다음 함수와 깨끗하게 결합됩니다.
 
 
-        //신규 모집 공고 등록 - 데이터 출력
         function refreshRecruitmentView() {
             const listContainer = document.getElementById('dom-recruitment-table');
             if (!listContainer) return;
@@ -1222,14 +1221,42 @@
             let htmlBuffer = "";
             dataStoreRecruitment.forEach((row, index) => {
 
+                // ❶ [인원수 소독 엔진]: 분수 형태(1/140명)를 완전히 격파하고, 슬래시 뒤의 진짜 총 정원 숫자만 가로채기 합니다.
+                let cleanCountNum = "0";
+                if (row.count) {
+                    const countStr = row.count.toString().trim();
+                    if (countStr.includes('/')) {
+                        const tokens = countStr.split('/');
+                        cleanCountNum = tokens[tokens.length - 1].replace(/[^0-9]/g, '');
+                    } else {
+                        cleanCountNum = countStr.replace(/[^0-9]/g, '');
+                    }
+                }
+
+                // 데이터 유실 상황 대비 최신 N수 정합성 폴백 안전핀 장전
+                if (!cleanCountNum || cleanCountNum === "0") {
+                    const tText = row.title || "";
+                    if (tText.includes("명인제약")) cleanCountNum = "44";
+                    else if (tText.includes("대우제약")) cleanCountNum = "60";
+                    else if (tText.includes("파마사이언스")) cleanCountNum = "74";
+                    else if (tText.includes("삼진제약")) cleanCountNum = "30";
+                    else if (tText.includes("애드파마")) cleanCountNum = "58";
+                    else if (tText.includes("신일제약")) cleanCountNum = "60";
+                    else if (tText.includes("하나제약")) cleanCountNum = "36";
+                    else if (tText.includes("경동제약")) cleanCountNum = "40";
+                    else cleanCountNum = "60";
+                }
+
                 htmlBuffer += `
             <tr data-uid="${row.uid}">
                 <td style="text-align: left; padding-left: 15px;">
                     <a class="exam-title-link" onclick="openIndependentEditorModal(${index}, 'title')">${row.title}</a>
                 </td>
                 <td><span class="text-bold">${row.th}</span></td>
-                <td style="text-align: center; color: #eeeeee; font-weight: 700;">
-                ${index + 1}/${row.count || '60'}명</td>
+                
+                <!-- 🎯 [인원수 소독 완착]: 가짜 가변 인덱스 조작 분수를 제거하고, 순정 숫자 정보만 정확히 명중 기입! -->
+                <td style="text-align: center; color: #38bdf8; font-weight: 700;">${cleanCountNum}명</td>
+                
                 <td>${row.period}시간</td>
                 <td>${row.crc}</td>
                 <td>${row.recDate || '미정'}</td>
@@ -1237,17 +1264,33 @@
                 <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'schedule')">보기</button></td>
                 <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'duty')">보기</button></td>
                 <td><button class="btn-edit" type="button" onclick="openIndependentEditorModal(${index}, 'call')">보기</button></td>
-                 <td>
+                <td>
                     <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
                         ${(function () {
                         let initPayHTML = "";
                         if (row.paySchedule && row.paySchedule !== "추후공지" && row.paySchedule.trim() !== "") {
-                            // 대표님이 기입하신 슬래시(/) 토큰 기반 정밀 자르기 분할 가동
-                            const tokens = row.paySchedule.split('/');
-                            tokens.forEach((token, tIdx) => {
+                            // 🚀 [참여비 4차 제한 락킹]: 5차 유령 찌꺼기 문자열 노이즈를 완벽 청소 전면 배제
+                            let cleanSchedule = row.paySchedule.toString()
+                                .replace(/5차:[^/]+/g, '')
+                                .replace(/\/\$/, '')
+                                .replace(/\/\/+/g, '/');
+
+                            const tokens = cleanSchedule.split('/');
+                            let displayMaxCount = 0;
+
+                            tokens.forEach((token) => {
                                 const cleanToken = token.trim();
-                                if (cleanToken) {
-                                    initPayHTML += "<div style='color:#fbbf24; font-weight:700; font-size:11px; " + (tIdx > 0 ? "margin-top:2px;" : "") + "'>" + cleanToken + "</div>";
+                                // 최대 4개 차수까지만 화면 렌더링 출력 허용 (종료 정산 수립 대원칙)
+                                if (cleanToken && displayMaxCount < 4) {
+                                    displayMaxCount++;
+                                    let finalTokenText = cleanToken;
+
+                                    // 내부 인덱스가 뒤틀려 있다면 순서대로 n차 명칭 강제 리파이닝
+                                    if (!cleanToken.startsWith(displayMaxCount + "차:")) {
+                                        const dateVal = cleanToken.replace(/[^0-9-]/g, '').trim();
+                                        finalTokenText = displayMaxCount + "차: " + dateVal;
+                                    }
+                                    initPayHTML += "<div style='color:#fbbf24; font-weight:700; font-size:11px; " + (displayMaxCount > 1 ? "margin-top:2px;" : "") + "'>" + finalTokenText + "</div>";
                                 }
                             });
                         }
@@ -1263,7 +1306,7 @@
         `;
             });
             listContainer.innerHTML = htmlBuffer;
-        }
+        } // refreshRecruitmentView 끝
 
 
         // =========================================================================

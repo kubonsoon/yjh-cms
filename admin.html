@@ -3344,26 +3344,29 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
 
             // ==========================================================================
-            // 🚨 [대통합 인프라] 모바일 직접 스캔 엔진을 위한 마스터 데이터 전산망 정렬
+            // 🚨 [대통합 인프라 보완] 모든 연쇄 초기화 완료 직후 최종 마스터 키 영구 각인
             // ==========================================================================
             try {
-                // 현재 수정 성공한 대상자의 데이터 원장을 정확히 타격
-                const currentTargetData = dataStoreApplicant[idx];
+                // 1. 순정 함수들이 가동된 후, 현재 최신 로컬스토리지 원장 데이터를 재포착
+                let latestApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || window.dataStoreApplicant || [];
+                const currentTargetData = latestApplicantDB[idx];
 
-                // 오염되기 쉬운 성별/생년월일 필터링 리스크를 걷어내고 가장 유일무이한 이름과 번호 결합
-                const dbNameClean = (currentTargetData.name || "").toString().replace(/\s/g, "");
+                if (currentTargetData) {
+                    // 오염되기 쉬운 성별/생년월일 리스크를 완전히 걷어내고 가장 유일무이한 이름 추출
+                    const dbNameClean = (currentTargetData.name || "").toString().replace(/\s/g, "");
 
-                // 전화번호 포맷 믹스매치 방지를 위한 하이픈 및 공백 전면 소독 (오직 순수 숫자만 추출)
-                const cleanPhoneNum = (currentTargetData.phone || "").toString().replace(/[^0-9]/g, "").trim();
+                    // 전화번호 포맷 믹스매치 방지를 위한 하이픈 및 공백 전면 소독 (숫자만 추출)
+                    const cleanPhoneNum = (currentTargetData.phone || "").toString().replace(/[^0-9]/g, "").trim();
 
-                // 가변 번호(R1001, 스크리닝 등)에 영향을 받지 않는 고유 식별 마스터 주파수 키를 데이터 원장에 동적 주입
-                currentTargetData.masterCombinedKey = `${dbNameClean}_${cleanPhoneNum}`;
+                    // 2. 가변 번호에 영향을 받지 않는 고유 식별 마스터 주파수 키를 데이터 원장에 동적 주입
+                    currentTargetData.masterCombinedKey = `${dbNameClean}_${cleanPhoneNum}`;
 
-                // 최종 정제된 마스터 키와 함께 로컬스토리지 원장 최종 마그네틱 커밋 완료
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
-                window.dataStoreApplicant = dataStoreApplicant;
+                    // 3. 덮어쓰기 누수 버그를 완전히 차단하기 위해 원장 저장소에 최종 영구 마그네틱 커밋
+                    localStorage.setItem('dataStoreApplicant', JSON.stringify(latestApplicantDB));
+                    window.dataStoreApplicant = latestApplicantDB;
+                }
             } catch (e) {
-                console.error("마스터 원장 고유 식별 키 주입 실패:", e);
+                console.error("최종 마스터 원장 식별 키 영구 각인 실패:", e);
             }
             // ==========================================================================
 

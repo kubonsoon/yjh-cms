@@ -1790,10 +1790,10 @@
                                 ${multiLinePayHTML}
                             </div>
                         </td>
-                        <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
+                       <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
                             <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
-                                <button type="button" class="btn-inline edit" onclick="enableInlineRecruitmentEdit(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
-                                <button type="button" class="btn-inline delete" onclick="deleteRecruitmentRecord(${row.uid})" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
+                                <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
+                                <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
                             </div>
                         </td>
                     `;
@@ -2666,11 +2666,11 @@
     </td>
     <td style="width: 10%; vertical-align: middle; text-align: center; color: var(--text-muted); font-size:12px; white-space: nowrap;">교체 중 변경불가</td>
     <td style="width: 140px; vertical-align: middle; text-align: center; padding-right: 15px;">
-                            <div class="action-btn-wrapper" style="display: flex !important; justify-content: center !important; gap: 6px !important; width: 100% !important; white-space: nowrap !important;">
-                                <button type="button" class="btn-inline edit" onclick="editInlineRecruitmentRecord(${index})" style="background: #334155; border: none; color: #ffffff; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">수정</button>
-                                <button type="button" class="btn-inline delete" onclick="removeRecruitmentRecord('${row.uid}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #f87171; padding: 5px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px;">삭제</button>
-                            </div>
-                        </td>
+        <div style="display: flex; justify-content: center; gap: 8px !important; width: 100%;">
+            <button type="button" class="btn-inline save" onclick="saveInlineApplicantRecord(${masterIndex})" style="background: var(--success-color); color: #070a12; padding: 5px 10px; border-radius: 4px; font-weight: 700;">저장</button>
+            <button type="button" class="btn-inline edit" onclick="cancelInlineApplicantEdit()" style="background: #475569; border:1px solid var(--border-color); color:#fff; padding: 5px 10px; border-radius: 4px; font-weight: 700;">취소</button>
+        </div>
+    </td>
                     `;
                 }
 

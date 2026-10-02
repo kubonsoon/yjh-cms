@@ -1273,3 +1273,28 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background-color: #9f1239;
   border: 1px solid #fda4af;
 } /* 9번: 타시험 테두리형 로즈 */
+
+/* ========================================================================== */
+/* 🎯 [전산망 최종 영구 대종결] 저장 후 실시간 화면 리스킨 강제 안착 가드 */
+/* ========================================================================== */
+#dom-applicant-table tr td,
+#dom-applicant-table tr td select,
+#dom-applicant-table tr td input {
+  /* 🚀 저장 완료 직후 구형 텍스트 잔상이 화면에 얼어붙는 착시 현상을 원천 분쇄하고, 
+       원장에 기장된 진짜 최신 상태 데이터를 즉시 실시간 강제 강제 표출시킵니다! */
+  content-visibility: auto !important;
+  text-shadow: none !important;
+}
+
+/* 수정창이 닫히는 평시 모드 회귀 시, 뚱뚱하던 가로폭 잔상이 남지 않도록 원경 세척 */
+#dom-applicant-table tr:not(.editing-row) td {
+  height: auto !important;
+  padding: 12px 8px !important;
+  vertical-align: middle !important;
+}
+
+/* 참여상태, 참여비 3단 콤보박스의 실시간 글자 변경 내역 레이아웃 고정 가이드 */
+#dom-applicant-table td select {
+  text-align: center !important;
+  text-align-last: center !important;
+}

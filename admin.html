@@ -1703,11 +1703,13 @@
             </div>
             
             <!-- 백그라운드 스케줄용 숨김 가드선 유지 (원안 보존) -->
-            <input type="date" id="inline-rec-visitDate1-${index}" value="${row.visitDate1 || ''}" style="display: none;">
-            <input type="date" id="inline-rec-visitDate2-${index}" value="${row.visitDate2 || ''}" style="display: none;">
-            <input type="date" id="inline-rec-visitDate3-${index}" value="${row.visitDate3 || ''}" style="display: none;">
-            <input type="date" id="inline-rec-visitDate4-${index}" value="${row.visitDate4 || ''}" style="display: none;">
-            <input type="date" id="inline-rec-endExamDate-${index}" value="${row.endExamDate || ''}" style="display: none;">
+            <div style="display: none !important; visibility: hidden !important; opacity: 0 !important; width: 0 !important; height: 0 !important; overflow: hidden !important;">
+                <input type="date" id="inline-rec-visitDate1-${index}" value="${row.visitDate1 || ''}">
+                <input type="date" id="inline-rec-visitDate2-${index}" value="${row.visitDate2 || ''}">
+                <input type="date" id="inline-rec-visitDate3-${index}" value="${row.visitDate3 || ''}">
+                <input type="date" id="inline-rec-visitDate4-${index}" value="${row.visitDate4 || ''}">
+                <input type="date" id="inline-rec-endExamDate-${index}" value="${row.endExamDate || ''}">
+            </div>
         </td>
         <td style="width: 130px; vertical-align: middle; text-align: center;"><input type="date" id="inline-rec-date-${index}" class="inline-input" value="${defaultDateVal}" style="color: #ffffff !important; font-weight: 700; height: 32px; text-align: center; display: inline-block; width: 120px; background: var(--card-color) !important; cursor: pointer !important;"></td>
         <td style="width: 80px; vertical-align: middle; text-align: center;"><button type="button" class="btn-inline list" onclick="openIndependentEditorModal(${index}, 'notice')" style="background: #475569; border: none; color: #ffffff; padding: 4px 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; width: 54px;">보기</button></td>

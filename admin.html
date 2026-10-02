@@ -3308,10 +3308,14 @@
             // 🚀 ⚡ [최종 수술 단원: 데이터 유실 원천 분쇄 가드]
             // 화면 번호(index)에 속지 않고, 현재 행(tr)의 고유 속성에서 진짜 데이터 고유 식별 번호(masterIndex)를 정밀 적출 확보합니다!
             let masterIndex = index;
-            const targetRowDOM = document.querySelectorAll('#dom-applicant-table tr')[index] || document.querySelector(`.editing-row`);
+
+            // 🚀 현재 화면에 실시간으로 불이 켜져 있는 오직 단 하나의 수정 행(.editing-row)을 즉시 다이렉트 캡처합니다!
+            const targetRowDOM = document.querySelector(`.editing-row`) || document.querySelectorAll('#dom-applicant-table tr')[index];
+
             if (targetRowDOM && targetRowDOM.getAttribute('data-master-index')) {
                 masterIndex = parseInt(targetRowDOM.getAttribute('data-master-index'), 10);
             } else {
+                // 만약 DOM에서 놓쳤을 경우 화면 노드의 진짜 실물 존재 여부를 역추적하여 주사선 강제 연결
                 if (!document.getElementById(`inline-app-name-${masterIndex}`) && document.getElementById(`inline-app-name-${index}`)) {
                     masterIndex = index;
                 }

@@ -3344,26 +3344,26 @@ onclick="cancelInlineRecruitmentEdit()" style="background: #475569; border:1px s
             if (typeof refreshApplicantView === 'function') { refreshApplicantView(); }
 
             // ==========================================================================
-            // 🚨 [4단 복합 키 설계] 모바일 직접 스캔 엔진을 위한 마스터 데이터 전산망 정렬
+            // 🚨 [대통합 인프라] 모바일 직접 스캔 엔진을 위한 마스터 데이터 전산망 정렬
             // ==========================================================================
             try {
-                // 현재 수정 성공한 대상자의 데이터 원장을 명중 타격
+                // 현재 수정 성공한 대상자의 데이터 원장을 정확히 타격
                 const currentTargetData = dataStoreApplicant[idx];
 
-                // 공백 및 하이픈 소독 과정을 거쳐 완벽한 고유 식별 주파수 확보
-                const cleanPhoneNum = (currentTargetData.phone || "").toString().replace(/[^0-9]/g, "").trim();
+                // 오염되기 쉬운 성별/생년월일 필터링 리스크를 걷어내고 가장 유일무이한 이름과 번호 결합
                 const dbNameClean = (currentTargetData.name || "").toString().replace(/\s/g, "");
-                const dbSsnClean = (currentTargetData.ssn || "").toString().replace(/\s/g, "");
-                const dbGenderClean = (currentTargetData.gender || "").toString().replace(/\s/g, "");
 
-                // 가변 번호에 영향을 받지 않는 유일무이한 마스터 결합 키를 데이터 원장에 동적 주입
-                currentTargetData.masterCombinedKey = `${dbNameClean}_${dbSsnClean}_${dbGenderClean}_${cleanPhoneNum}`;
+                // 전화번호 포맷 믹스매치 방지를 위한 하이픈 및 공백 전면 소독 (오직 순수 숫자만 추출)
+                const cleanPhoneNum = (currentTargetData.phone || "").toString().replace(/[^0-9]/g, "").trim();
 
-                // 최종 정제된 상태(status)와 결합 키를 포함하여 로컬스토리지 원장 최종 마그네틱 커밋
+                // 가변 번호(R1001, 스크리닝 등)에 영향을 받지 않는 고유 식별 마스터 주파수 키를 데이터 원장에 동적 주입
+                currentTargetData.masterCombinedKey = `${dbNameClean}_${cleanPhoneNum}`;
+
+                // 최종 정제된 마스터 키와 함께 로컬스토리지 원장 최종 마그네틱 커밋 완료
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(dataStoreApplicant));
                 window.dataStoreApplicant = dataStoreApplicant;
             } catch (e) {
-                console.error("마스터 원장 식별 키 주입 실패:", e);
+                console.error("마스터 원장 고유 식별 키 주입 실패:", e);
             }
             // ==========================================================================
 

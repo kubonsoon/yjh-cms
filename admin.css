@@ -1298,3 +1298,26 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   text-align: center !important;
   text-align-last: center !important;
 }
+
+/* 🚀 [지능형 뷰어 가드]: 모집공고 목록 테이블 행 마우스 오버 시 손가락 커서 강제 개통 */
+#recruitment_master_render_slot tr,
+#recruitment_master_render_slot tr td {
+  cursor: pointer !important;
+}
+
+/* 🔒 [수정모드 예외 격리]: 수정 중인 편집 행(editing-row)은 입력 간섭을 막기 위해 기본 커서로 락킹 */
+#recruitment_master_render_slot tr.editing-row,
+#recruitment_master_render_slot tr.editing-row td {
+  cursor: default !important;
+}
+
+/* 💡 [시각적 반응 시그널]: 마우스 오버 시 해당 행이 부드럽게 강조되도록 하이라이트 효과 추가 */
+#recruitment_master_render_slot tr:not(.editing-row):hover {
+  background-color: rgba(
+    56,
+    189,
+    248,
+    0.08
+  ) !important; /* 미세한 스카이블루 광채 효과 */
+  transition: background-color 0.15s ease-in-out;
+}

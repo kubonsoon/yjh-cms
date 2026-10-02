@@ -1806,9 +1806,26 @@
          * 2. [교정] 수정 단추 선택 시 상단 타겟 인덱스를 락인하고 라인을 새로고침하는 진입점
          */
         function editInlineRecruitmentRecord(index) {
-            window.currentEditingRecruitmentIndex = index;
-            refreshRecruitmentView(); // 해당 줄을 즉각 수성 서식창으로 변환
+            try {
+                // ❶ [A/B 분기 스위치 개통]: 렌더링 엔진이 수정 서식창(A분기)을 그리도록 강제 허용 락 해제
+                isRecEditing = true;
+
+                // ❷ 인덱스 락인 복원 명세 (원래 전산망 변수 축선 그대로 상속 보존)
+                window.currentEditingRecruitmentIndex = index;
+
+                // ❸ 실시간 렌더러 즉시 연쇄 가동 (수정 서식창으로 실시간 전면 리스킨)
+                if (typeof refreshRecruitmentView === "function") {
+                    refreshRecruitmentView();
+                } else if (typeof renderRecruitmentTable === "function") {
+                    renderRecruitmentTable();
+                }
+
+                console.log(`[관제탑 인프라 가동] 모집공고 인덱스 ${index}번이 수정 모드(A분기) 세션에 바인딩되었습니다.`);
+            } catch (err) {
+                console.error("[인라인 수정 진입 마비 오류]", err);
+            }
         }
+
 
         /**
    * 3. [원본 정밀 교정] 인라인 상태에서 타이핑한 최종 서식 데이터를 대장에 업데이트하는 저장소 핸들러
@@ -1821,7 +1838,7 @@
                 recruitmentDB = dataStoreRecruitment;
             }
 
-            // 💡 [정렬 버그 완파 인터셉터] 화면상의 index 배열 순서가 아닌, 편집 모드가 활성화된 타겟 행의 변하지 않는 고유 UID값을 직접 확보합니다.
+            // 💡 [정렬 버그 완파 인터셉터] 편집 모드가 활성화된 타겟 행의 변하지 않는 고유 UID값을 직접 확보합니다.
             const currentTargetUid = recruitmentDB[index] ? recruitmentDB[index].uid : null;
             if (!currentTargetUid) {
                 return alert("시스템 알림: 편집 중인 공고 레코드의 고유 식별자(UID)를 추적할 수 없습니다.");
@@ -1833,44 +1850,53 @@
                 return alert("알림: 수정 타겟 공고 원본 데이터를 가상 데이터베이스에서 찾을 수 없습니다.");
             }
 
-            // 🎯 [오류 원천 분쇄 가드]: 테이블 돔 요소를 안전하게 스캔하기 위해 값 존재 여부 가드 장착 (row.uid 매핑 규격 변환 완료)
-            const elTitle = document.getElementById(`inline - rec - title - ${index} `);
-            const elTh = document.getElementById(`inline - rec - th - ${index} `);
-            const elCrc = document.getElementById(`inline - rec - crc - ${index} `);
-            const elDate = document.getElementById(`inline - rec - date - ${index} `);
+            // 🎯 [오류 원천 분쇄 가드 완료]: 문자열 내 악성 공백 오타를 완전히 세척하고 1:1 직격 매핑 스캔
+            const elTitle = document.getElementById(`inline-rec-title-${index}`);
+            const elTh = document.getElementById(`inline-rec-th-${index}`);
+            const elCrc = document.getElementById(`inline-rec-crc-${index}`);
 
-            // 🎯 [교정 완결]: 타 탭(inline-app-) 간섭 원인을 원천 차단하고 순정 모집공고용 ID로만 깔끔하게 단일화 스캔
-            const elPay1 = document.getElementById(`inline - rec - pay1 - ${index} `);
-            const elPay2 = document.getElementById(`inline - rec - pay2 - ${index} `);
-            const elPay3 = document.getElementById(`inline - rec - pay3 - ${index} `);
+            // 📅 7대 세부 소집 일정 타임라인 돔 엘리먼트 추적기 완착
+            const elExamSchedule = document.getElementById(`inline-rec-examSchedule-${index}`); // 스크리닝
+            const elDate = document.getElementById(`inline-rec-date-${index}`);                 // 소집일
+            const elVisitDate1 = document.getElementById(`inline-rec-visitDate1-${index}`);     // 방문1차
+            const elVisitDate2 = document.getElementById(`inline-rec-visitDate2-${index}`);     // 방문2차
+            const elVisitDate3 = document.getElementById(`inline-rec-visitDate3-${index}`);     // 방문3차
+            const elVisitDate4 = document.getElementById(`inline-rec-visitDate4-${index}`);     // 방문4차
+            const elEndExamDate = document.getElementById(`inline-rec-endExamDate-${index}`);   // 종료방문
 
-            if (!elTitle || !elTh || !elCrc || !elDate) {
-                return alert("시스템 알림: 인라인 수정 필드 엘리먼트를 추적할 수 없습니다.");
+            // 💰 5차 참여비 정산용 인풋 필드 100% 매칭 추적기 개통
+            const elPay1 = document.getElementById(`inline-rec-pay1-${index}`);
+            const elPay2 = document.getElementById(`inline-rec-pay2-${index}`);
+            const elPay3 = document.getElementById(`inline-rec-pay3-${index}`);
+            const elPay4 = document.getElementById(`inline-rec-pay4-${index}`);
+            const elPay5 = document.getElementById(`inline-rec-pay5-${index}`);
+
+            // 전산망 마비 차단용 통합 돔 존재 검증 검문소
+            if (!elTitle || !elTh || !elCrc || !elExamSchedule || !elDate || !elVisitDate1 || !elVisitDate2 || !elVisitDate3 || !elVisitDate4 || !elEndExamDate || !elPay1 || !elPay2 || !elPay3 || !elPay4 || !elPay5) {
+                return alert("시스템 알림: 인라인 수정 필드 엘리먼트를 추적할 수 없습니다.\n돔 구조가 유실되었으므로 원장 저장을 락다운 홀딩합니다.");
             }
 
             const nextTitle = elTitle.value.trim();
             const nextTh = elTh.value;
             const nextCrc = elCrc.value.trim();
-            const nextDate = elDate.value;
 
             // ==========================================================================
             // 🎯 [인라인 저장단 소독] 인풋창에 어떠한 오염 수치가 들어와도 정품 정원수만 강제 세이브!
             // ==========================================================================
             let finalCount = "60"; // 폴백용 기본값
-            const elCount = document.getElementById(`inline - rec - count - ${index} `);
+            const elCount = document.getElementById(`inline-rec-count-${index}`);
             const currentRecTitleText = (targetRecord.title || "").toString().trim(); // 현재 행의 진짜 과제명 스캔
 
-            // 🚀 [대표님 특허 원천 가드 주입]: 인풋 필드의 입력값 오염 여부와 상관없이 과제명을 직격 타격하여 진짜 정원 숫자만 원장에 박제합니다!
+            // 🚀 [대표님 특허 원천 가드 주입]: 과제명을 직격 타격하여 진짜 정원 숫자만 원장에 박제합니다!
             if (currentRecTitleText.includes("명인제약")) finalCount = "44";
             else if (currentRecTitleText.includes("대우제약")) finalCount = "60";
-            else if (currentTitleText.includes("파마사이언스") || currentRecTitleText.includes("파마사이언스")) finalCount = "74";
+            else if (currentRecTitleText.includes("파마사이언스")) finalCount = "74";
             else if (currentRecTitleText.includes("삼진제약")) finalCount = "30";
             else if (currentRecTitleText.includes("애드파마")) finalCount = "58";
             else if (currentRecTitleText.includes("신일제약")) finalCount = "60";
             else if (currentRecTitleText.includes("하나제약")) finalCount = "36";
             else if (currentRecTitleText.includes("경동제약")) finalCount = "40";
             else {
-                // 💡 만약 신규로 수동 등록한 가변 시험 과제일 때만 예외적으로 수동 입력 파서 가동
                 if (elCount) {
                     let inputCountValue = elCount.value.trim();
                     if (inputCountValue.includes("/")) {
@@ -1881,9 +1907,9 @@
                 }
             }
 
-            // 임상 기간(시간) 필드도 돔 인터페이스 오염 대비 디펜스 스케줄 동일 적용
+            // 임상 기간(시간) 필드 디펜스 스케줄 동일 적용
             let finalPeriod = targetRecord.period || "72";
-            const elPeriod = document.getElementById(`inline - rec - period - ${index} `);
+            const elPeriod = document.getElementById(`inline-rec-period-${index}`);
             if (elPeriod) {
                 let inputPeriodValue = elPeriod.value.trim();
                 if (inputPeriodValue.includes("/")) {
@@ -1891,18 +1917,27 @@
                     inputPeriodValue = tokens[tokens.length - 1];
                 }
                 const sanitizedPeriod = inputPeriodValue.replace(/[^0-9]/g, '');
-                if (sanitizedPeriod !== "") {
-                    finalPeriod = sanitizedPeriod;
-                }
+                if (sanitizedPeriod !== "") finalPeriod = sanitizedPeriod;
             }
 
-            // 🎯 [순정 100% 보존]: 미니 3단 데이트 피커 벨류 추출부
-            const nextPay1 = elPay1?.value || "";
-            const nextPay2 = elPay2?.value || "";
-            const nextPay3 = elPay3?.value || "";
+            // 📅 7대 일정 최종값 정제 추출
+            const nextExamSchedule = elExamSchedule.value;
+            const nextRecDate = elDate.value;
+            const nextVisitDate1 = elVisitDate1.value;
+            const nextVisitDate2 = elVisitDate2.value;
+            const nextVisitDate3 = elVisitDate3.value;
+            const nextVisitDate4 = elVisitDate4.value;
+            const nextEndExamDate = elEndExamDate.value;
+
+            // 💰 5차 참여비 날짜 벨류 추출부
+            const nextPay1 = elPay1.value || "";
+            const nextPay2 = elPay2.value || "";
+            const nextPay3 = elPay3.value || "";
+            const nextPay4 = elPay4.value || "";
+            const nextPay5 = elPay5.value || "";
 
             // 필수 유효성 검증 (정제된 finalCount 값 기반으로 우회 방어)
-            if (!nextTitle || !finalCount || !finalPeriod || !nextDate) {
+            if (!nextTitle || !finalCount || !finalPeriod || !nextRecDate) {
                 alert("알림: 시험명, 인원수, 기간, 소집일 데이터는 필수 항목이므로 빈칸으로 둘 수 없습니다.");
                 return;
             }
@@ -1911,30 +1946,31 @@
             const savedNotice = targetRecord.notice || "";
             const savedCustomDutyText = targetRecord.customDutyText || "";
 
-            // 🎯 [지능형 동적 리스트 파싱 엔진]
+            // 🎯 [지능형 동적 5차수 리스트 파싱 엔진 완착]
             let nextPayArray = [];
             if (nextPay1) nextPayArray.push("1차: " + nextPay1);
             if (nextPay2) nextPayArray.push("2차: " + nextPay2);
             if (nextPay3) nextPayArray.push("3차: " + nextPay3);
+            if (nextPay4) nextPayArray.push("4차: " + nextPay4);
+            if (nextPay5) nextPayArray.push("종료: " + nextPay5);
             if (nextPayArray.length === 0) {
                 nextPayArray.push("추후공지");
             }
-            // 🔒 ' / ' 에서 '/' 로 정밀 교정하여 3대 파일 통신 규격을 완벽무결하게 1:1 결합 마감합니다.
             const nextPayText = nextPayArray.join('/');
 
-            /* 실시간 변경 필드명 디프 연산 스캔 구역 */
+            /* 실시간 변경 필드명 디프 연산 로그 스캔 구역 */
             let changedRecItems = [];
             if (targetRecord.title !== nextTitle) changedRecItems.push("試験명");
             if (targetRecord.th !== nextTh) changedRecItems.push("기수");
-            if (getOnlyNumbers(targetRecord.count) !== getOnlyNumbers(finalCount)) changedRecItems.push("인원수");
-            if (getOnlyNumbers(targetRecord.period) !== getOnlyNumbers(finalPeriod)) changedRecItems.push("시간");
-            if (targetRecord.crc !== nextCrc) changedRecItems.push("담당CRC");
-            if (targetRecord.recDate !== nextDate) changedRecItems.push("소집일자");
-            if (targetRecord.payDate1 !== nextPay1) changedRecItems.push("참여비 1차");
-            if (targetRecord.payDate2 !== nextPay2) changedRecItems.push("참여비 2차");
-            if (targetRecord.payDate3 !== nextPay3) changedRecItems.push("참여비 3차");
+            if (targetRecord.recDate !== nextRecDate) changedRecItems.push("소집일자");
+            if (targetRecord.examSchedule !== nextExamSchedule) changedRecItems.push("스크리닝");
+            if (targetRecord.visitDate1 !== nextVisitDate1) changedRecItems.push("방문 1차");
+            if (targetRecord.visitDate2 !== nextVisitDate2) changedRecItems.push("방문 2차");
+            if (targetRecord.visitDate3 !== nextVisitDate3) changedRecItems.push("방문 3차");
+            if (targetRecord.visitDate4 !== nextVisitDate4) changedRecItems.push("방문 4차");
+            if (targetRecord.endExamDate !== nextEndExamDate) changedRecItems.push("종료방문");
 
-            let auditLogMessage = `모집공고[${nextTitle} ${nextTh}] 가변 차수별 참여비 일정 편집 완료`;
+            let auditLogMessage = `모집공고[${nextTitle} ${nextTh}] 5차수 차별 참여비 및 7대 일정 편집 완료`;
             if (changedRecItems.length > 0) {
                 auditLogMessage = `모집공고[${nextTitle} ${nextTh}] 정보 수정 완료(변경항목: ${changedRecItems.join(", ")})`;
             }
@@ -1942,31 +1978,43 @@
             // 🎯 마스터 데이터베이스 대장(로컬스토리지 복사본)에 가변 오버라이드 커밋 실행
             targetRecord.title = nextTitle;
             targetRecord.th = nextTh;
-            targetRecord.count = typeof getOnlyNumbers === "function" ? getOnlyNumbers(finalCount) : finalCount.replace(/[^0-9]/g, '');
-            targetRecord.period = typeof getOnlyNumbers === "function" ? getOnlyNumbers(finalPeriod) : finalPeriod.replace(/[^0-9]/g, '');
+            targetRecord.count = `1/${finalCount}`; // 분자 분모 포맷 변환 마운트
+            targetRecord.period = finalPeriod;
             targetRecord.crc = nextCrc;
-            targetRecord.recDate = nextDate;
+
+            // 📅 7대 일정 원장 데이터 주입 완착
+            targetRecord.examSchedule = nextExamSchedule;
+            targetRecord.recDate = nextRecDate;
+            targetRecord.visitDate1 = nextVisitDate1;
+            targetRecord.visitDate2 = nextVisitDate2;
+            targetRecord.visitDate3 = nextVisitDate3;
+            targetRecord.visitDate4 = nextVisitDate4;
+            targetRecord.endExamDate = nextEndExamDate;
+
             targetRecord.notice = savedNotice;
             targetRecord.customDutyText = savedCustomDutyText;
 
+            // 💰 5차 참여비 정산 정보 통합 바인딩
             targetRecord.paySchedule = nextPayText;
             targetRecord.payDate = nextPayText;
-            targetRecord.payDate1 = nextPay1;
-            targetRecord.payDate2 = nextPay2;
-            targetRecord.payDate3 = nextPay3;
+
+            // 구형 개별 날짜방 캐시 유령 데이터 완전 파괴 소독
+            if (targetRecord.payDate1) delete targetRecord.payDate1;
+            if (targetRecord.payDate2) delete targetRecord.payDate2;
+            if (targetRecord.payDate3) delete targetRecord.payDate3;
 
             // 전역 배열 변수 싱크 일치
             if (typeof dataStoreRecruitment !== "undefined") {
                 dataStoreRecruitment = recruitmentDB;
             }
 
-            // 로컬스토리지 영구 커밋 연동 [원형 보존]
+            // 로컬스토리지 영구 커밋 연동 [원형 복원]
             localStorage.setItem('dataStoreRecruitment', JSON.stringify(recruitmentDB));
             if (typeof commitToLocalStorage === "function") {
                 commitToLocalStorage();
             }
 
-            // 상단 데이터 통계 필터 및 대상자 이력 맵핑 실시간 동기화 [원형 보존]
+            // 상단 데이터 통계 필터 실시간 복구 가동
             if (typeof initDashboardFilter === "function") {
                 initDashboardFilter();
             }
@@ -1978,9 +2026,10 @@
                 window.insertSystemAuditLog("수정", auditLogMessage);
             }
 
-            alert(" 해당 줄(Line)의 모집공고 가변 참여비 일정이 완벽하게 수정 저장되었습니다.");
+            alert("해당 줄(Line)의 모집공고 가변 참여비 및 7대 일정이 완벽하게 수정 저장되었습니다.");
 
             // 🌟 [수정 제어자 싱크 처리]
+            isRecEditing = false;
             window.currentEditingRecruitmentIndex = null;
             if (typeof currentEditingRecruitmentIndex !== 'undefined') currentEditingRecruitmentIndex = null;
             window.currentRecruitmentEditingIndex = null;
@@ -1993,8 +2042,14 @@
                 window.refreshSystemAuditLogView();
             }
 
-            refreshRecruitmentView(); // 원래 세로 복층형 테이블 형태로 안전 복원 리렌더링
+            // 원래 세로 복층형 테이블 형태로 안전 복원 리렌더링
+            if (typeof refreshRecruitmentView === "function") {
+                refreshRecruitmentView();
+            } else if (typeof renderRecruitmentTable === "function") {
+                renderRecruitmentTable();
+            }
         }
+
 
         /**
          * 4. [신규] 수정 작업을 원치 않을 때 입력 상태를 원상 복구시키는 취소 엔진 [원형 보존]

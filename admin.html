@@ -5425,9 +5425,9 @@
             // 🎯 [원본 보존] 현재 사용자가 선택하고 있던 기수 값을 미리 기억해 둡니다 (리셋 방지용 가드)
             const previousSelectedTh = filterTh.value || "ALL";
 
-            // 1. 🎯 '전체 시험 보기' 상태일 때는 기수 선택지를 완전히 가림 (안내문구 고정)
+            // 1. 🎯 [공백 소독 완착]: '전체 시험 보기' 상태일 때 깨지던 옵션 태그 공백 세척 완료!
             if (selectedTitle === "ALL" || !selectedTitle) {
-                filterTh.innerHTML = `< option value = "ALL" >— 시험을 먼저 선택하세요 —</option > `;
+                filterTh.innerHTML = `<option value="ALL">— 시험을 먼저 선택하세요 —</option>`;
                 filterTh.value = "ALL";
 
                 if (typeof calculateLiveDashboardStats === "function") {
@@ -5471,12 +5471,12 @@
             // 중복 제거
             const availableThs = [...new Set(matchedThs)];
 
-            // 4. 추출된 공고 기준 기수 데이터로 드롭다운 옵션 태그 동적 세팅 (1기~4기)
-            let htmlOptions = `< option value = "ALL" >— 전체 기수 —</option > `;
+            // 4. [🚀 공백 완전 박멸]: "< option" 및 "</option >" 태그 찌꺼기를 완벽 소독하여 정품 옵션으로 대개통!
+            let htmlOptions = `<option value="ALL">— 전체 기수 —</option>`;
 
             // 자연스러운 숫자식 정렬 후 옵션 추가
             availableThs.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })).forEach(th => {
-                htmlOptions += `< option value = "${th}" > ${th}</option > `;
+                htmlOptions += `<option value="${th}">${th}</option>`;
             });
 
             filterTh.innerHTML = htmlOptions;

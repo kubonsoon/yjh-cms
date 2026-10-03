@@ -4026,13 +4026,25 @@
                                 if (pSub) extractedPeriod = pSub;
                             }
 
+                            // ③ 인원수 추출 : 명 자가 없어도 (N58)을 정밀 인지하는 스마트 엔진
                             const countIndex = metaText.indexOf("명");
-                            if (countIndex !== -1) {
+                            const nIdentifierIndex = metaText.toUpperCase().indexOf("(N");
+
+                            if (nIdentifierIndex !== -1) {
+                                // 🚀 [치료 핵심]: (N58) 구역을 정밀 조준 타격하여 괄호 안의 정품 숫자 '58'만 도려냄!
+                                let closeParenthesisIdx = metaText.indexOf(")", nIdentifierIndex);
+                                if (closeParenthesisIdx !== -1) {
+                                    const nSub = metaText.substring(nIdentifierIndex + 2, closeParenthesisIdx).replace(/[^0-9]/g, "").trim();
+                                    if (nSub) extractedNCount = parseInt(nSub, 10);
+                                }
+                            } else if (countIndex !== -1) {
+                                // 기존 "명" 자 추적 파이프라인 (순정 보존)
                                 let startPos = countIndex - 5;
                                 if (startPos < 0) startPos = 0;
                                 const cSub = metaText.substring(startPos, countIndex).replace(/[^0-9]/g, "").trim();
                                 if (cSub) extractedNCount = parseInt(cSub, 10) || 60;
                             }
+
 
                             let startIdx = (thIndex !== -1) ? thIndex + 1 : 0;
                             let endIdx = metaText.indexOf("(N)");

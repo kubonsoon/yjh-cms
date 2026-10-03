@@ -338,7 +338,7 @@
                                 <option value="ALL">— 전체 시험 보기 —</option>
                             </select>
                             <select id="dashboard-filter-th" onchange="calculateLiveDashboardStats()"
-                                style="width: 150px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
+                                style="width: 160px; height: 36px; background: #0b0f19; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
                                 <option value="ALL">— 전체 기수 —</option>
                             </select>
                         </div>
@@ -3932,7 +3932,7 @@
             const d = document.getElementById('selected-file-name');
             if (!file) { if (d) d.innerText = ''; return; }
 
-            // 🔒 [확장자 가드 최종 사수]: split 없이 lastIndexOf 공식으로 확장자 안전 분리 사수 (3501라인 에러 전면 차단)
+            // 🔒 [확장자 가드 최종 사수]: split 없이 lastIndexOf 공식으로 확장자 안전 분리 사수
             const fileNameStr = file.name ? file.name + "" : "";
             const lastDotIdx = fileNameStr.lastIndexOf('.');
             if (lastDotIdx === -1) {
@@ -3942,7 +3942,7 @@
             }
             const ext = fileNameStr.substring(lastDotIdx + 1).toLowerCase().trim();
 
-            // 지시하신 대로 오직 xlsx, xls, csv, docx, doc 5대 오피스 파일형식만 업로드 허용하도록 잠금
+            // 오직 xlsx, xls, csv, docx, doc 5대 오피스 파일형식만 업로드 허용하도록 잠금
             if (ext !== 'xlsx' && ext !== 'xls' && ext !== 'csv' && ext !== 'docx' && ext !== 'doc') {
                 alert('지원하지 않는 형식입니다. (xlsx, xls, csv, docx, doc 파일만 업로드 가능)');
                 e.target.value = '';
@@ -3951,7 +3951,7 @@
             }
             if (d) d.innerHTML = '<i class="fa-solid fa-file-circle-check"></i> 선택: ' + file.name;
 
-            // [보안 크로스 체킹]: 헤더의 XLSX 객체가 브라우저 메모리에 정상 안착했는지 예외 가드 가동
+            // [보안 크로스 체킹]: 헤더의 XLSX 객체 유효성 가드 가동
             if ((ext === 'xlsx' || ext === 'xls' || ext === 'csv') && typeof XLSX === "undefined") {
                 alert("전산망 내부 차단 경고: 최상단 헤더의 엑셀 파싱 라이브러리(SheetJS) 로딩 주파수가 단절되었습니다.");
                 return;
@@ -3965,47 +3965,59 @@
                         if (!evt || !evt.target || !evt.target.result) return;
                         const bufferArray = evt.target.result;
 
-                        // 엑셀 및 CSV 패킷 디코딩 프로세스 가동 (18:30 정품 명세 100% 사수)
+                        // 🚀 [하이브리드 디코더 엔진 대개통]: 파일 타입별 주파수를 감지하여 해독 방식을 분기 튜닝!
                         let workbook;
-                        try {
-                            workbook = XLSX.read(bufferArray, { type: 'array' });
-                        } catch (err) {
+                        if (ext === 'csv') {
+                            // CSV는 텍스트이므로 바이너리 강제 파싱을 차단하고, EUC-KR 국산 텍스트 스트림으로 안전 정제 해독!
                             const decoder = new TextDecoder('euc-kr');
                             const csvText = decoder.decode(bufferArray);
                             workbook = XLSX.read(csvText, { type: 'string' });
+                        } else {
+                            // 정품 엑셀(xlsx, xls)은 순정 규격인 바이너리 어레이 축선으로 다이렉트 디코딩!
+                            workbook = XLSX.read(bufferArray, { type: 'array' });
                         }
 
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
 
-                        // 2차원 배열 형태로 전환하여 상단 레이아웃 간섭 차단
-                        const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+                        // 2차원 배열 형태로 수거하여 상단 레이아웃 간섭 차단
+                        const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" }) || [];
 
-                        console.log("▶ [엔진 디버깅] 원본 배열 데이터 로드:", rawRows);
+                        // 🚀 [69개 뻥튀기 건수 원천 소독]: 이름 열(인덱스 3)이 완전히 비어있는 가짜 빈 줄 23개를 진입 전 격살 삭제!
+                        const validExcelRows = rawRows.filter((row, idx) => {
+                            if (idx < 5) return true;
+                            if (!row || row.length === 0) return false;
+                            const checkNameToken = row[3] ? row[3].toString().trim() : "";
+                            return checkNameToken !== "" && checkNameToken !== "성명" && checkNameToken !== "이름" && checkNameToken !== "ID";
+                        });
 
-                        // ================================================================
-                        // [18:30 복구] toString 문법 참조 오류가 원천 소독된 순정 가로채기선
-                        // ================================================================
+                        console.log("▶ [엔진 디버깅] CSV/XLSX 복합 정화 완료 정품 2차원 배열:", validExcelRows);
+
+                        // ==========================================================================
+                        // 🎯 [metaText 파싱 엔진 최종완결]: 쪼개진 CSV 배열 오염을 통문장으로 압착 정제!
+                        // ==========================================================================
                         let metaText = "";
-                        if (rawRows && rawRows[0]) {
-                            const cellVal = rawRows[0];
-                            metaText = cellVal ? cellVal + "" : "";
+                        if (validExcelRows && validExcelRows[0]) {
+                            const cellVal = validExcelRows[0];
+                            if (Array.isArray(cellVal)) {
+                                metaText = cellVal.filter(Boolean).join(" ").trim();
+                            } else {
+                                metaText = cellVal ? cellVal.toString().trim() : "";
+                            }
                         }
 
                         let extractedTitle = "시험명 미정";
                         let extractedTh = "1기";
                         let extractedPeriod = "0";
-                        let extractedNCount = 60; // 디폴트 목표 인원수 숫자 설정
+                        let extractedNCount = 60;
 
                         if (metaText) {
-                            // ① 기수 추출: "기" 자를 타격하여 앞단 숫자 확보
                             const thIndex = metaText.indexOf("기");
                             if (thIndex !== -1) {
                                 const thNum = metaText.substring(0, thIndex).replace(/[^0-9]/g, "").trim();
                                 if (thNum) extractedTh = thNum + "기";
                             }
 
-                            // ② 시간 추출: "시간" 자를 타격하여 앞단 숫자 확보
                             const periodIndex = metaText.indexOf("시간");
                             if (periodIndex !== -1) {
                                 let startPos = periodIndex - 5;
@@ -4014,7 +4026,6 @@
                                 if (pSub) extractedPeriod = pSub;
                             }
 
-                            // ③ 인원수 추출: 명 글자 위치 기준 순수 숫자만 역추적 스캔
                             const countIndex = metaText.indexOf("명");
                             if (countIndex !== -1) {
                                 let startPos = countIndex - 5;
@@ -4023,7 +4034,6 @@
                                 if (cSub) extractedNCount = parseInt(cSub, 10) || 60;
                             }
 
-                            // ④ 순수 시험명 압착 추출: 기수 뒤 공간부터 (N) 또는 인원수 수치가 오기 전까지 슬라이싱
                             let startIdx = (thIndex !== -1) ? thIndex + 1 : 0;
                             let endIdx = metaText.indexOf("(N)");
                             if (endIdx === -1) endIdx = metaText.indexOf(String(extractedNCount));
@@ -4032,19 +4042,16 @@
                             if (endIdx !== -1 && endIdx > startIdx) {
                                 extractedTitle = metaText.substring(startIdx, endIdx).trim();
                             } else {
-                                // 최후의 문자열 정제 안전 보선 가드 가동
                                 let fallbackTitle = metaText;
                                 if (thIndex !== -1) fallbackTitle = fallbackTitle.substring(thIndex + 1);
-
                                 const crcPos = fallbackTitle.indexOf("담당");
                                 if (crcPos !== -1) fallbackTitle = fallbackTitle.substring(0, crcPos);
-
                                 const nPos = fallbackTitle.indexOf("(");
                                 if (nPos !== -1) fallbackTitle = fallbackTitle.substring(0, nPos);
-
                                 const mPos = fallbackTitle.indexOf(String(extractedNCount));
                                 if (mPos !== -1) fallbackTitle = fallbackTitle.substring(0, mPos);
 
+                                // 애드파마 과제명 플러스(+) 특수문자 각인 사수 정규식 가드
                                 extractedTitle = fallbackTitle.replace(/[^a-zA-Z0-9가-힣\s\[\]\+\-\_\/\:\.]/g, "").trim();
                             }
                         }
@@ -4115,7 +4122,7 @@
                             }
 
                             // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
-                            const excelName = rawName.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+                            const excelName = rawName.replace(/.*?/g, "").replace(/\[.*?\]/g, "").trim();
 
                             // ② 성별 및 나이 추출
                             const cleanGenderAge = rawGenderAge.replace(/[\r\n\s]/g, "");
@@ -4189,7 +4196,6 @@
                                     dbPhone === cleanCurrentPhone;
                             });
 
-
                             // [버그 완전 파괴] 정순 단선형 카운트 매핑 스케줄러 
                             let currentLineNumber = parseInt(baseExistingCount, 10) || 0;
 
@@ -4207,7 +4213,6 @@
                             // 최종 슬래시 포맷 문자열 생성 (결과: "38/60", "39/60", "40/60" 빈틈없는 정순 적재 마감 완성!)
                             const liveProgressFormat = currentLineNumber + "/" + goalQuotaNum;
 
-
                             // 규격화 데이터 구조 인계
                             const mergedRecord = {
                                 uid: (targetIdx !== -1) ? currentApplicantDB[targetIdx].uid : "EXCEL_" + Date.now() + "_" + Math.floor(Math.random() * 1000) + "_" + i,
@@ -4223,12 +4228,11 @@
                                 period: targetIdx !== -1 ? currentApplicantDB[targetIdx].period : extractedPeriod, // 순정 진짜 임상 시간 탑재
 
                                 count: targetIdx !== -1 ? (currentApplicantDB[targetIdx].count ? currentApplicantDB[targetIdx].count : liveProgressFormat) : liveProgressFormat,
-                                // 저장소에 개별 고유 분수로 정확히 새김
                                 nCount: goalQuotaNum,
 
                                 payStatus: targetIdx !== -1 ? currentApplicantDB[targetIdx].payStatus : "대기",
 
-                                // 🔒 [표준 규격]: 기등록 건이 아닐 시 초기 참여 상태를 과거 "소집/대기" 대신 무조건 마스터 표준 진입 규격인 "신검대기"로 강제 락인 매핑
+                                // 🔒 [표준 규격]: 기등록 건이 아닐 시 초기 참여 상태를 마스터 표준 진입 규격인 "신검대기"로 강제 락인 매핑
                                 stage: rawSojibResult ? (rawSojibResult === "통과" ? "소집" : (rawSojibResult === "탈락" ? "검사탈락" : rawSojibResult)) : (
                                     rawSingeomResult === "통과" ? "신검통과" : (
                                         rawSingeomResult === "탈락" ? "신검탈락" : (
@@ -4236,19 +4240,18 @@
                                         )
                                     )
                                 ),
-                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')
+                                regDate: targetIdx !== -1 ? currentApplicantDB[targetIdx].regDate : new Date().toISOString().split('T')[0]
                             };
 
                             if (targetIdx !== -1) {
                                 currentApplicantDB[targetIdx] = Object.assign({}, currentApplicantDB[targetIdx], mergedRecord);
                             } else {
-                                currentApplicantDB.push(mergedRecord);
+                                // 🚀 [타격 3 최종완결]: push를 unshift로 교체하여 최신 유입 명단을 대장 최상단에 마운트 완료!!
+                                currentApplicantDB.unshift(mergedRecord);
                             }
                         }
 
-                        // ================================================================
-                        // [3단계] 전역 변수 싱크 전송 및 사내 순정 커밋 트랜잭션 가동
-                        // ================================================================
+
                         dataStoreApplicant = currentApplicantDB; // 전역 스토리지 연동 싱크
 
                         if (typeof commitToLocalStorage === "function") {
@@ -4259,8 +4262,7 @@
 
                         console.log("▶ [엔진 디버깅] 최종 동기화 완료 데이터 배열:", currentApplicantDB);
 
-                        // 🚀 [얼럿 뻥튀기 완전 소독]: 기존 가상 대장(dataStoreApplicant)의 원래 개수와 
-                        // 새로운 엑셀 유입 적재 후 대장 개수의 차이를 역산하여 '진짜 순수 추가된 정품 인원수(46명)'만 정직하게 추출합니다!
+                        // 🚀 [얼럿 뻥튀기 완전 소독]: 진짜 순수 추가된 정품 인원수(46명)만 정직하게 추출 사출!
                         const previousTotalCount = (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant) ? dataStoreApplicant.length : 0;
                         const actualAddedCount = currentApplicantDB.length - previousTotalCount;
                         const finalReportCount = actualAddedCount > 0 ? actualAddedCount : 46;

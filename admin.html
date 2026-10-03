@@ -6784,10 +6784,28 @@
             const originalUpdateThOptions = window.updateDashboardThOptions;
             if (typeof originalUpdateThOptions === "function") {
                 window.updateDashboardThOptions = function () {
+                    // 원래 설계해두신 기수 옵션 충전 엔진 구동
                     originalUpdateThOptions();
+
+                    const filterTitle = document.getElementById('dashboard-filter-title')?.value || 'ALL';
                     const filterTh = document.getElementById('dashboard-filter-th');
                     if (filterTh) filterTh.value = "ALL"; // 시험명 변경 시 기수 필터 초기 락 홀딩
-                    window.calculateLiveDashboardStats(); // 수치판 즉시 0/0명 리셋
+
+                    // 수치판 즉시 0/0명으로 깨끗하게 초기화 리셋 집행
+                    window.calculateLiveDashboardStats();
+
+                    // 🚀 [요구사항 대종결 핵심 인젝션]: 1셀렉트가 'ALL'(전체 시험 보기)로 회귀한 타이밍을 포착!!
+                    if (filterTitle === "ALL") {
+                        // 모바일 인증/파일등록 간섭을 일으키던 유령 검색 필터 스위치를 완전히 소독 리셋합니다.
+                        if (typeof window.isCustomSearchActive !== 'undefined') {
+                            window.isCustomSearchActive = false;
+                        }
+
+                        // 대표님이 짜두신 하단 테이블 렌더러를 즉시 강제 리트리거하여 8인 전체 목록 명단을 논스톱 복원 사출!!!
+                        if (typeof refreshApplicantView === "function") {
+                            refreshApplicantView();
+                        }
+                    }
                 };
             }
 
@@ -6810,6 +6828,8 @@
                         const filterTh = document.getElementById('dashboard-filter-th');
                         if (filterTh) filterTh.value = "ALL";
                         window.calculateLiveDashboardStats();
+                        // 메뉴 재진입 시에도 전체 명단을 온전히 띄워주기 위한 안전 보완 축선 결합
+                        if (typeof refreshApplicantView === "function") refreshApplicantView();
                     }, 80);
                 });
             }

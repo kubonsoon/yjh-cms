@@ -2248,6 +2248,13 @@
                 if (typeof dataStoreApplicant !== 'undefined') dataStoreApplicant = db;
             }
 
+            // 🚀 [유령 잔상 차단막 가드]: 등록 세션 종료 및 초기 진입 시 트랙 1 자동 통과용 락다운 물리 치료
+            if (!document.querySelector('.editing-row') && typeof window.isCustomSearchActive !== 'undefined') {
+                if (document.activeElement && document.activeElement.id !== 'btn-custom-search' && document.activeElement.id !== 'custom-search-name') {
+                    window.isCustomSearchActive = false;
+                }
+            }
+
             // 🎯 [순정 보존]: 상단 필터 값 실시간 정밀 트래킹 연동 구역 (단 한 줄도 수정 없이 100% 원형 유지)
             const filterTitleSelect = document.getElementById('dashboard-filter-title');
             const filterThSelect = document.getElementById('dashboard-filter-th');
@@ -3374,6 +3381,9 @@
                     // 대표님이 설계해두신 기존 대장 출력 함수를 깨워 원형 양식 그대로 리스트 렌더링
                     if (typeof refreshApplicantView === "function") refreshApplicantView();
                 }, 150);
+
+                // 🚀 [인증/등록 충돌 치료선]: 수동 등록 성공 직후 유령 검색 간섭 플래그를 완전 소독 리셋합니다.
+                window.isCustomSearchActive = false;
 
             } catch (error) {
                 console.error("대상자 신규 마스터 등록 중 치명적 오류 발생:", error);

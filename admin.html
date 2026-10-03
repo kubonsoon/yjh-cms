@@ -5509,9 +5509,8 @@
             const filterThSelect = document.getElementById('dashboard-filter-th');
 
             const filterTitle = filterTitleSelect ? filterTitleSelect.value : 'ALL';
-            const filterTh = filterThSelect ? filterThSelect.value : 'ALL';
+            let filterTh = filterThSelect ? filterThSelect.value : 'ALL';
 
-            // 🎯 [버그 해결 핵심]: 초기 진입 단계에서 강제로 return하여 화면을 묶어버리던 구형 잠금장치를 전면 철거합니다.
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             let recruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
@@ -5520,6 +5519,47 @@
                 if (!str) return "";
                 return str.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
             };
+
+            if (filterThSelect && filterTitleSelect) {
+                // 현재 선택된 메인 과제명의 공백 세척 키 생성
+                const currentMainTitleClean = cleanString(filterTitle);
+
+                // 🚀 [중복 박멸]: 기존에 잔상으로 남아있던 기수 옵션 노드들을 전면 초기화 청소
+                // 관리자가 마우스로 직접 기수를 바꾼 타이밍이 아니라 메인 과제를 바꾼 타이밍이라면 세션을 'ALL'로 리셋
+                if (document.activeElement && document.activeElement.id === 'dashboard-filter-title') {
+                    filterTh = 'ALL';
+                }
+
+                const preservedThValue = filterTh;
+                filterThSelect.innerHTML = '<option value="ALL">— 기수 —</option>';
+
+                // 실시간 대장 원고를 전수 조사하여 현재 과제명에 물려있는 진짜 순정 기수만 중복 없이 수집
+                const dynamicThSet = new Set();
+                adminApplicantDB.forEach(user => {
+                    if (!user || !user.th) return;
+                    const rowTitleClean = cleanString(user.title);
+
+                    if (filterTitle === 'ALL' || rowTitleClean === currentMainTitleClean || rowTitleClean.includes(currentMainTitleClean)) {
+                        const cleanThName = user.th.toString().trim();
+                        if (cleanThName) dynamicThSet.add(cleanThName);
+                    }
+                });
+
+                // 🚀 정순 정렬(1기 -> 2기 -> 3기) 축선을 타고 드롭다운 옵션 태그 동적 인젝션
+                Array.from(dynamicThSet).sort().forEach(thOptionText => {
+                    const optNode = document.createElement('option');
+                    optNode.value = thOptionText;
+                    optNode.innerText = thOptionText;
+                    if (thOptionText === preservedThValue) {
+                        optNode.selected = true;
+                    }
+                    filterThSelect.appendChild(optNode);
+                });
+
+                // 가로폭 찌그러짐을 완벽히 방쇄하기 위한 강제 컴팩트 스타일 락인
+                filterThSelect.style.setProperty("width", "85px", "important");
+                filterThSelect.style.setProperty("display", "inline-block", "important");
+            }
 
             const targetTitleClean = cleanString(filterTitle);
 
@@ -5530,7 +5570,6 @@
                 const filterTitleClean = cleanString(filterTitle);
                 const filterThNum = filterTh.toString().replace(/[^0-9]/g, "");
 
-                // 글자 알맹이 단위 매칭 처리 기법 가동
                 const matchTitle = (filterTitle === 'ALL' || rowTitleClean === filterTitleClean || rowTitleClean.includes(filterTitleClean) || filterTitleClean.includes(rowTitleClean));
                 const matchTh = (filterTh === 'ALL' || filterTh === '' || rowThNum === filterThNum);
                 return matchTitle && matchTh;
@@ -5539,7 +5578,7 @@
             let totalActiveCount = filteredList.length; // 실제 등록된 참여자 수 (분자)
             let totalQuotaSum = 0; // 목표 모집 배정 N수 (분모)
 
-            // 2. 🎯 [텍스트 충돌 완전 해결]: 모집공고의 '46명'과 대상자의 '46'이 무조건 매칭되도록 양쪽 다 숫자만 발라내어 검문합니다.
+            // 2. 🎯 [텍스트 충돌 완전 해결]: 공고의 '46명'과 대상자의 '46' 숫자만 정밀 검문
             const matchedRecs = recruitmentDB.filter(rec => {
                 const recTitleClean = cleanString(rec.title);
                 const recThNum = (rec.th || "").toString().replace(/[^0-9]/g, "");
@@ -5550,33 +5589,24 @@
 
             matchedRecs.forEach(rec => {
                 if (rec && rec.count) {
-                    // 🎯 글자 뒤에 '명' 자가 붙어 있더라도 순수 숫자 알맹이만 안전하게 누적 연산합니다.
                     const pureNum = parseInt(rec.count.toString().replace(/[^0-9]/g, ''), 10) || 0;
                     totalQuotaSum += pureNum;
                 }
             });
 
-            /* =================================================================
-               🔒 [수정 시 인원수 분모 증감 차단 디펜스 가드 장벽 안착]
-               ================================================================= */
-            // 💡 핵심 교정: 매칭 실패로 0이 되거나 구형 filteredList?.count 에러 코드로 인해 분모가 제멋대로 
-            // 변동되던 폭발 현상을 완전히 진압합니다. 전체보기(ALL) 상태일 때는 사내 순정 8대 과제의 
-            // 정당한 고정 정원수 모수(418명)를 정확히 박제하고, 필터링 상태일 때는 해당 공고의 정원 숫자를 사수합니다.
             if (totalQuotaSum === 0) {
                 if (filterTitle === 'ALL') {
-                    totalQuotaSum = 418; // 순정 8대 과제 마스터 계획 총 정원수 고정 (46+60+30+48+44+46+60+46)
+                    totalQuotaSum = 418;
                 } else {
-                    // 특정 필터 진입 시 매칭 오류 방어선으로 가장 최근의 순정 데이터 백업본 확보
                     if (filteredList.length > 0 && filteredList[0].count) {
                         totalQuotaSum = parseInt(filteredList[0].count.toString().replace(/[^0-9]/g, ''), 10) || 60;
                     } else if (matchedRecs.length > 0 && matchedRecs[0].count) {
                         totalQuotaSum = parseInt(matchedRecs[0].count.toString().replace(/[^0-9]/g, ''), 10) || 60;
                     } else {
-                        totalQuotaSum = 60; // 폴백 디폴트 규격 락인
+                        totalQuotaSum = 60;
                     }
                 }
             }
-            /* ================================================================= */
 
             // 3. [상태 파이프라인 집계]: 각 대상자별 라이브 상태 카운트 (원본 분기 logic 100% 보존)
             let receivedCount = 0;
@@ -5586,7 +5616,6 @@
             filteredList.forEach(row => {
                 let status = (row.result || row.payStatus || '대기').toString().trim();
 
-                // 4대 표준 단어 조건문 매칭 파이프라인 ("대기", "접수", "처리중", "완료")
                 if (status === '접수') {
                     receivedCount++;
                 } else if (status === '처리중') {
@@ -5596,11 +5625,9 @@
                 }
             });
 
-            // 4. [🎯 최종 UI 바인딩 - 전수 주입식 교정]: querySelectorAll 방식을 도입하여 
-            // 화면에 존재하는 모든 동일 ID 카드 슬롯을 오염 없이 완벽하게 강제 대입(=) 치환합니다.
+            // 4. [🎯 최종 UI 바인딩 - 전수 주입식 교정]: 화면 슬롯 강제 대입(=) 치환
             const allTotals = document.querySelectorAll('#stat-total-count');
             allTotals.forEach(el => {
-                // 💡 대입 연산자를 통해 기존 유령 찌꺼기 문자열을 완벽히 덮어씌워 무한 증식을 차단합니다.
                 el.innerText = `${totalActiveCount}/${totalQuotaSum}명`;
             });
 
@@ -5619,7 +5646,7 @@
                 el.innerText = `${completeCount}건`;
             });
 
-            console.log(`📊 [정밀 통계 완수] 실시간 분자 참여인원: ${totalActiveCount}명 / 고정된 분모 배정 정원: ${totalQuotaSum}명`);
+            console.log(`📊 [정밀 통계 완수] 라이브 분자: ${totalActiveCount}명 / 고정 분모: ${totalQuotaSum}명`);
         }
 
         /**

@@ -4122,7 +4122,12 @@
                             }
 
                             // ① 이름 정제: 괄호 식별자 파괴 (예: 이민지(F) -> 이민지)
-                            const excelName = rawName.replace(/.*?/g, "").replace(/\[.*?\]/g, "").trim();
+                            const excelName = rawName.toString()
+                                .replace(/\(.*?\)/g, "")  // 🚀 소괄호와 그 안의 내용(01, M, F 등)을 완벽히 도려냄
+                                .replace(/\[.*?\]/g, "")  // 🚀 대괄호 내용 완벽 청소
+                                .replace(/[0-9]/g, "")     // 🚀 혹시나 이름 뒤에 붙어있을 영문/숫자 코드 소독
+                                .replace(/\s+(M|F|남|여)$/gi, "") // 🚀 공백 뒤의 단독 성별 문자 컷트
+                                .trim();
 
                             // ② 성별 및 나이 추출
                             const cleanGenderAge = rawGenderAge.replace(/[\r\n\s]/g, "");

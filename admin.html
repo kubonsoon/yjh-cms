@@ -2418,17 +2418,51 @@
             const startIndex = (window.currentApplicantPage - 1) * APPLICANT_PAGE_SIZE;
             const endIndex = startIndex + APPLICANT_PAGE_SIZE;
 
+            // ==========================================================================
+            // 🎯 [교정 완착] 기수별 실시간 분자 순번 카운터 디코더 가동 (pagedList.slice 직전 매립)
+            // ==========================================================================
+            const dynamicGroupCounterMap = {};
+
+            // 🚀 대장 맨 밑바닥(과거 데이터 김수지 타이밍)부터 위로 올라오며 1, 2, 3 정품 순번을 실시간 각인
+            for (let i = db.length - 1; i >= 0; i--) {
+                const item = db[i];
+                if (!item) continue;
+
+                const cleanTitleKey = item.title ? item.title.toString().trim().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "") : "unknown";
+                const cleanThKey = item.th ? item.th.toString().trim().replace(/[^0-9]/g, "") : "1";
+                const combinedGroupKey = `${cleanTitleKey}_${cleanThKey}`;
+
+                if (!dynamicGroupCounterMap[combinedGroupKey]) {
+                    dynamicGroupCounterMap[combinedGroupKey] = 1; // 🔒 기존 상주자 김수지 무조건 1번 락킹!
+                } else {
+                    dynamicGroupCounterMap[combinedGroupKey]++;   // 🚀 그 위로 유입된 김준원은 2, 3, 4 순차 증가!
+                }
+
+                item.liveMatchOrderNumber = dynamicGroupCounterMap[combinedGroupKey];
+            }
+
+            // 화면 버퍼 목록도 진짜 계산된 순번으로 1:1 동치화 매핑
+            displayList.forEach(item => {
+                const originMatch = db.find(d => d.uid === item.uid);
+                if (originMatch) {
+                    item.liveMatchOrderNumber = originMatch.liveMatchOrderNumber;
+                }
+            });
+
             // 🔥 에러의 원인이 되던 자르기 변수가 여기서 안전하게 1등으로 초기화 완료됩니다.
             const pagedList = displayList.slice(startIndex, endIndex);
 
             // 15개 데이터 조각 루프 렌더링 시동
             pagedList.forEach((row, pagedIdx) => {
-                // 대표님 오리지널 순정 순번 분자 수식 합체 이식 가드 반영 구역
-                row.liveMatchOrderNumber = displayList.filter((item, filterIdx) =>
-                    filterIdx >= pagedIdx &&
-                    cleanString(item.title) === cleanString(row.title) &&
-                    item.th === row.th
-                ).length;
+                // ❶ 1단계 엔진(slice 윗단)에서 과거 등록 타임라인 순서대로 완벽히 계산 완료된 진짜 피험자 고유 순정 순번 가로채기
+                const pureLiveOrderNumber = row.liveMatchOrderNumber !== undefined ? row.liveMatchOrderNumber : 1;
+                row.liveMatchOrderNumber = pureLiveOrderNumber;
+
+                // ❷ 공고 마스터 대장에서 실시간으로 추적해온 깨끗한 정품 모수 정원 분모(36) 획득
+                const trueMasterQuotaNum = getTrueMasterQuota(row.title, row.th, row.count);
+
+                // ❸ 🚀 [오염 소독]: 40/36 같은 찌꺼기를 전면 분쇄하고 대표님 정품 변수(finalAppCountText)에 1/36, 2/36 형태로 리얼 각인!!
+                const finalAppCountText = `${pureLiveOrderNumber}/${trueMasterQuotaNum}`;
 
                 const index = displayList.findIndex(item => item.uid === row.uid);
                 const tr = document.createElement('tr');

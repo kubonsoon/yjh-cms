@@ -2423,38 +2423,39 @@
             // ==========================================================================
             const dynamicGroupCounterMap = {};
 
-            // 🚀 [정방향 순차 배정 코어]: 원본 데이터베이스 배열(db)의 맨 뒤(과거 가입자)가 아닌,
-            // 전체 db의 0번방(가장 최근 가입자)부터 역으로 스캔하거나 화면 정렬 구조를 정밀하게 파괴하기 위해
-            // "대장 맨 밑바닥(가장 과거 데이터인 김수지 타이밍)"부터 위로 순차적으로 치고 올라오며 1, 2, 3 정품 숫자를 각인합니다!
-            for (let i = db.length - 1; i >= 0; i--) {
-                const item = db[i];
-                if (!item) continue;
-
+            // ❶ [1차 패스]: 화면 목록(displayList)을 돌며 과제/기수 조합별로 실제 총원이 몇 명인지 정확히 카운트 스택 빌드
+            displayList.forEach(item => {
+                if (!item) return;
                 const cleanTitleKey = item.title ? item.title.toString().trim().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "") : "unknown";
                 const cleanThKey = item.th ? item.th.toString().trim().replace(/[^0-9]/g, "") : "1";
                 const combinedGroupKey = `${cleanTitleKey}_${cleanThKey}`;
 
-                // 대장 맨 아래 상주하던 원조 대상자(김수지)가 최초 발견되는 타이밍에 무조건 시작점인 1번 부여!
-                if (!dynamicGroupCounterMap[combinedGroupKey]) {
-                    dynamicGroupCounterMap[combinedGroupKey] = 1;
-                } else {
-                    // 김수지 위로 새롭게 추가 유입되어 쌓인 대상자들은 과거에서 미래 순서대로 2, 3, 4 순차 증가 각인!
-                    dynamicGroupCounterMap[combinedGroupKey]++;
-                }
+                // 공백 데이터 오염에 대비한 무결성 모수 누적
+                dynamicGroupCounterMap[combinedGroupKey] = (dynamicGroupCounterMap[combinedGroupKey] || 0) + 1;
+            });
 
-                // 진짜 원장 데이터베이스 메모리에 정품 고유 분자 번호 실시간 박제
-                item.liveMatchOrderNumber = dynamicGroupCounterMap[combinedGroupKey];
-            }
-
-            // [순정 축선 동치화]: 화면 출력용 버퍼 목록도 진짜 계산된 원본의 정품 순번으로 1:1 직격 매핑
+            // ❷ [2차 패스 - 탑다운 차감 코어]: 최상단(0번 행)부터 아래로 내려가며 높은 번호부터 순차 차감 주입!!
+            // 🚀 [수학적 제어 완착]: 이 방식을 쓰면 화면 구조에 상관없이 맨 위는 최고 높은 숫자(47)가 박히고, 
+            // 아래로 내려가면서 46, 45, 44 깎이므로 맨 하단 디폴트 상주자 김수지 자리는 무조건 산술적으로 '1'이 사수됩니다!
             displayList.forEach(item => {
+                if (!item) return;
+                const cleanTitleKey = item.title ? item.title.toString().trim().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "") : "unknown";
+                const cleanThKey = item.th ? item.th.toString().trim().replace(/[^0-9]/g, "") : "1";
+                const combinedGroupKey = `${cleanTitleKey}_${cleanThKey}`;
+
+                // 현재 남은 맵의 최고 번호를 부여한 뒤, 번호를 1씩 차감 마감
+                const assignedNum = dynamicGroupCounterMap[combinedGroupKey] || 1;
+                item.liveMatchOrderNumber = assignedNum;
+                dynamicGroupCounterMap[combinedGroupKey]--;
+
+                // 진짜 원본 가상 데이터베이스 원고(db) 메모리에도 동일 순정 번호 실시간 상속 백업
                 const originMatch = db.find(d => d.uid === item.uid);
                 if (originMatch) {
-                    item.liveMatchOrderNumber = originMatch.liveMatchOrderNumber;
+                    originMatch.liveMatchOrderNumber = assignedNum;
                 }
             });
 
-            // 렌더링 자르기 변수 가동
+            // 🔥 에러의 원인이 되던 자르기 변수가 여기서 안전하게 1등으로 초기화 완료됩니다.
             const pagedList = displayList.slice(startIndex, endIndex);
 
             // 15개 데이터 조각 루프 렌더링 시동

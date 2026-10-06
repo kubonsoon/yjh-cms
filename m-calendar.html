@@ -757,11 +757,11 @@
                 return;
             }
 
-            // 🔒 [대원칙 격리 셔터 작동]: 타인의 시험공고 원천 차단 및 내 전 차수 스케줄 레일 전수 발굴
+            // 🔒 [대원칙 격리 셔터 작동]: 타인의 시험공고 원천 차단 및 진재영 대상자의 진짜 전 차수 스케줄 레일 전수 발굴
             const targetRecords = records.filter(item => {
                 if (!item.recDate) return false;
 
-                // ❶ [과제명 1:1 복합 장벽]: 내 과제명과 다른 타인의 공고 카드는 흔적도 없이 전면 차단
+                // ❶ [과제명 1:1 철동 장벽]: 내 과제명과 다른 타인의 공고 카드는 흔적도 없이 전면 차단
                 const cleanMyTitle = myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase();
                 const cleanItemTitle = item.title.toString().replace(/\s/g, "").toLowerCase();
                 if (cleanMyTitle !== cleanItemTitle) return false;
@@ -773,40 +773,49 @@
                     if (cleanMyTh !== cleanItemTh) return false;
                 }
 
-                // ❷ [4대 행정 일자 동적 역산 타깃 매트릭스 매핑 엔진]
+                // 🚀 [연산 누수 진압]: 과거/미래 날짜를 무조건 자르던 오늘 기준 시간 비교 장벽(todayMidnight 가드)을 과감히 소독 철거했습니다!
+
+                // ❷ [4대 행정 일자 동적 역산 매트릭스 매핑 엔진]
+                // 모든 비교 검문용 딕셔너리 키를 하이픈 없는 순수 8자리 숫자 포맷으로 완벽 통일합니다.
                 let itemScheduleMap = {};
 
-                // 1) 스크리닝일 기본 상속 (records의 recDate)
-                if (item.recDate) itemScheduleMap[item.recDate.trim()] = `스크리닝: ${item.recDate.trim()}`;
-
-                // 2) 소집일 기본 상속 (대상자 대장의 ssn 슬롯 내 숨겨진 진짜 소집일 파싱 연동)
-                if (myLiveJobRecord.ssn && myLiveJobRecord.ssn.includes("소집:")) {
-                    const parsedSojib = myLiveJobRecord.ssn.match(/\d{4}-\d{2}-\d{2}/);
-                    if (parsedSojib) itemScheduleMap[parsedSojib] = `소집: ${parsedSojib}`;
+                // 1) 스크리닝일 기본 상속 (records의 recDate ➔ 20261204 규격 변환)
+                if (item.recDate) {
+                    const k = item.recDate.trim().replace(/[^0-9]/g, "");
+                    itemScheduleMap[k] = `스크리닝: ${item.recDate.trim()}`;
                 }
 
-                // 3) 1차~4차 방문일 = 참여비 지급예정일(payDate1~4)의 1주일 전(7일 전) 역산 공식 반영
-                if (item.payDate1) { const d = calculateSubtractedDate(item.payDate1, 7); if (d) itemScheduleMap[d] = `1차 방문채혈: ${d}`; }
-                if (item.payDate2) { const d = calculateSubtractedDate(item.payDate2, 7); if (d) itemScheduleMap[d] = `2차 방문채혈: ${d}`; }
-                if (item.payDate3) { const d = calculateSubtractedDate(item.payDate3, 7); if (d) itemScheduleMap[d] = `3차 방문채혈: ${d}`; }
-                if (item.payDate4) { const d = calculateSubtractedDate(item.payDate4, 7); if (d) itemScheduleMap[d] = `4차 방문채혈: ${d}`; }
-
-                // 4) 종료검사일 = 종료비 지급예정일(paySchedule 또는 payDate5)의 14일 전 역산 공식 반영
-                if (item.paySchedule) {
-                    const matchedDates = item.paySchedule.toString().match(/\d{4}-\d{2}-\d{2}/g);
-                    if (matchedDates && matchedDates.length >= 5) {
-                        const d = calculateSubtractedDate(matchedDates[4], 14); if (d) itemScheduleMap[d] = `종료검사: ${d}`;
-                    } else if (item.payDate5) {
-                        const d = calculateSubtractedDate(item.payDate5, 14); if (d) itemScheduleMap[d] = `종료검사: ${d}`;
+                // 2) 소집일 기본 상속 (대상자 대장의 ssn 슬롯 내 숨겨진 진짜 소집일 파싱 연동 ➔ 20261211 규격 변환)
+                if (myLiveJobRecord.ssn && myLiveJobRecord.ssn.includes("소집:")) {
+                    const parsedSojib = myLiveJobRecord.ssn.match(/\d{4}-\d{2}-\d{2}/);
+                    if (parsedSojib) {
+                        const k = parsedSojib[0].replace(/[^0-9]/g, "");
+                        itemScheduleMap[k] = `소집: ${parsedSojib[0]}`;
                     }
                 }
 
-                // 🎯 [날짜 연동 정합성 매칭선]: 사용자가 터치 활성화한 특정 날짜(selectedDateStr)에 
-                // 역산된 내 행정 스케줄 텍스트가 명확하게 매핑되어 존재하는 과제 레코드만 노출 대상으로 승인!!
-                const currentDayMatchedText = itemScheduleMap[selectedDateStr.toString().trim()];
+                // 3) 1차~4차 방문일 = 참여비 지급예정일(payDate1~4)의 1주일 전(7일 전) 역산 공식 반영 및 8자리 소독
+                if (item.payDate1) { const d = calculateSubtractedDate(item.payDate1, 7); if (d) { const k = d.replace(/[^0-9]/g, ""); itemScheduleMap[k] = `1차 방문채혈: ${d}`; } }
+                if (item.payDate2) { const d = calculateSubtractedDate(item.payDate2, 7); if (d) { const k = d.replace(/[^0-9]/g, ""); itemScheduleMap[k] = `2차 방문채혈: ${d}`; } }
+                if (item.payDate3) { const d = calculateSubtractedDate(item.payDate3, 7); if (d) { const k = d.replace(/[^0-9]/g, ""); itemScheduleMap[k] = `3차 방문채혈: ${d}`; } }
+                if (item.payDate4) { const d = calculateSubtractedDate(item.payDate4, 7); if (d) { const k = d.replace(/[^0-9]/g, ""); itemScheduleMap[k] = `4차 방문채혈: ${d}`; } }
+
+                // 4) 종료검사일 = 종료비 지급예정일(paySchedule 또는 payDate5)의 14일 전 역산 공식 반영 및 8자리 소독
+                if (item.paySchedule) {
+                    const matchedDates = item.paySchedule.toString().match(/\d{4}-\d{2}-\d{2}/g);
+                    if (matchedDates && matchedDates.length >= 5) {
+                        const d = calculateSubtractedDate(matchedDates[4], 14); if (d) { const k = d.replace(/[^0-9]/g, ""); itemScheduleMap[k] = `종료검사: ${d}`; }
+                    } else if (item.payDate5) {
+                        const d = calculateSubtractedDate(item.payDate5, 14); if (d) { const k = d.replace(/[^0-9]/g, ""); itemScheduleMap[k] = `종료검사: ${d}`; }
+                    }
+                }
+
+                // 🎯 [정합성 조준 타격]: 상단 바에서 터치 선택한 날짜 키(cleanSelectedDateStr)와 
+                // 위 매트릭스 맵에 정밀하게 락인된 8자리 키가 정확히 1:1 매칭되는 텍스트 내용물만 선별 추출!!
+                const currentDayMatchedText = itemScheduleMap[cleanSelectedDateStr];
 
                 if (currentDayMatchedText) {
-                    // 다음 카드 그리기 구역으로 가공된 한글 날짜 명세 텍스트를 유연하게 릴레이 전달
+                    // 카드를 실물로 드로잉할 후반부(Part 4) 팩토리 엔진으로 한글 일정 명세 텍스트 전달 릴레이
                     item._computedDisplayLabelText = currentDayMatchedText;
                     return true;
                 }
@@ -832,7 +841,7 @@
                 const cleanRecDate = item.recDate.toString().replace(/[^0-9]/g, "");
                 const isDateMatchedNow = (cleanRecDate === cleanSelectedDateStr);
 
-                // 💡 [실무 사양 핵심 완착]: 파트 3에서 날짜 정합성 필터를 통과하며 릴레이해 준 가공된 한글 날짜 명세 텍스트 추출 [팩트 지원: 1]
+                // 💡 [실무 사양 핵심 완착]: 파트 3에서 날짜 정합성 필터를 통과하며 릴레이해 준 가공된 한글 날짜 명세 텍스트 추출
                 const computedDisplayLabelText = item._computedDisplayLabelText || `스크리닝: ${selectedDateStr}`;
 
                 const borderHighlightStyle = isDateMatchedNow ? "border: 1px solid var(--secondary-color); box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);" : "";
@@ -842,7 +851,7 @@
 
                 card.innerHTML = `
                     <div class="card-top-row">
-                        <!-- 🎯 [요구사항 완벽 구현]: 복잡한 공고 내용 대신 날짜에 맞춰 매핑된 실무 텍스트를 최상단 타이틀로 직접 표출 [팩트 지원: 1] -->
+                        <!-- 🎯 [요구사항 완벽 구현]: 복잡한 공고 내용 대신 날짜에 맞춰 매핑된 실무 텍스트를 최상단 타이틀로 직접 표출 -->
                         <div class="card-title-text" style="color: #ffffff; font-weight:800; font-size:14.5px;">🎯 ${computedDisplayLabelText}</div>
                         <div class="card-th-badge ${dynamicColorClass}">[${thText}]</div>
                     </div>
@@ -851,7 +860,7 @@
                         <div>배정 정원: <span>${item.count ? item.count + '명' : '-'}</span></div>
                         <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>
                     </div>
-                    <!-- 🎯 [요구사항 완벽 구현]: 해당 일자 클릭 시 참여/미참여/이력 버튼이 내부에 완벽 존재 및 정렬 [팩트 지원: 1] -->
+                    <!-- 🎯 [요구사항 완벽 구현]: 해당 일자 클릭 시 참여/미참여/이력 버튼이 내부에 완벽 존재 및 정렬 -->
                     <div class="card-action-bar" id="ui_action_bar_${clickUid}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
                         <button type="button" class="card-btn join" id="btn_card_join_${clickUid}" style="height:32px; font-size:12.5px;">참여</button>
                         <button type="button" class="card-btn reject" id="btn_card_reject_${clickUid}" style="height:32px; font-size:12.5px; background:#475569;">미참여</button>
@@ -868,7 +877,6 @@
 
                         let appDB = getApplicantData();
 
-                        // [1단계 가드]: 액티브 과제 중복 신청 원천 차단막 스크린
                         const activeJobRecord = appDB.find(app => {
                             const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
                             const dbTitle = (app.title || '').toString().trim();
@@ -880,7 +888,6 @@
                             return;
                         }
 
-                        // [2단계 가드]: 종료 대상자 대상 180일 격리 연산 인터셉터
                         const finishedJobs = appDB.filter(app => {
                             const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
                             return cleanDbName === cleanSessionName && app.stage === "종료" && app.recDate;
@@ -894,27 +901,23 @@
                             const dayDiff = Math.floor((systemCurrentTime.getTime() - lastExamDate.getTime()) / (1000 * 60 * 60 * 24));
 
                             if (dayDiff < 180) {
-                                alert(`전산망 보안 안내\n\n대상자님은 마지막 시험 참여 후 아직 6개월이 경과하지 않았습니다.`); //
+                                alert(`전산망 보안 안내\n\n대상자님은 마지막 시험 참여 후 아직 6개월이 경과하지 않았습니다.`);
                                 return;
                             }
                         }
 
-                        // [3단계 가드]: 동일 과제 중복 참여 최종 디펜스
                         const isAlreadyClickedThisJob = appDB.some(app =>
                             (app.name || '').toString().trim() === currentSessionName &&
                             (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
                             (app.th || '').toString().trim() === thText
                         );
 
-                        // 🔒 [누수 전면 진압 수술 완착]: 줄이 추가로 복사 생성되는 치명적인 버그를 완벽하게 차단하기 위해
-                        // 대장에 동일 '성명(name)'이 한 줄이라도 걸려있다면 무조건 그 인덱스 포인터 자리를 targetIdx로 조준 캡처합니다.
                         let targetIdx = appDB.findIndex(u =>
                             (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName
                         );
 
-                        // 🔒 [출석체크 인터록 결합]: 이미 배정된 기존 유저가 본인 일정 배지에서 참여를 눌렀을 때 ➔ 상태 강제 전진 실행 [팩트 지원: 1]
+                        // 🔒 [출석체크 인터록 결합]: 이미 배정된 기존 유저가 본인 일정 배지에서 참여를 눌렀을 때 ➔ 상태 강제 전진 실행
                         if (targetIdx !== -1 && isAlreadyClickedThisJob) {
-                            // 💡 슬래시 또는 하이픈 등 원문에서 순수 한글 용어 단계 세그먼트만 깔끔하게 정제하여 커밋
                             let cleanFriendlyStage = "스크리닝";
                             if (computedDisplayLabelText.includes("소집")) cleanFriendlyStage = "소집";
                             else if (computedDisplayLabelText.includes("1차")) cleanFriendlyStage = "1차방문";
@@ -923,14 +926,12 @@
                             else if (computedDisplayLabelText.includes("4차")) cleanFriendlyStage = "4차방문";
                             else if (computedDisplayLabelText.includes("종료검사")) cleanFriendlyStage = "종료방문";
 
-                            // 중복 push를 완전히 봉쇄하고 기존 내 원장 줄에 그대로 리라이트(덮어쓰기)합니다.
                             appDB[targetIdx].status = cleanFriendlyStage;
                             appDB[targetIdx].stage = cleanFriendlyStage;
 
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
                             alert(`🎉 출석 인증 성공\n\n대상자님의 참여 상태가 [${appDB[targetIdx].status}] 단계로 정상 전진 업데이트 커밋되었습니다.`);
 
-                            // ⚡ 부모 관제탑창(admin.html) 명단 뷰어 무새로고침 실시간 표출 리렌더링 인터록 발사
                             if (window.opener && !window.opener.closed) {
                                 if (typeof window.opener.refreshApplicantView === "function") window.opener.refreshApplicantView();
                                 else if (typeof window.opener.refreshAdminMemberTableView === "function") window.opener.refreshAdminMemberTableView();

@@ -1277,9 +1277,9 @@
                 document.getElementById('txtPopTitle').innerText = "신규 대상자 본인인증 완료";
                 document.getElementById('txtPopMessage').innerText =
                     `• 연계기관: ${currentChannelName || "간편인증"} 연동모듈
-• 대상자명: ${name || temporaryVerifiedName}님
-양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.
-확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
+                     • 대상자명: ${name || temporaryVerifiedName}님
+                     양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.
+                     확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
             }
 
             if (typeof navigateToStep === "function") {
@@ -1353,41 +1353,46 @@
                         }
 
                         /* =================================================================
-                           🔥 [기획 사양 특수 수술]: 신검통과 혹은 종료 상태에 따른 하단 일정보기 단추 개방 셔터
+                           🔥 [실무 수칙 대개혁 완착]: 신검 통과 여부 및 평시 상태와 상관없이 
+                           나의 임상시험 일정보기 단추를 무조건 100% 하단에 상시 표출 개방합니다.
                            ================================================================= */
                         const calendarRedirectBtn = document.getElementById('ui_calendar_redirect_btn');
                         const submitBtn = document.getElementById('ui_submit_btn');
 
+                        // 🎯 신검대기, 신검통과, 소집, 투약 등 어떤 상태든 일정보기 단추는 고대비 스카이블루 스킨으로 완벽 오픈
+                        if (calendarRedirectBtn) {
+                            calendarRedirectBtn.style.setProperty("display", "block", "important");
+                            calendarRedirectBtn.style.setProperty("background-color", "#0284c7", "important");
+                            calendarRedirectBtn.innerText = "📅 나의 임상시험 일정보기";
+                        }
+
+                        // 하단 참여비 지급 청구 메인 버튼의 실무 행정 잠금 가드는 기존 명세 원형 100% 그대로 유지
                         if (currentStage === "신검통과") {
-                            // 🎯 진재영 대상자 신검통과 찰나 ➔ 지급 버튼 아래에 고대비 스카이블루 "일정보기" 단추 즉시 사출 개방
-                            if (calendarRedirectBtn) {
-                                calendarRedirectBtn.style.setProperty("display", "block", "important");
-                                calendarRedirectBtn.style.setProperty("background-color", "#0284c7", "important");
-                                calendarRedirectBtn.innerText = "📅 나의 임상시험 일정보기 (신검 적합)";
-                            }
-                            // 기존 청구 버튼은 격리 가이드 문구와 함께 완강하게 락다운 잠금
                             if (submitBtn) {
                                 submitBtn.innerText = "신검 통과 승인 (추후 소집 참여 시 신청 가능)";
                                 submitBtn.disabled = true;
                                 submitBtn.style.setProperty("background-color", "#1e293b", "important");
                                 submitBtn.style.setProperty("cursor", "not-allowed", "important");
                             }
+                        } else if (currentStage === "신검대기") {
+                            if (submitBtn) {
+                                submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
+                                submitBtn.disabled = true;
+                                submitBtn.style.setProperty("background-color", "#1e293b", "important");
+                                submitBtn.style.setProperty("cursor", "not-allowed", "important");
+                            }
                         } else if (currentStage === "종료") {
                             if (calendarRedirectBtn) {
-                                calendarRedirectBtn.style.setProperty("display", "block", "important");
-                                calendarRedirectBtn.style.setProperty("background-color", "#475569", "important");
                                 calendarRedirectBtn.innerText = "📅 임상시험 일정 확인 (과제 완료)";
+                                calendarRedirectBtn.style.setProperty("background-color", "#475569", "important");
                             }
                             if (submitBtn) {
                                 submitBtn.innerText = "지급 청구 마감 (과제 종료)";
                                 submitBtn.disabled = true;
                                 submitBtn.style.setProperty("background-color", "#1e293b", "important");
                             }
-                        } else {
-                            // 신검대기 등 평시 상태일 때는 일정보기 버튼을 철저히 은폐 숨김
-                            if (calendarRedirectBtn) calendarRedirectBtn.style.display = "none";
                         }
-                        /* ================================================================= */
+
                     }
 
                     // 1. 실제 연동 시험 공고의 진짜 기수(th) 실시간 주입

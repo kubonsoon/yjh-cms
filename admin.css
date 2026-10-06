@@ -1298,3 +1298,61 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   text-align: center !important;
   text-align-last: center !important;
 }
+/* 1) 대량 신검 결과 파일 업로드(Batch Import) 전용 드롭존 세션 */
+.batch-import-zone {
+  background: #0f172a !important;
+  border: 2px dashed #1e293b !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  text-align: center !important;
+  margin-bottom: 20px !important;
+  transition: all 0.3s ease !important;
+}
+.batch-import-zone:hover {
+  border-color: #0ea5e9 !important;
+  background: rgba(14, 165, 233, 0.02) !important;
+}
+
+/* 2) 4글자 마스터 상태별 관제탑 그리드 고대비 네온 배지 */
+.adm-status-badge {
+  display: inline-block !important;
+  padding: 3px 8px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  border-radius: 4px !important;
+  text-align: center !important;
+}
+.adm-stage-purple {
+  background: #7c3aed !important;
+  color: #ffffff !important;
+} /* 신검대기 */
+.adm-stage-green {
+  background: #10b981 !important;
+  color: #ffffff !important;
+} /* 신검통과 */
+.adm-stage-blue {
+  background: #2563eb !important;
+  color: #ffffff !important;
+} /* 소집/투약 */
+.adm-stage-emerald {
+  background: #059669 !important;
+  color: #ffffff !important;
+} /* 방문 시리즈 */
+.adm-stage-rose {
+  background: #f43f5e !important;
+  color: #ffffff !important;
+} /* 심사탈락/동철 */
+
+/* 3) 파일 일괄 등록 진행 상황 및 결과 분석 패널 레일 */
+.batch-log-panel {
+  background: #07132b !important;
+  border: 1px solid #1e293b !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  font-family: monospace !important;
+  font-size: 12px !important;
+  color: #38bdf8 !important;
+  max-height: 120px !important;
+  overflow-y: auto !important;
+  margin-top: 10px !important;
+}

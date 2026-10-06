@@ -120,6 +120,69 @@
             opacity: 0.3;
             cursor: not-allowed !important;
         }
+
+        /* 1) 관리자 수동 제어용 행정 단계 스위칭 셀렉트 박스 전용 핏 */
+        .adm-status-select {
+            background-color: #07132b !important;
+            border: 1px solid #1e293b !important;
+            border-radius: 6px !important;
+            color: #ffffff !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            padding: 4px 6px !important;
+            outline: none !important;
+            cursor: pointer !important;
+            width: 100% !important;
+            margin-top: 5px !important;
+        }
+
+        /* 2) 대상자 상태별 모바일 제어반 라벨 스킨 (m-login 배지와 연동 시각화) */
+        .adm-badge-purple {
+            background: #7c3aed !important;
+            color: #ffffff !important;
+        }
+
+        /* 신검대기 */
+        .adm-badge-green {
+            background: #10b981 !important;
+            color: #ffffff !important;
+        }
+
+        /* 신검통과 */
+        .adm-badge-blue {
+            background: #2563eb !important;
+            color: #ffffff !important;
+        }
+
+        /* 소집/투약 */
+        .adm-badge-rose {
+            background: #f43f5e !important;
+            color: #ffffff !important;
+        }
+
+        /* 심사탈락 */
+
+        /* 3) 원격 무선 패킷 개방(toggleAuth) 인가 활성화 상태 야광 테두리 */
+        .adm-btn-pulse {
+            position: relative !important;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6) !important;
+            border: 1px solid #10b981 !important;
+            animation: admPulse 2s infinite !important;
+        }
+
+        @keyframes admPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
     </style>
 </head>
 
@@ -228,7 +291,7 @@
 
     <script>
         // =========================================================================
-        // 🟢 [정밀 교정 완결]: 진재영 하드코딩 독점 버그를 철거하고, 무한 다중 유저 실시간 인터셉터 안테나 이식
+        // 🟢 [정밀 교정 완결]: 변수명 주파수를 단일화하여 무한 다중 유저 실시간 인터셉터 안테나 이식
         // =========================================================================
         let targetName = "";
 
@@ -256,24 +319,31 @@
 
                 const userRec = applicantDB.find(u => (u.name || '').toString().replace(/\s/g, "") === targetName.replace(/\s/g, ""));
 
-                if (userRec && userRec.title) {
-                    const cleanAppTitle = userRec.title.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                    const cleanAppTh = (userRec.th || "").replace(/[^0-9]/g, "");
+                if (userRec) {
+                    // 모바일 제어반 인라인 자동화 관제 디스플레이 엔진과 실시간 라이브 연동 수혈
+                    if (typeof updateMobileStageUI === "function") {
+                        updateMobileStageUI(userRec);
+                    }
 
-                    // 대상자의 과제명과 기수가 100% 매칭되는 진짜 모집공고 원본 색인 [index: 0.1.122]
-                    const matchedRec = recruitmentDB.find(r => {
-                        const cleanRecTitle = (r.title || "").toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                        const cleanRecTh = (r.th || "").replace(/[^0-9]/g, "");
-                        return cleanRecTitle === cleanAppTitle && cleanRecTh === cleanAppTh;
-                    });
+                    if (userRec.title) {
+                        const cleanAppTitle = userRec.title.toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const cleanAppTh = (userRec.th || "").replace(/[^0-9]/g, "");
 
-                    if (matchedRec) {
-                        // 1기/2기 등 어떤 스펙이 들어오든 인라인 피커 날짜(payDate1~3)를 우선 상속 [index: 0.1.107, 0.1.122]
-                        const d1 = matchedRec.payDate1 || matchedRec.recDate || "추후공지";
-                        const d2 = matchedRec.payDate2 || "추후공지";
+                        // 대상자의 과제명과 기수가 100% 매칭되는 진짜 모집공고 원본 색인
+                        const matchedRec = recruitmentDB.find(r => {
+                            const cleanRecTitle = (r.title || "").toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                            const cleanRecTh = (r.th || "").replace(/[^0-9]/g, "");
+                            return cleanRecTitle === cleanAppTitle && cleanRecTh === cleanAppTh;
+                        });
 
-                        if (step1Label) step1Label.innerHTML = `1차 일정 이수 완료 <b style="color:#fbbf24; margin-left:4px;">[지급일: ${d1}]</b>`;
-                        if (step2Label) step2Label.innerHTML = `2차 일정 최종 완료 <b style="color:#fbbf24; margin-left:4px;">[지급일: ${d2}]</b>`;
+                        if (matchedRec) {
+                            // 1기/2기 등 어떤 스펙이 들어오든 인라인 피커 날짜(payDate1~3)를 우선 상속
+                            const d1 = matchedRec.payDate1 || matchedRec.recDate || "추후공지";
+                            const d2 = matchedRec.payDate2 || "추후공지";
+
+                            if (step1Label) step1Label.innerHTML = `1차 일정 이수 완료 <b style="color:#fbbf24; margin-left:4px;">[지급일: ${d1}]</b>`;
+                            if (step2Label) step2Label.innerHTML = `2차 일정 최종 완료 <b style="color:#fbbf24; margin-left:4px;">[지급일: ${d2}]</b>`;
+                        }
                     }
                 }
 
@@ -292,6 +362,7 @@
         syncTargetSession();
         setInterval(syncTargetSession, 1000);
 
+        // 체크박스 제어용 비활성화 래퍼 유틸리티 보존
         function setBoxesDisabled(isD) {
             ['chk_step1', 'chk_step2', 'chk_first_fail', 'chk_self_out', 'chk_backup_out'].forEach(id => {
                 if (document.getElementById(id)) document.getElementById(id).disabled = isD;
@@ -315,7 +386,15 @@
             });
 
             if (user) {
-                // 🔒 [순정 참여상태 철통 사수]: 대장의 진짜 상태값(user.stage)은 변조 없이 그대로 유지 보존합니다.
+                // 🔒 [순정 참여상태 철통 사수 및 행정 상태 코드 동치화]: 파일 일괄 등록 시스템 규격 반영
+                if (status === 'PASS') {
+                    user.status = "신검통과";
+                    user.stage = "신검통과";
+                } else if (status === 'FAIL') {
+                    user.status = "신검탈락";
+                    user.stage = "신검탈락";
+                }
+
                 user.payStatus = "대기"; // 정산 스코어보드 연동 레이어만 세팅
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
 
@@ -336,12 +415,14 @@
 
                 console.log(`[원격 관제탑] 무선 심사 완료 ➡️ 대상자: ${user.name} / 신호: ${status} (순정상태 [${user.stage}] 격리 보호완료)`);
                 alert(`📱 원격 심사 신호 [${status === 'PASS' ? '통과 승인' : '탈락 반려'}] 패킷이 대상자 모바일 화면으로 실시간 사출되었습니다.`);
+
+                syncTargetSession(); // 안테나 리렌더링 인터록 호출 동기화
             } else {
                 console.log(`[전산 경고] 명단 매칭 거절: 현재 관제 대상자 명의(${targetName})가 dataStoreApplicant 마스터 대장에 존재하지 않습니다.`);
             }
         }
 
-        // ❸ 2단계 체크박스 배타적 연산선 핸들러
+        // ❸ 2단계 체크박스 배타적 연산선 핸들러 [순정 흐름 100% 무결 보존]
         function handleRules(id) {
             let c1 = document.getElementById('chk_step1'), c2 = document.getElementById('chk_step2');
             let cF = document.getElementById('chk_first_fail'), cB = document.getElementById('chk_backup_out'), cS = document.getElementById('chk_self_out');
@@ -419,85 +500,31 @@
                     time: Date.now()
                 }));
 
+                // 🎯 [시각적 피드백 수혈]: 무선 개통 신호 개방 시 단추 디자인에 야광 펄스 테두리 동적 주입 및 리셋
+                const btnAllow = document.getElementById('btn_allow');
+                const btnBlock = document.getElementById('btn_block');
+                if (btnAllow && btnBlock) {
+                    if (isAllow) {
+                        btnAllow.classList.add('adm-btn-pulse');
+                        btnBlock.classList.remove('adm-btn-pulse');
+                    } else {
+                        btnBlock.classList.add('adm-btn-pulse');
+                        btnAllow.classList.remove('adm-btn-pulse');
+                    }
+                }
+
                 alert(isAllow ? "👍 선택하신 가변 차수별 참여비 청구서가 대상자 화면에 실시간 승인 개방되었습니다." : "🔒 참여비 청구 권한을 홀딩 잠금 처리했습니다.");
                 console.log(`[원격 관제탑] 지급 권한 조율 완료 ➡️ 대상자명: ${user.name} / 식별코드: ${code} / 상태명세: ${user.payStatus}`);
-            } else {
-                alert("알림: 현재 심사 중인 대상자의 명의를 dataStoreApplicant 마스터 대장에서 찾을 수 없습니다.");
-            }
-        }
 
-        function handleRules(id) {
-            let c1 = document.getElementById('chk_step1'), c2 = document.getElementById('chk_step2'), cF = document.getElementById('chk_first_fail'), cB = document.getElementById('chk_backup_out'), cS = document.getElementById('chk_self_out');
-            if ((id === 'chk_first_fail' && cF.checked) || (id === 'chk_self_out' && cS.checked)) {
-                c1.checked = false; c2.checked = false; cB.checked = false;
-                if (id === 'chk_first_fail') cS.checked = false; else cF.checked = false;
-            } else if (id === 'chk_backup_out' && cB.checked) {
-                c1.checked = false; c2.checked = false; cF.checked = false; cS.checked = false;
-            } else if (id === 'chk_step2' && c2.checked) {
-                c1.checked = true; cF.checked = false; cB.checked = false; cS.checked = false;
-            } else if (id === 'chk_step1' && !c1.checked) { c2.checked = false; }
-
-            let anyChecked = c1.checked || c2.checked || cF.checked || cB.checked || cS.checked;
-
-            // 버튼 탐색 규격 하이픈 오타 전수 청소 통합 종결 완료
-            if (document.getElementById('btn_allow')) document.getElementById('btn_allow').disabled = !anyChecked;
-            if (document.getElementById('btn_block')) document.getElementById('btn_block').disabled = !anyChecked;
-        }
-
-        function switchUserType() {
-            let isN = document.getElementById('r_normal').checked;
-            let c1 = document.getElementById('chk_step1'), c2 = document.getElementById('chk_step2'), cF = document.getElementById('chk_first_fail'), cB = document.getElementById('chk_backup_out'), cS = document.getElementById('chk_self_out');
-            c1.checked = c2.checked = cF.checked = cB.checked = cS.checked = false;
-            c1.disabled = false; cF.disabled = !isN; cS.disabled = !isN; cB.disabled = isN; c2.disabled = true;
-            if (document.getElementById('btn_allow')) document.getElementById('btn_allow').disabled = true;
-            if (document.getElementById('btn_block')) document.getElementById('btn_block').disabled = true;
-        }
-
-        function toggleAuth(isAllow) {
-            syncTargetSession(); // 송신 버튼 터치 시점 0초 타이밍 마스터 세션 성명 강제 리프레시
-
-            if (!targetName || targetName === "") {
-                return alert("알림: 현재 권한을 개방할 활성화 대상자가 잡히지 않았습니다.");
-            }
-
-            const cleanTargetName = targetName.replace(/\s/g, "");
-            let db = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-            let user = db.find(u => {
-                const cleanDbName = (u.name || '').toString().replace(/\s/g, "");
-                return cleanDbName === cleanTargetName;
-            });
-
-            if (user) {
-                let code = 0;
-                if (document.getElementById('chk_step2').checked) code = 2;
-                else if (document.getElementById('chk_step1').checked) code = 1;
-                else if (document.getElementById('chk_first_fail').checked) code = 3;
-                else if (document.getElementById('chk_backup_out').checked) code = 4;
-                else if (document.getElementById('chk_self_out').checked) code = 5;
-
-                // 원자적 가상 DB 업데이트 동시 커밋 처리 결합
-                if (isAllow) {
-                    user.payStatus = "신청가능";
-                } else {
-                    user.payStatus = "대기";
+                // 내장 동적 디스플레이 새로고침 인터록 구동
+                if (typeof updateMobileStageUI === "function") {
+                    updateMobileStageUI(user);
                 }
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(db));
-
-                // 소독 완료된 리얼 로그인 유저 대상 무선 인가 신호 패킷 사출
-                localStorage.setItem('msg_auth_signal', JSON.stringify({
-                    name: user.name,
-                    isAllow: isAllow,
-                    stageCode: code,
-                    time: Date.now()
-                }));
-
-                alert(isAllow ? "👍 대상자 화면에 참여비 청구서가 실시간 승인 개방되었습니다." : "🔒 참여비 청구 권한을 홀딩 잠금 처리했습니다.");
-                console.log(`[원격 관제탑] 지급 권한 개방 종결 ➡️ 대상자명: ${user.name} / 상태명세: ${user.payStatus}`);
             } else {
                 alert("알림: 현재 심사 중인 대상자의 명의를 dataStoreApplicant 마스터 대장에서 찾을 수 없습니다.");
             }
         }
+
     </script>
 </body>
 

@@ -114,373 +114,450 @@
     </div>
 
     <script>
-        // 1. 달력 전역 상태 관리 포인터 스케줄러
-        let currentDate = new Date();
-        let currentFilter = 'ALL';
+        // 1. 달력 전역 상태 관리 포인터 스케줄러 [원본 순정 유지] [index: 1.118]
+        let currentDate = new Date(); //
+        let currentFilter = 'ALL'; //
 
         /**
-         * 2. 메인 대시보드(admin.html)의 로컬스토리지 임상시험 마스터 레코드 스트림 연동
+         * 2. 메인 대시보드(admin.html)의 로컬스토리지 임상시험 마스터 레코드 스트림 연동 [원본 보존] [index: 1.124]
          */
         function getMasterData() {
-            return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+            return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || []; //
         }
 
         /**
-         * 3. 대상자 관리 탭(applicantView)의 가상 데이터베이스 동기화 스트림 로드
+         * 3. 대상자 관리 탭(applicantView)의 가상 데이터베이스 동기화 스트림 로드 [원본 보존] [index: 1.131]
          */
         function getApplicantData() {
-            return JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            return JSON.parse(localStorage.getItem('dataStoreApplicant')) || []; //
         }
 
         /**
-         * 4. 월 선택 컨트롤러 네비게이터 작동기
+         * 4. 월 선택 컨트롤러 네비게이터 작동기 [원본 보존] [index: 1.138]
          */
         function moveMonth(v) {
-            currentDate.setMonth(currentDate.getMonth() + v);
-            renderCalendar();
+            currentDate.setMonth(currentDate.getMonth() + v); //
+            renderCalendar(); //
         }
 
         /**
-         * 5. 전체 스케줄링 백업 데이터 JSON 파일 사출 다운로드 함수
+         * 5. 전체 스케줄링 백업 데이터 JSON 파일 사출 다운로드 함수 [원본 보존] [index: 1.146]
          */
         function executeDownload() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getMasterData(), null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `CTMS_Schedule_${currentDate.getFullYear()}_${currentDate.getMonth() + 1}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getMasterData(), null, 2)); //
+            const downloadAnchor = document.createElement('a'); //
+            downloadAnchor.setAttribute("href", dataStr); //
+            downloadAnchor.setAttribute("download", `CTMS_Schedule_${currentDate.getFullYear()}_${currentDate.getMonth() + 1}.json`); //
+            document.body.appendChild(downloadAnchor); //
+            downloadAnchor.click(); //
+            downloadAnchor.remove(); //
         }
 
-        // 글로벌 스코프에 현재 활성화된 모달 과제 컨텍스트 데이터 보존
-        let currentActiveModalJob = null;
-        let currentTemporaryUid = ""; // 💡 [인덱스 버그 해결] 실시간 배열 순서 변동에 대응할 고유 UID 락 보존 변수
+        // 글로벌 스코프에 현재 활성화된 모달 과제 컨텍스트 데이터 보존 [원본 보존] [index: 1.157]
+        let currentActiveModalJob = null; //
+        let currentTemporaryUid = ""; // [인덱스 버그 해결] 실시간 배열 순서 변동에 대응할 고유 UID 락 보존 변수
 
         /**
-         * 6. [대수술 완수]: 대상자 상태별 달력 일정 격리 및 미래 일정 클릭 가드 렌더러 함수
+         * 6. [대수술 완수]: m-calendar.html과 100% 동치 결합 ➔ 내 모든 차수 일정 달력 레일 전수 노출 [index: 1.161]
          */
         function renderCalendar() {
-            const board = document.getElementById('calendarBoard');
-            const label = document.getElementById('currentMonthLabel');
-            if (!board) return;
-            board.innerHTML = '';
+            const board = document.getElementById('calendarBoard'); //
+            const label = document.getElementById('currentMonthLabel'); //
+            if (!board) return; //
+            board.innerHTML = ''; //
 
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            label.innerText = `${year}년 ${(month + 1).toString().padStart(2, '0')}월`;
+            const year = currentDate.getFullYear(); //
+            const month = currentDate.getMonth(); //
+            if (label) label.innerText = `${year}년 ${(month + 1).toString().padStart(2, '0')}월`; //
 
-            const firstDay = new Date(year, month, 1).getDay();
-            const lastDate = new Date(year, month + 1, 0).getDate();
-            const prevLastDate = new Date(year, month, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay(); //
+            const lastDate = new Date(year, month + 1, 0).getDate(); //
+            const prevLastDate = new Date(year, month, 0).getDate(); //
 
             for (let i = firstDay - 1; i >= 0; i--) {
-                const cell = document.createElement('div');
-                cell.className = 'day-cell other-month';
-                cell.innerHTML = `<div class="day-num">${prevLastDate - i}</div>`;
-                board.appendChild(cell);
+                const cell = document.createElement('div'); //
+                cell.className = 'day-cell other-month'; //
+                cell.innerHTML = `<div class="day-num">${prevLastDate - i}</div>`; //
+                board.appendChild(cell); //
             }
 
             const records = getMasterData(); // 모집공고 원장
             const applicantDB = getApplicantData(); // 유입 경로 3종 통합 대상자 대장
 
-            // 💡 [실물 세션 동기화] m-login.html 유저 인증 결과 추적
-            let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+            // [실물 세션 동기화] m-login.html 유저 인증 결과 추적
+            let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')); //
             if (!loggedInUser || !loggedInUser.name) {
-                loggedInUser = { name: "홍길동", isNew: false };
-                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+                loggedInUser = { name: "홍길동", isNew: false }; //
+                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser)); //
             }
-            const currentSessionName = loggedInUser.name.toString().trim();
+            const currentSessionName = loggedInUser.name.toString().trim(); //
+            const cleanSessionName = currentSessionName.replace(/\s/g, "");
 
-            // 🔒 [격리 판단 가드]: 파일 일괄 등록 결과 '신검탈락', '신검동철', '탈락' 유저는 미참여 오픈 트랙 복귀 처리
+            // [격리 판단 가드]: 파일 일괄 등록 결과 '신검탈락', '신검동철', '탈락' 유저는 미참여 오픈 트랙 복귀 처리
             // 오직 '신검대기', '신검통과', '소집', '투약', '방문' 시리즈가 살아있는 유저만 Lock-in 격리 적용
             const myLiveJob = applicantDB.find(app =>
-                (app.name || "").toString().trim() === currentSessionName &&
+                (app.name || "").toString().replace(/\s/g, "") === cleanSessionName &&
                 app.stage &&
-                !["종료", "탈락", "신검탈락", "신검동철"].includes(app.stage)
+                !["종료", "탈락", "신검탈락", "신검동철"].includes(app.stage) //
             );
 
-            const isLockInUser = !!myLiveJob;
+            // 참여하지 않은 시험, 참여가 종료되지 않은 시험, 6개월이 지나지 않은 시점에서는 다른 시험은 보이지 않음
+            const isLockInUser = !!myLiveJob; //
 
             for (let d = 1; d <= lastDate; d++) {
-                const cell = document.createElement('div');
-                cell.className = 'day-cell';
-                cell.innerHTML = `<div class="day-num">${d}</div>`;
+                const cell = document.createElement('div'); //
+                cell.className = 'day-cell'; //
+                cell.innerHTML = `<div class="day-num">${d}</div>`; //
 
-                const thisDateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+                const thisDateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`; //
 
                 records.forEach(item => {
-                    const thText = (item.th || "1기").trim();
-                    const thLabel = item.th ? ` [${item.th}]` : '';
-                    const clickUid = item.uid ? item.uid : item.title;
-                    const dynamicColorClass = `th-color-${thText}`;
+                    const thText = (item.th || "1기").trim(); //
+                    const thLabel = item.th ? `[${item.th}]` : ''; //
+                    const clickUid = item.uid ? item.uid : item.title; //
+                    const dynamicColorClass = `th-color-${thText}`; //
 
                     if (item.recDate && item.recDate.trim() === thisDateStr) {
 
-                        // 🔒 [대원칙 격리 셔터 작동]: 참여 명단에 확보된 락인 유저라면 타인의 시험 일정은 철저히 화면 숨김
+                        // [대원칙 격리 셔터 작동]: 참여 명단에 확보된 락인 유저라면 타인의 시험 일정은 철저히 화면 숨김
                         if (isLockInUser && myLiveJob.title !== item.title) {
-                            return;
+                            return; //
                         }
 
-                        const badge = document.createElement('div');
-                        badge.className = `event-badge ${dynamicColorClass}`;
+                        const badge = document.createElement('div'); //
+                        badge.className = `event-badge ${dynamicColorClass}`; //
 
-                        // 💡 [대수술 핵심]: 텍스트 명칭은 달력 인터페이스 용어로 치환하되 모든 미래 일정을 다 노출해 줌
+                        // [m-calendar.html 완벽 동치 텍스트 수혈]: 복잡한 공고 내용 철거 후 실무 4대 행정 용어 텍스트 표출
                         let stageText = "스크리닝";
-                        if (isLockInUser && myLiveJob.title === item.title) {
-                            badge.classList.add("badge-active-track"); // 내 시험 야광 표시
+                        let liveStatusText = "신검대기";
 
-                            const curStage = myLiveJob.stage || "신검대기";
-                            if (["신검대기", "신검통과"].includes(curStage)) stageText = "스크리닝";
-                            else if (curStage === "소집") stageText = "소집일";
-                            else stageText = curStage;
+                        if (isLockInUser && myLiveJob.title === item.title) {
+                            badge.classList.add("badge-active-track"); // 내 시험 야광 하이라이트 표시 주입
+                            liveStatusText = myLiveJob.status || myLiveJob.stage || "신검대기"; //
+
+                            // 💡 [m-calendar 완벽 동치 스펙 개통]: 날짜에 연동되는 진짜 행정 차수 텍스트 역산 바인딩
+                            if (["신검대기", "신검통과"].includes(liveStatusText)) {
+                                stageText = "스크리닝"; //
+                            } else if (liveStatusText === "소집") {
+                                stageText = "소집일"; //
+                            } else if (liveStatusText.includes("방문") && liveStatusText !== "종료방문") {
+                                stageText = `${liveStatusText} 채혈`; // 1~4차 방문채혈 텍스트 명세화
+                            } else if (liveStatusText === "종료방문" || liveStatusText === "종료") {
+                                stageText = "종료방문";
+                            } else {
+                                stageText = liveStatusText; //
+                            }
                         }
 
-                        badge.innerHTML = `+ ${item.title || '과제'}${thLabel} <span style="color:#fbbf24; font-size:11px; font-weight:800;">(${stageText})</span>`;
-                        badge.setAttribute('onclick', `openClinicalDetailModal('${clickUid}', '소집 일정')`);
-                        cell.appendChild(badge);
+                        badge.innerHTML = `+ ${item.title || '과제'}${thLabel} <span style="color:#fbbf24; font-size:11px; font-weight:800;">(${stageText})</span>`; //
+                        badge.setAttribute('onclick', `openClinicalDetailModal('${clickUid}', '${stageText}')`); //
+
+                        // 🔒 [미래 일정 터치 차단 클릭 가드 원격 수혈]
+                        // 🎯 진재영 대상자가 [신검통과] 유효 단계 상태일 때, 미래 일정(소집일, 1~4차 방문채혈 등)은 클릭 가드 작동
+                        if (isLockInUser) {
+                            if (liveStatusText === "신검대기" || liveStatusText === "신검통과") {
+                                // 스크리닝 단계이므로 스크리닝 배지만 활성화하고 미래 방문 일정은 클릭 차단 잠금
+                                if (stageText !== "스크리닝") {
+                                    badge.classList.add('mobile-future-lock');
+                                }
+                            } else if (liveStatusText === "소집" || liveStatusText.includes("방문")) {
+                                // 소집 이후 단계인 경우 현재 유효 차수 배지만 개방하고 나머지는 홀딩 잠금
+                                if (stageText !== liveStatusText && !stageText.includes(liveStatusText)) {
+                                    badge.classList.add('mobile-future-lock');
+                                }
+                            } else {
+                                badge.classList.add('mobile-future-lock');
+                            }
+                        }
+
+                        cell.appendChild(badge); //
                     }
                 });
 
-                board.appendChild(cell);
+                board.appendChild(cell); //
             }
         }
 
-
         /**
-                * 7. m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진 + 원본 버튼 하이재킹 모듈 결합
+                * 7. m-login.html 인증 세션 연동 및 가상 회원가입 자동 패스권 탑재 엔진 + 원본 버튼 하이재킹 모듈 결합 [원본 흐름 100% 사수] [index: 1.253]
                 */
         window.openClinicalDetailModal = function (uid, typeTitle) {
-            const records = getMasterData();
-            let applicantDB = getApplicantData();
+            const records = getMasterData(); //
+            let applicantDB = getApplicantData(); //
 
-            const target = records.find(item => item.uid == uid || item.title === uid);
-            if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다.");
+            const target = records.find(item => item.uid == uid || item.title === uid); //
+            if (!target) return console.error("오류: 선택한 임상 데이터 정보를 역추적할 수 없습니다."); //
 
-            const targetTitle = (target.title || "").toString().trim();
-            const targetTh = (target.th || "").toString().trim();
+            const targetTitle = (target.title || "").toString().trim(); //
+            const targetTh = (target.th || "").toString().trim(); //
+            currentActiveModalJob = target; //
 
-            currentActiveModalJob = target;
-
-            let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+            let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')); //
             if (!loggedInUser || !loggedInUser.name) {
-                loggedInUser = { name: "홍길동", isNew: false };
-                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+                loggedInUser = { name: "홍길동", isNew: false }; //
+                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser)); //
             }
+            const currentSessionName = loggedInUser.name.toString().trim(); //
+            const cleanSessionName = currentSessionName.replace(/\s/g, "");
 
-            const currentSessionName = loggedInUser.name.toString().trim();
-
-            // 현재 로그인한 사용자의 고유한 가상 티켓 또는 정식 신청건을 찾아 추적
-            let myTicket = applicantDB.find(app => (app.name || "").toString().trim() === currentSessionName);
+            // 현재 로그인한 사용자의 고유한 가상 티켓 또는 정식 신청건을 찾아 추적 [index: 1.275]
+            let myTicket = applicantDB.find(app => (app.name || "").toString().trim() === currentSessionName); //
 
             if (!myTicket) {
-                // 전연 참여 적 없는 완전 신규 방문 대상자인 경우 즉석 가상 티켓 발행
-                currentTemporaryUid = "TEMP_" + Date.now();
-                myTicket = {
-                    uid: currentTemporaryUid,
-                    name: currentSessionName,
-                    title: targetTitle,
-                    th: targetTh,
-                    period: target.period || "0",
-                    payStatus: "대기",
-                    isVirtualGhost: true
-                };
-                applicantDB.push(myTicket);
-                localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
+                // 전연 참여 적 없는 완전 신규 방문 대상자인 경우 즉석 가상 티켓 발행 [index: 1.277]
+                currentTemporaryUid = "TEMP_" + Date.now(); //
+                myTicket = { //
+                    uid: currentTemporaryUid, //
+                    name: currentSessionName, //
+                    title: targetTitle, //
+                    th: targetTh, //
+                    period: target.period || "0", //
+                    payStatus: "대기", //
+                    isVirtualGhost: true //
+                }; //
+                applicantDB.push(myTicket); //
+                localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB)); //
             } else {
-                // 이미 등록되어 있던 계정이라면 해당 객체의 불변 고유 uid를 시스템 추적 키로 락인
-                currentTemporaryUid = myTicket.uid;
+                // 이미 등록되어 있던 계정이라면 해당 객체의 불변 고유 uid를 시스템 추적 키로 락인 [index: 1.290]
+                currentTemporaryUid = myTicket.uid; //
             }
 
-            // 🔒 [클릭 가드 인터록]: 락인 유저인 경우 현재 활성화된 내 진짜 과제 팝업 창이 아니면 조회 차단
-            // 파일 일괄 등록 결과 '신검탈락', '신검동철' 상태가 아니고 임상이 진행 중인 경우에만 격리 작동
-            const isLockInUser = myTicket && !myTicket.isVirtualGhost && !["종료", "탈락", "신검탈락", "신검동철"].includes(myTicket.stage);
+            // [클릭 가드 인터록]: 락인 유저인 경우 현재 활성화된 내 진짜 과제 팝업 창이 아니면 조회 차단 [index: 1.295]
+            const isLockInUser = myTicket && !myTicket.isVirtualGhost && !["종료", "탈락", "신검탈락", "신검동철"].includes(myTicket.stage); //
             if (isLockInUser && myTicket.title !== targetTitle) {
-                alert("관제 에러: 귀하는 현재 다른 임상 과제에 완전히 락인(Lock-in)되어 진행 중이므로 본 과제의 상세 정보를 조회할 수 없습니다.");
-                return;
+                alert("관제 에러: 귀하는 현재 다른 임상 과제에 완전히 락인 (Lock-in)되어 진행 중이므로 본 과제의 상세 정보를 조회할 수 없습니다."); //
+                return; //
             }
 
-            document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 상세 안내]`;
-            document.getElementById('m-title').innerText = target.title || '-';
-            document.getElementById('m-th').innerText = target.th || '-';
-            document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-';
-            document.getElementById('m-period').innerText = target.period ? target.period + '시간' : '-';
-            document.getElementById('m-crc').innerText = target.crc || '-';
-            document.getElementById('m-recDate').innerText = target.recDate || '-';
+            // 💡 [미래 일정 터치 최종 모달 진입 차단 가드 연동]
+            if (isLockInUser) {
+                const liveStatusText = myTicket.status || myTicket.stage || "신검대기";
+                if (liveStatusText === "신검대기" || liveStatusText === "신검통과") {
+                    if (typeTitle !== "스크리닝") {
+                        alert("⚠️ 진입 잠금 안내\n\n대상자님은 현재 [신검 적합] 단계입니다.\n후속 소집 입원 및 내원 처리가 완료된 이후에 해당 차수 일정 조작이 개통됩니다.");
+                        return;
+                    }
+                } else if (liveStatusText === "소집" || liveStatusText.includes("방문")) {
+                    if (typeTitle !== liveStatusText && !typeTitle.includes(liveStatusText)) {
+                        alert(`⚠️ 차수 제한 안내\n\n현재 진행 중인 [${liveStatusText}] 단계 일정을 먼저 완료해 주세요.`);
+                        return;
+                    }
+                }
+            }
 
-            const scrollZone = document.getElementById("modal-history-scroll-zone");
-            if (scrollZone) scrollZone.innerHTML = "";
+            document.getElementById('m-popup-type').innerHTML = `<i class="fa-solid fa-circle-info"></i> [${typeTitle} 상세 안내]`; //
+            document.getElementById('m-title').innerText = target.title || '-'; //
+            document.getElementById('m-th').innerText = target.th || '-'; //
+            document.getElementById('m-count').innerText = target.count ? target.count + '명' : '-'; //
+            document.getElementById('m-period').innerText = target.period ? target.period + '시간' : '-'; //
+            document.getElementById('m-crc').innerText = target.crc || '-'; //
+            document.getElementById('m-recDate').innerText = target.recDate || '-'; //
 
-            // [버그 교정 핵심] 타인의 데이터가 섞이지 않도록 오직 현재 로그인된 대상자 성명 정보만 단독 정밀 추출
+            const scrollZone = document.getElementById("modal-history-scroll-zone"); //
+            if (scrollZone) scrollZone.innerHTML = ""; //
+
+            // [버그 교정 핵심] 타인의 데이터가 섞이지 않도록 오직 현재 로그인된 대상자 성명 정보만 단독 정밀 추출 [index: 1.314]
             const rawHistoryRecords = applicantDB.filter(item =>
-                (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== ""
+                (item.name || "").toString().trim() === currentSessionName && (item.name || "").toString().trim() !== "" //
             );
 
             const currentJobArray = rawHistoryRecords.filter(row =>
-                (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh
+                (row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh //
             );
             const pastJobArray = rawHistoryRecords.filter(row =>
-                !((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh)
+                !((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh) //
             );
 
-            const sortedHistoryRecords = currentJobArray.concat(pastJobArray);
-            document.getElementById("m-history-count-title").innerText = `대상자 참여 마스터 이력조회 누적 내역 (${sortedHistoryRecords.length}건)`;
+            const sortedHistoryRecords = currentJobArray.concat(pastJobArray); //
+            document.getElementById("m-history-count-title").innerText = `대상자 참여 마스터 이력조회 누적 내역 (${sortedHistoryRecords.length}건)`; //
 
             if (sortedHistoryRecords.length === 0) {
-                if (scrollZone) scrollZone.innerHTML = `<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>`;
+                if (scrollZone) scrollZone.innerHTML = '<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding: 20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>'; //
             } else {
                 sortedHistoryRecords.forEach(row => {
-                    const isCurrentJob = ((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh);
-                    const miniCard = document.createElement("div");
-                    miniCard.className = isCurrentJob ? "history-mini-card current-job" : "history-mini-card";
+                    const isCurrentJob = ((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh); //
+                    const miniCard = document.createElement("div"); //
+                    miniCard.className = isCurrentJob ? "history-mini-card current-job" : "history-mini-card"; //
 
-                    let prefixTag = isCurrentJob ? `<span style="color:var(--secondary-color); font-weight:800; margin-right:4px;">[현재시험]</span>` : `<span style="color:var(--text-muted); font-weight:700; margin-right:4px;">[과거시험]</span>`;
-                    let rowTitleDisplay = row.title || '미지정 과제';
+                    let prefixTag = isCurrentJob ? `<span style="color:var(--secondary-color); font-weight:800; margin-right:4px;">[현재시험]</span>` : `<span style="color:var(--text-muted); font-weight:700; margin-right:4px;">[과거시험]</span>`; //
+                    let rowTitleDisplay = row.title || '미지정 과제'; //
                     if (row.isVirtualGhost) {
-                        prefixTag = `<span style="color:var(--success-color); font-weight:800; margin-right:4px;">[최초인증]</span>`;
-                        rowTitleDisplay = `${rowTitleDisplay} (가상 회원 패스권 즉시 발급됨)`;
+                        prefixTag = '<span style="color:var(--success-color); font-weight:800; margin-right:4px;">[최초인증]</span>'; //
+                        rowTitleDisplay = `${rowTitleDisplay} (가상 회원 패스권 즉시 발급됨)`; //
                     }
 
-                    // 💡 [4글자 행정명칭 치환] 대상자 관리의 4글자 상태값을 달력 인터페이스 용어로 변환 표시
-                    let displayStage = row.stage || "신검대기";
-                    if (displayStage === "신검대기") displayStage = "스크리닝 (신검대기)";
-                    else if (displayStage === "신검통과") displayStage = "스크리닝 (신검통과)";
-                    else if (displayStage === "소집") displayStage = "소집일 (투약단계)";
+                    // [4글자 행정명칭 치환] 대상자 관리의 4글자 상태값을 달력 인터페이스 용어로 변환 표시 [index: 1.344]
+                    let displayStage = row.stage || "신검대기"; //
+                    if (displayStage === "신검대기") displayStage = "스크리닝 (신검대기)"; //
+                    else if (displayStage === "신검통과") displayStage = "스크리닝 (신검통과)"; //
+                    else if (displayStage === "소집") displayStage = "소집일 (투약단계)"; //
 
-                    const currentPayStatus = row.payStatus1 || row.payStatus || "대기";
-                    let statusColor = "#94a3b8";
-                    if (currentPayStatus === "접수") statusColor = "#38bdf8";
-                    else if (currentPayStatus === "처리중") statusColor = "#fbbf24";
-                    else if (currentPayStatus === "완료") statusColor = "var(--success-color)";
-                    else if (currentPayStatus === "대기") statusColor = "var(--danger-color)";
+                    const currentPayStatus = row.payStatus1 || row.payStatus || "대기"; //
+                    let statusColor = "#94a3b8"; //
+                    if (currentPayStatus === "접수") statusColor = "#38bdf8"; //
+                    else if (currentPayStatus === "처리중") statusColor = "#fbbf24"; //
+                    else if (currentPayStatus === "완료") statusColor = "var(--success-color)"; //
+                    else if (currentPayStatus === "대기") statusColor = "var(--danger-color)"; //
 
                     miniCard.innerHTML = `
-                <div style="text-align:left;">
-                    <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
-                        ${prefixTag}${row.name || '대상자'} - ${rowTitleDisplay}
-                    </div>
-                    <div style="font-size:11.5px; color:var(--text-muted);">
-                        진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 현재행정단계: <b style="color:#fbbf24;">${displayStage}</b>
-                    </div>
-                </div>
-                <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
-                    지급상태: <span style="color:${statusColor}; font-weight:700;">${currentPayStatus}</span>
-                </div>
-            `;
-                    if (scrollZone) scrollZone.appendChild(miniCard);
+                        <div style="text-align:left;">
+                            <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:2px;">
+                                ${prefixTag}${row.name || '대상자'} ${rowTitleDisplay}
+                            </div>
+                            <div style="font-size:11.5px; color:var(--text-muted);">
+                                진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 현재 행정단계: <b style="color:#fbbf24;">${displayStage}</b>
+                            </div>
+                        </div>
+                        <div style="font-size:12.5px; color:var(--text-muted); white-space:nowrap;">
+                            지급상태: <span style="color: ${statusColor}; font-weight:700;"> ${currentPayStatus}</span>
+                        </div>
+                    `;
+                    if (scrollZone) scrollZone.appendChild(miniCard); //
                 });
             }
 
-            // 💡 원본 HTML 소스를 100% 보존하기 위해 타겟 엘리먼트 내부의 온클릭 핸들러 가로채기(인터셉트) 기믹 가동
+            // 원본 HTML 소스를 100% 보존하기 위해 타겟 엘리먼트 내부의 온클릭 핸들러 가로채기(인터셉트) 기믹 가동 [index: 1.374]
             setTimeout(() => {
-                const btnJoin = document.querySelector('.btn-join');
-                const btnReject = document.querySelector('.btn-reject');
+                const btnJoin = document.querySelector('.btn-join'); //
+                const btnReject = document.querySelector('.btn-reject'); //
 
                 if (btnJoin) {
-                    // 🔒 [핵심 가이드 징검다리 스위칭]: 미래 일정 전체 노출 하에서, 오직 내 참여 유효 단계만 클릭 가능하게 제어
+                    // [핵심 가이드 징검다리 스위칭]: 미래 일정 전체 노출 하에서, 오직 내 참여 유효 단계만 클릭 가능하게 제어 [index: 1.380]
                     if (isLockInUser) {
-                        let curStageFriendly = myTicket.stage || "신검대기";
-                        if (curStageFriendly === "신검대기") curStageFriendly = "스크리닝(대기)";
-                        else if (curStageFriendly === "신검통과") curStageFriendly = "스크리닝(통과)";
-                        else if (curStageFriendly === "소집") curStageFriendly = "소집일";
+                        let curStageFriendly = myTicket.status || myTicket.stage || "신검대기"; //
+                        if (curStageFriendly === "신검대기") curStageFriendly = "스크리닝(대기)"; //
+                        else if (curStageFriendly === "신검통과") curStageFriendly = "스크리닝(통과)"; //
+                        else if (curStageFriendly === "소집") curStageFriendly = "소집일"; //
 
-                        btnJoin.innerText = `현재 [${curStageFriendly}] 내원(참여) 확인`;
-                        btnJoin.disabled = false; // 💡 현재 가능한 단계이므로 락 해제
+                        btnJoin.innerText = `현재 [${curStageFriendly}] 내원(참여) 확인`; //
+                        btnJoin.disabled = false; // 현재 가능한 단계이므로 락 해제
                     } else if (myTicket && (myTicket.stage === "신검탈락" || myTicket.stage === "신검동철")) {
-                        btnJoin.innerText = "미배정 대상자 (신검 탈락/동철)";
-                        btnJoin.disabled = true;
+                        btnJoin.innerText = "미배정 대상자 (신검 탈락/동철)"; //
+                        btnJoin.disabled = true; //
                     } else {
-                        btnJoin.innerText = "현장 명단 배정 필요 (수동/인증유입상태)";
-                        btnJoin.disabled = true;
+                        btnJoin.innerText = "현장 명단 배정 필요 (수동/인증유입상태)"; //
+                        btnJoin.disabled = true; //
                     }
 
                     btnJoin.onclick = function (e) {
-                        e.preventDefault();
-                        let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                        e.preventDefault(); //
+                        let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || []; //
 
-                        // 락인 유저인 경우 현재 단계 내원 확인 정산 요청 패킷 전송 (m-adm 연동)
+                        // 🔒 [출석체크 인터록 결합]: 배정 유저가 내원 확인을 눌렀을 때 ➔ 차수 실시간 강제 전진 커밋 [index: 1.401]
                         if (isLockInUser) {
-                            const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
+                            const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid)); //
                             if (myTargetIdx !== -1) {
-                                appDB[myTargetIdx].payStatus = "접수"; // 심사대기 요청 인가
-                                alert(`[${btnJoin.innerText}] 완료를 위한 정산 요청 패킷이 관리자 제어반으로 정상 인가되었습니다.`);
+                                const currentLiveStage = appDB[myTargetIdx].status || appDB[myTargetIdx].stage || "신검대기";
+
+                                // 실무 19대 징검다리 전진 시스템 커밋 [INDEX: 1]
+                                if (currentLiveStage === "신검대기") {
+                                    appDB[myTargetIdx].status = "신검통과"; appDB[myTargetIdx].stage = "신검통과";
+                                } else if (currentLiveStage === "신검통과") {
+                                    appDB[myTargetIdx].status = "소집"; appDB[myTargetIdx].stage = "소집"; // 입원 저녁 청구서 개통 신호 발생 [INDEX: 1]
+                                } else if (currentLiveStage === "소집") {
+                                    appDB[myTargetIdx].status = "1차방문"; appDB[myTargetIdx].stage = "1차방문";
+                                } else if (currentLiveStage === "1차방문") {
+                                    appDB[myTargetIdx].status = "2차방문"; appDB[myTargetIdx].stage = "2차방문";
+                                } else if (currentLiveStage === "2차방문") {
+                                    appDB[myTargetIdx].status = "3차방문"; appDB[myTargetIdx].stage = "3차방문";
+                                } else if (currentLiveStage === "3차방문") {
+                                    appDB[myTargetIdx].status = "4차방문"; appDB[myTargetIdx].stage = "4차방문";
+                                } else if (currentLiveStage === "4차방문") {
+                                    appDB[myTargetIdx].status = "종료방문"; appDB[myTargetIdx].stage = "종료방문";
+                                } else if (currentLiveStage === "종료방문") {
+                                    appDB[myTargetIdx].status = "종료"; appDB[myTargetIdx].stage = "종료";
+                                }
+
+                                appDB[myTargetIdx].payStatus = "접수"; // 심사대기 요청 인가 [index: 1.405]
+                                localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB)); //
+
+                                alert(`🎉 [내원 인증 완료]\n\n귀하의 참여 상태가 [${appDB[myTargetIdx].status}] 단계로 안전하게 전진 업데이트 커밋되었습니다.`); //
+
+                                // ⚡ [최상위 부모 관제탑 원격 리렌더링 불 켜기]
+                                if (window.opener && !window.opener.closed) {
+                                    if (typeof window.opener.refreshApplicantView === "function") window.opener.refreshApplicantView();
+                                    else if (typeof window.opener.refreshAdminMemberTableView === "function") window.opener.refreshAdminMemberTableView();
+                                }
                             }
                         } else {
-                            // 원본 소스 상단에 이미 정의되어 있는 currentSessionName 포인터와 실시간 싱크
+                            // 원본의 비매정 가상 회원 신규 엎어치기 공정 완전 상속 [index: 1.410]
                             const isAlreadyJoined = appDB.some(app =>
-                                (app.name || '').toString().trim() === currentSessionName &&
-                                (app.title || '').toString().trim() === targetTitle &&
-                                (app.th || '').toString().trim() === targetTh &&
-                                !app.isVirtualGhost
+                                (app.name || '').toString().trim() === currentSessionName && //
+                                (app.title || '').toString().trim() === targetTitle && //
+                                (app.th || '').toString().trim() === targetTh && //
+                                !app.isVirtualGhost //
                             );
 
                             if (isAlreadyJoined) {
-                                alert("알림: 이미 참가한 시험입니다.\n기존에 신청 완료된 일정 및 과제를 확인해 주세요.");
-                                document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
-                                return;
+                                alert("알림: 이미 참가한 시험입니다.\n기존에 신청 완료된 일정 및 과제를 확인해 주세요."); //
+                                document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;'); //
+                                return; //
                             }
 
-                            // 고유 UID 속성을 추적하여 정확한 행 포인터 락인
-                            const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
-
+                            const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid)); //
                             if (myTargetIdx !== -1) {
-                                delete appDB[myTargetIdx].isVirtualGhost;
-                                delete appDB[myTargetIdx].isNewUserGhost;
+                                delete appDB[myTargetIdx].isVirtualGhost; //
+                                delete appDB[myTargetIdx].isNewUserGhost; //
 
-                                appDB[myTargetIdx].title = targetTitle;
-                                appDB[myTargetIdx].th = targetTh;
-                                appDB[myTargetIdx].period = currentActiveModalJob.period || "0";
-                                appDB[myTargetIdx].stage = "신검대기"; // 최초 진입 시 신검대기 고정 매핑
-                                appDB[myTargetIdx].payStatus = "대기";
+                                // [인원수 누적 스케줄러 동치화 적용]
+                                const liveCount = appDB.filter(u => (u.title || '').toString().replace(/\s/g, "") === targetTitle.replace(/\s/g, "") && (u.th || '').toString().replace(/\s/g, "") === targetTh.replace(/\s/g, "")).length;
+                                const progressFormat = (liveCount + 1) + "/60";
 
-                                localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                                appDB[myTargetIdx].title = targetTitle; //
+                                appDB[myTargetIdx].th = targetTh; //
+                                appDB[myTargetIdx].count = progressFormat; // 1/60 포맷 표준화
+                                appDB[myTargetIdx].period = currentActiveModalJob.period || "0"; //
+                                appDB[myTargetIdx].stage = "신검대기"; // 최초 진입 시 신검대기 고정 매핑 [index: 1.433]
+                                appDB[myTargetIdx].payStatus = "대기"; //
+                                localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB)); //
                             }
-                            alert('참여 신청 접수되었습니다.');
+                            alert('참여 신청 접수되었습니다.'); //
                         }
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
-                        renderCalendar();
+
+                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;'); //
+                        renderCalendar(); // 달력 동치 새로고침 [index: 1.442]
                     };
                 }
 
                 if (btnReject) {
                     if (isLockInUser) {
-                        btnReject.innerText = "중도이탈(미참여)";
+                        btnReject.innerText = "중도이탈(미참여)"; //
                     } else {
-                        btnReject.innerText = "미참여";
+                        btnReject.innerText = "미참여"; //
                     }
 
                     btnReject.onclick = function (e) {
-                        e.preventDefault();
+                        e.preventDefault(); //
                         if (isLockInUser) {
-                            if (confirm("경고: 해당 단원의 임상 일정에 미참여(중도이탈) 조치를 내리시겠습니까?\n이 행위는 취소할 수 없으며 패널티 감액 정산 대상자로 전산 분류됩니다.")) {
-                                let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-                                const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid));
+                            if (confirm("경고: 해당 단원의 임상 일정에 미참여(중도이탈) 조치 행위는 취소할 수 없으며 패널티 감액 정산 대상자로 전산 분류됩니다.\n\n이탈 처리를 내리시겠습니까?")) {
+                                let appDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || []; //
+                                const myTargetIdx = appDB.findIndex(app => String(app.uid) === String(currentTemporaryUid)); //
                                 if (myTargetIdx !== -1) {
-                                    appDB[myTargetIdx].stage = "탈락"; // 이탈 처리로 오픈 트랙 스위치 강제 작동
-                                    appDB[myTargetIdx].payStatus = "대기";
-                                    localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                                    alert("중도 미참여(탈락) 처리가 영구 커밋되었습니다. 달력이 전체 오픈 스킨으로 초기화됩니다.");
+                                    appDB[myTargetIdx].stage = "탈락"; // 이탈 처리로 오픈 트랙 스위치 강제 작동 [index: 1.460]
+                                    appDB[myTargetIdx].payStatus = "대기"; //
+                                    localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB)); //
+                                    alert("중도 미참여(탈락) 처리가 영구 커밋되었습니다. 달력이 전체 오픈 스킨으로 초기화됩니다."); //
                                 }
                             }
                         } else {
-                            alert('미참여 신청 되었습니다.');
+                            alert('미참여 신청 되었습니다.'); //
                         }
-                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
-                        renderCalendar();
+                        document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;'); //
+                        renderCalendar(); //
                     };
                 }
-            }, 50);
+            }, 50); //
 
-            const overlay = document.getElementById('detailModalOverlay');
-            if (overlay) overlay.setAttribute('style', 'display: flex !important;');
+            const overlay = document.getElementById('detailModalOverlay'); //
+            if (overlay) overlay.setAttribute('style', 'display: flex !important;'); //
         };
 
         window.closeDetailModal = function (e) {
-            document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;');
+            document.getElementById('detailModalOverlay').setAttribute('style', 'display: none !important;'); //
+            renderCalendar();
         };
 
-        window.onload = renderCalendar;
+        window.onload = renderCalendar; //
 
     </script>
 </body>

@@ -1186,66 +1186,70 @@
                 const elPopMessage = document.getElementById('txtPopMessage');
                 if (elPopMessage) {
                     elPopMessage.style.textAlign = "left";
-                    elPopMessage.style.lineHeight = "1.4";
+                    elPopMessage.style.lineHeight = "1.3";
 
                     const parentCard = elPopMessage.closest('.cert-white-card-layer') || elPopMessage.parentElement;
                     if (parentCard) {
-                        // 🎨 [배경톤 색상 정합성 통일]: 기존 흰색 창을 전면 소독하고 시스템 본진 다크 블루톤 변환 매핑
-                        parentCard.style.setProperty("margin-top", "-10px", "important");
-                        parentCard.style.setProperty("padding", "6px 12px 10px 14px", "important");
-                        parentCard.style.setProperty("background", "#112240", "important"); // 내장 다크네이비 테마 결합
-                        parentCard.style.setProperty("border", "1px solid #1e293b", "important");
+                        // 👆 1) [상단 분홍 화살표 공백 해결]: 이질적인 다크블루를 철거하고 순정 화이트 스킨 원형 유지 보존
+                        // 카드 상단 마진을 완전히 압착하여 위로 끌어올림으로써 세로 스크롤 발생 원천 분쇄
+                        parentCard.style.setProperty("margin-top", "-32px", "important");
+                        parentCard.style.setProperty("padding", "6px 14px 6px 14px", "important"); // 내부 상하 여백 긴급 콤팩트화
+                        parentCard.style.setProperty("background", "#ffffff", "important"); // 순정 화이트 배경 복원 수호
+                        parentCard.style.setProperty("border", "1px solid #e2e8f0", "important");
                         parentCard.style.setProperty("border-radius", "12px", "important");
                     }
 
-                    // 상단 체크 아이콘 및 타이틀 주변의 불필요한 패딩 공백 축소 압착
+                    // 상단 원형 체크 아이콘과 PASS 타이틀 글자 주변의 여백도 슬림 압착 제어
                     const icoPop = document.getElementById('icoPop');
                     if (icoPop && icoPop.parentElement) {
                         icoPop.parentElement.style.setProperty("margin-top", "0px", "important");
-                        icoPop.parentElement.style.setProperty("margin-bottom", "4px", "important");
-                        icoPop.style.setProperty("color", "#10b981", "important"); // 야광 녹색 패스권 주파수 인가
+                        icoPop.parentElement.style.setProperty("margin-bottom", "0px", "important");
+                        icoPop.style.setProperty("color", "#10b981", "important");
                     }
                     const txtPopTitle = document.getElementById('txtPopTitle');
                     if (txtPopTitle) {
-                        txtPopTitle.style.setProperty("margin-bottom", "6px", "important");
-                        txtPopTitle.style.setProperty("font-size", "16.5px", "important");
+                        txtPopTitle.style.setProperty("margin-bottom", "4px", "important");
+                        txtPopTitle.style.setProperty("font-size", "16px", "important");
                         txtPopTitle.style.setProperty("color", "#10b981", "important");
                     }
 
-                    // 💥 [간격 초압착 및 텍스트 고대비 네온 리스킨 마크업 수혈]
+                    // 🎯 2) [중간/하단 분홍 체크 표시 공백 전면 소독]: 내부 margin과 padding을 2px~4px 단위로 초압착 조임
                     elPopMessage.innerHTML = `
-                        <div style="background: #0f172a !important; border: 1px solid #1e293b !important; border-radius: 8px !important; padding: 8px 12px !important; margin: 0 !important; box-sizing: border-box !important;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 13.5px !important; line-height: 1.45 !important;">
+                        <div style="background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; padding: 6px 10px !important; margin: 0 !important; box-sizing: border-box !important;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px !important; line-height: 1.4 !important;">
                                 <tr>
                                     <td style="width: 60px; color: #64748b; font-weight: 600; padding-bottom: 2px;">인증기관</td>
-                                    <td style="color: #cbd5e1; font-weight: 700; padding-bottom: 2px;">${currentChannelName || "간편인증"} 연동모듈</td>
+                                    <td style="color: #334155; font-weight: 700; padding-bottom: 2px;">${currentChannelName || "간편인증"} 연동모듈</td>
                                 </tr>
                                 <tr>
                                     <td style="color: #64748b; font-weight: 600; padding-bottom: 2px;">대상자</td>
-                                    <td style="color: #ffffff; font-weight: 800; padding-bottom: 2px;">
-                                        ${matchedPatientData.name || name} <span style="font-size: 12px; color: #94a3b8; font-weight: 500;">(${displayBirth} / ${displayGender})</span>
+                                    <td style="color: #0f172a; font-weight: 800; padding-bottom: 2px;">
+                                        ${matchedPatientData.name || name} <span style="font-size: 11.5px; color: #64748b; font-weight: 500;">(${displayBirth} / ${displayGender})</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="color: #64748b; font-weight: 600; vertical-align: top;">시험명</td>
-                                    <td style="color: #38bdf8; font-weight: 800; vertical-align: top; line-height: 1.3;">
-                                        ${matchedPatientData.title || "미배정 과제"} <span style="color: #FBBF24; font-weight: 900;">(${matchedPatientData.th || "1기"})</span>
+                                    <td style="color: #0f172a; font-weight: 800; vertical-align: top; line-height: 1.25;">
+                                        ${matchedPatientData.title || "미배정 과제"} <span style="color: #0284c7; font-weight: 900;">(${matchedPatientData.th || "1기"})</span>
                                     </td>
                                 </tr>
                             </table>
                         </div>
                         
-                        <div style="margin-top: 8px !important; margin-bottom: 2px !important; display: flex; align-items: center; gap: 4px;">
-                            <div style="width: 3px; height: 10px; background: #38bdf8; border-radius: 2px;"></div>
-                            <span style="font-size: 12.5px !important; font-weight: 800 !important; color: #38bdf8 !important; letter-spacing: -0.3px;">[참여비 지급 예정일]</span>
+                        <!-- ⚡ [중간 여백 압착]: 참여비 지급 예정일 레이블의 상하 마진 축소 -->
+                        <div style="margin-top: 4px !important; margin-bottom: 2px !important; display: flex; align-items: center; gap: 4px;">
+                            <div style="width: 3px; height: 9px; background: #0284c7; border-radius: 2px;"></div>
+                            <span style="font-size: 12px !important; font-weight: 800 !important; color: #0284c7 !important;">[참여비 지급 예정일]</span>
                         </div>
                         
-                        <div style="background: #0f172a !important; border: 1px solid #1e293b !important; border-radius: 8px !important; padding: 6px 12px !important; box-sizing: border-box !important; margin: 0 !important;">
-                            <div style="font-size: 12.5px !important; color: #e2e8f0 !important; font-weight: 700; line-height: 1.4 !important; white-space: pre-line !important;">${finalPayScheduleLog}</div>
+                        <!-- ⚡ [일정 박스 여백 압착]: 내부 상하 패딩 최하 수치로 축소 -->
+                        <div style="background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; padding: 4px 10px !important; box-sizing: border-box !important; margin: 0 !important;">
+                            <div style="font-size: 12px !important; color: #1e293b !important; font-weight: 700; line-height: 1.35 !important; white-space: pre-line !important;">${finalPayScheduleLog}</div>
                         </div>
                         
-                        <div style="margin-top: 5px !important; margin-bottom: 0px !important; padding-left: 2px !important;">
-                            <p style="font-size: 11px !important; color: #64748b !important; line-height: 1.2; margin: 0 !important; font-weight: 500;">
+                        <!-- ⚡ [하단 안내문 공백 압착]: 마진을 2px로 축소하여 확인 단추와의 스트레칭 현상 파쇄 -->
+                        <div style="margin-top: 2px !important; margin-bottom: 0px !important; padding-left: 2px !important;">
+                            <p style="font-size: 10.5px !important; color: #94a3b8 !important; line-height: 1.1; margin: 0 !important; font-weight: 500;">
                                 아래 확인 버튼을 클릭하면 참여중인 시험현황으로 이동합니다.
                             </p>
                         </div>
@@ -1254,17 +1258,17 @@
                     const elConfirmBtn = document.querySelector('.cert-white-card-layer button') || document.querySelector('button[onclick*="executeStep3ConfirmNext"]');
                     if (elConfirmBtn) {
                         if (elConfirmBtn.parentElement) {
-                            // 하단 여백의 비정상적인 스크롤바 유발 스트레칭 공간 전면 박멸 압착
-                            elConfirmBtn.parentElement.style.setProperty("margin-top", "8px", "important");
+                            // ⚡ [최하단 버튼 마진 압착]: 확인 버튼 주변의 스트레칭 빈 공간 완전 소독
+                            elConfirmBtn.parentElement.style.setProperty("margin-top", "4px", "important");
                             elConfirmBtn.parentElement.style.setProperty("padding", "0", "important");
                         }
                         elConfirmBtn.setAttribute("onclick", "executeStep3ConfirmNext()");
-                        elConfirmBtn.style.setProperty("background", "#0284c7", "important"); // 고대비 시그니처 딥스카이 블루 개통
+                        elConfirmBtn.style.setProperty("background", "#0284c7", "important"); // 시그니처 딥스카이 블루 스킨 고정
                         elConfirmBtn.style.setProperty("color", "#ffffff", "important");
-                        elConfirmBtn.style.setProperty("height", "36px", "important"); // 세로 폭 슬림 피팅
+                        elConfirmBtn.style.setProperty("height", "34px", "important"); // 세로 폭 슬림 피팅 완착
                         elConfirmBtn.style.setProperty("border-radius", "6px", "important");
                         elConfirmBtn.style.setProperty("font-weight", "800", "important");
-                        elConfirmBtn.style.setProperty("font-size", "13.5px", "important");
+                        elConfirmBtn.style.setProperty("font-size", "13px", "important");
                         elConfirmBtn.style.setProperty("box-shadow", "none", "important");
                         elConfirmBtn.style.setProperty("width", "100%", "important");
                     }

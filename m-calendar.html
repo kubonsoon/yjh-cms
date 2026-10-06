@@ -599,75 +599,74 @@
         let currentDate = new Date(); // 실시간 시스템 원격 오늘 날짜 자동 추적 마운트 완료
 
         // 오늘 날짜를 기준으로 YYYY-MM-DD 스트링 락포인터를 유연하게 동적 자동 산출
-        const yyyy = currentDate.getFullYear(); //
-        const mm = String(currentDate.getMonth() + 1).padStart(2, '0'); //
-        const dd = String(currentDate.getDate()).padStart(2, '0'); //
+        const yyyy = currentDate.getFullYear();
+        const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(currentDate.getDate()).padStart(2, '0');
 
-        let selectedDateStr = `${yyyy}-${mm}-${dd}`; //
-        let currentFilter = 'ALL'; //
-        let currentCertifiedUser = sessionStorage.getItem('certifiedUserName') || ""; //
+        let selectedDateStr = `${yyyy}-${mm}-${dd}`;
+        let currentFilter = 'ALL';
+        let currentCertifiedUser = sessionStorage.getItem('certifiedUserName') || "";
 
         /**
          * 2. 메인 대시보드(admin.html)의 로컬스토리지 임상시험 마스터 레코드 스트림 연동 [원본 사수]
          */
         function getMasterData() {
-            return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || []; //
+            return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
         }
 
         /**
          * 3. 대상자 관리 탭(applicantView)의 가상 데이터베이스 동기화 스트림 로드 [원본 사수]
          */
         function getApplicantData() {
-            return JSON.parse(localStorage.getItem('dataStoreApplicant')) || []; //
+            return JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
         }
 
         /**
          * 4. 주간 선택 컨트롤러 네비게이터 작동기 (화살표 터치 시 7일 주간 단위로 레일 이동) [원본 사수]
          */
         function moveMonth(v) {
-            currentDate.setDate(currentDate.getDate() + (v * 7)); //
-            renderCalendar(); //
+            currentDate.setDate(currentDate.getDate() + (v * 7));
+            renderCalendar();
         }
 
         /**
          * 5. [순정 기능 교정 완착]: 구형 백업 사출 기능을 폐기하고, [시험현황] 터치 시 부모창 4단 랙으로 이동하는 연동 엔진
          */
         function executeDownload() {
-            console.log("[원격 인터록 작동] 모바일 관제탑 ➔ 부모창 m-login 4단계 나의 시험현황 화면으로 강제 이송 패킷 발행."); //
+            console.log("[원격 인터록 작동] 모바일 관제탑 ➔ 부모창 m-login 4단계 나의 시험현황 화면으로 강제 이송 패킷 발행.");
 
             // 크로스 도메인 및 iframe 샌드박스 보안 장벽을 관통하여 부모 본진에 복귀 트리거 발사
             if (window.parent) {
                 window.parent.postMessage({
-                    action: "GOTO_STEP_4", //
-                    timestamp: Date.now() //
-                }, "*"); //
+                    action: "GOTO_STEP_4",
+                    timestamp: Date.now()
+                }, "*");
             } else if (window.opener && !window.opener.closed) {
                 if (typeof window.opener.navigateToStep === "function") {
-                    window.opener.navigateToStep(4); //
+                    window.opener.navigateToStep(4);
                 }
             }
         }
 
         // 글로벌 스코프에 현재 활성화된 모달 과제 컨텍스트 데이터 보존 [원본 사수]
-        let currentActiveModalJob = null; //
-        let currentTemporaryUid = ""; //
+        let currentActiveModalJob = null;
+        let currentTemporaryUid = "";
 
         // 주간 7일간 글로벌 전산망 레일의 날짜 컬렉션을 하단 카드와 온전히 동치 공유하기 위한 공유 가선
-        window.currentWeeklyDateKeys = []; //
+        window.currentWeeklyDateKeys = [];
 
         /**
-         * 6. 💡 [전산 오타 완전 소독]: 유령 변수 dObjObj를 영구 파쇄하고 진짜 인스턴스인 dObj로 정밀 복원 완료
+         * 6. 💡 [전산 오타 완전 소독 완료]: 유령 변수 dObjObj를 영구 파쇄하고 진짜 인스턴스인 dObj로 정밀 복원 완료
          * @param {string} baseStr - YYYY-MM-DD 포맷의 마스터 지급 예정일자 문자열
          * @param {number} minusDays - 감산할 실무 일수 (방문채혈 7일, 종료검사 14일)
          */
         function calculateSubtractedDate(baseStr, minusDays) {
-            if (!baseStr || baseStr.includes("추후")) return null; //
-            const dObj = new Date(baseStr.trim()); //
-            if (isNaN(dObj.getTime())) return null; //
-            dObj.setDate(dObj.getDate() - minusDays); //
+            if (!baseStr || baseStr.includes("추후")) return null;
+            const dObj = new Date(baseStr.trim());
+            if (isNaN(dObj.getTime())) return null;
+            dObj.setDate(dObj.getDate() - minusDays);
 
-            // 🎯 dObjObj 오타 전면 세척 완료 ➔ 브라우저 에러 마비를 완벽하게 진압 종결합니다.
-            return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, '0')}-${String(dObj.getDate()).padStart(2, '0')}`; //
+            return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, '0')}-${String(dObj.getDate()).padStart(2, '0')}`;
         }
 
         function renderCalendar() {
@@ -695,6 +694,7 @@
             const currentSessionName = (loggedInUser.name || "홍길동").toString().trim();
             const cleanSessionName = currentSessionName.replace(/\s/g, "");
 
+            // 🔒 [격리 판단 가드]: 종료, 탈락 상태가 아니고 현재 전산 명단에 살아있는 진짜 내 레코드 색인
             const myLiveJobRecord = applicantDB.find(app =>
                 (app.name || "").toString().replace(/\s/g, "") === cleanSessionName &&
                 app.stage && !["종료", "탈락"].includes(app.stage)
@@ -704,7 +704,7 @@
                 const loopDate = new Date(startOfWeek);
                 loopDate.setDate(startOfWeek.getDate() + i);
 
-                // 🎯 [전산망 정화 핵심 완착]: 배열 리터럴 버그를 완전히 깨부수고, 대장 포맷과 100% 동일한 '2026-12-04' 순수 10자리 하이픈 스트링 사출!
+                // 대장 포맷과 100% 동일한 '2026-12-04' 순수 10자리 하이픈 스트링 추출
                 const kstoffset = loopDate.getTime() - (loopDate.getTimezoneOffset() * 60000);
                 const formattedDateKey = new Date(kstoffset).toISOString().split('T')[0].toString().trim();
 
@@ -717,12 +717,13 @@
                 const dayBtn = document.createElement('div');
                 dayBtn.className = `weekly-day-btn ${selectedDateStr === formattedDateKey ? 'active' : ''}`;
 
-                // 🎯 [순정 원형 사수]: 날짜 격자칸은 오직 요일명과 숫자만 노출되도록 깨끗하게 환원 보존
+                // 🎯 [요구사항 완벽 반영]: 상단 주간 바 요일 격자칸은 오직 순정 상태의 요일과 숫자만 깨끗하게 노출 보존!
                 dayBtn.innerHTML = `
                     <div class="day-name">${dayNamesShort[i]}</div>
                     <div class="day-date">${loopDate.getDate()}</div>
                 `;
 
+                // 💡 [대혁신]: 상단 요일을 클릭하면 해당 단일 날짜 포인터만 스위칭하여 아래 카드를 다중 유지 필터링
                 dayBtn.onclick = function () {
                     selectedDateStr = formattedDateKey;
                     document.querySelectorAll('.weekly-day-btn').forEach(btn => btn.classList.remove('active'));
@@ -753,7 +754,7 @@
             const currentSessionName = loggedInUser.name.toString().trim();
             const cleanSessionName = currentSessionName.replace(/\s/g, "");
 
-            // 🔒 [격리 판단 가드]: 종료, 탈락 상태가 아니고 현재 전산 명단에 살아있는 진짜 내 레코드 색인
+            // 🔒 [격리 판단 가드]: 종료, 탈락 상태가 아니고 현재 진행 중인 진짜 내 레코드 색인
             const myLiveJobRecord = applicantDB.find(app =>
                 (app.name || "").toString().replace(/\s/g, "") === cleanSessionName &&
                 app.stage && !["종료", "탈락"].includes(app.stage)
@@ -765,11 +766,11 @@
                 return;
             }
 
-            // 🔒 [대원칙 격리 셔터 작동]: 타인의 시험공고 원천 차단 및 진재영 대상자의 진짜 전 차수 스케줄 레일 전수 발굴
+            // 🔒 [대원칙 격리 셔터 작동]: 타인의 시험공고 원천 차단 및 진재영 대상자의 주간 전체 스케줄 리스트 전수 발굴
             const targetRecords = records.filter(item => {
                 if (!item.recDate) return false;
 
-                // ❶ [과제명 1:1 철동 장벽]: 내 과제명과 다른 타인의 공고 카드는 흔적도 없이 전면 차단
+                // ❶ [과제명 1:1 철동 장벽]: 내 과제명과 다른 타인의 공고 카드는 흔적도 없이 전면 차단 은폐
                 const cleanMyTitle = myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase();
                 const cleanItemTitle = item.title.toString().replace(/\s/g, "").toLowerCase();
                 if (cleanMyTitle !== cleanItemTitle) return false;
@@ -782,48 +783,57 @@
                 }
 
                 // ❷ [4대 행정 일자 동적 역산 매트릭스 매핑 엔진]
-                // 💡 [대수술 대원칙 완착]: 불필요한 평탄화 가드를 완전히 전면 철거하고, 
-                // 원본 대장의 깨끗한 10자리 하이픈 표준형 데이터('2026-12-04') 문자열 그대로 1:1 조준 매칭합니다!
                 let itemScheduleMap = {};
 
-                // 1) 스크리닝일 기본 상속 (records의 recDate 표준 10자리 하이픈 직접 바인딩)
+                // 1) 스크리닝일 기본 상속
                 if (item.recDate) {
-                    const k = item.recDate.trim(); // '2026-12-04'
+                    const k = item.recDate.trim();
                     itemScheduleMap[k] = `스크리닝: ${k}`;
                 }
 
-                // 2) 소집일 기본 상속 (대상자 대장의 ssn 슬롯 내 '2026-12-11' 파싱 연동 후 직접 바인딩)
+                // 2) 소집일 기본 상속 (대상자 대장의 ssn 슬롯 내 숨겨진 진짜 소집일 파싱 연동)
                 if (myLiveJobRecord.ssn && myLiveJobRecord.ssn.includes("소집:")) {
                     const parsedSojib = myLiveJobRecord.ssn.match(/\d{4}-\d{2}-\d{2}/);
                     if (parsedSojib) {
-                        const k = parsedSojib[0].trim(); // '2026-12-11'
+                        const k = parsedSojib.trim();
                         itemScheduleMap[k] = `소집: ${k}`;
                     }
                 }
 
-                // 3) 1차~4차 방문일 = 참여비 지급예정일(payDate1~4)의 1주일 전(7일 전) 역산 공식 반영 (표준 10자리 스트링 보존)
-                if (item.payDate1) { const d = calculateSubtractedDate(item.payDate1, 7); if (d) itemScheduleMap[d.trim()] = `1차 방문채혈: ${d.trim()}`; } //
-                if (item.payDate2) { const d = calculateSubtractedDate(item.payDate2, 7); if (d) itemScheduleMap[d.trim()] = `2차 방문채혈: ${d.trim()}`; } //
-                if (item.payDate3) { const d = calculateSubtractedDate(item.payDate3, 7); if (d) itemScheduleMap[d.trim()] = `3차 방문채혈: ${d.trim()}`; } //
-                if (item.payDate4) { const d = calculateSubtractedDate(item.payDate4, 7); if (d) itemScheduleMap[d.trim()] = `4차 방문채혈: ${d.trim()}`; } //
+                // 3) 1차~4차 방문일 = 참여비 지급예정일(payDate1~4)의 1주일 전(7일 전) 역산 공식 반영
+                if (item.payDate1) { const d = calculateSubtractedDate(item.payDate1, 7); if (d) itemScheduleMap[d.trim()] = `1차 방문채혈: ${d.trim()}`; }
+                if (item.payDate2) { const d = calculateSubtractedDate(item.payDate2, 7); if (d) itemScheduleMap[d.trim()] = `2차 방문채혈: ${d.trim()}`; }
+                if (item.payDate3) { const d = calculateSubtractedDate(item.payDate3, 7); if (d) itemScheduleMap[d.trim()] = `3차 방문채혈: ${d.trim()}`; }
+                if (item.payDate4) { const d = calculateSubtractedDate(item.payDate4, 7); if (d) itemScheduleMap[d.trim()] = `4차 방문채혈: ${d.trim()}`; }
 
                 // 4) 종료검사일 = 종료비 지급예정일(paySchedule 또는 payDate5)의 14일 전 역산 공식 반영
                 if (item.paySchedule) {
                     const matchedDates = item.paySchedule.toString().match(/\d{4}-\d{2}-\d{2}/g);
                     if (matchedDates && matchedDates.length >= 5) {
-                        const d = calculateSubtractedDate(matchedDates[4], 14); if (d) itemScheduleMap[d.trim()] = `종료검사: ${d.trim()}`; // 5번째 종료 지급일 타깃 역산 완착
+                        const d = calculateSubtractedDate(matchedDates[4], 14); if (d) itemScheduleMap[d.trim()] = `종료검사: ${d.trim()}`;
                     } else if (item.payDate5) {
-                        const d = calculateSubtractedDate(item.payDate5, 14); if (d) itemScheduleMap[d.trim()] = `종료검사: ${d.trim()}`; //
+                        const d = calculateSubtractedDate(item.payDate5, 14); if (d) itemScheduleMap[d.trim()] = `종료검사: ${d.trim()}`;
                     }
                 }
 
-                // 🎯 [정합성 조준 타격]: 10자리 하이픈 문자열로 완벽 청정 통일된 주간 터치 키(standardSelectedKey)와
-                // 내 4대 행정 역산 타임라인 문자열 키가 한 자의 오차도 없이 1:1 크로스 일치하는 진짜 정보만 통과!!
-                const currentDayMatchedText = itemScheduleMap[standardSelectedKey];
+                // 🎯 [요구사항 대대적 전환 코어]: 특정 하루만 가두던 장벽을 완전히 걷어버리고, 
+                // 현재 모바일 화면 주간 타임라인 바에 올라와 있는 7일 전체 키(`window.currentWeeklyDateKeys`) 중 
+                // 내 역산 스케줄 일치 날짜가 존재하는지 전수 필터 검문 수색 단행!! [팩트 지원: 1]
+                let weeklyMatchedList = [];
+                for (let k = 0; k < window.currentWeeklyDateKeys.length; k++) {
+                    const checkDayKey = window.currentWeeklyDateKeys[k].toString().trim();
+                    if (itemScheduleMap[checkDayKey]) {
+                        // 이번 주에 걸려 있는 복수의 세부 일정 텍스트 정보들을 배열로 전부 수집 적재
+                        weeklyMatchedList.push({
+                            dateKey: checkDayKey,
+                            labelText: itemScheduleMap[checkDayKey]
+                        });
+                    }
+                }
 
-                if (currentDayMatchedText) {
-                    // 카드를 실물로 드로잉할 후반부(Part 4) 팩토리 엔진으로 한글 일정 명세 텍스트 전달 릴레이
-                    item._computedDisplayLabelText = currentDayMatchedText; //
+                if (weeklyMatchedList.length > 0) {
+                    // 순차 정렬 조립을 위해 7일치 주간 발굴 컬렉션을 후반부(Part 4) 렌더러로 릴레이 토스
+                    item._computedWeeklyList = weeklyMatchedList;
                     return true;
                 }
 
@@ -834,210 +844,221 @@
                 cardBoard.innerHTML = `
                     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                         <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
-                        선택하신 [${selectedDateStr}] 날짜에는 배정된 임상시험 차수 세부 일정이 없습니다.
+                        현재 뷰포트 주간 범위에는 배정된 임상시험 차수 세부 일정이 없습니다.
                     </div>
-                `; //
+                `;
                 return;
             }
 
             targetRecords.forEach(item => {
-                const thText = (item.th || "1기").trim(); //
-                const clickUid = item.uid ? item.uid : item.title; //
-                const dynamicColorClass = `th-color-${thText}`; //
+                const thText = (item.th || "1기").trim();
+                const clickUid = item.uid ? item.uid : item.title;
+                const dynamicColorClass = `th-color-${thText}`;
 
-                const cleanRecDate = item.recDate.toString().replace(/[^0-9]/g, ""); //
-                const isDateMatchedNow = (cleanRecDate === cleanSelectedDateStr); //
+                // Part 3에서 취합되어 릴레이 전달된 주간 내 유효 일정 리스트 추출
+                const weeklyList = item._computedWeeklyList || [];
 
-                // 💡 [실무 사양 핵심 완착]: 파트 3에서 날짜 정합성 필터를 통과하며 릴레이해 준 가공된 한글 날짜 명세 텍스트 추출
-                const computedDisplayLabelText = item._computedDisplayLabelText || `스크리닝: ${selectedDateStr}`; //
+                // 이번 주에 걸려있는 내 모든 차수 일정을 순차적으로 돌며 각각 개별 카드로 다중 출격 사출
+                weeklyList.forEach((schedule, idx) => {
+                    const currentStageText = schedule.labelText || ""; // "스크리닝: 2026-12-04" 포맷 상속
+                    const scheduleDateKey = schedule.dateKey || "";
+                    const uniqueSubKey = `${clickUid}_${idx}`;
 
-                const borderHighlightStyle = isDateMatchedNow ? "border: 1px solid var(--secondary-color); box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);" : ""; //
-                const card = document.createElement('div'); //
-                card.className = 'trial-manifest-card'; //
-                card.setAttribute("style", borderHighlightStyle); //
+                    const card = document.createElement('div');
+                    card.className = 'trial-manifest-card';
+                    card.setAttribute("style", "margin-bottom: 10px; border: 1px solid var(--border-color);");
 
-                card.innerHTML = `
-                    <div class="card-top-row">
-                        <!-- 🎯 [요구사항 완벽 구현]: 복잡한 공고 내용 대신 날짜에 맞춰 매핑된 실무 텍스트를 최상단 타이틀로 직접 표출 -->
-                        <div class="card-title-text" style="color: #ffffff; font-weight:800; font-size:14.5px;">🎯 ${computedDisplayLabelText}</div>
-                        <div class="card-th-badge ${dynamicColorClass}">[${thText}]</div>
-                    </div>
-                    <div class="card-meta-grid" style="margin-top:6px;">
-                        <div>연계 과제: <span style="color:#38bdf8; font-weight: 700;">${item.title || '임상 과제명 미지정'}</span></div>
-                        <div>배정 정원: <span>${item.count ? item.count + '명' : '-'}</span></div>
-                        <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>
-                    </div>
-                    <!-- 🎯 [요구사항 완벽 구현]: 해당 일자 클릭 시 참여/미참여/이력 버튼이 내부에 완벽 존재 및 정렬 -->
-                    <div class="card-action-bar" id="ui_action_bar_${clickUid}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
-                        <button type="button" class="card-btn join" id="btn_card_join_${clickUid}" style="height:32px; font-size:12.5px;">참여</button>
-                        <button type="button" class="card-btn reject" id="btn_card_reject_${clickUid}" style="height:32px; font-size:12.5px; background:#475569;">미참여</button>
-                        <button type="button" class="card-btn close" id="btn_card_hist_${clickUid}" style="height:32px; font-size:12.5px; background:#1e293b;"><i class="fa-solid fa-clock-history"></i> 이력</button>
-                    </div>
-                `; //
+                    card.innerHTML = `
+                        <div class="card-top-row">
+                            <!-- 🎯 [요구사항 완벽 구현]: 해당 주간에 맞는 텍스트가 목록 형태로 하단에 전수 노출 -->
+                            <div class="card-title-text" style="color: #ffffff; font-weight:800; font-size:14.5px;">🎯 ${currentStageText}</div>
+                            <div class="card-th-badge ${dynamicColorClass}">[${thText}]</div>
+                        </div>
+                        <div class="card-meta-grid" style="margin-top:6px;">
+                            <div>연계 과제: <span style="color:#38bdf8; font-weight: 700;">${item.title || '임상 과제명 미지정'}</span></div>
+                            <div>배정 정원: <span>${item.count ? item.count + '명' : '-'}</span></div>
+                            <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>
+                        </div>
+                        <!-- 🎯 [요구사항 완벽 구현]: 해당 일자별로 참여/미참여/이력 버튼이 내부에 완벽 존재 및 독립 정렬 -->
+                        <div class="card-action-bar" id="ui_action_bar_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+                            <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size:12.5px;">참여</button>
+                            <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background:#475569;">미참여</button>
+                            <button type="button" class="card-btn close" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px; background:#1e293b;"><i class="fa-solid fa-clock-history"></i> 이력</button>
+                        </div>
+                    `;
 
-                cardBoard.appendChild(card); //
+                    // 🔒 [미래 일정 터치 차단 클릭 가드 원격 수혈]
+                    const liveStatusText = myLiveJobRecord.status || myLiveJobRecord.stage || "신검대기";
+                    if (liveStatusText === "신검대기" || liveStatusText === "신검통과") {
+                        if (!currentStageText.includes("스크리닝")) { card.classList.add('mobile-future-lock'); }
+                    } else if (liveStatusText === "소집" || liveStatusText.includes("방문")) {
+                        if (!currentStageText.includes(liveStatusText)) { card.classList.add('mobile-future-lock'); }
+                    }
 
-                const joinBtn = document.getElementById(`btn_card_join_${clickUid}`); //
-                if (joinBtn) { //
-                    joinBtn.onclick = function (e) { //
-                        e.preventDefault(); //
+                    cardBoard.appendChild(card);
 
-                        let appDB = getApplicantData(); //
+                    const joinBtn = document.getElementById(`btn_card_join_${uniqueSubKey}`);
+                    if (joinBtn) {
+                        joinBtn.onclick = function (e) {
+                            e.preventDefault();
 
-                        const activeJobRecord = appDB.find(app => { //
-                            const cleanDbName = (app.name || '').toString().replace(/\s/g, ""); //
-                            const dbTitle = (app.title || '').toString().trim(); //
-                            return cleanDbName === cleanSessionName && app.stage !== "종료" && dbTitle !== "신규 방문 과제 미배정"; //
-                        }); //
+                            let appDB = getApplicantData();
 
-                        if (activeJobRecord && !isLockInUser) { //
-                            alert("중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산 심사 대기 중인 임상시험 과제가 존재합니다."); //
-                            return; //
-                        }
+                            const activeJobRecord = appDB.find(app => {
+                                const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
+                                const dbTitle = (app.title || '').toString().trim();
+                                return cleanDbName === cleanSessionName && app.stage !== "종료" && dbTitle !== "신규 방문 과제 미배정";
+                            });
 
-                        const finishedJobs = appDB.filter(app => { //
-                            const cleanDbName = (app.name || '').toString().replace(/\s/g, ""); //
-                            return cleanDbName === cleanSessionName && app.stage === "종료" && app.recDate; //
-                        }); //
-
-                        if (finishedJobs.length > 0 && !isLockInUser) { //
-                            finishedJobs.sort((a, b) => new Date(b.recDate) - new Date(a.recDate)); //
-                            const lastFinishedJob = finishedJobs; //
-                            const systemCurrentTime = new Date("2026-09-20"); //
-                            const lastExamDate = new Date(lastFinishedJob.recDate); //
-                            const dayDiff = Math.floor((systemCurrentTime.getTime() - lastExamDate.getTime()) / (1000 * 60 * 60 * 24)); //
-
-                            if (dayDiff < 180) { //
-                                alert(`전산망 보안 안내\n\n대상자님은 마지막 시험 참여 후 아직 6개월이 경과하지 않았습니다.`); //
-                                return; //
-                            }
-                        }
-
-                        const isAlreadyClickedThisJob = appDB.some(app => //
-                            (app.name || '').toString().trim() === currentSessionName && //
-                            (app.title || '').toString().trim() === (item.title || '').toString().trim() && //
-                            (app.th || '').toString().trim() === thText //
-                        ); //
-
-                        let targetIdx = appDB.findIndex(u => //
-                            (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName //
-                        ); //
-
-                        // 🔒 [출석체크 인터록 결합]: 이미 배정된 기존 유저가 본인 일정 배지에서 참여를 눌렀을 때 ➔ 상태 강제 전진 실행
-                        if (targetIdx !== -1 && isAlreadyClickedThisJob) { //
-                            let cleanFriendlyStage = "스크리닝"; //
-                            if (computedDisplayLabelText.includes("소집")) cleanFriendlyStage = "소집"; //
-                            else if (computedDisplayLabelText.includes("1차")) cleanFriendlyStage = "1차방문"; //
-                            else if (computedDisplayLabelText.includes("2차")) cleanFriendlyStage = "2차방문"; //
-                            else if (computedDisplayLabelText.includes("3차")) cleanFriendlyStage = "3차방문"; //
-                            else if (computedDisplayLabelText.includes("4차")) cleanFriendlyStage = "4차방문"; //
-                            else if (computedDisplayLabelText.includes("종료검사")) cleanFriendlyStage = "종료방문"; //
-
-                            appDB[targetIdx].status = cleanFriendlyStage; //
-                            appDB[targetIdx].stage = cleanFriendlyStage; //
-
-                            localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB)); //
-                            alert(`🎉 출석 인증 성공\n\n대상자님의 참여 상태가 [${appDB[targetIdx].status}] 단계로 정상 전진 업데이트 커밋되었습니다.`); //
-
-                            if (window.opener && !window.opener.closed) { //
-                                if (typeof window.opener.refreshApplicantView === "function") window.opener.refreshApplicantView(); //
-                                else if (typeof window.opener.refreshAdminMemberTableView === "function") window.opener.refreshAdminMemberTableView(); //
+                            if (activeJobRecord && !isLockInUser) {
+                                alert("중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산 심사 대기 중인 임상시험 과제가 존재합니다.");
+                                return;
                             }
 
-                            renderCalendar(); //
-                            return; //
-                        }
+                            const finishedJobs = appDB.filter(app => {
+                                const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
+                                return cleanDbName === cleanSessionName && app.stage === "종료" && app.recDate;
+                            });
 
-                        if (isAlreadyClickedThisJob && targetIdx === -1) {
-                            alert("중복참여");
-                            try {
-                                localStorage.setItem('currentStep', '4');
-                                localStorage.setItem('forcedStepNum', '4');
-                                if (document.getElementById('calendar-modal')) document.getElementById('calendar-modal').style.display = 'none';
-                                const parentDoc = (window.parent && window.parent.document) ? window.parent.document : document;
-                                const lyr4 = parentDoc.getElementById('layer4');
-                                const lyr5 = parentDoc.getElementById('layer5');
-                                if (lyr5) lyr5.style.setProperty("display", "none", "important");
-                                if (lyr4) {
-                                    lyr4.style.setProperty("display", "block", "important");
-                                    if (window.parent && typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
+                            if (finishedJobs.length > 0 && !isLockInUser) {
+                                finishedJobs.sort((a, b) => new Date(b.recDate) - new Date(a.recDate));
+                                const lastFinishedJob = finishedJobs;
+                                const systemCurrentTime = new Date("2026-09-20");
+                                const lastExamDate = new Date(lastFinishedJob.recDate);
+                                const dayDiff = Math.floor((systemCurrentTime.getTime() - lastExamDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                                if (dayDiff < 180) {
+                                    alert(`전산망 보안 안내\n\n대상자님은 마지막 시험 참여 후 아직 6개월이 경과하지 않았습니다.`);
+                                    return;
                                 }
-                            } catch (fatalRouteErr) {
-                                if (window.parent) window.parent.location.href = "m-login.html?step=4";
                             }
-                            return;
-                        }
 
-                        // [4단계 파이프라인: 완전히 독립된 격리 신규 행 생성 차단 ➔ 실시간 엎어치기]
-                        const realUserSession = appDB.find(u => u.name.toString().trim() === currentSessionName) || {};
+                            const isAlreadyClickedThisJob = appDB.some(app =>
+                                (app.name || '').toString().trim() === currentSessionName &&
+                                (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
+                                (app.th || '').toString().trim() === thText
+                            );
 
-                        // 로그인 시점에 임시 생성되어 대장에 들어가 있던 "신규 방문 과제 미배정" 행 객체를 성명 크로스 매칭으로 정밀 추적 색인!
-                        let targetIdxNew = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName && (u.title || '').toString().trim() === "신규 방문 과제 미배정");
+                            let targetIdx = appDB.findIndex(u =>
+                                (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName
+                            );
 
-                        // [인원수 정순 증가 스케줄러]: 이 시험 + 이 기수로 기존 대장에 이미 등록 완료된 진짜 실시간 머릿수 산출
-                        const liveQuotaCount = appDB.filter(u =>
-                            (u.title || '').toString().replace(/\s/g, "") === item.title.toString().replace(/\s/g, "") &&
-                            (u.th || '').toString().replace(/\s/g, "") === thText.toString().replace(/\s/g, "")
-                        ).length;
+                            // 🔒 [출석체크 인터록 결합]: 각각 독립된 주간 일정 리스트 단추 클릭 시 ➔ 해당 차수 명세로 상태 즉시 전진 커밋
+                            if (targetIdx !== -1 && isAlreadyClickedThisJob) {
+                                let cleanFriendlyStage = "스크리닝";
+                                if (currentStageText.includes("소집")) cleanFriendlyStage = "소집";
+                                else if (currentStageText.includes("1차")) cleanFriendlyStage = "1차방문";
+                                else if (currentStageText.includes("2차")) cleanFriendlyStage = "2차방문";
+                                else if (currentStageText.includes("3차")) cleanFriendlyStage = "3차방문";
+                                else if (currentStageText.includes("4차")) cleanFriendlyStage = "4차방문";
+                                else if (currentStageText.includes("종료검사")) cleanFriendlyStage = "종료방문";
 
-                        // [순번 왜곡 박멸]: 기존 머릿체인에 정직하게 이번 신규 진입 분인 +1을 누적 결합하여 실시간 분모 고정 분수 포맷 사출
-                        const nextLineNumber = liveQuotaCount + 1;
-                        const liveProgressFormat = nextLineNumber + "/60";
+                                appDB[targetIdx].status = cleanFriendlyStage;
+                                appDB[targetIdx].stage = cleanFriendlyStage;
 
-                        // 실시간 엎어치기 및 정보 매핑 인스턴스 빌드
-                        const newApplicantRecord = {
-                            uid: (targetIdxNew !== -1 ? appDB[targetIdxNew].uid : ("NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000))),
-                            name: currentSessionName,
-                            title: item.title,
-                            th: thText,
-                            count: liveProgressFormat,
-                            nCount: 60,
-                            period: item.period || "0",
-                            ssn: realUserSession.ssn ? realUserSession.ssn.toString().trim().toUpperCase() : "850101-1",
-                            phone: realUserSession.phone ? realUserSession.phone.toString().trim() : "010-0000-0000",
-                            gender: realUserSession.gender || (typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(realUserSession.ssn, currentSessionName) : "남"),
-                            payStatus1: "대기",
-                            payStatus2: "대기",
-                            payStatus3: "대기",
-                            payStatus: "대기",
-                            result: "대기",
-                            isDutyAgreed: "대기",
-                            isCallAgreed: "대기",
-                            category: realUserSession.category || "M인증",
-                            stage: "신검대기",
-                            regDate: new Date().toISOString().split('T')
+                                localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                                alert(`🎉 출석 인증 성공\n\n대상자님의 참여 상태가 [${appDB[targetIdx].status}] 단계로 정상 전진 업데이트 커밋되었습니다.`);
+
+                                if (window.opener && !window.opener.closed) {
+                                    if (typeof window.opener.refreshApplicantView === "function") window.opener.refreshApplicantView();
+                                    else if (typeof window.opener.refreshAdminMemberTableView === "function") window.opener.refreshAdminMemberTableView();
+                                }
+
+                                renderCalendar();
+                                return;
+                            }
+
+                            if (isAlreadyClickedThisJob && targetIdx === -1) {
+                                alert("중복참여");
+                                try {
+                                    localStorage.setItem('currentStep', '4');
+                                    localStorage.setItem('forcedStepNum', '4');
+                                    if (document.getElementById('calendar-modal')) document.getElementById('calendar-modal').style.display = 'none';
+                                    const parentDoc = (window.parent && window.parent.document) ? window.parent.document : document;
+                                    const lyr4 = parentDoc.getElementById('layer4');
+                                    const lyr5 = parentDoc.getElementById('layer5');
+                                    if (lyr5) lyr5.style.setProperty("display", "none", "important");
+                                    if (lyr4) {
+                                        lyr4.style.setProperty("display", "block", "important");
+                                        if (window.parent && typeof window.parent.renderStep4SettlementCard === "function") window.parent.renderStep4SettlementCard();
+                                    }
+                                } catch (fatalRouteErr) {
+                                    if (window.parent) window.parent.location.href = "m-login.html?step=4";
+                                }
+                                return;
+                            }
+
+                            // [4단계 파이프라인: 완전히 독립된 격리 신규 행 생성 차단 ➔ 실시간 엎어치기]
+                            const realUserSession = appDB.find(u => u.name.toString().trim() === currentSessionName) || {};
+
+                            // 로그인 시점에 임시 생성되어 대장에 들어가 있던 "신규 방문 과제 미배정" 행 객체를 성명 크로스 매칭으로 정밀 추적 색인!
+                            let targetIdxNew = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName && (u.title || '').toString().trim() === "신규 방문 과제 미배정");
+
+                            // [인원수 정순 증가 스케줄러]: 이 시험 + 이 기수로 기존 대장에 이미 등록 완료된 진짜 실시간 머릿수 산출
+                            const liveQuotaCount = appDB.filter(u =>
+                                (u.title || '').toString().replace(/\s/g, "") === item.title.toString().replace(/\s/g, "") &&
+                                (u.th || '').toString().replace(/\s/g, "") === thText.toString().replace(/\s/g, "")
+                            ).length;
+
+                            // [순번 왜곡 박멸]: 기존 머릿체인에 정직하게 이번 신규 진입 분인 +1을 누적 결합하여 실시간 분모 고정 분수 포맷 사출
+                            const nextLineNumber = liveQuotaCount + 1;
+                            const liveProgressFormat = nextLineNumber + "/60";
+
+                            // 실시간 엎어치기 및 정보 매핑 인스턴스 빌드
+                            const newApplicantRecord = {
+                                uid: (targetIdxNew !== -1 ? appDB[targetIdxNew].uid : ("NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000))),
+                                name: currentSessionName,
+                                title: item.title,
+                                th: thText,
+                                count: liveProgressFormat,
+                                nCount: 60,
+                                period: item.period || "0",
+                                ssn: realUserSession.ssn ? realUserSession.ssn.toString().trim().toUpperCase() : "850101-1",
+                                phone: realUserSession.phone ? realUserSession.phone.toString().trim() : "010-0000-0000",
+                                gender: realUserSession.gender || (typeof parseGenderFromSsn === "function" ? parseGenderFromSsn(realUserSession.ssn, currentSessionName) : "남"),
+                                payStatus1: "대기",
+                                payStatus2: "대기",
+                                payStatus3: "대기",
+                                payStatus: "대기",
+                                result: "대기",
+                                isDutyAgreed: "대기",
+                                isCallAgreed: "대기",
+                                category: realUserSession.category || "M인증",
+                                stage: "신검대기",
+                                regDate: new Date().toISOString().split('T')
+                            };
+
+                            // [하이브리드 적재 스케줄러]: 기존 "미배정" 줄이 있으면 1:1 치환 교체 업데이트 단행!
+                            if (targetIdxNew !== -1) {
+                                appDB[targetIdxNew] = Object.assign({}, appDB[targetIdxNew], newApplicantRecord);
+                            } else if (targetIdx !== -1) {
+                                appDB[targetIdx] = Object.assign({}, appDB[targetIdx], newApplicantRecord);
+                            } else {
+                                appDB.push(newApplicantRecord);
+                            }
+
+                            localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                            alert(`[신청 접수 완료]\n\n${currentSessionName} 대상자님, \n선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
+                            renderDailyCards();
                         };
+                    }
 
-                        // [하이브리드 적재 스케줄러]: 기존 "미배정" 줄이 있으면 1:1 치환 교체 업데이트 단행!
-                        if (targetIdxNew !== -1) {
-                            appDB[targetIdxNew] = Object.assign({}, appDB[targetIdxNew], newApplicantRecord);
-                        } else if (targetIdx !== -1) {
-                            appDB[targetIdx] = Object.assign({}, appDB[targetIdx], newApplicantRecord);
-                        } else {
-                            appDB.push(newApplicantRecord);
-                        }
+                    const rejectBtn = document.getElementById(`btn_card_reject_${uniqueSubKey}`);
+                    if (rejectBtn) {
+                        rejectBtn.onclick = function (e) {
+                            e.preventDefault();
+                            alert('미참여 신청 되었습니다.');
+                        };
+                    }
 
-                        localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                        alert(`[신청 접수 완료]\n\n${currentSessionName} 대상자님, \n선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
-                        renderDailyCards();
-                    };
-                }
-
-                const rejectBtn = document.getElementById(`btn_card_reject_${clickUid}`);
-                if (rejectBtn) {
-                    rejectBtn.onclick = function (e) {
-                        e.preventDefault();
-                        alert('미참여 신청 되었습니다.');
-                    };
-                }
-
-                const histBtn = document.getElementById(`btn_card_hist_${clickUid}`);
-                if (histBtn) {
-                    histBtn.onclick = function (e) {
-                        e.preventDefault();
-                        openIndividualHistoryModalInMobile(currentSessionName, item.title, thText);
-                    };
-                }
+                    const histBtn = document.getElementById(`btn_card_hist_${uniqueSubKey}`);
+                    if (histBtn) {
+                        histBtn.onclick = function (e) {
+                            e.preventDefault();
+                            openIndividualHistoryModalInMobile(currentSessionName, item.title, thText);
+                        };
+                    }
+                });
             });
         }
 
@@ -1080,18 +1101,18 @@
                     else if (currentPayStatus === "대기") statusColor = "var(--danger-color)";
 
                     miniCard.innerHTML = `
-                        <div style="text-align:left;">
-                            <div style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:2px;">
-                                ${prefixTag}${row.name || '대상자'} ${rowTitleDisplay}
-                            </div>
-                            <div style="font-size:11px; color:var(--text-muted);">
-                                진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정 시간: <span style="color:#fff;">${row.period || '0'}시간</span>
-                            </div>
-                            <div style="font-size:11.5px; color:var(--text-muted); white-space:nowrap; margin-top:2px;">
-                                지급상태: <span style="color: ${statusColor}; font-weight:700;"> ${currentPayStatus}</span>
-                            </div>
+                    <div style="text-align:left;">
+                        <div style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:2px;">
+                            ${prefixTag}${row.name || '대상자'} ${rowTitleDisplay}
                         </div>
-                    `;
+                        <div style="font-size:11px; color:var(--text-muted);">
+                            진행기수: <span style="color:#fff;">${row.th || '-'}</span> | 인정 시간: <span style="color:#fff;">${row.period || '0'}시간</span>
+                        </div>
+                        <div style="font-size:11.5px; color:var(--text-muted); white-space:nowrap; margin-top:2px;">
+                            지급상태: <span style="color: ${statusColor}; font-weight:700;"> ${currentPayStatus}</span>
+                        </div>
+                    </div>
+                `;
                     scrollZone.appendChild(miniCard);
                 });
             }

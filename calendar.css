@@ -238,6 +238,28 @@ body {
   filter: brightness(1.2);
 }
 
+/* 1) 본인인증 매칭 완료 후 내 임상 일정 과제만 야광 강조해 주는 액티브 트랙 배지 */
+.badge-active-track {
+  border: 1px solid var(--secondary-color, #38bdf8) !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4) !important;
+  font-weight: 800 !important;
+}
+
+/* 2) 💡 [기획 사양 완수]: 미래 일정은 보이되 터치(클릭)는 원천 비활성화하는 잠금 가드 */
+.mobile-future-lock {
+  pointer-events: none !important; /* 클릭 및 터치 다운 이벤트 강제 차단 */
+  opacity: 0.45 !important; /* 아직 미내원 차수임을 흐릿한 시각 피드백으로 노출 */
+  filter: grayscale(
+    0.5
+  ) !important; /* 고대비 색상을 걷어내어 비활성화 인지 유도 */
+  cursor: not-allowed !important;
+}
+
+/* 3) 신검탈락/신검동철 전산 세척 상태 발생 시 타인 일정 가두리 숨김 필터 */
+.timeline-hidden-gate {
+  display: none !important;
+}
+
 .th-color-1기 {
   background: rgba(148, 163, 184, 0.1) !important;
   border: 1px solid rgba(148, 163, 184, 0.6) !important;

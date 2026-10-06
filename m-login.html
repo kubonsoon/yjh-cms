@@ -1172,6 +1172,17 @@
                 if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
 
+                // =========================================================================
+                // 🎯 [정밀 타격 위치 완착]: 성별 판정 직후, elPopMessage 탐색 전 전산 가변 일정을 장전합니다.
+                // =========================================================================
+                finalPayScheduleLog = "지급 일정 정보 없음";
+                if (matchedPatientData && matchedPatientData.paySchedule) {
+                    // 슬래시(/) 단위로 쪼개어 가독성 높은 복합 행정 스트림으로 줄바꿈 변환
+                    finalPayScheduleLog = matchedPatientData.paySchedule.toString().split('/').join('\n');
+                } else {
+                    finalPayScheduleLog = "1차: 2026-12-21\n2차: 2026-12-28\n3차: 2027-01-04\n4차: 2027-01-11\n종료: 2027-01-29"; // 스냅샷 백업용 폴백 디폴트
+                }
+
                 const elPopMessage = document.getElementById('txtPopMessage');
                 if (elPopMessage) {
                     elPopMessage.style.textAlign = "left";
@@ -1179,15 +1190,29 @@
 
                     const parentCard = elPopMessage.closest('.cert-white-card-layer') || elPopMessage.parentElement;
                     if (parentCard) {
-                        parentCard.style.setProperty("margin-top", "0px", "important");
-                        parentCard.style.setProperty("padding", "18px 20px 20px 20px", "important");
-                        parentCard.style.setProperty("background", "#ffffff", "important");
-                        parentCard.style.setProperty("border", "1px solid #f1f5f9", "important");
-                        parentCard.style.setProperty("border-radius", "16px", "important");
-                        parentCard.style.setProperty("box-shadow", "0 10px 25px -5px rgba(0,0,0,0.05)", "important");
+                        // 🎨 [배경톤 색상 정합성 통일]: 기존 흰색 창을 전면 소독하고 시스템 본진 다크 블루톤 변환 매핑
+                        parentCard.style.setProperty("margin-top", "-10px", "important");
+                        parentCard.style.setProperty("padding", "6px 12px 10px 14px", "important");
+                        parentCard.style.setProperty("background", "#112240", "important"); // 내장 다크네이비 테마 결합
+                        parentCard.style.setProperty("border", "1px solid #1e293b", "important");
+                        parentCard.style.setProperty("border-radius", "12px", "important");
                     }
 
-                    // 2) [참여비 지급 예정일] 블록 내부의 패딩 및 마진 여백을 전면 초압착하여 스크롤바 생성 요소를 박멸
+                    // 상단 체크 아이콘 및 타이틀 주변의 불필요한 패딩 공백 축소 압착
+                    const icoPop = document.getElementById('icoPop');
+                    if (icoPop && icoPop.parentElement) {
+                        icoPop.parentElement.style.setProperty("margin-top", "0px", "important");
+                        icoPop.parentElement.style.setProperty("margin-bottom", "4px", "important");
+                        icoPop.style.setProperty("color", "#10b981", "important"); // 야광 녹색 패스권 주파수 인가
+                    }
+                    const txtPopTitle = document.getElementById('txtPopTitle');
+                    if (txtPopTitle) {
+                        txtPopTitle.style.setProperty("margin-bottom", "6px", "important");
+                        txtPopTitle.style.setProperty("font-size", "16.5px", "important");
+                        txtPopTitle.style.setProperty("color", "#10b981", "important");
+                    }
+
+                    // 💥 [간격 초압착 및 텍스트 고대비 네온 리스킨 마크업 수혈]
                     elPopMessage.innerHTML = `
                         <div style="background: #0f172a !important; border: 1px solid #1e293b !important; border-radius: 8px !important; padding: 8px 12px !important; margin: 0 !important; box-sizing: border-box !important;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 13.5px !important; line-height: 1.45 !important;">
@@ -1229,14 +1254,14 @@
                     const elConfirmBtn = document.querySelector('.cert-white-card-layer button') || document.querySelector('button[onclick*="executeStep3ConfirmNext"]');
                     if (elConfirmBtn) {
                         if (elConfirmBtn.parentElement) {
-                            // 하단 여백의 비정상적인 스트레칭 공간 전면 제거 압착
+                            // 하단 여백의 비정상적인 스크롤바 유발 스트레칭 공간 전면 박멸 압착
                             elConfirmBtn.parentElement.style.setProperty("margin-top", "8px", "important");
                             elConfirmBtn.parentElement.style.setProperty("padding", "0", "important");
                         }
                         elConfirmBtn.setAttribute("onclick", "executeStep3ConfirmNext()");
-                        elConfirmBtn.style.setProperty("background", "#0284c7", "important"); // 고대비 시그니처 딥스카이 블루 매핑
+                        elConfirmBtn.style.setProperty("background", "#0284c7", "important"); // 고대비 시그니처 딥스카이 블루 개통
                         elConfirmBtn.style.setProperty("color", "#ffffff", "important");
-                        elConfirmBtn.style.setProperty("height", "36px", "important"); // 세로 폭 콤팩트 피팅
+                        elConfirmBtn.style.setProperty("height", "36px", "important"); // 세로 폭 슬림 피팅
                         elConfirmBtn.style.setProperty("border-radius", "6px", "important");
                         elConfirmBtn.style.setProperty("font-weight", "800", "important");
                         elConfirmBtn.style.setProperty("font-size", "13.5px", "important");

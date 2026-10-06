@@ -1294,23 +1294,28 @@
                     if (dayDiff >= 180) isOver6Months = true;
                 }
 
-                // 신규 가상 유저(Ghost)이거나 실제 데이터상 6개월이 지나 완결된 유저만 스케줄러(5단계)로 토스
+                // 💡 [신규/6개월 만료 유저 트랙 B 분기] ➔ layer5 자식 가상 캘린더 개통
                 if (matchedPatientData.isNewUserGhost || isOver6Months) {
                     navigateToStep(5);
 
+                    // 🎯 [실시간 성명 동치화 패치]: 하드코딩 타이틀을 철거하고, 실제 로그인 유저의 이름을 100% 무지연 파싱 주입
+                    const currentTargetName = matchedPatientData.name || temporaryVerifiedName || "대상자";
+
                     if (document.getElementById('lblSetTargetNew')) {
-                        document.getElementById('lblSetTargetNew').innerText =
-                            `${matchedPatientData.name} 대상자님 ` + (isOver6Months ? "(6개월 경과)" : "(최초인증)");
+                        // 🚀 전산망 규격 반영: 상단 엠블럼 우측 텍스트 레이어에 실시간 "홍길동 님의 시험일정" 자동 마운트
+                        document.getElementById('lblSetTargetNew').innerText = `${currentTargetName} 님의 시험일정`;
                     }
 
                     const iframe = document.getElementById('mobileCalendarFrame');
                     if (iframe && iframe.contentWindow) {
-                        iframe.contentWindow.sessionStorage.setItem('certifiedUserName', temporaryVerifiedName);
+                        // 아이프레임 내부 하위 캘린더에 연동 대조용 가상 메모리 성명 주파수 사전 장전
+                        iframe.contentWindow.sessionStorage.setItem('certifiedUserName', currentTargetName);
                         if (typeof iframe.contentWindow.renderCalendar === "function") {
                             iframe.contentWindow.renderCalendar();
                         }
                     }
                     return;
+
                 } else {
                     // B. 기존 데이터가 존재하고 진행 중인 스케줄이 유효한 경우 ➔ 현재 참여중이므로 나의 시험정보 화면(4단계) 이동
                     navigateToStep(4);

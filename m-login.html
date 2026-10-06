@@ -1155,9 +1155,6 @@
                     return recTitleClean === appTitleClean && recTh === appTh;
                 });
 
-                const finalPayScheduleLog = (matchedRec && matchedRec.paySchedule) ?
-                    matchedRec.paySchedule.toString().replace(/\s*\/\s*/g, "\n") : "추후 공지 예정";
-
                 const rawDbSsn = (matchedPatientData.ssn || "").toString().trim();
                 const displayBirth = rawDbSsn.substring(0, 6) || "-";
 
@@ -1173,14 +1170,15 @@
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
 
                 // =========================================================================
-                // 🎯 [정밀 타격 위치 완착]: 성별 판정 직후, elPopMessage 탐색 전 전산 가변 일정을 장전합니다.
+                // 🎯 [정밀 타격 위치 단일화]: 중복을 분쇄하고 오직 단 하나의 let 채널 파싱 레일만 유연하게 안착시킵니다.
                 // =========================================================================
-                finalPayScheduleLog = "지급 일정 정보 없음";
+                let finalPayScheduleLog = "지급 일정 정보 없음";
                 if (matchedPatientData && matchedPatientData.paySchedule) {
                     // 슬래시(/) 단위로 쪼개어 가독성 높은 복합 행정 스트림으로 줄바꿈 변환
                     finalPayScheduleLog = matchedPatientData.paySchedule.toString().split('/').join('\n');
                 } else {
-                    finalPayScheduleLog = "1차: 2026-12-21\n2차: 2026-12-28\n3차: 2027-01-04\n4차: 2027-01-11\n종료: 2027-01-29"; // 스냅샷 백업용 폴백 디폴트
+                    // 💡 모집공고 대장에 매칭본이 없을 시 역산하여 띄워줄 스냅샷 백업용 폴백 디폴트
+                    finalPayScheduleLog = "1차: 2026-12-21\n2차: 2026-12-28\n3차: 2027-01-04\n4차: 2027-01-11\n5차: 2027-01-29";
                 }
 
                 const elPopMessage = document.getElementById('txtPopMessage');

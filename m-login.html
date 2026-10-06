@@ -1305,7 +1305,6 @@
 
                     const iframe = document.getElementById('mobileCalendarFrame');
                     if (iframe && iframe.contentWindow) {
-                        // 아이프레임 내부 하위 캘린더에 연동 대조용 임시 변수 파라미터 사전 장전
                         iframe.contentWindow.sessionStorage.setItem('certifiedUserName', temporaryVerifiedName);
                         if (typeof iframe.contentWindow.renderCalendar === "function") {
                             iframe.contentWindow.renderCalendar();
@@ -1328,7 +1327,7 @@
                         } else if (currentStage === "투약") {
                             cmsBadgeSlot.innerText = "진행\n(투약)";
                             cmsBadgeSlot.style.background = "#2563eb";
-                        } else if (currentStage === "신검대기") {
+                        } else if (currentStage === "text대기" || currentStage === "신검대기") {
                             cmsBadgeSlot.innerText = "신검\n대기";
                             cmsBadgeSlot.style.background = "#7c3aed";
                         } else if (currentStage === "신검통과") {
@@ -1343,27 +1342,41 @@
                         }
 
                         /* =================================================================
-                           🔥 [순정 완벽 상속] 최하단 "시험일정" 버튼 노출 및 기존 제출 버튼 가드 잠금
+                           🔥 [기획 사양 특수 수술]: 신검통과 혹은 종료 상태에 따른 하단 일정보기 단추 개방 셔터
                            ================================================================= */
-                        const calendarBtn = document.getElementById('ui_calendar_redirect_btn');
+                        const calendarRedirectBtn = document.getElementById('ui_calendar_redirect_btn');
                         const submitBtn = document.getElementById('ui_submit_btn');
 
-                        if (currentStage === "종료") {
-                            if (calendarBtn) {
-                                calendarBtn.style.setProperty("display", "block", "important");
+                        if (currentStage === "신검통과") {
+                            // 🎯 진재영 대상자 신검통과 찰나 ➔ 지급 버튼 아래에 고대비 스카이블루 "일정보기" 단추 즉시 사출 개방
+                            if (calendarRedirectBtn) {
+                                calendarRedirectBtn.style.setProperty("display", "block", "important");
+                                calendarRedirectBtn.style.setProperty("background-color", "#0284c7", "important");
+                                calendarRedirectBtn.innerText = "📅 나의 임상시험 일정보기 (신검 적합)";
+                            }
+                            // 기존 청구 버튼은 격리 가이드 문구와 함께 완강하게 락다운 잠금
+                            if (submitBtn) {
+                                submitBtn.innerText = "신검 통과 승인 (추후 소집 참여 시 신청 가능)";
+                                submitBtn.disabled = true;
+                                submitBtn.style.setProperty("background-color", "#1e293b", "important");
+                                submitBtn.style.setProperty("cursor", "not-allowed", "important");
+                            }
+                        } else if (currentStage === "종료") {
+                            if (calendarRedirectBtn) {
+                                calendarRedirectBtn.style.setProperty("display", "block", "important");
+                                calendarRedirectBtn.style.setProperty("background-color", "#475569", "important");
+                                calendarRedirectBtn.innerText = "📅 임상시험 일정 확인 (과제 완료)";
                             }
                             if (submitBtn) {
                                 submitBtn.innerText = "지급 청구 마감 (과제 종료)";
                                 submitBtn.disabled = true;
-                                submitBtn.style.background = "#1e293b";
-                                submitBtn.style.cursor = "not-allowed";
-                            }
-                            if (document.getElementById('lblSetTargetNew')) {
-                                document.getElementById('lblSetTargetNew').innerText = `${matchedPatientData.name || "대상자"}님 (임상 과제 완결)`;
+                                submitBtn.style.setProperty("background-color", "#1e293b", "important");
                             }
                         } else {
-                            if (calendarBtn) calendarBtn.style.display = "none";
+                            // 신검대기 등 평시 상태일 때는 일정보기 버튼을 철저히 은폐 숨김
+                            if (calendarRedirectBtn) calendarRedirectBtn.style.display = "none";
                         }
+                        /* ================================================================= */
                     }
 
                     // 1. 실제 연동 시험 공고의 진짜 기수(th) 실시간 주입
@@ -1492,11 +1505,18 @@
                         submitBtn.innerText = "지급 신청하기 (관리자 승인 완료)";
                     }
                 } else {
+                    // 평상시 혹은 신검 적합 단계 가이드선 복원
+                    const currentStage = currentRecord ? (currentRecord.status || currentRecord.stage || "신검대기").toString().trim() : "신검대기";
                     submitBtn.disabled = true;
                     submitBtn.className = "btn-submit-form";
-                    submitBtn.style.background = "#9ca3af";
+                    submitBtn.style.background = "#1e293b";
                     submitBtn.style.cursor = "not-allowed";
-                    submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
+
+                    if (currentStage === "신검통과") {
+                        submitBtn.innerText = "신검 통과 승인 (추후 소집 참여 시 신청 가능)";
+                    } else {
+                        submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
+                    }
                 }
             }
         }
@@ -1516,7 +1536,6 @@
             const isOpened = authSignal && authSignal.name && authSignal.name.toString().replace(/\s/g, "") === cleanSessionName && authSignal.isAllow === true;
             const isAlreadyReceived = currentRecord && currentRecord.payStatus === "접수";
 
-            // 💡 [현장 행정 연동 규격 주입]: 소집, 투약, 방문 단계 등 행정 패널이 개통되었을 때도 파일 열기를 승인 가드 확장
             const liveStageText = currentRecord ? (currentRecord.status || currentRecord.stage || "신검대기") : "신검대기";
             const isAdministrativeOpened = ["소집", "투약"].includes(liveStageText) || liveStageText.includes("방문");
 
@@ -1528,6 +1547,7 @@
             if (type === 'id') document.getElementById('real_file_id').click();
             else if (type === 'bank') document.getElementById('real_file_bank').click();
         }
+
 
         // 🎯 [참조 오류 디버깅 완결]: 변수명 주파수를 단일화하여 진짜 이미지 패킷을 가로채는 인코더 엔진 (변경하기 결합)
         function handleFileSelect(input, type) {
@@ -1772,34 +1792,43 @@
                         }
                         if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
 
-                        // 🔒 [신검 탈락자/동철자 실시간 달력 전면 개방 복귀] ➔ 타인 일정 가두리 해제
-                        if (liveStatusText === "신검탈락" || liveStatusText === "신검동철") {
+                        /* =================================================================
+                           🔥 [실시간 징검다리 스위칭]: 진재영 대상자 원격 신검통과 변경 포착 찰나
+                           ================================================================= */
+                        const calendarRedirectBtn = document.getElementById('ui_calendar_redirect_btn');
+                        if (liveStatusText === "신검통과") {
+                            if (calendarRedirectBtn) {
+                                calendarRedirectBtn.style.setProperty("display", "block", "important");
+                                calendarRedirectBtn.style.setProperty("background-color", "#0284c7", "important");
+                                calendarRedirectBtn.innerText = "📅 나의 임상시험 일정보기 (신검 적합)";
+                            }
+                        } else if (liveStatusText === "신검탈락" || liveStatusText === "신검동철") {
+                            if (calendarRedirectBtn) calendarRedirectBtn.style.display = "none";
+
+                            // 🔒 [신검 탈락자/동철자 실시간 달력 전면 개방 복귀] ➔ 타인 일정 가두리 해제
                             const iframe = document.getElementById('mobileCalendarFrame');
                             if (iframe && iframe.contentWindow) {
-                                // 기존 로그인 락인 토큰을 제거하여 오픈 트랙 캘린더 스킨으로 강제 스위칭 리셋
                                 iframe.contentWindow.localStorage.removeItem('loggedInUserSsn');
                                 if (typeof iframe.contentWindow.renderCalendar === "function") iframe.contentWindow.renderCalendar();
                             }
                         }
+                        /* ================================================================= */
                     }
 
                     // 2. [m-adm.html 원격 제어반 실시간 결합]
-                    // m-adm에서 개방(toggleAuth) 신호를 쏘아 올렸을 때만 서식을 유연하게 전면 개방/차단합니다.
                     else {
                         const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
 
                         if (authSignal && authSignal.name && authSignal.name.toString().replace(/\s/g, "") === cleanSessionName) {
                             if (authSignal.isAllow === true) {
-                                // 🔓 모바일 관리자가 지급신청 허용 개방 처리한 찰나
                                 if (submitBtn) {
                                     submitBtn.disabled = false;
                                     submitBtn.innerText = "참여비 지급 신청하기";
-                                    submitBtn.style.background = ""; // 잠금 오버라이드 해제
+                                    submitBtn.style.background = "";
                                     submitBtn.style.cursor = "pointer";
                                 }
                                 if (typeof setMobileFormActive === "function") { setMobileFormActive(true); }
                             } else {
-                                // 🔒 모바일 관리자가 신청불가 차단 처리한 찰나
                                 if (submitBtn) {
                                     submitBtn.disabled = true;
                                     submitBtn.innerText = "참여비 청구 권한 홀딩 (신청 불가)";
@@ -1809,8 +1838,6 @@
                                 if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
                             }
                         } else {
-                            // 🚀 [전산망 대개통 핵심 락킹]: m-adm 원격 신호가 아직 유입되지 않은 평시 기본 대기 트랙 제어 개편
-                            // 소집, 투약 단계뿐만 아니라 대표님이 신설하신 1차방문 ~ 4차방문 및 종료방문 단계까지 모두 모바일 자물쇠를 동시 자동 개방 완료!!
                             if (liveStatusText === "소집" || liveStatusText === "투약" || liveStatusText.includes("방문")) {
                                 if (submitBtn) {
                                     submitBtn.disabled = false;
@@ -1830,7 +1857,6 @@
                                 }
                                 if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
                             } else {
-                                // 나머지 중단/탈락 7형제 기본 락다운 홀딩 (순정 유지)
                                 if (submitBtn) {
                                     submitBtn.disabled = true;
                                     submitBtn.innerText = `${liveStatusText} 대상자 (부분 참여비 지급 신청 대기)`;
@@ -1842,6 +1868,7 @@
                     }
 
                     // 🔒 [부모 감시반의 자식 달력 미래 일정 터치 방어막 원격 주입 인터록 모듈]
+                    // 🎯 진재영 대상자가 [신검통과]이면 달력에서 오직 스크리닝 배지만 터치 허용하고 미래 방문 일정은 완벽하게 잠금(클릭 가드)
                     const iframe = document.getElementById('mobileCalendarFrame');
                     if (iframe && iframe.contentWindow && iframe.contentWindow.document) {
                         const childDoc = iframe.contentWindow.document;
@@ -1849,24 +1876,21 @@
 
                         eventBadges.forEach(badge => {
                             const badgeText = badge.innerHTML || "";
-                            // 아직 진행(내원)되지 않은 미래 차수 일정을 텍스트 매칭으로 발굴
-                            // 현재 내 상태와 다른 배지들은 텍스트는 보여주되 터치(클릭)는 원천 차단 마스크 처리
                             if (!badgeText.includes(`(${liveStatusText})`)) {
                                 if (liveStatusText === "신검대기" && (badgeText.includes("스크리닝(대기)") || badgeText.includes("스크리닝(통과)"))) {
-                                    badge.classList.remove('mobile-future-lock'); // 활성화
-                                } else if (liveStatusText === "신검통과" && (badgeText.includes("스크리닝(통과)") || badgeText.includes("스크리닝(대기)"))) {
-                                    badge.classList.remove('mobile-future-lock'); // 활성화
+                                    badge.classList.remove('mobile-future-lock');
+                                } else if (liveStatusText === "신검통과" && (badgeText.includes("스크리닝(통과)") || badgeText.includes("스크리닝(대기)") || badgeText.includes("스크리닝"))) {
+                                    badge.classList.remove('mobile-future-lock');
                                 } else {
                                     badge.classList.add('mobile-future-lock'); // 🔒 미래 일정 터치 강제 차단 자물쇠 락킹!!
                                 }
                             } else {
-                                badge.classList.remove('mobile-future-lock'); // 현재 유효단계는 잠금 해제
+                                badge.classList.remove('mobile-future-lock');
                             }
                         });
                     }
                 }
 
-                // 🌟 하단 푸시 시그널 처리반 (기존 순정 로직 원형 보존)
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
                 const cmsBadgeSlot = document.getElementById('cms-badge');
 

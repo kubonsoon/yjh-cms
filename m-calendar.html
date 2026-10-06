@@ -733,29 +733,83 @@
             const cleanSessionName = currentSessionName.replace(/\s/g, "");
             const cleanSelectedDateStr = selectedDateStr.toString().replace(/[^0-9]/g, "");
 
-            // 🔒 [격리 판단 가드 신설]: 참여하지 않은 시험, 참여가 종료되지 않은 시험, 6개월 미과과자 역산 타과제 차단
+            // 🔒 [격리 판단 가드]: 참여하지 않은 시험, 참여가 종료되지 않은 시험, 6개월 미과과자 역산 타과제 차단
             const myLiveJobRecord = applicantDB.find(app =>
                 (app.name || "").toString().replace(/\s/g, "") === cleanSessionName &&
                 app.stage && !["종료", "탈락", "신검탈락", "신검동철"].includes(app.stage)
             );
             const isLockInUser = !!myLiveJobRecord;
 
+            // 💡 [실무 지급 공식 핵심 역산 포인터 사전 빌드업]
+            // 날짜 가감 연산 전용 내장 헬퍼 매커니즘
+            function calculateSubtractedDate(baseStr, minusDays) {
+                if (!baseStr || baseStr.includes("추후")) return null;
+                const dObj = new Date(baseStr.trim());
+                if (isNaN(dObj.getTime())) return null;
+                dObj.setDate(dObj.getDate() - minusDays);
+                return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, '0')}-${String(dObj.getDate()).padStart(2, '0')}`;
+            }
+
+            // 오늘 기준으로 지나간 시험 배제 연산용 바인딩
             const todayMidnight = new Date();
             todayMidnight.setHours(0, 0, 0, 0);
 
-            // 오늘 기준으로 이미 지나간 과거의 시험 일정은 목록에서 철저히 제외
+            // 🔒 [대원칙 격리 셔터 작동]: 타인의 시험공고 원천 박멸 및 선택한 특정 요일 날짜에 진짜 매칭되는 일정만 필터 스캔
             const targetRecords = records.filter(item => {
                 if (!item.recDate) return false;
 
-                // 🔒 [대원칙 격리 셔터 작동]: 진재영 대상자 락인 상태 ➔ 타인의 다른 임상 시험 공고는 철저히 은폐 필터링 거절
+                // ❶ [과제명 1:1 복합 차단]: 내 과제명과 다른 공고는 흔적도 없이 전면 격리 차단 (은폐 필터링 거절)
                 if (isLockInUser && myLiveJobRecord.title !== item.title) {
                     return false;
+                }
+
+                // 기수(th) 명세까지 완벽하게 일치하는지 2중 크로스 검문 가드 작동
+                if (isLockInUser && myLiveJobRecord.th && item.th) {
+                    const cleanMyTh = myLiveJobRecord.th.toString().replace(/[^0-9]/g, "");
+                    const cleanItemTh = item.th.toString().replace(/[^0-9]/g, "");
+                    if (cleanMyTh !== cleanItemTh) return false;
                 }
 
                 const recDateObj = new Date(item.recDate);
                 recDateObj.setHours(0, 0, 0, 0);
                 if (recDateObj < todayMidnight) return false;
 
+                // ❷ [4대 행정 일자 동적 역산 타깃 필터링 추가 주입]
+                // 현재 스캔 중인 공고 원본을 토대로 진짜 행정 날짜 딕셔너리 트랙 생성
+                let itemScheduleMap = {};
+
+                // 스크리닝일 (모집공고의 recDate 기본 상속)
+                if (item.recDate) itemScheduleMap[item.recDate.trim()] = true;
+
+                // 소집일 (대상자 대장의 ssn 란에 숨겨진 진짜 소집일 파싱 연동)
+                if (isLockInUser && myLiveJobRecord.ssn && myLiveJobRecord.ssn.includes("소집:")) {
+                    const parsedSojib = myLiveJobRecord.ssn.match(/\d{4}-\d{2}-\d{2}/);
+                    if (parsedSojib) itemScheduleMap[parsedSojib[0]] = true;
+                }
+
+                // 1차~4차 방문일 = 참여비 지급예정일(payDate1~4)의 1주일 전(7일 전) 역산 공식 반영
+                if (item.payDate1) { const d = calculateSubtractedDate(item.payDate1, 7); if (d) itemScheduleMap[d] = true; }
+                if (item.payDate2) { const d = calculateSubtractedDate(item.payDate2, 7); if (d) itemScheduleMap[d] = true; }
+                if (item.payDate3) { const d = calculateSubtractedDate(item.payDate3, 7); if (d) itemScheduleMap[d] = true; }
+                if (item.payDate4) { const d = calculateSubtractedDate(item.payDate4, 7); if (d) itemScheduleMap[d] = true; }
+
+                // 종료검사일 = 종료비 지급예정일(paySchedule 내 날짜 또는 payDate5)의 14일 전 역산 공식 반영
+                if (item.paySchedule) {
+                    const matchedDates = item.paySchedule.toString().match(/\d{4}-\d{2}-\d{2}/g);
+                    if (matchedDates && matchedDates.length >= 5) {
+                        const d = calculateSubtractedDate(matchedDates[4], 14); if (d) itemScheduleMap[d] = true;
+                    } else if (item.payDate5) {
+                        const d = calculateSubtractedDate(item.payDate5, 14); if (d) itemScheduleMap[d] = true;
+                    }
+                }
+
+                // 🎯 [핵심 진압 마스크 체결]: 상단 주간 레일에서 마우스/터치로 '선택한 특정 날짜(selectedDateStr)'가 
+                // 이 과제의 진짜 역산 4대 행정 일자 맵에 포함되어 존재할 때만 카드로 사출 노출 인가!!
+                if (!itemScheduleMap[selectedDateStr.toString().trim()]) {
+                    return false;
+                }
+
+                // 3중 필터링을 모두 무결하게 통과한 진짜 일정만 상단 레일 바와 매칭 전파
                 const cleanRecDate = item.recDate.toString().replace(/[^0-9]/g, "");
                 return window.currentWeeklyDateKeys.some(weeklyKey => weeklyKey.replace(/[^0-9]/g, "") === cleanRecDate);
             });
@@ -764,7 +818,7 @@
                 cardBoard.innerHTML = `
                     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                         <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
-                        이번 주간에는 참여 가능한 남은 임상시험 소집 일정이 없습니다.
+                        선택하신 날짜에는 배정된 임상시험 차수 세부 일정이 없습니다.
                     </div>
                 `;
                 return;

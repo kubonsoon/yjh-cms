@@ -1187,36 +1187,40 @@
                         parentCard.style.setProperty("box-shadow", "0 10px 25px -5px rgba(0,0,0,0.05)", "important");
                     }
 
+                    // 2) [참여비 지급 예정일] 블록 내부의 패딩 및 마진 여백을 전면 초압착하여 스크롤바 생성 요소를 박멸
                     elPopMessage.innerHTML = `
-                        <div style="background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; padding: 12px 14px !important; margin: 0 !important; box-sizing: border-box !important;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 14px !important; line-height: 1.45 !important;">
+                        <div style="background: #0f172a !important; border: 1px solid #1e293b !important; border-radius: 8px !important; padding: 8px 12px !important; margin: 0 !important; box-sizing: border-box !important;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13.5px !important; line-height: 1.45 !important;">
                                 <tr>
-                                    <td style="width: 65px; color: #64748b; font-weight: 600; padding-bottom: 5px;">인증기관</td>
-                                    <td style="color: #334155; font-weight: 700; padding-bottom: 5px;">${currentChannelName || "간편인증"} 연동모듈</td>
+                                    <td style="width: 60px; color: #64748b; font-weight: 600; padding-bottom: 2px;">인증기관</td>
+                                    <td style="color: #cbd5e1; font-weight: 700; padding-bottom: 2px;">${currentChannelName || "간편인증"} 연동모듈</td>
                                 </tr>
                                 <tr>
-                                    <td style="width: 65px; color: #64748b; font-weight: 600; padding-bottom: 5px;">대상자</td>
-                                    <td style="color: #0f172a; font-weight: 800; padding-bottom: 5px;">
-                                        ${matchedPatientData.name || name} <span style="font-size: 13px; color: #64748b; font-weight: 500; margin-left: 2px;">(${displayBirth} / ${displayGender})</span>
+                                    <td style="color: #64748b; font-weight: 600; padding-bottom: 2px;">대상자</td>
+                                    <td style="color: #ffffff; font-weight: 800; padding-bottom: 2px;">
+                                        ${matchedPatientData.name || name} <span style="font-size: 12px; color: #94a3b8; font-weight: 500;">(${displayBirth} / ${displayGender})</span>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="width: 65px; color: #64748b; font-weight: 600; vertical-align: top; padding-top: 1px;">시험명</td>
-                                    <td style="color: #0f172a; font-weight: 800; vertical-align: top; padding-top: 1px; line-height: 1.35;">
-                                        ${matchedPatientData.title || "미배정 과제"} <span style="color: #0284c7; font-weight: 900; margin-left: 2px;">(${matchedPatientData.th || "1기"})</span>
+                                    <td style="color: #64748b; font-weight: 600; vertical-align: top;">시험명</td>
+                                    <td style="color: #38bdf8; font-weight: 800; vertical-align: top; line-height: 1.3;">
+                                        ${matchedPatientData.title || "미배정 과제"} <span style="color: #FBBF24; font-weight: 900;">(${matchedPatientData.th || "1기"})</span>
                                     </td>
                                 </tr>
                             </table>
                         </div>
-                        <div style="margin-top: 15px !important; margin-bottom: 5px !important; padding: 0 !important; display: flex; align-items: center; gap: 4px;">
-                            <div style="width: 3px; height: 12px; background: #0ea5e9; border-radius: 2px;"></div>
-                            <span style="font-size: 13.5px !important; font-weight: 800 !important; color: #334155 !important; letter-spacing: -0.3px;">[참여비 지급 예정일]</span>
+                        
+                        <div style="margin-top: 8px !important; margin-bottom: 2px !important; display: flex; align-items: center; gap: 4px;">
+                            <div style="width: 3px; height: 10px; background: #38bdf8; border-radius: 2px;"></div>
+                            <span style="font-size: 12.5px !important; font-weight: 800 !important; color: #38bdf8 !important; letter-spacing: -0.3px;">[참여비 지급 예정일]</span>
                         </div>
-                        <div style="background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; padding: 12px 14px !important; box-sizing: border-box !important; margin: 0 !important;">
-                            <div style="font-size: 13.5px !important; color: #1e293b !important; font-weight: 700; line-height: 1.55 !important; white-space: pre-line !important; letter-spacing: 0.2px;">${finalPayScheduleLog}</div>
+                        
+                        <div style="background: #0f172a !important; border: 1px solid #1e293b !important; border-radius: 8px !important; padding: 6px 12px !important; box-sizing: border-box !important; margin: 0 !important;">
+                            <div style="font-size: 12.5px !important; color: #e2e8f0 !important; font-weight: 700; line-height: 1.4 !important; white-space: pre-line !important;">${finalPayScheduleLog}</div>
                         </div>
-                        <div style="margin-top: 8px !important; padding-left: 2px !important;">
-                            <p style="font-size: 12px !important; color: #94a3b8 !important; line-height: 1.3; margin: 0 !important; font-weight: 500;">
+                        
+                        <div style="margin-top: 5px !important; margin-bottom: 0px !important; padding-left: 2px !important;">
+                            <p style="font-size: 11px !important; color: #64748b !important; line-height: 1.2; margin: 0 !important; font-weight: 500;">
                                 아래 확인 버튼을 클릭하면 참여중인 시험현황으로 이동합니다.
                             </p>
                         </div>
@@ -1225,15 +1229,17 @@
                     const elConfirmBtn = document.querySelector('.cert-white-card-layer button') || document.querySelector('button[onclick*="executeStep3ConfirmNext"]');
                     if (elConfirmBtn) {
                         if (elConfirmBtn.parentElement) {
-                            elConfirmBtn.parentElement.style.setProperty("margin-top", "16px", "important");
+                            // 하단 여백의 비정상적인 스트레칭 공간 전면 제거 압착
+                            elConfirmBtn.parentElement.style.setProperty("margin-top", "8px", "important");
                             elConfirmBtn.parentElement.style.setProperty("padding", "0", "important");
                         }
                         elConfirmBtn.setAttribute("onclick", "executeStep3ConfirmNext()");
-                        elConfirmBtn.style.setProperty("background", "#0f172a", "important");
-                        elConfirmBtn.style.setProperty("height", "45px", "important");
-                        elConfirmBtn.style.setProperty("border-radius", "10px", "important");
+                        elConfirmBtn.style.setProperty("background", "#0284c7", "important"); // 고대비 시그니처 딥스카이 블루 매핑
+                        elConfirmBtn.style.setProperty("color", "#ffffff", "important");
+                        elConfirmBtn.style.setProperty("height", "36px", "important"); // 세로 폭 콤팩트 피팅
+                        elConfirmBtn.style.setProperty("border-radius", "6px", "important");
                         elConfirmBtn.style.setProperty("font-weight", "800", "important");
-                        elConfirmBtn.style.setProperty("font-size", "15px", "important");
+                        elConfirmBtn.style.setProperty("font-size", "13.5px", "important");
                         elConfirmBtn.style.setProperty("box-shadow", "none", "important");
                         elConfirmBtn.style.setProperty("width", "100%", "important");
                     }

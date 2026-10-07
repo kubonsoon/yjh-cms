@@ -1884,31 +1884,38 @@
                     if (crcNameZone) { crcNameZone.innerText = `👩‍⚕️ 담당자: ${realCrcName}`; }
                 }
 
-                // 🎯 [원격 msg_push_signal 수신기 - 순정 원형 100% 무결성 보존]
+                // 🎯 [원격 msg_push_signal 수신기 - 과거 잔여 패킷 간섭 차단 정밀 교정 완착]
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
                 const cmsBadgeSlot = document.getElementById('cms-badge');
+
                 if (pushSignal && pushSignal.name) {
                     const cleanPushName = pushSignal.name.toString().replace(/\s/g, "");
                     if (cleanPushName === cleanSessionName) {
-                        if (pushSignal.status === 'PASS') {
-                            if (cmsBadgeSlot) {
-                                cmsBadgeSlot.style.setProperty("background", "#10b981", "important");
-                                cmsBadgeSlot.style.setProperty("background-color", "#10b981", "important");
-                                cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
-                                cmsBadgeSlot.innerHTML = "통과 <br> (지급)";
-                            }
-                            if (document.getElementById('history-log')) {
-                                document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
-                            }
-                        } else if (pushSignal.status === 'FAIL') {
-                            if (cmsBadgeSlot) {
-                                cmsBadgeSlot.style.setProperty("background", "#f43f5e", "important");
-                                cmsBadgeSlot.style.setProperty("background-color", "#f43f5e", "important");
-                                cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
-                                cmsBadgeSlot.innerHTML = "탈락<br>(정산)";
-                            }
-                            if (document.getElementById('history-log')) {
-                                document.getElementById('history-log').innerHTML = "<span style='color: #F43F5E; font-weight: 700;'>심사 탈락 반려</span>";
+                        // 💡 [핵심 교정]: 실시간 대장의 진짜 상태가 실제 원격 신호(PASS/FAIL) 계열과 일치할 때만 스킨 변경 허용
+                        const isRealSignalMatching = (pushSignal.status === 'PASS' && liveRecord && liveRecord.status === '통과') ||
+                            (pushSignal.status === 'FAIL' && liveRecord && ["신검탈락", "검사탈락", "심사탈락"].includes(liveRecord.status));
+
+                        if (isRealSignalMatching) {
+                            if (pushSignal.status === 'PASS') {
+                                if (cmsBadgeSlot) {
+                                    cmsBadgeSlot.style.setProperty("background", "#10b981", "important");
+                                    cmsBadgeSlot.style.setProperty("background-color", "#10b981", "important");
+                                    cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
+                                    cmsBadgeSlot.innerHTML = "통과 <br> (지급)";
+                                }
+                                if (document.getElementById('history-log')) {
+                                    document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
+                                }
+                            } else if (pushSignal.status === 'FAIL') {
+                                if (cmsBadgeSlot) {
+                                    cmsBadgeSlot.style.setProperty("background", "#f43f5e", "important");
+                                    cmsBadgeSlot.style.setProperty("background-color", "#f43f5e", "important");
+                                    cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
+                                    cmsBadgeSlot.innerHTML = "탈락<br>(정산)";
+                                }
+                                if (document.getElementById('history-log')) {
+                                    document.getElementById('history-log').innerHTML = "<span style='color: #F43F5E; font-weight: 700;'>심사 탈락 반려</span>";
+                                }
                             }
                         }
                     }

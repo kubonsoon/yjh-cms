@@ -712,8 +712,10 @@
             let applicantDB = getApplicantData();
             const cleanSessionName = currentCertifiedUser.replace(/\s/g, "");
 
+            // 1. 대상자 목록에서 현재 종료/탈락이 아닌 유효 유저 1순위 격리 포착
             const myLiveJobRecord = applicantDB.find(app => (app.name || "").toString().replace(/\s/g, "") === cleanSessionName && app.stage && !["종료", "탈락"].includes(app.stage));
 
+            // 자식 달력 독립 로딩 타이밍 3중 세션 가로채기 기반 프로필 실시간 오버라이드
             const targetSsn = myLiveJobRecord ? (myLiveJobRecord.ssn || "") : (localStorage.getItem('loggedInUserSsn') || "951007-2");
             const cleanSsn = targetSsn.replace(/[^0-9]/g, "");
             const displayBirth6 = cleanSsn.substring(0, 6) || "951007";
@@ -737,30 +739,44 @@
                 return;
             }
 
+            // 🎯 [요구사항 반영]: 기획 마스터 7대 차수별 일정 및 지급일 전산망 맵(Map) 장전
+            const masterClinicalScheduleMap = {
+                "2026-12-04": "스크리닝 방문",
+                "2026-12-11": "소집 방문 (임상시험 시작)",
+                "2026-12-14": "1차 방문채혈 (지급: 12/21)",
+                "2026-12-21": "2차 방문채혈 (지급: 12/28)",
+                "2026-12-28": "3차 방문채혈 (지급: 01/04)",
+                "2027-01-04": "4차 방문채혈 (지급: 01/11)",
+                "2027-01-15": "최종 종료검사 (지급: 01/29)"
+            };
+
+            // 2. 마스터 공고 대장 원장을 순회하며 로그인 대상자의 연계 과제 타이틀을 필터링 및 조인
             const targetRecords = records.filter(item => {
-                if (!item.recDate) return false;
+                if (!item.title) return false;
                 const cleanMyTitle = myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase();
                 const cleanItemTitle = item.title.toString().replace(/\s/g, "").toLowerCase();
                 if (cleanMyTitle !== "신규방문과제미배정" && cleanMyTitle !== cleanItemTitle) return false;
 
-                let itemScheduleMap = {};
-                if (item.recDate) { const k = item.recDate.trim(); itemScheduleMap[k] = `스크리닝`; }
-                if (item.payDate1) { const d = calculateSubtractedDate(item.payDate1, 7); if (d) itemScheduleMap[d.trim()] = `1차 방문채혈`; }
-                if (item.payDate2) { const d = calculateSubtractedDate(item.payDate2, 7); if (d) itemScheduleMap[d.trim()] = `2차 방문채혈`; }
-                if (item.payDate3) { const d = calculateSubtractedDate(item.payDate3, 7); if (d) itemScheduleMap[d.trim()] = `3차 방문채혈`; }
-                if (item.payDate4) { const d = calculateSubtractedDate(item.payDate4, 7); if (d) itemScheduleMap[d.trim()] = `4차 방문채혈`; }
-
-                let weeklyMatchedList = [];
-                if (itemScheduleMap[selectedDateStr]) {
+                // 사용자가 상단 주간 바에서 선택한 날짜 키가 7대 마스터 맵에 등록되어 있는지 정밀 검문 대조
+                if (masterClinicalScheduleMap[selectedDateStr]) {
                     const dayObj = new Date(selectedDateStr);
                     const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
                     const formattedDateString = `${dayObj.getFullYear()}년 ${String(dayObj.getMonth() + 1).padStart(2, '0')}월 ${String(dayObj.getDate()).padStart(2, '0')}일 (${dayNamesShort[dayObj.getDay()]})`;
-                    weeklyMatchedList.push({ dateKey: selectedDateStr, labelText: `${formattedDateString} : ${itemScheduleMap[selectedDateStr]}` });
+
+                    // 7대 마스터 명세 텍스트와 동적 날짜 가이드를 유기적으로 조립 바인딩
+                    let weeklyMatchedList = [];
+                    weeklyMatchedList.push({
+                        dateKey: selectedDateStr,
+                        labelText: `${formattedDateString} : ${masterClinicalScheduleMap[selectedDateStr]}`
+                    });
+
+                    item._computedWeeklyList = weeklyMatchedList;
+                    return true;
                 }
-                if (weeklyMatchedList.length > 0) { item._computedWeeklyList = weeklyMatchedList; return true; }
                 return false;
             });
 
+            // 일정이 없는 일반 요일 선택 시 출력될 예외 방어 가드 텍스트 팩토리
             if (targetRecords.length === 0) {
                 cardBoard.innerHTML = `
             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
@@ -769,7 +785,7 @@
                     <span>${currentCertifiedUser} (${displayBirth6})</span>
                     <span class="${genderClass}" style="padding:1px 5px; border-radius:4px; font-size:11px; font-weight:800;">${genderText}</span>
                 </div>
-                <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">임상시험 스케줄(주간)</div>
+                <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">선택하신 날짜에는 등록된 임상시험 일정이 없습니다.</div>
             </div>
         `;
                 return;

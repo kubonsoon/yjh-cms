@@ -1695,7 +1695,7 @@
                         historyLogSlot.innerText = liveStatusText;
                     }
 
-                    // [인라인 !important 오버라이드 폭격 모듈]
+                    // [인라인 !important 오버라이드 폭격 모듈 - 순정 원형 100% 보존]
                     if (mobileBadge) {
                         mobileBadge.className = "badge";
 
@@ -1756,7 +1756,8 @@
                         }
                     }
 
-                    // 1. [기획 대원칙] 신검 관련 카테고리 4형제는 직접 신청 불가 장벽 유지 (순정 수호)
+
+                    // 🎯 [순정 수호 분기 가드레일 100% 온전 상속 수용]
                     if (liveStatusText === "신검대기" || liveStatusText === "신검통과" || liveStatusText === "신검탈락" || liveStatusText === "신검동철") {
                         if (submitBtn) {
                             submitBtn.disabled = true;
@@ -1790,9 +1791,7 @@
                                 if (typeof iframe.contentWindow.renderCalendar === "function") iframe.contentWindow.renderCalendar();
                             }
                         }
-                    }
-
-                    else {
+                    } else {
                         const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
                         if (authSignal && authSignal.name && authSignal.name.toString().replace(/\s/g, "") === cleanSessionName) {
                             if (authSignal.isAllow === true) {
@@ -1840,7 +1839,7 @@
                         }
                     }
 
-                    // [부모 감시반의 자식 달력 미래 일정 터치 방어막 원격 주입 인터록 모듈]
+                    // 🎯 [부모 감시반의 자식 달력 미래 일정 터치 방어막 원격 주입 인터록 모듈 - 순정 원형 보존]
                     const iframe = document.getElementById('mobileCalendarFrame');
                     if (iframe && iframe.contentWindow && iframe.contentWindow.document) {
                         const childDoc = iframe.contentWindow.document;
@@ -1860,8 +1859,32 @@
                             }
                         });
                     }
+
+                    // 🎯 [실시간 과제 명세 맵화 연동단 완착]: 순정 로직 하단에 안전 도킹 수립 (리렌더링 굳어짐 완치)
+                    let masterRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                    const matchedMasterRec = masterRecruitmentDB.find(rec => {
+                        const recTitle = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const appTitle = (liveRecord.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const recTh = (rec.th || '').toString().replace(/[^0-9]/g, "");
+                        const appTh = (liveRecord.th || '').toString().replace(/[^0-9]/g, "");
+                        return recTitle === appTitle && recTh === appTh;
+                    });
+
+                    const realLiveTitle = matchedMasterRec ? matchedMasterRec.title : (liveRecord.title || "참여 과제 정보 없음");
+                    const realLiveTh = matchedMasterRec ? matchedMasterRec.th : (liveRecord.th || "1기");
+
+                    const trialCategorySlot = document.getElementById('lblTrialCategory');
+                    if (trialCategorySlot) { trialCategorySlot.innerText = realLiveTh ? `${realLiveTh} 시험` : "과제 기수 미정"; }
+
+                    const trialTitleSlot = document.getElementById('lblTrialTitle');
+                    if (trialTitleSlot) { trialTitleSlot.innerText = realLiveTitle; }
+
+                    const realCrcName = matchedMasterRec ? matchedMasterRec.crc : "이승호";
+                    const crcNameZone = document.getElementById('ui_crc_name_zone');
+                    if (crcNameZone) { crcNameZone.innerText = `👩‍⚕️ 담당자: ${realCrcName}`; }
                 }
 
+                // 🎯 [원격 msg_push_signal 수신기 - 순정 원형 100% 무결성 보존]
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
                 const cmsBadgeSlot = document.getElementById('cms-badge');
                 if (pushSignal && pushSignal.name) {
@@ -1874,7 +1897,9 @@
                                 cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
                                 cmsBadgeSlot.innerHTML = "통과 <br> (지급)";
                             }
-                            document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
+                            if (document.getElementById('history-log')) {
+                                document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
+                            }
                         } else if (pushSignal.status === 'FAIL') {
                             if (cmsBadgeSlot) {
                                 cmsBadgeSlot.style.setProperty("background", "#f43f5e", "important");
@@ -1882,7 +1907,9 @@
                                 cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
                                 cmsBadgeSlot.innerHTML = "탈락<br>(정산)";
                             }
-                            document.getElementById('history-log').innerHTML = "<span style='color: #F43F5E; font-weight: 700;'>심사 탈락 반려</span>";
+                            if (document.getElementById('history-log')) {
+                                document.getElementById('history-log').innerHTML = "<span style='color: #F43F5E; font-weight: 700;'>심사 탈락 반려</span>";
+                            }
                         }
                     }
                 }

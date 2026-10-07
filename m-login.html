@@ -1268,34 +1268,34 @@
                     const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
                     if (dayDiff >= 180) isOver6Months = true;
                 }
-                // [신규/6개월 만료 유저 트랙 B 분기] → layer5 자식 가상 캘린더 개통
+
+                // [트랙 B: 신규/6개월 만료 유저] → layer5 자식 가상 캘린더 개통
                 if (matchedPatientData.isNewUserGhost || isOver6Months) {
                     navigateToStep(5);
 
-                    // [실시간 성명 동치화 패치]: 실제 로그인 유저의 이름을 100% 무지연 파싱 주입
                     const currentTargetName = matchedPatientData.name || temporaryVerifiedName || "대상자";
 
                     // 🎯 기획 사양 반영: 5단계 상단 안내 가이드 문구 전면 개조
                     if (document.getElementById('lblSetTargetNew')) {
                         document.getElementById('lblSetTargetNew').innerText = "임상시험 스케줄(주간)";
                     }
+
                     const iframe = document.getElementById('mobileCalendarFrame');
                     if (iframe && iframe.contentWindow) {
-                        // 아이프레임 내부 하위 캘린더에 연동 대조용 가상 메모리 성명 주파수 사전 장전
                         iframe.contentWindow.sessionStorage.setItem('certifiedUserName', currentTargetName);
                         if (typeof iframe.contentWindow.renderCalendar === "function") {
                             iframe.contentWindow.renderCalendar();
                         }
                     }
-                    return; // 트랙 B 종료 분기 처리로 하단 로직 유입 원천 차단
+                    return; // 트랙 B 진입 시 여기서 탈출
                 } else {
-                    // B. 기존 데이터가 존재하고 진행 중인 스케줄이 유효한 경우 현재 참여 중이므로 나의 시험정보 화면(4단계) 이동
+                    // [트랙 A: 기존 회원 유효 유저] → 나의 시험정보 화면(4단계) 이동 및 UI 동적 리스킨
                     navigateToStep(4);
 
                     const cmsBadgeSlot = document.getElementById('cms-badge');
-                    // [교정 완착]: 진짜 실시간 참여상태 필드(status 혹은 stage)를 파싱하여 배지 조립
-                    if (cmsBadgeSlot && matchedPatientData) {
-                        const currentStage = (matchedPatientData.status || matchedPatientData.stage || "신검대기").toString().trim();
+                    const currentStage = (matchedPatientData.status || matchedPatientData.stage || "신검대기").toString().trim();
+
+                    if (cmsBadgeSlot) {
                         if (currentStage === "종료") {
                             cmsBadgeSlot.innerText = "정산\n(종료)";
                             cmsBadgeSlot.style.background = "#64748b";
@@ -1305,8 +1305,7 @@
                         } else if (currentStage === "text대기" || currentStage === "신검대기") {
                             cmsBadgeSlot.innerText = "신검\n대기";
                             cmsBadgeSlot.style.background = "#7c3aed";
-                        }
-                        else if (currentStage === "신검통과") {
+                        } else if (currentStage === "신검통과") {
                             cmsBadgeSlot.innerText = "신검\n적합";
                             cmsBadgeSlot.style.background = "#10b981";
                         } else if (currentStage === "소집" || currentStage.includes("소집")) {
@@ -1334,9 +1333,7 @@
                             submitBtn.style.setProperty("background-color", "#1e293b", "important");
                             submitBtn.style.setProperty("cursor", "not-allowed", "important");
                         }
-                    }
-
-                    else if (currentStage === "신검대기") {
+                    } else if (currentStage === "신검대기") {
                         if (submitBtn) {
                             submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
                             submitBtn.disabled = true;
@@ -1356,16 +1353,21 @@
                     }
                 }
 
-                // 1. 실제 연동 시험 공고의 진짜 기수(th) 실시간 주입
+                // ==========================================================================
+                // 🔒 [함수 내부로 정상 완착] 4단계 진입 시 '로딩 중...' 텍스트를 진짜 데이터로 치환
+                // ==========================================================================
+                // 1. 진짜 기수(th) 실시간 주입
                 const trialCategorySlot = document.getElementById('lblTrialCategory');
                 if (trialCategorySlot) {
                     trialCategorySlot.innerText = matchedPatientData.th ? `${matchedPatientData.th} 시험` : "과제 기수 미정";
                 }
 
-                // 2. 실제 연동 시험명 매핑
-                document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
+                // 2. 진짜 시험명 매핑 오버라이드
+                if (document.getElementById('lblTrialTitle')) {
+                    document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
+                }
 
-                // 3. 하이픈 뒤 숫자 박멸 및 성별 분리 배지화 공정 가동
+                // 3. 성명 및 성별 분리 배지화 공정 가동
                 const rawDbSsn = (matchedPatientData.ssn || "").toString().trim();
                 const displayBirth6 = rawDbSsn.substring(0, 6) || "-";
                 let genderBadgeHtml = "";
@@ -1376,9 +1378,11 @@
                     genderBadgeHtml = '<span class="gender-indicator-badge gender-f">여</span>';
                 }
 
-                document.getElementById('ui_target_name_zone').innerHTML = `<span>👤 대상자: ${matchedPatientData.name} (${displayBirth6})</span>${genderBadgeHtml}`;
+                if (document.getElementById('ui_target_name_zone')) {
+                    document.getElementById('ui_target_name_zone').innerHTML = `<span>👤 대상자: ${matchedPatientData.name} (${displayBirth6})</span>${genderBadgeHtml}`;
+                }
 
-                // 4. 모집공고 마스터 가상 DB를 실시간 역추적하여 과제 배정 진짜 담당 CRC 사원명 바인딩
+                // 4. 담당 CRC 사원명 실시간 역추적 바인딩
                 let adminRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
                 const realRecData = adminRecruitmentDB.find(rec => {
                     const recTitle = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
@@ -1389,9 +1393,11 @@
                 });
 
                 const realCrcName = realRecData ? realRecData.crc : "이승호";
-                document.getElementById('ui_crc_name_zone').innerText = `👩‍⚕️ 담당자: ${realCrcName}`;
+                if (document.getElementById('ui_crc_name_zone')) {
+                    document.getElementById('ui_crc_name_zone').innerText = `👩‍⚕️ 담당자: ${realCrcName}`;
+                }
 
-                // 5. 대상자 계좌 연동 패킷 실시간 주입 및 모니터링 가동
+                // 5. 계좌 연동 패킷 실시간 매핑
                 const bankInputSlot = document.getElementById('ui_bank_input');
                 if (bankInputSlot && matchedPatientData.accountInfo) {
                     const parts = matchedPatientData.accountInfo.split(' ');
@@ -1400,7 +1406,7 @@
                         const bankSelectSlot = document.getElementById('ui_bank_select');
                         if (bankSelectSlot) {
                             for (let opt of bankSelectSlot.options) {
-                                if (opt.text.includes(parts[0]) || parts[0].includes(opt.value)) {
+                                if (opt.text.includes(parts) || parts.includes(opt.value)) {
                                     bankSelectSlot.value = opt.value;
                                     break;
                                 }
@@ -1409,7 +1415,7 @@
                     }
                 }
 
-                // 진입 즉시 1초 주기 실시간 원격 감시 안테나 기동
+                // 6. 진짜 데이터가 다 주입되었으므로 1초 주기 안테나 레이더 모니터링 엔진 최종 기동
                 startAdminApprovalMonitor();
             }
         }
@@ -1644,6 +1650,7 @@
                         historyLogSlot.innerText = liveStatusText;
                     }
 
+                    // [인라인 !important 오버라이드 폭격 모듈]
                     if (mobileBadge) {
                         mobileBadge.className = "badge";
 
@@ -1768,9 +1775,7 @@
                                 submitBtn.style.cursor = "pointer";
                             }
                             if (typeof setMobileFormActive === "function") { setMobileFormActive(true); }
-                        }
-
-                        else if (liveStatusText === "종료" || liveStatusText.includes("종료")) {
+                        } else if (liveStatusText === "종료" || liveStatusText.includes("종료")) {
                             if (stageTxtSlot) {
                                 stageTxtSlot.innerHTML = '<b style="color: #4ade80;">🧪 임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여 정산 및 참여비 지급이 최종 완결되었습니다.</span>';
                             }
@@ -1797,7 +1802,7 @@
                         const eventBadges = childDoc.querySelectorAll('.event-badge');
                         eventBadges.forEach(badge => {
                             const badgeText = badge.innerHTML || "";
-                            if (!badgeText.includes((`${liveStatusText}`))) {
+                            if (!badgeText.includes(`${liveStatusText}`)) {
                                 if (liveStatusText === "신검대기" && (badgeText.includes("스크리닝(대기)") || badgeText.includes("스크리닝(통과)"))) {
                                     badge.classList.remove('mobile-future-lock');
                                 } else if (liveStatusText === "신검통과" && (badgeText.includes("스크리닝(통과)") || badgeText.includes("스크리닝(대기)") || badgeText.includes("스크리닝"))) {
@@ -1838,6 +1843,7 @@
                 }
             }, 1000);
         }
+
 
         // 4단: 최종 정산 데이터 전산 패킷 트랜잭션 전송 및 마스터 대장 원격 불 켜기 공정완결
         function submitFinalSettlementForm() {

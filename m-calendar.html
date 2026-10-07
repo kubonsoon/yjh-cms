@@ -614,9 +614,25 @@
         let selectedDateStr = `${yyyy}-${mm}-${dd}`;
         let currentFilter = 'ALL';
 
-        // [멀티 유저 보안] 로그인 인증 인터록 포인터 연동
-        let currentCertifiedUser = sessionStorage.getItem('certifiedUserName') || "진재영";
-        if (!sessionStorage.getItem('certifiedUserName')) { sessionStorage.setItem("certifiedUserName", "진재영"); }
+        // [멀티 유저 보안] 로그인 인증 인터록 포인터 연동 (부모 창 진짜 실시간 로그인 데이터 패킷 무지연 가로채기)
+        let currentCertifiedUser = sessionStorage.getItem('certifiedUserName') || "";
+        let cachedLogUser = localStorage.getItem('loggedInUser');
+
+        if (cachedLogUser) {
+            try {
+                let parsedLogUser = JSON.parse(cachedLogUser);
+                if (parsedLogUser && parsedLogUser.name) {
+                    currentCertifiedUser = parsedLogUser.name.toString().trim();
+                    sessionStorage.setItem('certifiedUserName', currentCertifiedUser);
+                }
+            } catch (e) { console.error("[전산 오류] 로그인 캐시 복합 파싱 실패:", e); }
+        }
+
+        // 만약 백업 세션까지 부재 시 안전 가드로 폴백 바인딩
+        if (!currentCertifiedUser) {
+            currentCertifiedUser = "홍길동";
+            sessionStorage.setItem('certifiedUserName', "홍길동");
+        }
 
         function getMasterData() { return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || []; }
         function getApplicantData() { return JSON.parse(localStorage.getItem('dataStoreApplicant')) || []; }

@@ -934,8 +934,55 @@
             if (overlay) overlay.setAttribute('style', 'display: none !important;');
         };
 
-        window.onload = renderCalendar;
+        // window.onload = renderCalendar;
 
+        // ==========================================================================
+        // 🔒 [정밀 타격 최종 마감] 자식 달력 독립 로딩 즉시 데이터 자체 역추적 및 강제 마운트
+        // ==========================================================================
+        window.onload = function () {
+            // 1. 부모가 적재해 둔 실시간 인증 유저 명의 및 주민번호 패킷 자체 강제 가로채기
+            let logUserStr = localStorage.getItem('loggedInUser');
+            let logUserSsn = localStorage.getItem('loggedInUserSsn') || "951007-2";
+            let activeTargetName = "홍길동";
+
+            if (logUserStr) {
+                try {
+                    let parsedLogUser = JSON.parse(logUserStr);
+                    if (parsedLogUser && parsedLogUser.name) {
+                        activeTargetName = parsedLogUser.name.toString().trim();
+                    }
+                } catch (e) { console.error("[전산 오류] 자식 달력 자체 캐시 파싱 실패:", e); }
+            }
+
+            // 세션 스토리지 강제 동치화 동기화 락인
+            sessionStorage.setItem('certifiedUserName', activeTargetName);
+
+            const cleanSsn = logUserSsn.replace(/[^0-9a-zA-Z]/g, "");
+            const displayBirth6 = cleanSsn.substring(0, 6) || "951007";
+
+            // 성별 식별 코드 분석 및 고대비 테마 클래스 분기
+            let genderText = "여";
+            let genderClass = "gender-indicator-badge gender-f";
+            if (cleanSsn.endsWith("1") || cleanSsn.endsWith("3") || cleanSsn.includes("M") || cleanSsn.endsWith("M")) {
+                genderText = "남";
+                genderClass = "gender-indicator-badge gender-m";
+            }
+
+            // 2. [자물쇠 옆 앵커 정밀 조준] 자식 문서 내부에 심어진 lblSetTargetNew 슬롯 강제 리스킨 주입
+            const selfTargetSlot = document.getElementById('lblSetTargetNew') || document.querySelector('.scheduler-profile-bar .user-meta-info');
+            if (selfTargetSlot) {
+                selfTargetSlot.innerHTML = `
+                    <span style="color:#ffffff; font-weight:800;">👤 ${activeTargetName}</span>
+                    <span style="color:rgba(255,255,255,0.4); font-weight:500; margin-left:2px;">(${displayBirth6})</span>
+                    <span class="${genderClass}" style="margin-left:5px; padding:1px 5px; border-radius:4px; font-size:11px; font-weight:800; display:inline-block; line-height:1.3;">${genderText}</span>
+                `;
+            }
+
+            // 3. 프로필 마운트가 끝난 즉시 주간 캘린더 드로잉 엔진 및 카드 팩토리 가동
+            if (typeof renderCalendar === "function") {
+                renderCalendar();
+            }
+        };
 
     </script>
 </body>

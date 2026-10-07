@@ -390,18 +390,26 @@
         .popup-display-zone {
             flex: 1;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            /* 중앙 홀딩 가드를 파쇄하고 1·2단계처럼 상단 배치 개통 */
+            padding-top: 2px !important;
+            /* 1, 2단계 입력창 서식이 시작되는 물리적 상단 높이 좌표와 100% 동일화 */
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .embedded-result-popup {
-            background: #ffffff;
-            border-radius: 20px;
-            width: 100%;
-            padding: 14px 18px !important;
-            /* 상하 여백을 25px에서 14px로 정밀 압축 */
-            text-align: center;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            background: #0b1528 !important;
+            border-radius: 16px !important;
+            width: 100% !important;
+            text-align: center !important;
+            border: 2px solid #1e293b !important;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4) !important;
+            margin-top: 0px !important;
+            /* 위쪽 유령 마진 공백을 원천 소독하여 가이드라인 바로 밑단으로 바짝 밀착 */
+            box-sizing: border-box;
         }
 
         .pop-icon-box {

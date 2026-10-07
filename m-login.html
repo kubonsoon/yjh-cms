@@ -1274,20 +1274,39 @@
                     navigateToStep(5);
 
                     const currentTargetName = matchedPatientData.name || temporaryVerifiedName || "대상자";
+                    const rawDbSsn = (matchedPatientData.ssn || "").toString().trim().replace(/[^0-9]/g, "");
+                    const displayBirth6 = rawDbSsn.substring(0, 6) || "950505";
 
-                    // 🎯 기획 사양 반영: 5단계 상단 안내 가이드 문구 전면 개조
-                    if (document.getElementById('lblSetTargetNew')) {
-                        document.getElementById('lblSetTargetNew').innerText = "임상시험 스케줄(주간)";
+                    // 성별 코드 판별 및 네온 클래스 테마 분기
+                    let genderText = "여";
+                    let genderClass = "gender-indicator-badge gender-f";
+                    if (rawDbSsn.endsWith("1") || rawDbSsn.endsWith("3") || (matchedPatientData.ssn && (matchedPatientData.ssn.includes("-M") || matchedPatientData.ssn.endsWith("M")))) {
+                        genderText = "남";
+                        genderClass = "gender-indicator-badge gender-m";
                     }
 
                     const iframe = document.getElementById('mobileCalendarFrame');
-                    if (iframe && iframe.contentWindow) {
+                    if (iframe && iframe.contentWindow && iframe.contentWindow.document) {
+                        const childDoc = iframe.contentWindow.document;
+
+                        // 🎯 [정밀 타격 관통 교정]: 자식 달력 문서(m-calendar.html) 내부에 존재하는 자물쇠 프로필 슬롯을 강제 오버라이드
+                        const targetSlot = childDoc.getElementById('lblSetTargetNew') || childDoc.querySelector('.scheduler-profile-bar .user-meta-info');
+                        if (targetSlot) {
+                            targetSlot.innerHTML = `
+                                <span style="color:#ffffff; font-weight:800;">👤 ${currentTargetName}</span>
+                                <span style="color:rgba(255,255,255,0.4); font-weight:500; margin-left:2px;">(${displayBirth6})</span>
+                                <span class="${genderClass}" style="margin-left:5px; padding:1px 5px; border-radius:4px; font-size:11px; font-weight:800;">${genderText}</span>
+                            `;
+                        }
+
+                        // 자식 달력 화면 세션 메모리 락인 동기화 및 캘린더 엔진 리렌더링 작동
                         iframe.contentWindow.sessionStorage.setItem('certifiedUserName', currentTargetName);
                         if (typeof iframe.contentWindow.renderCalendar === "function") {
                             iframe.contentWindow.renderCalendar();
                         }
                     }
                     return; // 트랙 B 진입 시 여기서 탈출
+
                 } else {
                     // [트랙 A: 기존 회원 유효 유저] → 나의 시험정보 화면(4단계) 이동 및 UI 동적 리스킨
                     navigateToStep(4);

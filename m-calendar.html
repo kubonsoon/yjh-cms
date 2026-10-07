@@ -709,30 +709,35 @@
             const cardBoard = document.getElementById('dailyCardBoard');
             if (!cardBoard) return; cardBoard.innerHTML = '';
             const records = getMasterData();
-            let applicantDB = getApplicantData();
-            const cleanSessionName = currentCertifiedUser.replace(/\s/g, "");
+            let applicantDB = getApplicantData() || [];
 
-            // 1. 대상자 목록에서 현재 종료/탈락이 아닌 유효 유저 1순위 격리 포착 [순정 수호]
-            const myLiveJobRecord = applicantDB.find(app => {
+            // 💡 [원격 주파수 2중 래핑]: 부모창 세션 및 로컬스토리지에서 현재 로그인한 진짜 대상자 성명 취득
+            const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser;
+            const cleanSessionName = liveCertifiedName.replace(/\s/g, "");
+
+            // 💡 [주민번호 세션 가로채기 부모 인터록]: 첫 로드 시 홍길동 백업으로 퉁겨나가는 현상 원천 차단
+            const targetSsn = localStorage.getItem('loggedInUserSsn') || sessionStorage.getItem('loggedInUserSsn') || "951007-2";
+            const cleanSsn = targetSsn.replace(/[^0-9]/g, "");
+            const displayBirth6 = cleanSsn.substring(0, 6) || "951007";
+
+            let genderText = "여", genderClass = "gender-indicator-badge gender-f";
+            if (cleanSsn.endsWith("1") || cleanSsn.endsWith("3") || cleanSsn.includes("M") || cleanSsn.endsWith("M") || cleanSsn.charAt(6) === "1" || cleanSsn.charAt(6) === "3") {
+                genderText = "남"; genderClass = "gender-indicator-badge gender-m";
+            }
+
+            // 🎯 [문제 2번 완치 - 역순 꼬임 파쇄]: 대장 배열을 최신등록 역순으로 뒤집어 동명이인 및 타인 시험 교차 오염 원천 봉쇄
+            const myLiveJobRecord = [...applicantDB].reverse().find(app => {
                 if (!app || !app.name) return false;
                 const cleanDbName = app.name.toString().replace(/\s/g, "");
                 const currentLiveStatus = (app.status || app.stage || "").toString().trim();
 
-                // 내 진짜 본인인증 명의와 일치하면서, 이미 정산 종료되었거나 탈락한 회원이 아닌 유효 레코드를 1순위로 확정 포착
+                // 내 진짜 본인인증 명의와 일치하면서 현재 활성화되어 숨 쉬고 있는 고유 과제 대장을 정밀 타격 포착
                 return cleanDbName === cleanSessionName && currentLiveStatus !== "" && !["종료", "탈락", "심사탈락"].includes(currentLiveStatus);
             });
 
-            // 자식 달력 독립 로딩 타이밍 진짜 실시간 로그인 유저명 기반 프로필 다이렉트 치환 [순정 상속 수호]
-            const targetSsn = myLiveJobRecord ? (myLiveJobRecord.ssn || "") : (localStorage.getItem('loggedInUserSsn') || "951007-2");
-            const cleanSsn = targetSsn.replace(/[^0-9]/g, "");
-            const displayBirth6 = cleanSsn.substring(0, 6) || "951007";
-            let genderText = "여", genderClass = "gender-indicator-badge gender-f";
-            if (cleanSsn.endsWith("1") || cleanSsn.endsWith("3") || cleanSsn.includes("M") || cleanSsn.endsWith("M")) { genderText = "남"; genderClass = "gender-indicator-badge gender-m"; }
-
+            // 🎯 [문제 1번 완치 - 첫 로드 프로필 고정]: 주간 화살표를 넘겨도 생년월일과 성별이 홍길동으로 롤백되지 않게 박제
             const pIframe = window.parent ? window.parent.document : null;
             if (pIframe) {
-                // 부모 창의 세션 성명을 최우선으로 가로채어 락인 처리
-                const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser;
                 const lockProfileSlot = pIframe.getElementById('lblSetTargetNew') || document.getElementById('lblSetTargetNew');
                 if (lockProfileSlot) {
                     lockProfileSlot.innerHTML = `

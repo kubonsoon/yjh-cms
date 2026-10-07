@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>01212121민간인증 로그인 | 대상자 모바일 화면</title>
+    <title>민간인증 로그인 | 대상자 모바일 화면</title>
     <!-- 구글 폰트 및 아이콘 라이브러리 추가 -->
     <link rel="stylesheet" href="https://cloudflare.com">
 
@@ -1125,95 +1125,94 @@
                     displayGender = "여";
                 }
 
-                popup.parentElement.className = "popup-display-zone pop-theme-pass"; //
-                if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check"; //
-                document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)"; //
+                popup.parentElement.className = "popup-display-zone pop-theme-pass";
+                if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
+                document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
 
-                let finalPayScheduleLog = "지급 일정 정보 없음"; //
-                if (matchedPatientData && matchedPatientData.paySchedule) { //
-                    finalPayScheduleLog = matchedPatientData.paySchedule.toString().split('/').join('\n'); //
-                } else { //
-                    finalPayScheduleLog = "1차: 2026-12-21\n2차: 2026-12-28\n3차: 2027-01-04\n4차: 2027-01-11\n5차: 2027-01-29"; //
+                let finalPayScheduleLog = "지급 일정 정보 없음";
+                if (matchedPatientData && matchedPatientData.paySchedule) {
+                    finalPayScheduleLog = matchedPatientData.paySchedule.toString().split('/').join('\n');
+                } else {
+                    finalPayScheduleLog = "1차: 2026-12-21\n2차: 2026-12-28\n3차: 2027-01-04\n4차: 2027-01-11\n종료: 2027-01-29";
                 }
 
-                const elPopMessage = document.getElementById('txtPopMessage'); //
-                if (elPopMessage) { //
-                    elPopMessage.style.textAlign = "left"; //
-                    elPopMessage.style.lineHeight = "1.3"; //
+                const elPopMessage = document.getElementById('txtPopMessage');
+                if (elPopMessage) {
+                    elPopMessage.style.textAlign = "left";
+                    elPopMessage.style.lineHeight = "1.3";
 
-                    const parentCard = document.getElementById('popupEmbedded3') || elPopMessage.closest('.embedded-result-popup') || elPopMessage.parentElement; //
-                    if (parentCard) { //
-                        // 1) 팝업 외곽 컨테이너 카드 자체의 내부 상하 패딩을 조밀하게 압축 제어
-                        parentCard.style.setProperty("padding", "10px 14px 10px 14px", "important"); //
-                        parentCard.style.setProperty("background", "#ffffff", "important"); //
-                        parentCard.style.setProperty("border", "1px solid #e2e8f0", "important"); //
-                        parentCard.style.setProperty("border-radius", "16px", "important"); //
+                    const parentCard = document.getElementById('popupEmbedded3') || elPopMessage.closest('.embedded-result-popup') || elPopMessage.parentElement;
+                    if (parentCard) {
+                        // 🎯 [배경색 완벽 통일]: 흰색 폭격을 해제하고 1~4단계와 일치하는 프리미엄 딥네이비 스킨 강제 주입
+                        parentCard.style.setProperty("padding", "10px 14px 10px 14px", "important");
+                        parentCard.style.setProperty("background", "#0b1528", "important");
+                        parentCard.style.setProperty("border", "2px solid #1e293b", "important");
+                        parentCard.style.setProperty("border-radius", "16px", "important");
                     }
 
-                    const icoPop = document.getElementById('icoPop'); //
-                    if (icoPop && icoPop.parentElement) { //
-                        icoPop.parentElement.style.setProperty("margin-top", "0px", "important"); //
-                        icoPop.parentElement.style.setProperty("margin-bottom", "2px", "important"); //
-                        icoPop.style.setProperty("color", "#03C75A", "important"); // 네이버 네온그린 싱크
+                    const icoPop = document.getElementById('icoPop');
+                    if (icoPop && icoPop.parentElement) {
+                        icoPop.parentElement.style.setProperty("margin-top", "0px", "important");
+                        icoPop.parentElement.style.setProperty("margin-bottom", "1px", "important");
+                        icoPop.style.setProperty("color", "#10b981", "important");
                     }
-                    const txtPopTitle = document.getElementById('txtPopTitle'); //
-                    if (txtPopTitle) { //
-                        txtPopTitle.style.setProperty("margin-bottom", "4px", "important"); //
-                        txtPopTitle.style.setProperty("font-size", "16px", "important"); //
-                        txtPopTitle.style.setProperty("color", "#03C75A", "important"); //
+                    const txtPopTitle = document.getElementById('txtPopTitle');
+                    if (txtPopTitle) {
+                        txtPopTitle.style.setProperty("margin-bottom", "3px", "important");
+                        txtPopTitle.style.setProperty("font-size", "15.5px", "important");
+                        txtPopTitle.style.setProperty("color", "#10b981", "important");
                     }
 
-                    // 2) 내부 margin과 padding 세로 간격 콤팩트 축소 오버라이드
+                    // 🎯 [글자색 고대비 반전 및 세로 간격 제로 압축]: 검은 글씨를 순백색 및 야광 네온 스카이블루로 전면 리스킨
                     elPopMessage.innerHTML = `
-                    <div style="background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; padding: 4px 10px !important; margin: 0 !important; box-sizing: border-box !important;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 13px !important; line-height: 1.35 !important;">
-                            <tr style="height: 18px !important;">
-                                <td style="width: 60px; color: #64748b; font-weight: 600; padding-bottom: 1px;">인증기관</td>
-                                <td style="color: #334155; font-weight: 700; padding-bottom: 1px;">${currentChannelName || "간편인증"} 연동모듈</td>
+                    <div style="background: #070d19 !important; border: 1px solid #1e293b !important; border-radius: 8px !important; padding: 4px 10px !important; margin: 0 !important; box-sizing: border-box !important;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px !important; line-height: 1.3 !important;">
+                            <tr style="height: 16px !important;">
+                                <td style="width: 55px; color: #94a3b8; font-weight: 600; padding-bottom: 1px;">인증기관</td>
+                                <td style="color: #cbd5e1; font-weight: 700; padding-bottom: 1px;">${currentChannelName || "간편인증"} 연동모듈</td>
                             </tr>
-                            <tr style="height: 18px !important;">
-                                <td style="color: #64748b; font-weight: 600; padding-bottom: 1px;">대상자</td>
-                                <td style="color: #0f172a; font-weight: 800; padding-bottom: 1px;">
-                                    ${matchedPatientData.name || name} <span style="font-size: 11.5px; color: #64748b; font-weight: 500;">(${displayBirth} / ${displayGender})</span>
+                            <tr style="height: 16px !important;">
+                                <td style="color: #94a3b8; font-weight: 600; padding-bottom: 1px;">대상자</td>
+                                <td style="color: #ffffff; font-weight: 800; padding-bottom: 1px;">
+                                    ${matchedPatientData.name || name} <span style="font-size: 11px; color: #94a3b8; font-weight: 500;">(${displayBirth} / ${displayGender})</span>
                                 </td>
                             </tr>
-                            <tr style="height: 18px !important;">
-                                <td style="color: #64748b; font-weight: 600; vertical-align: top;">시험명</td>
-                                <td style="color: #0f172a; font-weight: 800; vertical-align: top; line-height: 1.25;">
-                                    ${matchedPatientData.title || "미배정 과제"} <span style="color: #0284c7; font-weight: 900;">(${matchedPatientData.th || "1기"})</span>
+                            <tr style="height: 16px !important;">
+                                <td style="color: #94a3b8; font-weight: 600; vertical-align: top;">시험명</td>
+                                <td style="color: #ffffff; font-weight: 800; vertical-align: top; line-height: 1.2;">
+                                    ${matchedPatientData.title || "미배정 과제"} <span style="color: #38bdf8; font-weight: 900;">(${matchedPatientData.th || "1기"})</span>
                                 </td>
                             </tr>
                         </table>
                     </div>
                     <div style="margin-top: 3px !important; margin-bottom: 1px !important; display: flex; align-items: center; gap: 4px;">
-                        <div style="width: 3px; height: 9px; background: #0284c7; border-radius: 2px;"></div>
-                        <span style="font-size: 12px !important; font-weight: 800 !important; color: #0284c7 !important;">[참여비 지급 예정일]</span>
+                        <div style="width: 3px; height: 9px; background: #06B6D4; border-radius: 2px;"></div>
+                        <span style="font-size: 11.5px !important; font-weight: 800 !important; color: #06B6D4 !important;">[참여비 지급 예정일]</span>
                     </div>
-                    <div style="background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; padding: 2px 10px !important; box-sizing: border-box !important; margin: 0 !important;">
-                        <div style="font-size: 12px !important; color: #1e293b !important; font-weight: 700; line-height: 1.3 !important; white-space: pre-line !important;">${finalPayScheduleLog}</div>
+                    <div style="background: #070d19 !important; border: 1px solid #1e293b !important; border-radius: 8px !important; padding: 3px 10px !important; box-sizing: border-box !important; margin: 0 !important;">
+                        <div style="font-size: 11.5px !important; color: #38bdf8 !important; font-weight: 700; line-height: 1.25 !important; white-space: pre-line !important;">${finalPayScheduleLog}</div>
                     </div>
                     <div style="margin-top: 2px !important; margin-bottom: 0px !important; padding-left: 2px !important;">
-                        <p style="font-size: 10.5px !important; color: #94a3b8 !important; line-height: 1.1; margin: 0 !important; font-weight: 500;">아래 확인 버튼을 클릭하면 참여중인 시험현황으로 이동합니다.</p>
-                    </div>`; //
+                        <p style="font-size: 10px !important; color: #64748b !important; line-height: 1.1; margin: 0 !important; font-weight: 500;">아래 확인 버튼을 클릭하면 참여중인 시험현황으로 이동합니다.</p>
+                    </div>`;
 
-                    // 버튼 인터록 정밀 타격 (ID 기반 다이렉트 락인으로 가드)
-                    const elConfirmBtn = document.getElementById('btnActionPop') || document.querySelector('button[onclick*="executeStep3ConfirmNext"]'); //
-                    if (elConfirmBtn) { //
-                        if (elConfirmBtn.parentElement) { //
-                            elConfirmBtn.parentElement.style.setProperty("margin-top", "4px", "important"); //
-                            elConfirmBtn.parentElement.style.setProperty("padding", "0", "important"); //
-                        } //
-                        elConfirmBtn.setAttribute("onclick", "executeStep3ConfirmNext()"); //
-                        elConfirmBtn.style.setProperty("background", "#0284c7", "important"); //
-                        elConfirmBtn.style.setProperty("color", "#ffffff", "important"); //
-                        elConfirmBtn.style.setProperty("height", "34px", "important"); //
-                        elConfirmBtn.style.setProperty("border-radius", "6px", "important"); //
-                        elConfirmBtn.style.setProperty("font-weight", "800", "important"); //
-                        elConfirmBtn.style.setProperty("font-size", "13px", "important"); //
-                        elConfirmBtn.style.setProperty("box-shadow", "none", "important"); //
-                        elConfirmBtn.style.setProperty("width", "100%", "important"); //
-                    } //
-                } //
+                    const elConfirmBtn = document.getElementById('btnActionPop') || document.querySelector('button[onclick*="executeStep3ConfirmNext"]');
+                    if (elConfirmBtn) {
+                        if (elConfirmBtn.parentElement) {
+                            elConfirmBtn.parentElement.style.setProperty("margin-top", "4px", "important");
+                            elConfirmBtn.parentElement.style.setProperty("padding", "0", "important");
+                        }
+                        elConfirmBtn.setAttribute("onclick", "executeStep3ConfirmNext()");
+                        elConfirmBtn.style.setProperty("background", "#0284c7", "important");
+                        elConfirmBtn.style.setProperty("color", "#ffffff", "important");
+                        elConfirmBtn.style.setProperty("height", "32px", "important"); // 34px에서 32px로 초슬림 압축
+                        elConfirmBtn.style.setProperty("border-radius", "6px", "important");
+                        elConfirmBtn.style.setProperty("font-weight", "800", "important");
+                        elConfirmBtn.style.setProperty("font-size", "12.5px", "important");
+                        elConfirmBtn.style.setProperty("box-shadow", "none", "important");
+                        elConfirmBtn.style.setProperty("width", "100%", "important");
+                    }
+                }
             }
 
             else {

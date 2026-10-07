@@ -712,10 +712,10 @@
             let applicantDB = getApplicantData();
             const cleanSessionName = currentCertifiedUser.replace(/\s/g, "");
 
-            // 1. 대상자 목록에서 현재 종료/탈락이 아닌 유효 유저 1순위 격리 포착
+            // 1. 대상자 목록에서 현재 종료/탈락이 아닌 유효 유저 1순위 격리 포착 [순정 수호]
             const myLiveJobRecord = applicantDB.find(app => (app.name || "").toString().replace(/\s/g, "") === cleanSessionName && app.stage && !["종료", "탈락"].includes(app.stage));
 
-            // 자식 달력 독립 로딩 타이밍 3중 세션 가로채기 기반 프로필 실시간 오버라이드
+            // 자식 달력 독립 로딩 타이밍 3중 세션 가로채기 기반 프로필 실시간 오버라이드 [순정 수호]
             const targetSsn = myLiveJobRecord ? (myLiveJobRecord.ssn || "") : (localStorage.getItem('loggedInUserSsn') || "951007-2");
             const cleanSsn = targetSsn.replace(/[^0-9]/g, "");
             const displayBirth6 = cleanSsn.substring(0, 6) || "951007";
@@ -739,47 +739,36 @@
                 return;
             }
 
-            // 🎯 [요구사항 반영]: 기획 마스터 7대 차수별 일정 및 지급일 전산망 맵(Map) 장전
-            const masterClinicalScheduleMap = {
-                "2026-12-04": "스크리닝 방문",
-                "2026-12-11": "소집 방문 (임상시험 시작)",
-                "2026-12-14": "1차 방문채혈 (지급: 12/21)",
-                "2026-12-21": "2차 방문채혈 (지급: 12/28)",
-                "2026-12-28": "3차 방문채혈 (지급: 01/04)",
-                "2027-01-04": "4차 방문채혈 (지급: 01/11)",
-                "2027-01-15": "최종 종료검사 (지급: 01/29)"
-            };
-
-            // 2. 마스터 공고 원장을 순회하며 로그인 대상자의 연계 과제 타이틀을 필터링 및 조인
+            // 2. 마스터 공고 원장을 순회하며 로그인 대상자의 연계 과제 타이틀을 필터링 및 동적 계산 조인
             const targetRecords = records.filter(item => {
                 if (!item.title) return false;
                 const cleanMyTitle = myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase();
                 const cleanItemTitle = item.title.toString().replace(/\s/g, "").toLowerCase();
                 if (cleanMyTitle !== "신규방문과제미배정" && cleanMyTitle !== cleanItemTitle) return false;
 
-                // 🎯 [PC 버전 정품 역산 엔진 완벽 이식]: 단 하나의 소집일(recDate)을 단서 삼아 7대 황금 일정 파이프라인 동적 빌드
+                // 🎯 [기획안 완벽 반영]: 하드코딩 디폴트 문자 배열을 전면 파쇄하고 실시간 일자 자동 역산 계산식 주입
                 let itemScheduleMap = {};
                 if (item.recDate) {
-                    const baseScreeningDate = item.recDate.trim(); // 기준 스크리닝 일자 (예: 2026-12-04)
+                    const baseScreeningDate = item.recDate.trim(); // 기준 스크리닝 일자
                     itemScheduleMap[baseScreeningDate] = "스크리닝 방문";
 
-                    // 1) 소집(입원) 일자 계산: 스크리닝 방문일로부터 정확히 7일 뒤 전진 정착 (12/11 금요일 축)
+                    // 💡 계산식 1: 스크리닝 방문일자 기준 정확히 7일 뒤 전진 계산 (소집 방문 일자 사출)
                     const screeningObj = new Date(baseScreeningDate);
                     if (!isNaN(screeningObj.getTime())) {
                         screeningObj.setDate(screeningObj.getDate() + 7);
                         const computedAdmissionStr = `${screeningObj.getFullYear()}-${String(screeningObj.getMonth() + 1).padStart(2, '0')}-${String(screeningObj.getDate()).padStart(2, '0')}`;
-                        itemScheduleMap[computedAdmissionStr] = "소집(입원)";
+                        itemScheduleMap[computedAdmissionStr] = "소집 방문 (임상시험 시작)";
                     }
                 }
 
-                // 2) 1차~4차 방문채혈 및 최종 종료검사 일자 계산 (지급 예정일로부터 역산 동기화 인터록 기믹)
-                if (item.payDate1) { const d = calculateSubtractedDate(item.payDate1, 7); if (d) itemScheduleMap[d.trim()] = "1차 방문채혈"; }
-                if (item.payDate2) { const d = calculateSubtractedDate(item.payDate2, 7); if (d) itemScheduleMap[d.trim()] = "2차 방문채혈"; }
-                if (item.payDate3) { const d = calculateSubtractedDate(item.payDate3, 7); if (d) itemScheduleMap[d.trim()] = "3차 방문채혈"; }
-                if (item.payDate4) { const d = calculateSubtractedDate(item.payDate4, 7); if (d) itemScheduleMap[d.trim()] = "4차 방문채혈"; }
-                if (item.payDate5) { const d = calculateSubtractedDate(item.payDate5, 14); if (d) itemScheduleMap[d.trim()] = "종료검사"; }
+                // 💡 계산식 2: 지급 예정일 원장 컬럼으로부터 역산 동기화 인터록 기믹 주입 (차수별 방문일 및 금융 지급일 텍스트 동적 조립)
+                if (item.payDate1) { const d = calculateSubtractedDate(item.payDate1, 7); if (d) itemScheduleMap[d.trim()] = `1차 방문채혈 (지급: ${item.payDate1.trim().substring(5).replace('-', '/')})`; }
+                if (item.payDate2) { const d = calculateSubtractedDate(item.payDate2, 7); if (d) itemScheduleMap[d.trim()] = `2차 방문채혈 (지급: ${item.payDate2.trim().substring(5).replace('-', '/')})`; }
+                if (item.payDate3) { const d = calculateSubtractedDate(item.payDate3, 7); if (d) itemScheduleMap[d.trim()] = `3차 방문채혈 (지급: ${item.payDate3.trim().substring(5).replace('-', '/')})`; }
+                if (item.payDate4) { const d = calculateSubtractedDate(item.payDate4, 7); if (d) itemScheduleMap[d.trim()] = `4차 방문채혈 (지급: ${item.payDate4.trim().substring(5).replace('-', '/')})`; }
+                if (item.payDate5) { const d = calculateSubtractedDate(item.payDate5, 14); if (d) itemScheduleMap[d.trim()] = `최종 종료검사 (지급: ${item.payDate5.trim().substring(5).replace('-', '/')})`; }
 
-                // 사용자가 선택한 날짜(selectedDateStr)가 실시간으로 매핑 계산된 7대 방문 축에 존재하는지 최종 정밀 검문
+                // 사용자가 선택한 날짜 키가 동적으로 계산 완착된 7대 방문 마스터 스케줄에 일치하는지 정밀 검문
                 if (itemScheduleMap[selectedDateStr]) {
                     const dayObj = new Date(selectedDateStr);
                     const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
@@ -797,7 +786,7 @@
                 return false;
             });
 
-            // 일정이 없는 일반 요일 선택 시 출력될 예외 방어 가드 텍스트 팩토리
+            // 일정이 없는 일반 요일 선택 시 출력될 예외 방어 가드 텍스트 팩토리 [순정 수호]
             if (targetRecords.length === 0) {
                 cardBoard.innerHTML = `
             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
@@ -812,6 +801,8 @@
                 return;
             }
 
+
+            // 3. 필터링된 임상 과제를 기반으로 화면에 3대 액션 명세 카드 랙 드로잉 [순정 수호]
             targetRecords.forEach(item => {
                 const thText = (item.th || "2기").trim();
                 const clickUid = item.uid ? item.uid : item.title;
@@ -933,6 +924,7 @@
             });
         }
 
+        //참여누적 이력조회
         function openIndividualHistoryModalInMobile(currentSessionName, targetTitle, targetTh) {
             let applicantDB = getApplicantData();
             const scrollZone = document.getElementById("modal-history-scroll-zone");

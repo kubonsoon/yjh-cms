@@ -1166,18 +1166,18 @@
                             <table style="width: 100%; border-collapse: collapse; font-size: 13px !important; line-height: 1.4 !important;">
                                 <tr>
                                     <td style="width: 60px; color: #64748b; font-weight: 600; padding-bottom: 2px;">인증기관</td>
-                                    <td style="color: #334155; font-weight: 700; padding-bottom: 2px;">\${currentChannelName || "간편인증"} 연동모듈</td>
+                                    <td style="color: #334155; font-weight: 700; padding-bottom: 2px;">${currentChannelName || "간편인증"} 연동모듈</td>
                                 </tr>
                                 <tr>
                                     <td style="color: #64748b; font-weight: 600; padding-bottom: 2px;">대상자</td>
                                     <td style="color: #0f172a; font-weight: 800; padding-bottom: 2px;">
-                                        \${matchedPatientData.name || name} <span style="font-size: 11.5px; color: #64748b; font-weight: 500;">(\${displayBirth} / \${displayGender})</span>
+                                        ${matchedPatientData.name || name} <span style="font-size: 11.5px; color: #64748b; font-weight: 500;">(${displayBirth} / ${displayGender})</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="color: #64748b; font-weight: 600; vertical-align: top;">시험명</td>
                                     <td style="color: #0f172a; font-weight: 800; vertical-align: top; line-height: 1.25;">
-                                        \${matchedPatientData.title || "미배정 과제"} <span style="color: #0284c7; font-weight: 900;">(\${matchedPatientData.th || "1기"})</span>
+                                        ${matchedPatientData.title || "미배정 과제"} <span style="color: #0284c7; font-weight: 900;">(${matchedPatientData.th || "1기"})</span>
                                     </td>
                                 </tr>
                             </table>
@@ -1187,7 +1187,7 @@
                             <span style="font-size: 12px !important; font-weight: 800 !important; color: #0284c7 !important;">[참여비 지급 예정일]</span>
                         </div>
                         <div style="background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; padding: 4px 10px !important; box-sizing: border-box !important; margin: 0 !important;">
-                            <div style="font-size: 12px !important; color: #1e293b !important; font-weight: 700; line-height: 1.35 !important; white-space: pre-line !important;">\${finalPayScheduleLog}</div>
+                            <div style="font-size: 12px !important; color: #1e293b !important; font-weight: 700; line-height: 1.35 !important; white-space: pre-line !important;">${finalPayScheduleLog}</div>
                         </div>
                         <div style="margin-top: 2px !important; margin-bottom: 0px !important; padding-left: 2px !important;">
                             <p style="font-size: 10.5px !important; color: #94a3b8 !important; line-height: 1.1; margin: 0 !important; font-weight: 500;">

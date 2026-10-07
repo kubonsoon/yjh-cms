@@ -4,14 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>0민간인증 로그인 | 대상자 모바일 화면</title>
+    <title>민간인증 로그인 | 대상자 모바일 화면</title>
     <!-- 구글 폰트 및 아이콘 라이브러리 추가 -->
     <link rel="stylesheet" href="https://cloudflare.com">
 
     <style>
-        /* ========================================================
+        /* =================
         1. 글로벌 초기화 및 프리미엄 모바일 백그라운드 시스템
-        ======================================================== */
+        ================================================================
+        */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -21,9 +22,9 @@
         }
 
         body {
+            display: flex;
             background: #091731;
             min-height: 100vh;
-            display: flex;
             justify-content: center;
             align-items: center;
             color: #fff;
@@ -38,7 +39,7 @@
             background: linear-gradient(135deg, #091731 0%, #0d2857 100%);
             border: 4px solid rgba(255, 255, 255, 0.1);
             border-radius: 36px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 25px 50px 12px rgba(0, 0, 0, 0.7);
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -73,7 +74,6 @@
             flex-direction: column;
             overflow-y: auto;
             min-height: 0;
-            /* 내부 영역 스크롤 가드 */
             animation: slideIn 0.35s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
@@ -94,26 +94,21 @@
             color: #f8fafc !important;
         }
 
-        /* 신검대기 */
         .stage-screening-pass {
             background: #0ea5e9 !important;
             color: #ffffff !important;
             box-shadow: 0 0 8px rgba(14, 165, 233, 0.4) !important;
         }
 
-        /* 신검통과 */
         .stage-screening-fail {
             background: #ef4444 !important;
             color: #ffffff !important;
         }
 
-        /* 신검탈락 */
         .stage-screening-draw {
             background: #64748b !important;
             color: #cbd5e1 !important;
         }
-
-        /* 신검동철 */
 
         .stage-active-call {
             background: #fbbf24 !important;
@@ -121,13 +116,10 @@
             font-weight: 900 !important;
         }
 
-        /* 소집/투약 단계 */
         .stage-active-visit {
             background: #10b981 !important;
             color: #ffffff !important;
         }
-
-        /* 방문 시리즈 단계 */
 
         /* 2) 4단계 청구서 자물쇠 개통 및 잠금 처짐 방지 애니메이션 가드 */
         .billing-lock-mask {
@@ -138,7 +130,6 @@
             opacity: 0.4 !important;
         }
 
-        /* active 클래스가 결합되었을 때만 강제 표출되도록 우선순위 잠금 */
         .step-panel.active {
             display: flex !important;
         }
@@ -168,9 +159,6 @@
             flex-shrink: 0;
         }
 
-        /* ========================================================
-        2. 단계별 특화 UI 스킨 스타일링
-        ======================================================== */
         /* [0단계: QR 스캔 시뮬레이션] */
         .qr-scan-zone {
             flex: 1;
@@ -229,7 +217,7 @@
             margin-bottom: 20px;
         }
 
-        .login-header-mini .badge {
+        .login-header-mini badge {
             background: rgba(255, 255, 255, 0.1);
             padding: 4px 8px;
             border-radius: 4px;
@@ -275,7 +263,7 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 700;
-            transition: all 0.2s;
+            transition: all 0.25s;
         }
 
         .btn-auth:active {
@@ -340,7 +328,7 @@
             font-size: 13px;
             color: #fff;
             outline: none;
-            transition: border 0.2s;
+            transition: border 0.25;
         }
 
         .form-group input:focus {
@@ -426,24 +414,24 @@
             margin-bottom: 12px;
         }
 
-        .pop-theme-pass .pop-icon-box {
+        .pop-theme-pass.pop-icon-box {
             background: #e6f7ed;
             color: #03C75A;
         }
 
-        .pop-theme-pass .pop-title-text {
+        .pop-theme-pass.pop-title-text {
             color: #03C75A;
             font-size: 17px;
             font-weight: 700;
             margin-bottom: 8px;
         }
 
-        .pop-theme-fail .pop-icon-box {
+        .pop-theme-fail.pop-icon-box {
             background: #fbebca;
             color: #E61E25;
         }
 
-        .pop-theme-fail .pop-title-text {
+        .pop-theme-fail.pop-title-text {
             color: #E61E25;
             font-size: 17px;
             font-weight: 700;
@@ -472,9 +460,6 @@
             cursor: pointer;
         }
 
-        /* ========================================================
-   [교정 수정] 4단계: 정산 인프라 상단 고유 스킨 가독성 강화
-   ======================================================== */
         .trial-list-card {
             border-radius: 16px;
             background-color: #122442;
@@ -482,21 +467,16 @@
             padding: 16px 14px !important;
             display: flex !important;
             flex-direction: row !important;
-            /* 가로 배열 락인 */
             justify-content: space-between !important;
-            /* 양 끝 밀착 레이아웃 */
             align-items: center !important;
-            /* 상하 처짐 현상을 깨부수는 수직 정중앙 정렬 */
             margin-bottom: 12px;
             gap: 12px;
         }
 
-        /* [공간 방어벽]: 텍스트 상자가 가로를 독점하여 배지를 하단으로 튕겨내던 간섭 버그 방어 */
         .trial-info {
             flex: 1 !important;
             min-width: 0 !important;
             width: calc(100% - 80px) !important;
-            /* 우측 배지용 68px 독립 구역 선제 상시 보장 */
             display: flex !important;
             flex-direction: column !important;
         }
@@ -574,23 +554,19 @@
             padding: 0 !important;
             margin: 0 !important;
             flex-shrink: 0 !important;
-            /* 부모 크기에 찌그러지지 않도록 완전 방어 */
         }
-
 
         /* m-adm 원격 1단계 심사 분기 신호 포착 즉시 동적 실시간 리스킨 변환 */
         #ui_trial_card span#cms-badge.badge.bg-blue.state-pass {
             background: #10B981 !important;
-            /* 통과 처리 클릭 시 석세스 에메랄드 그린 */
         }
 
         #ui_trial_card span#cms-badge.badge.bg-blue.state-fail {
             background: #F43F5E !important;
-            /* 탈락 처리 클릭 시 대인저 로즈 레드 */
         }
 
         .badge.bg-blue {
-            background-color: #0056B3;
+            background-color: #005683;
             padding: 4px 8px;
             border-radius: 10px;
             font-size: 11px;
@@ -654,14 +630,11 @@
             outline: none;
         }
 
-        /* ========================================================
-   [교정 수정] 4단계: 진짜 파일 첨부 박스 인터랙티브 스킨
-   ======================================================== */
         .upload-box {
             border: 1.5px dashed #1E293B;
             border-radius: 12px;
             padding: 16px 8px !important;
-            background-color: #07132B;
+            background-color: #071328;
             text-align: center;
             box-sizing: border-box;
             transition: all 0.25s ease;
@@ -673,13 +646,11 @@
             gap: 6px;
         }
 
-        /* 관리자가 신청가능 승인 신호를 주었을 때 활성화되는 실제 클릭 버튼 영역 테마 */
         .upload-box .btn-file-select {
             display: inline-block !important;
             margin-top: 8px !important;
             padding: 6px 14px !important;
             background-color: #9ca3af !important;
-            /* 평소에는 잠김 회색 */
             color: #ffffff !important;
             border-radius: 6px !important;
             font-size: 11.5px !important;
@@ -695,15 +666,13 @@
 
         .upload-box.active-click .btn-file-select {
             background-color: #0284c7 !important;
-            /* 개방 시 스마트 블루 버튼 반전 */
             cursor: pointer !important;
         }
 
-        .upload-box.active-click .btn-file-select:hover {
+        .upload-box.active-click.btn-file-select:hover {
             background-color: #0369a1 !important;
         }
 
-        /* [진짜 파일 첨부 완료 시]: ❌ 표시가 죽고 사방 테두리에 시원한 초록불이 켜지는 정화 스킨 */
         .upload-box.upload-complete {
             border-color: #22c55e !important;
             background-color: rgba(34, 197, 94, 0.06) !important;
@@ -732,35 +701,14 @@
             margin-top: 5px;
         }
 
-        @keyframes scanMove {
-            0% {
-                top: 8%;
-            }
-
-            50% {
-                top: 92%;
-            }
-
-            100% {
-                top: 8%;
-            }
-        }
-
-
-        /* ========================================================
-   [정산 처리중 전용 비활성화 마감 버튼 테마 스킨
-   ======================================================== */
         .btn-submit-form.bg-slate-lock {
             background-color: #334155 !important;
-            /* 고대비 슬레이트 다크 그레이 고정 */
             color: #94a3b8 !important;
-
             border: 1px solid #475569 !important;
             cursor: not-allowed !important;
             box-shadow: none !important;
         }
 
-        /* 중복 참여 경고 및 부드러운 가이드를 돕는 통합 애니메이션 클래스 상속 */
         .alert-pulse {
             animation: pulseGlow 1.5s infinite ease-in-out;
         }
@@ -779,10 +727,6 @@
             }
         }
 
-
-        /* ========================================================
-   [최종 대완결] 관리자 대상자관리 대장 - 모바일 상태 배지 비주얼 100% 동일화
-   ======================================================== */
         #cms-badge {
             display: inline-flex !important;
             flex-direction: column !important;
@@ -801,49 +745,55 @@
             transition: all 0.2s ease-in-out !important;
         }
 
-        /* 🎨 관리자 대장 픽셀 스킨 그대로 모바일에 강제 동기화 복사 */
         #cms-badge.master-navy {
             background: #273549 !important;
             border: 1px solid #3b82f6 !important;
             color: #60a5fa !important;
         }
 
-        /* 일반대기 */
         #cms-badge.master-purple {
             background: #273549 !important;
             border: 1px solid #a855f7 !important;
             color: #c084fc !important;
         }
 
-        /* 신검대기: 보라색 테두리/글씨 */
         #cms-badge.master-green {
             background: #273549 !important;
             border: 1px solid #16a34a !important;
             color: #4ade80 !important;
         }
 
-        /* 신검적합: 녹색 테두리/글씨 */
         #cms-badge.master-blue {
             background: #273549 !important;
             border: 1px solid #0284c7 !important;
             color: #38bdf8 !important;
         }
 
-        /* 참여(소집)/투약 */
         #cms-badge.master-slate {
             background: #273549 !important;
             border: 1px solid #475569 !important;
             color: #cbd5e1 !important;
         }
 
-        /* 종료/정산 */
         #cms-badge.master-rose {
             background: #273549 !important;
             border: 1px solid #be123c !important;
             color: #f43f5e !important;
         }
 
-        /* 심사탈락/부적합 */
+        @keyframes scanMove {
+            0% {
+                top: 8%;
+            }
+
+            50% {
+                top: 92%;
+            }
+
+            100% {
+                top: 8%;
+            }
+        }
     </style>
 </head>
 
@@ -1024,9 +974,10 @@
             <div class="panel-header-title" style="margin-bottom: 8px;">
                 <i class="fa-solid fa-calendar-days" style="color:#06B6D4;"></i> 인증 완료: 나의 임상시험 스케줄러 (신규)
             </div>
+            <!-- [요구사항 반영 개조 완료]: 긴 가이드 문구를 파쇄하고, 자바스크립트 엔진과 연동되어 순정 타깃 성명 레이어로 스위칭될 공간 확보 -->
             <div
-                style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.2); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; color: #e2e8f0;">
-                🔒 <strong id="lblSetTargetNew" style="color:#06B6D4;">-</strong> 최초 인증 대상자 가상 스케줄러 연동 완료
+                style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.2); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; color: #e2e8f0; font-weight: 700;">
+                🔒 <span id="lblSetTargetNew" style="color:#06B6D4;">-</span>
             </div>
             <div
                 style="flex: 1; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; background: #0b0f19;">
@@ -1054,6 +1005,7 @@
                 panel.style.display = 'none';
                 panel.classList.remove('active');
             });
+
             const targetPanel = document.getElementById('layer' + stepNumber);
             if (targetPanel) {
                 targetPanel.style.display = 'flex';
@@ -1061,18 +1013,17 @@
             }
         }
 
-        // 💥 0단: QR코드 터치 스캔 시뮬레이션 처리
+        // 0단: QR코드 터치 스캔 시뮬레이션 처리
         function executeStep0QRScan() {
             alert("[QR 인식 성공] H+양지병원 임상시험 서버와 연동되었습니다. \n본인 인증 단계로 진입합니다.");
             navigateToStep(1);
         }
 
-        // 💥 1단: 간편인증 수단 버튼 핸들러
+        // 1단: 간편인증 수단 버튼 핸들러
         function executeStep1Select(provider, providerName) {
             currentChannel = provider;
             currentChannelName = providerName;
             document.getElementById('lblDynamicForm').innerText = `이름 (${providerName} 명의 정보)`;
-
             const submitBtn = document.getElementById('btnSubmitForm');
             if (submitBtn) {
                 submitBtn.className = "btn-submit theme-btn-" + provider;
@@ -1080,7 +1031,7 @@
             navigateToStep(2);
         }
 
-        // 💥 2단: [하이브리드 이중 분기 패치] 마스터 DB 대조 및 신규 유저 대상 가상 계정 즉석 발급 엔진
+        // 2단: [하이브리드 이중 분기 패치] 마스터 DB 대조 및 신규 유저 대상 가상 계정 즉석 발급 엔진
         function executeStep2Submit() {
             const name = document.getElementById('txtUserName').value.trim();
             const birth = document.getElementById('txtUserBirth').value.trim().replace(/[^0-9]/g, '');
@@ -1091,7 +1042,6 @@
             if (!isAgreed) return alert('개인정보 활용 동의 체크박스 수락이 필요합니다.');
 
             temporaryVerifiedName = name;
-
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
             // 입력 데이터를 가공하여 마스터 대장 내의 대상자 명의 전수 스캔 및 대조
@@ -1114,8 +1064,8 @@
 
                 // 연동 과제의 현재 등록 모집 인원 카운트를 수식화하여 1명 안전하게 증가
                 let matchedRec = adminRecruitmentDB.find(rec => {
-                    const recTitleClean = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힇]/g, "").trim();
-                    const appTitleClean = (matchedUser.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힇]/g, "").trim();
+                    const recTitleClean = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                    const appTitleClean = (matchedUser.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
                     return recTitleClean === appTitleClean && (rec.th || '').toString().replace(/[^0-9]/g, "") === (matchedUser.th || '').toString().replace(/[^0-9]/g, "");
                 });
 
@@ -1123,6 +1073,7 @@
                     let currentCount = parseInt((matchedRec.count || "0").split('/'), 10) || 0;
                     matchedRec.count = (currentCount + 1) + "/60";
                 }
+
                 matchedPatientData = matchedUser;
 
                 sessionStorage.setItem('certifiedUserName', name);
@@ -1132,13 +1083,14 @@
                 localStorage.setItem('loggedInUserPhone', phone);
                 localStorage.setItem('dataStoreRecruitment', JSON.stringify(adminRecruitmentDB));
             } else {
-                // [조건 불일치]: 대장에 기존 명의 데이터가 부재한 상태 ➔ 신규 가상 트랙 바이패스 준비
+                // [조건 불일치]: 대장에 기존 명의 데이터가 부재한 상태 -> 신규 가상 트랙 바이패스 준비
                 matchedPatientData = null;
             }
 
             const popup = document.getElementById('popupEmbedded3');
+
             if (matchedPatientData) {
-                // 💡 [트랙 A: 기존 등록 대상자 매칭 성공] 세션 바인딩 및 정산안내 모달 알림 컨텍스트 구성
+                // [트랙 A: 기존 등록 대상자 매칭 성공] 세션 바인딩 및 정산안내 모달 알림 컨텍스트 구성
                 sessionStorage.setItem('certifiedUserName', name);
                 localStorage.setItem('loggedInUser', JSON.stringify({ name: name, isNew: false }));
 
@@ -1169,15 +1121,13 @@
                 if (document.getElementById('icoPop')) document.getElementById('icoPop').className = "fa-solid fa-circle-check";
                 document.getElementById('txtPopTitle').innerText = "본인인증 승인 (PASS)";
 
-                // =========================================================================
-                // 🎯 [정밀 타격 위치 단일화]: 중복을 분쇄하고 오직 단 하나의 let 채널 파싱 레일만 유연하게 안착시킵니다.
-                // =========================================================================
+                // [정밀 타격 위치 단일화]: 중복을 분쇄하고 오직 단 하나의 let 채널 파싱 레일만 유연하게 안착시킵니다.
                 let finalPayScheduleLog = "지급 일정 정보 없음";
                 if (matchedPatientData && matchedPatientData.paySchedule) {
                     // 슬래시(/) 단위로 쪼개어 가독성 높은 복합 행정 스트림으로 줄바꿈 변환
                     finalPayScheduleLog = matchedPatientData.paySchedule.toString().split('/').join('\n');
                 } else {
-                    // 💡 모집공고 대장에 매칭본이 없을 시 역산하여 띄워줄 스냅샷 백업용 폴백 디폴트
+                    // 모집공고 대장에 매칭본이 없을 시 역산하여 띄워줄 스냅샷 백업용 폴백 디폴트
                     finalPayScheduleLog = "1차: 2026-12-21\n2차: 2026-12-28\n3차: 2027-01-04\n4차: 2027-01-11\n5차: 2027-01-29";
                 }
 
@@ -1188,11 +1138,10 @@
 
                     const parentCard = elPopMessage.closest('.cert-white-card-layer') || elPopMessage.parentElement;
                     if (parentCard) {
-                        // 👆 1) [상단 분홍 화살표 공백 해결]: 이질적인 다크블루를 철거하고 순정 화이트 스킨 원형 유지 보존
-                        // 카드 상단 마진을 완전히 압착하여 위로 끌어올림으로써 세로 스크롤 발생 원천 분쇄
+                        // 1) [상단 분홍 화살표 공백 해결]: 내부 상하 여백 긴급 콤팩트화 및 순정 화이트 배경 복원 수호
                         parentCard.style.setProperty("margin-top", "-32px", "important");
-                        parentCard.style.setProperty("padding", "6px 14px 6px 14px", "important"); // 내부 상하 여백 긴급 콤팩트화
-                        parentCard.style.setProperty("background", "#ffffff", "important"); // 순정 화이트 배경 복원 수호
+                        parentCard.style.setProperty("padding", "6px 14px 6px 14px", "important");
+                        parentCard.style.setProperty("background", "#ffffff", "important");
                         parentCard.style.setProperty("border", "1px solid #e2e8f0", "important");
                         parentCard.style.setProperty("border-radius", "12px", "important");
                     }
@@ -1211,41 +1160,35 @@
                         txtPopTitle.style.setProperty("color", "#10b981", "important");
                     }
 
-                    // 🎯 2) [중간/하단 분홍 체크 표시 공백 전면 소독]: 내부 margin과 padding을 2px~4px 단위로 초압착 조임
+                    // 2) 내부 margin과 padding을 컴팩트 조임 바인딩
                     elPopMessage.innerHTML = `
                         <div style="background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; padding: 6px 10px !important; margin: 0 !important; box-sizing: border-box !important;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 13px !important; line-height: 1.4 !important;">
                                 <tr>
                                     <td style="width: 60px; color: #64748b; font-weight: 600; padding-bottom: 2px;">인증기관</td>
-                                    <td style="color: #334155; font-weight: 700; padding-bottom: 2px;">${currentChannelName || "간편인증"} 연동모듈</td>
+                                    <td style="color: #334155; font-weight: 700; padding-bottom: 2px;">\${currentChannelName || "간편인증"} 연동모듈</td>
                                 </tr>
                                 <tr>
                                     <td style="color: #64748b; font-weight: 600; padding-bottom: 2px;">대상자</td>
                                     <td style="color: #0f172a; font-weight: 800; padding-bottom: 2px;">
-                                        ${matchedPatientData.name || name} <span style="font-size: 11.5px; color: #64748b; font-weight: 500;">(${displayBirth} / ${displayGender})</span>
+                                        \${matchedPatientData.name || name} <span style="font-size: 11.5px; color: #64748b; font-weight: 500;">(\${displayBirth} / \${displayGender})</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="color: #64748b; font-weight: 600; vertical-align: top;">시험명</td>
                                     <td style="color: #0f172a; font-weight: 800; vertical-align: top; line-height: 1.25;">
-                                        ${matchedPatientData.title || "미배정 과제"} <span style="color: #0284c7; font-weight: 900;">(${matchedPatientData.th || "1기"})</span>
+                                        \${matchedPatientData.title || "미배정 과제"} <span style="color: #0284c7; font-weight: 900;">(\${matchedPatientData.th || "1기"})</span>
                                     </td>
                                 </tr>
                             </table>
                         </div>
-                        
-                        <!-- ⚡ [중간 여백 압착]: 참여비 지급 예정일 레이블의 상하 마진 축소 -->
                         <div style="margin-top: 4px !important; margin-bottom: 2px !important; display: flex; align-items: center; gap: 4px;">
                             <div style="width: 3px; height: 9px; background: #0284c7; border-radius: 2px;"></div>
                             <span style="font-size: 12px !important; font-weight: 800 !important; color: #0284c7 !important;">[참여비 지급 예정일]</span>
                         </div>
-                        
-                        <!-- ⚡ [일정 박스 여백 압착]: 내부 상하 패딩 최하 수치로 축소 -->
                         <div style="background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; padding: 4px 10px !important; box-sizing: border-box !important; margin: 0 !important;">
-                            <div style="font-size: 12px !important; color: #1e293b !important; font-weight: 700; line-height: 1.35 !important; white-space: pre-line !important;">${finalPayScheduleLog}</div>
+                            <div style="font-size: 12px !important; color: #1e293b !important; font-weight: 700; line-height: 1.35 !important; white-space: pre-line !important;">\${finalPayScheduleLog}</div>
                         </div>
-                        
-                        <!-- ⚡ [하단 안내문 공백 압착]: 마진을 2px로 축소하여 확인 단추와의 스트레칭 현상 파쇄 -->
                         <div style="margin-top: 2px !important; margin-bottom: 0px !important; padding-left: 2px !important;">
                             <p style="font-size: 10.5px !important; color: #94a3b8 !important; line-height: 1.1; margin: 0 !important; font-weight: 500;">
                                 아래 확인 버튼을 클릭하면 참여중인 시험현황으로 이동합니다.
@@ -1256,14 +1199,13 @@
                     const elConfirmBtn = document.querySelector('.cert-white-card-layer button') || document.querySelector('button[onclick*="executeStep3ConfirmNext"]');
                     if (elConfirmBtn) {
                         if (elConfirmBtn.parentElement) {
-                            // ⚡ [최하단 버튼 마진 압착]: 확인 버튼 주변의 스트레칭 빈 공간 완전 소독
                             elConfirmBtn.parentElement.style.setProperty("margin-top", "4px", "important");
                             elConfirmBtn.parentElement.style.setProperty("padding", "0", "important");
                         }
                         elConfirmBtn.setAttribute("onclick", "executeStep3ConfirmNext()");
-                        elConfirmBtn.style.setProperty("background", "#0284c7", "important"); // 시그니처 딥스카이 블루 스킨 고정
+                        elConfirmBtn.style.setProperty("background", "#0284c7", "important");
                         elConfirmBtn.style.setProperty("color", "#ffffff", "important");
-                        elConfirmBtn.style.setProperty("height", "34px", "important"); // 세로 폭 슬림 피팅 완착
+                        elConfirmBtn.style.setProperty("height", "34px", "important");
                         elConfirmBtn.style.setProperty("border-radius", "6px", "important");
                         elConfirmBtn.style.setProperty("font-weight", "800", "important");
                         elConfirmBtn.style.setProperty("font-size", "13px", "important");
@@ -1271,8 +1213,10 @@
                         elConfirmBtn.style.setProperty("width", "100%", "important");
                     }
                 }
-            } else {
-                // 💡 [트랙 B: 최초 방문 신규 대상자 가드] 유령 데이터 터짐 방지 폴백 매핑
+            }
+
+            else {
+                // [트랙 B: 최초 방문 신규 대상자 가드] 유령 데이터 터짐 방지 풀백 매핑 ghostPassTicket 빌드
                 const ghostPassTicket = {
                     uid: "VIRTUAL_" + Date.now(),
                     name: name,
@@ -1283,13 +1227,14 @@
                     count: "-",
                     period: "-",
                     stage: "신검대기",
-                    payStatus: "대기",
+                    payStatus: "大期",
                     isNewUserGhost: true
                 };
+
                 adminApplicantDB.push(ghostPassTicket);
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-                matchedPatientData = ghostPassTicket;
 
+                matchedPatientData = ghostPassTicket;
                 sessionStorage.setItem('certifiedUserName', name);
                 sessionStorage.setItem('certifiedUserPhone', phone);
                 localStorage.setItem('loggedInUser', JSON.stringify({ name: name, isNew: true }));
@@ -1300,13 +1245,9 @@
                 if (document.getElementById('icoPop')) {
                     document.getElementById('icoPop').className = "fa-solid fa-circle-check";
                 }
-
                 document.getElementById('txtPopTitle').innerText = "신규 대상자 본인인증 완료";
                 document.getElementById('txtPopMessage').innerText =
-                    `• 연계기관: ${currentChannelName || "간편인증"} 연동모듈
-                     • 대상자명: ${name || temporaryVerifiedName}님
-                     양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.
-                     확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
+                    `• 연계기관: \${currentChannelName || "간편인증"} 연동모듈\n• 대상자명: \${name || temporaryVerifiedName}님\n\n양지병원 임상시험 참여 이력이 없는 최초 방문 대상자입니다.\n확인 버튼을 선택하시면 정산 페이지 대신, [실시간 임상시험 일정관리 스케줄러] 화면으로 유연하게 리디렉션 연동됩니다.`;
             }
 
             if (typeof navigateToStep === "function") {
@@ -1314,31 +1255,30 @@
             }
         }
 
+
         function executeStep3ConfirmNext() {
             if (matchedPatientData) {
                 const systemCurrentTime = new Date();
                 const lastExamDate = matchedPatientData.recDate ? new Date(matchedPatientData.recDate) : null;
 
-                // [교정 완착]: 확실히 종료된 날짜 데이터가 존재하며 180일(6개월) 이상 경과했을 때만 만료 판정
+                // [순정 교정 완착]: 확실히 종료된 날짜 데이터가 존재하며 180일 (6개월) 이상 경과했을 때만 만료 판정
                 let isOver6Months = false;
                 if (lastExamDate && !isNaN(lastExamDate.getTime())) {
                     const timeDiff = systemCurrentTime.getTime() - lastExamDate.getTime();
                     const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
                     if (dayDiff >= 180) isOver6Months = true;
                 }
-
-                // 💡 [신규/6개월 만료 유저 트랙 B 분기] ➔ layer5 자식 가상 캘린더 개통
+                // [신규/6개월 만료 유저 트랙 B 분기] → layer5 자식 가상 캘린더 개통
                 if (matchedPatientData.isNewUserGhost || isOver6Months) {
                     navigateToStep(5);
 
-                    // 🎯 [실시간 성명 동치화 패치]: 하드코딩 타이틀을 철거하고, 실제 로그인 유저의 이름을 100% 무지연 파싱 주입
+                    // [실시간 성명 동치화 패치]: 실제 로그인 유저의 이름을 100% 무지연 파싱 주입
                     const currentTargetName = matchedPatientData.name || temporaryVerifiedName || "대상자";
 
+                    // 🎯 기획 사양 반영: 5단계 상단 안내 가이드 문구 전면 개조
                     if (document.getElementById('lblSetTargetNew')) {
-                        // 🚀 전산망 규격 반영: 상단 엠블럼 우측 텍스트 레이어에 실시간 "홍길동 님의 시험일정" 자동 마운트
-                        document.getElementById('lblSetTargetNew').innerText = `${currentTargetName} 님의 시험일정`;
+                        document.getElementById('lblSetTargetNew').innerText = "임상시험 스케줄(주간)";
                     }
-
                     const iframe = document.getElementById('mobileCalendarFrame');
                     if (iframe && iframe.contentWindow) {
                         // 아이프레임 내부 하위 캘린더에 연동 대조용 가상 메모리 성명 주파수 사전 장전
@@ -1347,18 +1287,15 @@
                             iframe.contentWindow.renderCalendar();
                         }
                     }
-                    return;
-
+                    return; // 트랙 B 종료 분기 처리로 하단 로직 유입 원천 차단
                 } else {
-                    // B. 기존 데이터가 존재하고 진행 중인 스케줄이 유효한 경우 ➔ 현재 참여중이므로 나의 시험정보 화면(4단계) 이동
+                    // B. 기존 데이터가 존재하고 진행 중인 스케줄이 유효한 경우 현재 참여 중이므로 나의 시험정보 화면(4단계) 이동
                     navigateToStep(4);
 
-                    // 정사각형 라운드 배지 텍스트 개행 매핑 안전 이식 완결
                     const cmsBadgeSlot = document.getElementById('cms-badge');
+                    // [교정 완착]: 진짜 실시간 참여상태 필드(status 혹은 stage)를 파싱하여 배지 조립
                     if (cmsBadgeSlot && matchedPatientData) {
-                        // 🚀 [교정 완착]: 진짜 실시간 참여상태 필드(status 혹은 stage)를 파싱하여 배지 조립
                         const currentStage = (matchedPatientData.status || matchedPatientData.stage || "신검대기").toString().trim();
-
                         if (currentStage === "종료") {
                             cmsBadgeSlot.innerText = "정산\n(종료)";
                             cmsBadgeSlot.style.background = "#64748b";
@@ -1368,7 +1305,8 @@
                         } else if (currentStage === "text대기" || currentStage === "신검대기") {
                             cmsBadgeSlot.innerText = "신검\n대기";
                             cmsBadgeSlot.style.background = "#7c3aed";
-                        } else if (currentStage === "신검통과") {
+                        }
+                        else if (currentStage === "신검통과") {
                             cmsBadgeSlot.innerText = "신검\n적합";
                             cmsBadgeSlot.style.background = "#10b981";
                         } else if (currentStage === "소집" || currentStage.includes("소집")) {
@@ -1378,121 +1316,115 @@
                             cmsBadgeSlot.innerText = currentStage.replace("(", "\n(");
                             cmsBadgeSlot.style.background = "#1e3a8a";
                         }
+                    }
 
-                        /* =================================================================
-                           🔥 [실무 수칙 대개혁 완착]: 신검 통과 여부 및 평시 상태와 상관없이 
-                           나의 임상시험 일정보기 단추를 무조건 100% 하단에 상시 표출 개방합니다.
-                           ================================================================= */
-                        const calendarRedirectBtn = document.getElementById('ui_calendar_redirect_btn');
-                        const submitBtn = document.getElementById('ui_submit_btn');
+                    const calendarRedirectBtn = document.getElementById('ui_calendar_redirect_btn');
+                    const submitBtn = document.getElementById('ui_submit_btn');
 
-                        // 🎯 신검대기, 신검통과, 소집, 투약 등 어떤 상태든 일정보기 단추는 고대비 스카이블루 스킨으로 완벽 오픈
+                    if (calendarRedirectBtn) {
+                        calendarRedirectBtn.style.setProperty("display", "block", "important");
+                        calendarRedirectBtn.style.setProperty("background-color", "#0284c7", "important");
+                        calendarRedirectBtn.innerText = "📅 나의 임상시험 일정보기";
+                    }
+
+                    if (currentStage === "신검통과") {
+                        if (submitBtn) {
+                            submitBtn.innerText = "신검 통과 승인 (추후 소집 참여 시 신청 가능)";
+                            submitBtn.disabled = true;
+                            submitBtn.style.setProperty("background-color", "#1e293b", "important");
+                            submitBtn.style.setProperty("cursor", "not-allowed", "important");
+                        }
+                    }
+
+                    else if (currentStage === "신검대기") {
+                        if (submitBtn) {
+                            submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
+                            submitBtn.disabled = true;
+                            submitBtn.style.setProperty("background-color", "#1e293b", "important");
+                            submitBtn.style.setProperty("cursor", "not-allowed", "important");
+                        }
+                    } else if (currentStage === "종료") {
                         if (calendarRedirectBtn) {
-                            calendarRedirectBtn.style.setProperty("display", "block", "important");
-                            calendarRedirectBtn.style.setProperty("background-color", "#0284c7", "important");
-                            calendarRedirectBtn.innerText = "📅 나의 임상시험 일정보기";
+                            calendarRedirectBtn.innerText = "📅 임상시험 일정 확인 (과제완료)";
+                            calendarRedirectBtn.style.setProperty("background-color", "#475569", "important");
                         }
-
-                        // 하단 참여비 지급 청구 메인 버튼의 실무 행정 잠금 가드는 기존 명세 원형 100% 그대로 유지
-                        if (currentStage === "신검통과") {
-                            if (submitBtn) {
-                                submitBtn.innerText = "신검 통과 승인 (추후 소집 참여 시 신청 가능)";
-                                submitBtn.disabled = true;
-                                submitBtn.style.setProperty("background-color", "#1e293b", "important");
-                                submitBtn.style.setProperty("cursor", "not-allowed", "important");
-                            }
-                        } else if (currentStage === "신검대기") {
-                            if (submitBtn) {
-                                submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
-                                submitBtn.disabled = true;
-                                submitBtn.style.setProperty("background-color", "#1e293b", "important");
-                                submitBtn.style.setProperty("cursor", "not-allowed", "important");
-                            }
-                        } else if (currentStage === "종료") {
-                            if (calendarRedirectBtn) {
-                                calendarRedirectBtn.innerText = "📅 임상시험 일정 확인 (과제 완료)";
-                                calendarRedirectBtn.style.setProperty("background-color", "#475569", "important");
-                            }
-                            if (submitBtn) {
-                                submitBtn.innerText = "지급 청구 마감 (과제 종료)";
-                                submitBtn.disabled = true;
-                                submitBtn.style.setProperty("background-color", "#1e293b", "important");
-                            }
+                        if (submitBtn) {
+                            submitBtn.innerText = "지급 청구 마감 (과제 종료)";
+                            submitBtn.disabled = true;
+                            submitBtn.style.setProperty("background-color", "#1e293b", "important");
                         }
-
                     }
+                }
 
-                    // 1. 실제 연동 시험 공고의 진짜 기수(th) 실시간 주입
-                    const trialCategorySlot = document.getElementById('lblTrialCategory');
-                    if (trialCategorySlot) {
-                        trialCategorySlot.innerText = matchedPatientData.th ? `${matchedPatientData.th} 시험` : "과제 기수 미정";
-                    }
+                // 1. 실제 연동 시험 공고의 진짜 기수(th) 실시간 주입
+                const trialCategorySlot = document.getElementById('lblTrialCategory');
+                if (trialCategorySlot) {
+                    trialCategorySlot.innerText = matchedPatientData.th ? `${matchedPatientData.th} 시험` : "과제 기수 미정";
+                }
 
-                    // 2. 실제 연동 시험명 매핑
-                    document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
+                // 2. 실제 연동 시험명 매핑
+                document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
 
-                    // 3. 하이픈 뒤 숫자 박멸 및 성별 분리 배지화 공정 가동
-                    const rawDbSsn = (matchedPatientData.ssn || "").toString().trim();
-                    const displayBirth6 = rawDbSsn.substring(0, 6) || "-";
+                // 3. 하이픈 뒤 숫자 박멸 및 성별 분리 배지화 공정 가동
+                const rawDbSsn = (matchedPatientData.ssn || "").toString().trim();
+                const displayBirth6 = rawDbSsn.substring(0, 6) || "-";
+                let genderBadgeHtml = "";
 
-                    let genderBadgeHtml = "";
-                    if (rawDbSsn.includes("-M") || rawDbSsn.endsWith("M") || rawDbSsn.endsWith("1") || rawDbSsn.endsWith("3")) {
-                        genderBadgeHtml = `<span class="gender-indicator-badge gender-m">남</span>`;
-                    } else if (rawDbSsn.includes("-F") || rawDbSsn.endsWith("F") || rawDbSsn.endsWith("2") || rawDbSsn.endsWith("4")) {
-                        genderBadgeHtml = `<span class="gender-indicator-badge gender-f">여</span>`;
-                    }
+                if (rawDbSsn.includes("-M") || rawDbSsn.endsWith("M") || rawDbSsn.endsWith("1") || rawDbSsn.endsWith("3")) {
+                    genderBadgeHtml = '<span class="gender-indicator-badge gender-m">남</span>';
+                } else if (rawDbSsn.includes("-F") || rawDbSsn.endsWith("F") || rawDbSsn.endsWith("2") || rawDbSsn.endsWith("4")) {
+                    genderBadgeHtml = '<span class="gender-indicator-badge gender-f">여</span>';
+                }
 
-                    document.getElementById('ui_target_name_zone').innerHTML =
-                        `<span>● 대상자: ${matchedPatientData.name} (${displayBirth6})</span>${genderBadgeHtml}`;
+                document.getElementById('ui_target_name_zone').innerHTML = `<span>👤 대상자: ${matchedPatientData.name} (${displayBirth6})</span>${genderBadgeHtml}`;
 
-                    // 4. 모집공고 마스터 가상 DB를 실시간 역추적하여 과제 배정 진짜 담당 CRC 사원명 바인딩
-                    let adminRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-                    const realRecData = adminRecruitmentDB.find(rec => {
-                        const recTitle = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                        const appTitle = (matchedPatientData.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                        const recTh = (rec.th || '').toString().replace(/[^0-9]/g, "");
-                        const appTh = (matchedPatientData.th || '').toString().replace(/[^0-9]/g, "");
-                        return recTitle === appTitle && recTh === appTh;
-                    });
-                    const realCrcName = realRecData ? realRecData.crc : "이승호";
-                    document.getElementById('ui_crc_name_zone').innerText = `● 담당자: ${realCrcName}`;
+                // 4. 모집공고 마스터 가상 DB를 실시간 역추적하여 과제 배정 진짜 담당 CRC 사원명 바인딩
+                let adminRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+                const realRecData = adminRecruitmentDB.find(rec => {
+                    const recTitle = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                    const appTitle = (matchedPatientData.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                    const recTh = (rec.th || '').toString().replace(/[^0-9]/g, "");
+                    const appTh = (matchedPatientData.th || '').toString().replace(/[^0-9]/g, "");
+                    return recTitle === appTitle && recTh === appTh;
+                });
 
-                    // 5. 대상자 계좌 연동 패킷 실시간 주입 및 모니터링 가동
-                    const bankInputSlot = document.getElementById('ui_bank_input');
-                    if (bankInputSlot && matchedPatientData.accountInfo) {
-                        const parts = matchedPatientData.accountInfo.split(' ');
-                        if (parts.length > 1) {
-                            bankInputSlot.value = parts.slice(1).join(' ');
-                            const bankSelectSlot = document.getElementById('ui_bank_select');
-                            if (bankSelectSlot) {
-                                for (let opt of bankSelectSlot.options) {
-                                    if (opt.text.includes(parts[0]) || parts[0].includes(opt.value)) {
-                                        bankSelectSlot.value = opt.value;
-                                        break;
-                                    }
+                const realCrcName = realRecData ? realRecData.crc : "이승호";
+                document.getElementById('ui_crc_name_zone').innerText = `👩‍⚕️ 담당자: ${realCrcName}`;
+
+                // 5. 대상자 계좌 연동 패킷 실시간 주입 및 모니터링 가동
+                const bankInputSlot = document.getElementById('ui_bank_input');
+                if (bankInputSlot && matchedPatientData.accountInfo) {
+                    const parts = matchedPatientData.accountInfo.split(' ');
+                    if (parts.length > 1) {
+                        bankInputSlot.value = parts.slice(1).join('');
+                        const bankSelectSlot = document.getElementById('ui_bank_select');
+                        if (bankSelectSlot) {
+                            for (let opt of bankSelectSlot.options) {
+                                if (opt.text.includes(parts[0]) || parts[0].includes(opt.value)) {
+                                    bankSelectSlot.value = opt.value;
+                                    break;
                                 }
                             }
                         }
                     }
-
-                    // 🚨 진입 즉시 1초 주기 실시간 원격 감시 안테나 기동
-                    startAdminApprovalMonitor();
                 }
+
+                // 진입 즉시 1초 주기 실시간 원격 감시 안테나 기동
+                startAdminApprovalMonitor();
             }
         }
-
 
         // 진짜 파일 첨부 데이터 스트림 보존용 전역 메모리 버퍼
         let idCardBase64 = "";
         let bankBookBase64 = "";
 
-        // 🎯 4단 스마트 폼 비동기 장벽 원격 해제 스위치 (진짜 파일 업로드 가드 결합 정화)
+        // 4단 스마트 폼 비동기 장벽 원격 해제 스위치 (진짜 파일 업로드 가드 결합 정화)
         function setMobileFormActive(isActive) {
             const isDisable = !isActive;
-
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             const cleanSessionName = (sessionStorage.getItem('certifiedUserName') || temporaryVerifiedName || "").toString().replace(/\s/g, "");
             const currentRecord = adminApplicantDB.find(u => u.name && u.name.toString().replace(/\s/g, "") === cleanSessionName);
+
             const isProcessingNow = currentRecord && currentRecord.payStatus === "처리중";
 
             if (isProcessingNow) {
@@ -1513,7 +1445,7 @@
                 if (submitBtn) {
                     submitBtn.disabled = true;
                     submitBtn.className = "btn-submit-form bg-slate-lock";
-                    submitBtn.innerText = "✔ 지급 신청 완료 (정산 처리중)";
+                    submitBtn.innerText = " 지급 신청 완료 (정산 처리중)";
                 }
                 return;
             }
@@ -1535,20 +1467,17 @@
             const submitBtn = document.getElementById('ui_submit_btn');
             if (submitBtn) {
                 const isAlreadyReceived = currentRecord && currentRecord.payStatus === "접수";
-
                 if (isActive || isAlreadyReceived) {
                     submitBtn.disabled = false;
                     submitBtn.className = "btn-submit-form";
                     submitBtn.style.background = "#0284c7";
                     submitBtn.style.cursor = "pointer";
-
                     if (isAlreadyReceived || idCardBase64 || bankBookBase64) {
                         submitBtn.innerText = "지급 신청하기 (변경하기)";
                     } else {
                         submitBtn.innerText = "지급 신청하기 (관리자 승인 완료)";
                     }
                 } else {
-                    // 평상시 혹은 신검 적합 단계 가이드선 복원
                     const currentStage = currentRecord ? (currentRecord.status || currentRecord.stage || "신검대기").toString().trim() : "신검대기";
                     submitBtn.disabled = true;
                     submitBtn.className = "btn-submit-form";
@@ -1564,14 +1493,14 @@
             }
         }
 
-        // 🎯 첨부서류 박스 파일 선택 단추 터치 시 매립된 진짜 파일 태그 트리거 브릿지
+        // 첨부서류 박스 파일 선택 단추 터치 시 매립된 진짜 파일 태그 트리거 브릿지
         function triggerFileInput(type) {
             let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
             const cleanSessionName = (sessionStorage.getItem('certifiedUserName') || temporaryVerifiedName || "").toString().replace(/\s/g, "");
             const currentRecord = adminApplicantDB.find(u => u.name && u.name.toString().replace(/\s/g, "") === cleanSessionName);
 
             if (currentRecord && currentRecord.payStatus === "처리중") {
-                alert("🔒 정산 처리중 상태이므로 서류를 더 이상 변경할 수 없습니다.");
+                alert("정산 처리중 상태이므로 서류를 더 이상 변경할 수 없습니다.");
                 return;
             }
 
@@ -1591,8 +1520,7 @@
             else if (type === 'bank') document.getElementById('real_file_bank').click();
         }
 
-
-        // 🎯 [참조 오류 디버깅 완결]: 변수명 주파수를 단일화하여 진짜 이미지 패킷을 가로채는 인코더 엔진 (변경하기 결합)
+        // [참조 오류 디버깅 완결]: 변수명 주파수를 단일화하여 진짜 이미지 패킷을 가로채는 인코더 엔진
         function handleFileSelect(input, type) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
@@ -1607,7 +1535,7 @@
                         if (box1 && idTxt) {
                             box1.className = "upload-box upload-complete";
                             idTxt.style.color = "#4ade80";
-                            idTxt.innerHTML = `✅ 신분증 첨부 완료`;
+                            idTxt.innerHTML = ` 신분증 첨부 완료`;
                             const btn = document.getElementById('id_select_btn');
                             if (btn) btn.innerText = "변경하기";
                         }
@@ -1618,7 +1546,7 @@
                         if (box2 && bankTxt) {
                             box2.className = "upload-box upload-complete";
                             bankTxt.style.color = "#4ade80";
-                            bankTxt.innerHTML = `✅ 통장사본 첨부 완료`;
+                            bankTxt.innerHTML = ` 통장사본 첨부 완료`;
                             const btn = document.getElementById('bank_select_btn');
                             if (btn) btn.innerText = "변경하기";
                         }
@@ -1628,15 +1556,14 @@
                     if (submitBtn && submitBtn.disabled === false) {
                         submitBtn.innerText = "지급 신청하기 (변경하기)";
                     }
-                    console.log(`[전산 정화] 모바일 증빙 서류 이미지 파일 데이터 패킷 인코딩 성공: ${file.name}`);
+                    console.log(`[전산 정화] 모바일 증빙 서류 이미지 파일 데이터 패킷 인코딩 성공: \${file.name}`);
                 };
-
                 reader.readAsDataURL(file);
             }
         }
 
-        // 🚀 [교정 완착]: 관리자 화면의 실시간 수정 신호를 가로채어 
-        // 모바일 우측 배지의 글자와 색상을 단 0초 만에 무지연 리스킨하는 전용 엔진입니다.
+
+        // [교정 완착]: 관리자 화면의 실시간 수정 신호를 가로채어 모바일 우측 배지의 글자와 색상을 무지연 리스킨하는 엔진
         function refreshMobileStatusUI() {
             const currentVerifiedSessionName = sessionStorage.getItem('certifiedUserName') || temporaryVerifiedName || "";
             if (!currentVerifiedSessionName) return;
@@ -1658,155 +1585,117 @@
 
             if (liveRecord) {
                 const mobileBadge = document.getElementById('cms-badge');
-
-                // 🚀 [듀얼 패킷 채널 복원]: 관제탑에서 쏜 패킷 누수를 차단하기 위해 status와 stage를 유기적으로 수혈 적출!
                 const liveStatusText = (liveRecord.status || liveRecord.stage || "신검대기").toString().trim();
 
                 if (mobileBadge) {
                     mobileBadge.removeAttribute("style");
-                    mobileBadge.className = "badge";
 
-                    // 🚀 [실물 이미지 기반 1:1 포맷터 바인딩 가드 및 19대 평일 정산 신설 분기 완착]
+                    mobileBadge.className = "badge";
                     if (liveStatusText === "신검대기" || liveStatusText.includes("대기")) {
                         mobileBadge.innerText = "신검\n대기";
-                        mobileBadge.classList.add("master-purple"); /* 보라색 테마 연동 */
+                        mobileBadge.classList.add("master-purple");
                     } else if (liveStatusText === "신검통과" || liveStatusText.includes("통과")) {
                         mobileBadge.innerText = "신검\n통과";
-                        mobileBadge.classList.add("master-blue");   /* 파란색 테마 연동 */
+                        mobileBadge.classList.add("master-blue");
                     } else if (liveStatusText === "신검탈락" || liveStatusText === "검사탈락" || liveStatusText.includes("탈락")) {
                         mobileBadge.innerText = "신검\n탈락";
-                        mobileBadge.classList.add("master-rose");   /* 빨간색 테마 연동 */
+                        mobileBadge.classList.add("master-rose");
                     } else if (liveStatusText === "투약" || liveStatusText.includes("진행")) {
                         mobileBadge.innerText = "투약\n";
-                        mobileBadge.classList.add("master-green");  /* 초록색 테마 연동 */
+                        mobileBadge.classList.add("master-green");
                     } else if (liveStatusText === "종료" || liveStatusText === "완결" || liveStatusText.includes("종료")) {
                         mobileBadge.innerText = "정산\n(종료)";
-                        mobileBadge.classList.add("master-slate");  /* 회색 테마 연동 */
-                    }
-                    // 🎯 [대표님 지시 지침 각인]: 새로운 1차~4차방문 상태 명세 유입 시 모바일 정산 청구서 자물쇠를 동치 활성화!!
-                    else if (liveStatusText.includes("방문")) {
+                        mobileBadge.classList.add("master-slate");
+                    } else if (liveStatusText.includes("방문")) {
                         mobileBadge.innerText = liveStatusText.replace("방문", "\n방문");
-                        mobileBadge.classList.add("master-green");  /* 진행 승인 초록 스킨 매핑 */
+                        mobileBadge.classList.add("master-green");
                     } else {
                         mobileBadge.innerText = liveStatusText.replace("(", "\n(");
                         mobileBadge.classList.add("master-navy");
                     }
                 }
-
-                // 좌측 하단 조형 알림 텍스트 실시간 치환
                 const historyLogSlot = document.getElementById('history-log');
                 if (historyLogSlot) historyLogSlot.innerText = liveStatusText;
             }
         }
-
-        // 전역 윈도우 스코프에 함수를 개방하여 admin.html이 원격으로 다이렉트 강제 호출할 수 있도록 처리
         window.refreshMobileStatusUI = refreshMobileStatusUI;
 
         function startAdminApprovalMonitor() {
             const monitorInterval = setInterval(function () {
-                // 3중 이름 가드 장착으로 세션명 믹스매치로 인한 루프 마비 버그 전면 박멸 (순정 유지)
-                const rawSessionName = sessionStorage.getItem('certifiedUserName') ||
-                    (window.loggedInUser ? window.loggedInUser.name : "") ||
-                    temporaryVerifiedName || "";
+                const rawSessionName = sessionStorage.getItem('certifiedUserName') || (window.loggedInUser ? window.loggedInUser.name : "") || temporaryVerifiedName || "";
                 if (!rawSessionName) return;
                 const cleanSessionName = rawSessionName.toString().replace(/\s/g, "");
 
-                // 1초 간격으로 마스터 로컬스토리지 대장 원장 직접 캡처 스캔
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
-
-                // 오염되기 쉬운 가변 변수 대신, 오직 정제된 식별 이름으로 1:1 정밀 타격 매칭
                 const liveRecord = adminApplicantDB.find(u => {
                     if (!u || !u.name) return false;
                     return u.name.toString().replace(/\s/g, "") === cleanSessionName;
                 });
 
                 if (liveRecord) {
-                    const mobileBadge = document.getElementById('cms-badge'); // 우측 상단 사각 배지
-                    const historyLogSlot = document.getElementById('history-log'); // 중앙 실시간 연결바 우측 ◀ 상태: 영역
-                    const submitBtn = document.getElementById('ui_submit_btn'); // 참여비 최종 신청 버튼
+                    const mobileBadge = document.getElementById('cms-badge');
+                    const historyLogSlot = document.getElementById('history-log');
+                    const submitBtn = document.getElementById('ui_submit_btn');
                     const stageTxtSlot = document.getElementById('ui_stage_text');
 
-                    // 🚀 [듀얼 패킷 채널 복원]: 관제탑에서 쏜 주파수 누수를 분쇄하기 위해 status와 stage를 유기적으로 수혈 적출!
                     const liveStatusText = (liveRecord.status || liveRecord.stage || "신검대기").toString().trim();
 
-                    // 중앙 인라인 텍스트 로그 영역 무새로고침 실시간 치환
                     if (historyLogSlot) {
                         historyLogSlot.innerText = liveStatusText;
                     }
 
-                    // ==========================================================================
-                    // 🎯 [삼각 연동 대완결 - Part 2] 대표님표 인라인 !important 폭격 엔진 + 19대 차수 배지 완착
-                    // ==========================================================================
                     if (mobileBadge) {
-                        // 기존 구형 클래스 족쇄 초기화
                         mobileBadge.className = "badge";
 
-                        // 브라우저 CSS 우선순위 차단을 분쇄하는 최상위 인라인 !important 오버라이드 폭격 명세
                         if (liveStatusText === "신검대기") {
                             mobileBadge.innerHTML = "신검<br>대기";
-                            mobileBadge.style.setProperty("background", "#7c3aed", "important"); // 🎨 보라색 채우기 완전 고정
+                            mobileBadge.style.setProperty("background", "#7c3aed", "important");
                             mobileBadge.style.setProperty("background-color", "#7c3aed", "important");
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #7c3aed", "important");
-                        }
-                        else if (liveStatusText === "신검통과") {
+                        } else if (liveStatusText === "신검통과") {
                             mobileBadge.innerHTML = "신검<br>적합";
-                            mobileBadge.style.setProperty("background", "#10b981", "important"); // 🎨 녹색 채우기 완전 고정
+                            mobileBadge.style.setProperty("background", "#10b981", "important");
                             mobileBadge.style.setProperty("background-color", "#10b981", "important");
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #10b981", "important");
-                        }
-                        else if (liveStatusText === "소집") {
+                        } else if (liveStatusText === "소집") {
                             mobileBadge.innerHTML = "참여<br>(소집)";
-                            mobileBadge.style.setProperty("background", "#2563eb", "important"); // 🎨 청색 채우기 완전 고정
+                            mobileBadge.style.setProperty("background", "#2563eb", "important");
                             mobileBadge.style.setProperty("background-color", "#2563eb", "important");
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #2563eb", "important");
-                        }
-                        else if (liveStatusText === "투약") {
+                        } else if (liveStatusText === "투약") {
                             mobileBadge.innerHTML = "진행<br>(투약)";
-                            mobileBadge.style.setProperty("background", "#2563eb", "important"); // 🎨 청색 채우기 완전 고정
+                            mobileBadge.style.setProperty("background", "#2563eb", "important");
                             mobileBadge.style.setProperty("background-color", "#2563eb", "important");
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #2563eb", "important");
-                        }
-
-                        // 🎯 [대표님 지시 지침 각인]: 새로운 1차~4차 및 종료방문 정산 대기 상태 유입 시 야광 초록색 스킨과 엠블럼 강제 바인딩!!
-                        else if (liveStatusText.includes("방문")) {
+                        } else if (liveStatusText.includes("방문")) {
                             mobileBadge.innerHTML = liveStatusText.replace("방문", "<br>방문");
-                            mobileBadge.style.setProperty("background", "#059669", "important"); // 🎨 야광 딥 에메랄드 그린 완전 락킹
+                            mobileBadge.style.setProperty("background", "#059669", "important");
                             mobileBadge.style.setProperty("background-color", "#059669", "important");
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #059669", "important");
-                        }
-
-                        else if (liveStatusText === "종료" || liveStatusText.includes("종료")) {
+                        } else if (liveStatusText === "종료" || liveStatusText.includes("종료")) {
                             mobileBadge.innerHTML = "정산<br>(종료)";
-                            mobileBadge.style.setProperty("background", "#64748b", "important"); // 🎨 회색 채우기 완전 고정
+                            mobileBadge.style.setProperty("background", "#64748b", "important");
                             mobileBadge.style.setProperty("background-color", "#64748b", "important");
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #64748b", "important");
-                        }
-                        else if (liveStatusText === "예비귀가") {
+                        } else if (liveStatusText === "예비귀가") {
                             mobileBadge.innerHTML = "예비<br>귀가";
-                            mobileBadge.style.setProperty("background", "#475569", "important"); // 🎨 어두운 회색 채우기
+                            mobileBadge.style.setProperty("background", "#475569", "important");
                             mobileBadge.style.setProperty("background-color", "#475569", "important");
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #475569", "important");
-                        }
-                        // 탈락 관련 사유 8형제 통합
-                        else if (liveStatusText === "신검탈락" || liveStatusText === "신검동철" ||
-                            liveStatusText === "검사탈락" || liveStatusText === "개인사정" ||
-                            liveStatusText === "규정위반" || liveStatusText === "임의행동" ||
-                            liveStatusText === "욕설폭행" || liveStatusText === "기타탈락") {
-
+                        } else if (liveStatusText === "신검탈락" || liveStatusText === "신검동철" || liveStatusText === "검사탈락" || liveStatusText === "개인사정" || liveStatusText === "규정위반" || liveStatusText === "임의행동" || liveStatusText === "욕설폭행" || liveStatusText === "기타탈락") {
                             mobileBadge.innerHTML = "심사<br>탈락";
-                            mobileBadge.style.setProperty("background", "#f43f5e", "important"); // 🎨 적색 채우기 완전 고정
+                            mobileBadge.style.setProperty("background", "#f43f5e", "important");
                             mobileBadge.style.setProperty("background-color", "#f43f5e", "important");
                             mobileBadge.style.setProperty("color", "#ffffff", "important");
                             mobileBadge.style.setProperty("border", "1px solid #f43f5e", "important");
-                        }
-                        else {
+                        } else {
                             mobileBadge.innerHTML = liveStatusText.replace("(", "<br>(");
                             mobileBadge.style.setProperty("background", "#1e3a8a", "important");
                             mobileBadge.style.setProperty("background-color", "#1e3a8a", "important");
@@ -1816,9 +1705,7 @@
                     }
 
                     // 1. [기획 대원칙] 신검 관련 카테고리 4형제는 직접 신청 불가 장벽 유지 (순정 수호)
-                    if (liveStatusText === "신검대기" || liveStatusText === "신검통과" ||
-                        liveStatusText === "신검탈락" || liveStatusText === "신검동철") {
-
+                    if (liveStatusText === "신검대기" || liveStatusText === "신검통과" || liveStatusText === "신검탈락" || liveStatusText === "신검동철") {
                         if (submitBtn) {
                             submitBtn.disabled = true;
                             if (liveStatusText === "신검통과") {
@@ -1835,33 +1722,26 @@
                         }
                         if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
 
-                        /* =================================================================
-                           🔥 [실시간 징검다리 스위칭]: 진재영 대상자 원격 신검통과 변경 포착 찰나
-                           ================================================================= */
                         const calendarRedirectBtn = document.getElementById('ui_calendar_redirect_btn');
-                        if (liveStatusText === "신검통과") {
-                            if (calendarRedirectBtn) {
+                        if (calendarRedirectBtn) {
+                            if (liveStatusText === "신검통과") {
                                 calendarRedirectBtn.style.setProperty("display", "block", "important");
                                 calendarRedirectBtn.style.setProperty("background-color", "#0284c7", "important");
                                 calendarRedirectBtn.innerText = "📅 나의 임상시험 일정보기 (신검 적합)";
                             }
-                        } else if (liveStatusText === "신검탈락" || liveStatusText === "신검동철") {
+                        }
+                        if (liveStatusText === "신검탈락" || liveStatusText === "신검동철") {
                             if (calendarRedirectBtn) calendarRedirectBtn.style.display = "none";
-
-                            // 🔒 [신검 탈락자/동철자 실시간 달력 전면 개방 복귀] ➔ 타인 일정 가두리 해제
                             const iframe = document.getElementById('mobileCalendarFrame');
                             if (iframe && iframe.contentWindow) {
                                 iframe.contentWindow.localStorage.removeItem('loggedInUserSsn');
                                 if (typeof iframe.contentWindow.renderCalendar === "function") iframe.contentWindow.renderCalendar();
                             }
                         }
-                        /* ================================================================= */
                     }
 
-                    // 2. [m-adm.html 원격 제어반 실시간 결합]
                     else {
                         const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
-
                         if (authSignal && authSignal.name && authSignal.name.toString().replace(/\s/g, "") === cleanSessionName) {
                             if (authSignal.isAllow === true) {
                                 if (submitBtn) {
@@ -1880,52 +1760,50 @@
                                 }
                                 if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
                             }
-                        } else {
-                            if (liveStatusText === "소집" || liveStatusText === "투약" || liveStatusText.includes("방문")) {
-                                if (submitBtn) {
-                                    submitBtn.disabled = false;
-                                    submitBtn.innerText = `${liveStatusText} 정산 청구서 제출하기`;
-                                    submitBtn.style.background = "";
-                                    submitBtn.style.cursor = "pointer";
-                                }
-                                if (typeof setMobileFormActive === "function") { setMobileFormActive(true); }
-                            } else if (liveStatusText === "종료" || liveStatusText.includes("종료")) {
-                                if (stageTxtSlot) {
-                                    stageTxtSlot.innerHTML = `⏳ <b style="color:#4ade80;">임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여 정산 및 참여비 지급이 최종 완결되었습니다.</span>`;
-                                }
-                                if (submitBtn) {
-                                    submitBtn.innerText = "지급 완료 및 시험 최종 종료 (마감)";
-                                    submitBtn.disabled = true;
-                                    submitBtn.style.setProperty("background", "#1e293b", "important");
-                                }
-                                if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
-                            } else {
-                                if (submitBtn) {
-                                    submitBtn.disabled = true;
-                                    submitBtn.innerText = `${liveStatusText} 대상자 (부분 참여비 지급 신청 대기)`;
-                                    submitBtn.style.setProperty("background", "#1e293b", "important");
-                                }
-                                if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
+                        } else if (liveStatusText === "소집" || liveStatusText === "투약" || liveStatusText.includes("방문")) {
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerText = `${liveStatusText} 정산 청구서 제출하기`;
+                                submitBtn.style.background = "";
+                                submitBtn.style.cursor = "pointer";
                             }
+                            if (typeof setMobileFormActive === "function") { setMobileFormActive(true); }
+                        }
+
+                        else if (liveStatusText === "종료" || liveStatusText.includes("종료")) {
+                            if (stageTxtSlot) {
+                                stageTxtSlot.innerHTML = '<b style="color: #4ade80;">🧪 임상시험 완결 최종 종료 단계</b><br><span style="font-size:11px;color:#94A3B8;">* 본 대상자의 참여 정산 및 참여비 지급이 최종 완결되었습니다.</span>';
+                            }
+                            if (submitBtn) {
+                                submitBtn.innerText = "지급 완료 및 시험 최종 종료 (마감)";
+                                submitBtn.disabled = true;
+                                submitBtn.style.setProperty("background", "#1e293b", "important");
+                            }
+                            if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
+                        } else {
+                            if (submitBtn) {
+                                submitBtn.disabled = true;
+                                submitBtn.innerText = `${liveStatusText} 대상자 (부분 참여비 지급 신청 대기)`;
+                                submitBtn.style.setProperty("background", "#1e293b", "important");
+                            }
+                            if (typeof setMobileFormActive === "function") { setMobileFormActive(false); }
                         }
                     }
 
-                    // 🔒 [부모 감시반의 자식 달력 미래 일정 터치 방어막 원격 주입 인터록 모듈]
-                    // 🎯 진재영 대상자가 [신검통과]이면 달력에서 오직 스크리닝 배지만 터치 허용하고 미래 방문 일정은 완벽하게 잠금(클릭 가드)
+                    // [부모 감시반의 자식 달력 미래 일정 터치 방어막 원격 주입 인터록 모듈]
                     const iframe = document.getElementById('mobileCalendarFrame');
                     if (iframe && iframe.contentWindow && iframe.contentWindow.document) {
                         const childDoc = iframe.contentWindow.document;
                         const eventBadges = childDoc.querySelectorAll('.event-badge');
-
                         eventBadges.forEach(badge => {
                             const badgeText = badge.innerHTML || "";
-                            if (!badgeText.includes(`(${liveStatusText})`)) {
+                            if (!badgeText.includes((`${liveStatusText}`))) {
                                 if (liveStatusText === "신검대기" && (badgeText.includes("스크리닝(대기)") || badgeText.includes("스크리닝(통과)"))) {
                                     badge.classList.remove('mobile-future-lock');
                                 } else if (liveStatusText === "신검통과" && (badgeText.includes("스크리닝(통과)") || badgeText.includes("스크리닝(대기)") || badgeText.includes("스크리닝"))) {
                                     badge.classList.remove('mobile-future-lock');
                                 } else {
-                                    badge.classList.add('mobile-future-lock'); // 🔒 미래 일정 터치 강제 차단 자물쇠 락킹!!
+                                    badge.classList.add('mobile-future-lock');
                                 }
                             } else {
                                 badge.classList.remove('mobile-future-lock');
@@ -1936,16 +1814,15 @@
 
                 const pushSignal = JSON.parse(localStorage.getItem('msg_push_signal'));
                 const cmsBadgeSlot = document.getElementById('cms-badge');
-
                 if (pushSignal && pushSignal.name) {
                     const cleanPushName = pushSignal.name.toString().replace(/\s/g, "");
                     if (cleanPushName === cleanSessionName) {
                         if (pushSignal.status === 'PASS') {
                             if (cmsBadgeSlot) {
-                                cmsBadgeSlot.style.setProperty("background", "#108981", "important");
-                                cmsBadgeSlot.style.setProperty("background-color", "#108981", "important");
+                                cmsBadgeSlot.style.setProperty("background", "#10b981", "important");
+                                cmsBadgeSlot.style.setProperty("background-color", "#10b981", "important");
                                 cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
-                                cmsBadgeSlot.innerHTML = "통과<br>(지급)";
+                                cmsBadgeSlot.innerHTML = "통과 <br> (지급)";
                             }
                             document.getElementById('history-log').innerHTML = "<span style='color:#10B981; font-weight:700;'>원격 통과 승인</span>";
                         } else if (pushSignal.status === 'FAIL') {
@@ -1955,14 +1832,14 @@
                                 cmsBadgeSlot.style.setProperty("color", "#ffffff", "important");
                                 cmsBadgeSlot.innerHTML = "탈락<br>(정산)";
                             }
-                            document.getElementById('history-log').innerHTML = "<span style='color:#F43F5E; font-weight:700;'>심사 탈락 반려</span>";
+                            document.getElementById('history-log').innerHTML = "<span style='color: #F43F5E; font-weight: 700;'>심사 탈락 반려</span>";
                         }
                     }
                 }
             }, 1000);
         }
 
-        // 💥 4단: 최종 정산 데이터 전산 패킷 트랜잭션 전송 및 마스터 대장 원격 불 켜기 공정 완결
+        // 4단: 최종 정산 데이터 전산 패킷 트랜잭션 전송 및 마스터 대장 원격 불 켜기 공정완결
         function submitFinalSettlementForm() {
             const bankSelect = document.getElementById('ui_bank_select');
             const accountInput = document.getElementById('ui_bank_input');
@@ -1990,8 +1867,7 @@
                 adminApplicantDB[idx].bankBookImg = finalBankBookImg;
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-
-                alert(`[전산 정산 교정 완료]\n\n${adminApplicantDB[idx].name} 대상자님의 참여비 정산 청구서 및 변경 서류가 안전하게 재접수 완결되었습니다.`);
+                alert(`[전산 정산 교정 완료] \n\n\${adminApplicantDB[idx].name} 대상자님의 참여비 정산 청구서 및 변경 서류가 안전하게 재접수 완결되었습니다.`);
 
                 const targetBtn = document.getElementById('ui_submit_btn');
                 if (targetBtn) {
@@ -2001,9 +1877,8 @@
                     document.getElementById('cms-badge').innerText = "접수";
                     document.getElementById('cms-badge').className = "badge bg-blue";
                 }
-                document.getElementById('history-log').innerHTML = "<strong style='color:#38bdf8;'>[재접수완료]</strong>";
+                document.getElementById('history-log').innerHTML = "<strong style='color: #38bdf8;'> [재접수완료]</strong>";
 
-                // 진짜 서류 이미지 업로드 완료 직후 부모 관제탑창(admin.html) 명단을 원격 실시간 동적 리렌더링 불 켜기 처리 종결
                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                     window.opener.refreshApplicantView();
                 } else if (window.opener && !window.opener.closed && typeof window.opener.refreshAdminMemberTableView === "function") {
@@ -2030,7 +1905,7 @@
             }
         }
 
-        // 🎯 [최종 연동 완결]: 제어반 무선 패킷 코드를 상시 역파싱하여 차수별 상세 정산 상태를 데이터베이스 대장에 최종 PUSH 커밋
+        // [최종 연동 완결]: 제어반 무선 패킷 코드를 상시 역파싱하여 차수별 상세 정산 상태를 데이터베이스 대장에 최종 PUSH 커밋
         function commitFinalSettlement() {
             const authSignal = JSON.parse(localStorage.getItem('msg_auth_signal'));
             const targetStageCode = (authSignal && authSignal.stageCode) ? parseInt(authSignal.stageCode, 10) : 0;
@@ -2065,7 +1940,7 @@
                     window.opener.refreshApplicantView();
                 }
 
-                alert(`🎉 접수 완료\n\n귀하의 참여비 온라인 금융 정산 청구서 및 증빙 서류가 마스터 대장 전산망으로 안전하게 전송되었습니다.`);
+                alert(`접수 완료\n\n귀하의 참여비 온라인 금융 정산 청구서 및 증빙 서류가 마스터 대장 전산망으로 안전하게 전송되었습니다.`);
 
                 const moBtn = document.getElementById('mo_submit_btn');
                 if (moBtn) {
@@ -2073,23 +1948,23 @@
                     moBtn.innerText = "지급 신청접수 완료";
                     moBtn.style.opacity = "0.5";
                 }
-                console.log(`[백엔드 데이터 최종 종결] 대상자 ${row.name} 님의 차수별 정산 레코드 코딩 적재 완결.`);
+                console.log(`[백엔드 데이터 최종 종결] 대상자 \${row.name} 님의 차수별 정산 레코드 코딩 적재 완결.`);
             }
         }
 
-        /* =========================================================================
-          [모바일 전산망 통합 관제 수신소] iframe 보안 샌드박스 관통 신호 수신기 완착
-          ========================================================================= */
+        /* ==========================================================================
+        [모바일 전산망 통합 관제 수신소] iframe 보안 샌드박스 관통 신호 수신기 완착
+        ========================================================================== */
         window.addEventListener('message', function (e) {
             if (e.data && e.data.action === "GOTO_STEP_4") {
-                console.log(`[통합 관제소] 자식 캘린더 신호 수신 성공 ➔ 대상자명: ${e.data.user}님 4단계 정산 화면으로 강제 이송 집행.`);
-
+                console.log(`[통합 관제소] 자식 캘린더 신호 수신 성공 대상자명: \${e.data.user}님 4단계 정산 화면으로 강제 이송 집행.`);
                 if (typeof navigateToStep === "function") {
                     navigateToStep(4);
                 } else {
                     const targetLayers = ['layer1', 'layer2', 'layer3', 'layer5'];
                     targetLayers.forEach(id => {
-                        if (document.getElementById(id)) document.getElementById(id).style.setProperty("display", "none", "important");
+                        if (document.getElementById(id))
+                            document.getElementById(id).style.setProperty("display", "none", "important");
                     });
                     if (document.getElementById('layer4')) {
                         document.getElementById('layer4').style.setProperty("display", "block", "important");

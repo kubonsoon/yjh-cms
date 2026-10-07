@@ -938,18 +938,20 @@
         window.onload = function () {
             let logUserStr = localStorage.getItem('loggedInUser');
             let logUserSsn = localStorage.getItem('loggedInUserSsn') || "951007-2";
-            let activeTargetName = sessionStorage.getItem('certifiedUserName') || localStorage.getItem('certifiedUserName') || "";
 
-            if (logUserStr) {
+            // 🎯 [정밀 타격 급소 교정]: 구형 객체 수색을 파쇄하고 실시간 진짜 로그인 유저명 키값 1순위 직격 가로채기
+            let activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
+
+            if (logUserStr && !activeTargetName) {
                 try {
-                    // 🎯 정밀 수리 완착: .parse 완벽 복원으로 TypeError 원천 쇄쇄
                     let parsedLogUser = JSON.parse(logUserStr);
                     if (parsedLogUser && parsedLogUser.name) {
                         activeTargetName = parsedLogUser.name.toString().trim();
                     }
-                } catch (e) { console.error("[전산 오류] 자식 달력 자체 캐시 파싱 실패:", e); }
+                } catch (e) { console.error("[전산 오류] 자식 달력 내부 성명 캐시 해독 실패:", e); }
             }
 
+            // 만약 백업 세션까지 전부 부재 시에만 안전 가드 적용
             if (!activeTargetName) { activeTargetName = "홍길동"; }
             sessionStorage.setItem('certifiedUserName', activeTargetName);
 
@@ -961,7 +963,7 @@
                 genderText = "남"; genderClass = "gender-indicator-badge gender-m";
             }
 
-            // [자물쇠 옆 프로필 영역 강제 다이렉트 치환 공정 완착]
+            // [자물쇠 옆 프로필 영역 진짜 성명+생년월일+성별 네온 배지 단일 팩토리 마운트]
             const selfTargetSlot = document.getElementById('lblSetTargetNew') || document.querySelector('.scheduler-profile-bar .user-meta-info');
             if (selfTargetSlot) {
                 selfTargetSlot.innerHTML = `

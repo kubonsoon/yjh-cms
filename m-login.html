@@ -1269,7 +1269,7 @@
                     if (dayDiff >= 180) isOver6Months = true;
                 }
 
-                // [트랙 B: 신규/6개월 만료 유저] → layer5 자식 가상 캘린더 개통
+                // [트랙 B: 신규/6개월 만료 유저] → layer5 자식 가상 캘린더 개통 및 iframe 장벽 관통 프로필 결합
                 if (matchedPatientData.isNewUserGhost || isOver6Months) {
                     navigateToStep(5);
 
@@ -1295,7 +1295,7 @@
                             targetSlot.innerHTML = `
                                 <span style="color:#ffffff; font-weight:800;">👤 ${currentTargetName}</span>
                                 <span style="color:rgba(255,255,255,0.4); font-weight:500; margin-left:2px;">(${displayBirth6})</span>
-                                <span class="${genderClass}" style="margin-left:5px; padding:1px 5px; border-radius:4px; font-size:11px; font-weight:800;">${genderText}</span>
+                                <span class="${genderClass}" style="margin-left:5px; padding:1px 5px; border-radius:4px; font-size:11px; font-weight:800; display:inline-block; line-height:1.3;">${genderText}</span>
                             `;
                         }
 
@@ -1306,8 +1306,9 @@
                         }
                     }
                     return; // 트랙 B 진입 시 여기서 탈출
+                }
 
-                } else {
+                else {
                     // [트랙 A: 기존 회원 유효 유저] → 나의 시험정보 화면(4단계) 이동 및 UI 동적 리스킨
                     navigateToStep(4);
 
@@ -1370,74 +1371,81 @@
                             submitBtn.style.setProperty("background-color", "#1e293b", "important");
                         }
                     }
-                }
 
-                // ==========================================================================
-                // 🔒 [함수 내부로 정상 완착] 4단계 진입 시 '로딩 중...' 텍스트를 진짜 데이터로 치환
-                // ==========================================================================
-                // 1. 진짜 기수(th) 실시간 주입
-                const trialCategorySlot = document.getElementById('lblTrialCategory');
-                if (trialCategorySlot) {
-                    trialCategorySlot.innerText = matchedPatientData.th ? `${matchedPatientData.th} 시험` : "과제 기수 미정";
-                }
+                    // ==========================================================================
+                    // 🔒 [트랙 A 내부 완착] 4단계 진입 즉시 '로딩 중...' 텍스트를 모집공고 조인 데이터로 치환
+                    // ==========================================================================
+                    let adminRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
 
-                // 2. 진짜 시험명 매핑 오버라이드
-                if (document.getElementById('lblTrialTitle')) {
-                    document.getElementById('lblTrialTitle').innerText = matchedPatientData.title || "참여 과제 정보 없음";
-                }
+                    // 모집공고 마스터 대장 원장에서 진짜 과제 정보 정밀 탐격 (참여/미참여/이력 인터록 매핑 축 응용)
+                    const realRecData = adminRecruitmentDB.find(rec => {
+                        const recTitle = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const appTitle = (matchedPatientData.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
+                        const recTh = (rec.th || '').toString().replace(/[^0-9]/g, "");
+                        const appTh = (matchedPatientData.th || '').toString().replace(/[^0-9]/g, "");
+                        return recTitle === appTitle && recTh === appTh;
+                    });
 
-                // 3. 성명 및 성별 분리 배지화 공정 가동
-                const rawDbSsn = (matchedPatientData.ssn || "").toString().trim();
-                const displayBirth6 = rawDbSsn.substring(0, 6) || "-";
-                let genderBadgeHtml = "";
+                    const finalTrialTitle = realRecData ? realRecData.title : matchedPatientData.title || "참여 과제 정보 없음";
+                    const finalTrialTh = realRecData ? realRecData.th : matchedPatientData.th || "1기";
 
-                if (rawDbSsn.includes("-M") || rawDbSsn.endsWith("M") || rawDbSsn.endsWith("1") || rawDbSsn.endsWith("3")) {
-                    genderBadgeHtml = '<span class="gender-indicator-badge gender-m">남</span>';
-                } else if (rawDbSsn.includes("-F") || rawDbSsn.endsWith("F") || rawDbSsn.endsWith("2") || rawDbSsn.endsWith("4")) {
-                    genderBadgeHtml = '<span class="gender-indicator-badge gender-f">여</span>';
-                }
+                    // 1. 진짜 기수(th) 실시간 주입
+                    const trialCategorySlot = document.getElementById('lblTrialCategory');
+                    if (trialCategorySlot) {
+                        trialCategorySlot.innerText = finalTrialTh ? `${finalTrialTh} 시험` : "과제 기수 미정";
+                    }
 
-                if (document.getElementById('ui_target_name_zone')) {
-                    document.getElementById('ui_target_name_zone').innerHTML = `<span>👤 대상자: ${matchedPatientData.name} (${displayBirth6})</span>${genderBadgeHtml}`;
-                }
+                    // 2. 진짜 시험명 매핑 오버라이드 ("로딩 중..." 문구 완벽 타격 소독)
+                    const trialTitleSlot = document.getElementById('lblTrialTitle');
+                    if (trialTitleSlot) {
+                        trialTitleSlot.innerText = finalTrialTitle;
+                    }
 
-                // 4. 담당 CRC 사원명 실시간 역추적 바인딩
-                let adminRecruitmentDB = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
-                const realRecData = adminRecruitmentDB.find(rec => {
-                    const recTitle = (rec.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                    const appTitle = (matchedPatientData.title || '').toString().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "").trim();
-                    const recTh = (rec.th || '').toString().replace(/[^0-9]/g, "");
-                    const appTh = (matchedPatientData.th || '').toString().replace(/[^0-9]/g, "");
-                    return recTitle === appTitle && recTh === appTh;
-                });
+                    // 3. 성명 및 성별 분리 배지화 공정 가동
+                    const rawDbSsn = (matchedPatientData.ssn || "").toString().trim();
+                    const displayBirth6 = rawDbSsn.substring(0, 6) || "-";
+                    let genderBadgeHtml = "";
 
-                const realCrcName = realRecData ? realRecData.crc : "이승호";
-                if (document.getElementById('ui_crc_name_zone')) {
-                    document.getElementById('ui_crc_name_zone').innerText = `👩‍⚕️ 담당자: ${realCrcName}`;
-                }
+                    if (rawDbSsn.includes("-M") || rawDbSsn.endsWith("M") || rawDbSsn.endsWith("1") || rawDbSsn.endsWith("3")) {
+                        genderBadgeHtml = '<span class="gender-indicator-badge gender-m">남</span>';
+                    } else if (rawDbSsn.includes("-F") || rawDbSsn.endsWith("F") || rawDbSsn.endsWith("2") || rawDbSsn.endsWith("4")) {
+                        genderBadgeHtml = '<span class="gender-indicator-badge gender-f">여</span>';
+                    }
 
-                // 5. 계좌 연동 패킷 실시간 매핑
-                const bankInputSlot = document.getElementById('ui_bank_input');
-                if (bankInputSlot && matchedPatientData.accountInfo) {
-                    const parts = matchedPatientData.accountInfo.split(' ');
-                    if (parts.length > 1) {
-                        bankInputSlot.value = parts.slice(1).join('');
-                        const bankSelectSlot = document.getElementById('ui_bank_select');
-                        if (bankSelectSlot) {
-                            for (let opt of bankSelectSlot.options) {
-                                if (opt.text.includes(parts) || parts.includes(opt.value)) {
-                                    bankSelectSlot.value = opt.value;
-                                    break;
+                    if (document.getElementById('ui_target_name_zone')) {
+                        document.getElementById('ui_target_name_zone').innerHTML = `<span>👤 대상자: ${matchedPatientData.name} (${displayBirth6})</span>${genderBadgeHtml}`;
+                    }
+
+                    // 4. 담당 CRC 사원명 실시간 역추적 바인딩 (모집공고 마스터 원장 기준 래핑 완착)
+                    const realCrcName = realRecData ? realRecData.crc : "이승호";
+                    if (document.getElementById('ui_crc_name_zone')) {
+                        document.getElementById('ui_crc_name_zone').innerText = `👩‍⚕️ 담당자: ${realCrcName}`;
+                    }
+
+                    // 5. 계좌 연동 패킷 실시간 매핑
+                    const bankInputSlot = document.getElementById('ui_bank_input');
+                    if (bankInputSlot && matchedPatientData.accountInfo) {
+                        const parts = matchedPatientData.accountInfo.split(' ');
+                        if (parts.length > 1) {
+                            bankInputSlot.value = parts.slice(1).join('');
+                            const bankSelectSlot = document.getElementById('ui_bank_select');
+                            if (bankSelectSlot) {
+                                for (let opt of bankSelectSlot.options) {
+                                    if (opt.text.includes(parts) || parts.includes(opt.value)) {
+                                        bankSelectSlot.value = opt.value;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                // 6. 진짜 데이터가 다 주입되었으므로 1초 주기 안테나 레이더 모니터링 엔진 최종 기동
-                startAdminApprovalMonitor();
+                    // 6. 진짜 데이터가 다 주입되었으므로 1초 주기 안테나 레이더 모니터링 엔진 최종 기동
+                    startAdminApprovalMonitor();
+                }
             }
         }
+
 
         // 진짜 파일 첨부 데이터 스트림 보존용 전역 메모리 버퍼
         let idCardBase64 = "";

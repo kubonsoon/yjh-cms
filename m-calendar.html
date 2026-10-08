@@ -951,9 +951,15 @@
                                     regDate: new Date().toISOString().split('T')
                                 };
 
-                                if (targetIdxNew !== -1) { appDB[targetIdxNew] = Object.assign({}, appDB[targetIdxNew], newApplicantRecord); }
-                                else if (targetIdx !== -1) { appDB[targetIdx] = Object.assign({}, appDB[targetIdx], newApplicantRecord); }
-                                else { appDB.push(newApplicantRecord); }
+                                if (targetIdxNew !== -1) {
+                                    appDB[targetIdxNew] = Object.assign({}, appDB[targetIdxNew], newApplicantRecord);
+                                }
+                                else if (targetIdx !== -1) {
+                                    appDB[targetIdx] = Object.assign({}, appDB[targetIdx], newApplicantRecord);
+                                }
+                                else {
+                                    appDB.push(newApplicantRecord);
+                                }
 
                                 localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
                                 alert(`[신청 접수완료]\n\n${localStorage.getItem('certifiedUserName') || currentCertifiedUser} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);

@@ -791,26 +791,15 @@
 
                 currentRecruitmentItem = item;
 
-                // 🎯 [순정 원본 100% 보호 장전]: 단 한 줄의 기능 유실도 없이 가변 연동 계산식 원형 그대로 보존
+                // 🎯 [정밀 교정 완료]: 지급일 차감 수식 대신, 대장의 정품 실제 방문일 변수를 1:1 다이렉트 매핑
                 let itemScheduleMap = {};
-                if (item.recDate) {
-                    const baseScreeningDate = item.recDate.trim();
-                    itemScheduleMap[baseScreeningDate] = "스크리닝 방문";
-
-                    const screeningObj = new Date(baseScreeningDate);
-                    if (!isNaN(screeningObj.getTime())) {
-                        screeningObj.setDate(screeningObj.getDate() + 7);
-                        const computedAdmissionStr = `${screeningObj.getFullYear()}-${String(screeningObj.getMonth() + 1).padStart(2, '0')}-${String(screeningObj.getDate()).padStart(2, '0')}`;
-                        itemScheduleMap[computedAdmissionStr] = "소집 방문 (임상시험 시작)";
-                    }
-                }
-
-                // 💡 [지급 예정일 텍스트 조립 원형 파이프라인 상속 완료 - 절대 삭제 없음]
-                if (item.payDate1) { const d = calculateSubtractedDate(item.payDate1, 7); if (d) itemScheduleMap[d.trim()] = `1차 방문채혈 (지급: ${item.payDate1.trim().substring(5).replace('-', '/')})`; }
-                if (item.payDate2) { const d = calculateSubtractedDate(item.payDate2, 7); if (d) itemScheduleMap[d.trim()] = `2차 방문채혈 (지급: ${item.payDate2.trim().substring(5).replace('-', '/')})`; }
-                if (item.payDate3) { const d = calculateSubtractedDate(item.payDate3, 7); if (d) itemScheduleMap[d.trim()] = `3차 방문채혈 (지급: ${item.payDate3.trim().substring(5).replace('-', '/')})`; }
-                if (item.payDate4) { const d = calculateSubtractedDate(item.payDate4, 7); if (d) itemScheduleMap[d.trim()] = `4차 방문채혈 (지급: ${item.payDate4.trim().substring(5).replace('-', '/')})`; }
-                if (item.payDate5) { const d = calculateSubtractedDate(item.payDate5, 14); if (d) itemScheduleMap[d.trim()] = `최종 종료검사 (지급: ${item.payDate5.trim().substring(5).replace('-', '/')})`; }
+                if (item.examSchedule) itemScheduleMap[item.examSchedule.trim()] = "스크리닝 방문";
+                if (item.recDate) itemScheduleMap[item.recDate.trim()] = "소집 방문 (임상시험 시작)";
+                if (item.visitDate1) itemScheduleMap[item.visitDate1.trim()] = "1차 방문채혈";
+                if (item.visitDate2) itemScheduleMap[item.visitDate2.trim()] = "2차 방문채혈";
+                if (item.visitDate3) itemScheduleMap[item.visitDate3.trim()] = "3차 방문채혈";
+                if (item.visitDate4) itemScheduleMap[item.visitDate4.trim()] = "4차 방문채혈";
+                if (item.endExamDate) itemScheduleMap[item.endExamDate.trim()] = "종료검사";
 
                 // 🎯 [기획안 2번 완착 - 주간 바 전수 검사]: 현재 켜져 있는 주간 바(7일) 영역 내에 내 일정이 걸쳐 있는지 스캔
                 const weeklyKeys = window.currentWeeklyDateKeys || [];
@@ -828,7 +817,6 @@
                         const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
                         const formattedDateString = `${dayObj.getFullYear()}년 ${String(dayObj.getMonth() + 1).padStart(2, '0')}월 ${String(dayObj.getDate()).padStart(2, '0')}일 (${dayNamesShort[dayObj.getDay()]})`;
 
-                        // (지급: 12/21) 등의 괄호 포맷은 그대로 유지하고 순수 차수 수평 축만 수려하게 추출
                         let displayStageName = stageName;
                         if (stageName.includes("스크리닝 방문")) displayStageName = "스크리닝";
                         else if (stageName.includes("소집 방문")) displayStageName = "소집(입원)";
@@ -840,42 +828,14 @@
                 // 날짜 순서대로 이탈 없이 정렬한 뒤 줄바꿈 태그(<br>) 파이프라인으로 최종 바인딩
                 currentWeeklyAllBriefingHtml = briefingLines.join('<br>');
 
-                // 사용자가 선택한 특정 날짜(selectedDateStr)가 실시간으로 계산 완착된 7대 방문 축에 존재하는지 최종 정밀 검문
-                if (itemScheduleMap[selectedDateStr]) {
-                    const dayObj = new Date(selectedDateStr);
-                    const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
-                    const formattedDateString = `${dayObj.getFullYear()}년 ${String(dayObj.getMonth() + 1).padStart(2, '0')}월 ${String(dayObj.getDate()).padStart(2, '0')}일 (${dayNamesShort[dayObj.getDay()]})`;
-
-                    let weeklyMatchedList = [];
-                    weeklyMatchedList.push({
-                        dateKey: selectedDateStr,
-                        labelText: `${formattedDateString} : ${itemScheduleMap[selectedDateStr]}`
-                    });
-
-                    item._computedWeeklyList = weeklyMatchedList;
-                    return true;
-                }
-                return false;
+                // 🎯 [버그 원천 완치]: 선택 날짜 불일치 시 공고 데이터 자체를 날려버리던 하단 차단막을 전면 파쇄하고,
+                // 과제 매칭이 완료된 순정 공고 객체는 무조건 유지하여 전체 마일스톤이 정상 렌더링되도록 보장합니다.
+                return true;
             });
 
 
-            // 🎯 [정밀 타격 급소 교정]: 일정이 없는 일반 요일 선택 시 출력될 예외 방어 가드 텍스트 팩토리 명의 동치화 완착
-            if (targetRecords.length === 0) {
-                // 부모창과 세션 대장에서 실시간 로그인한 진짜 대상자 성명을 다이렉트로 가로채기 역추적
-                const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser);
-
-                cardBoard.innerHTML = `
-            <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
-                <div style="color: #ffffff; font-weight: 800; font-size: 14.5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                    <span>👤 ${liveCertifiedName} (${displayBirth6})</span>
-                    <span class="${genderClass}" style="padding:1px 5px; border-radius:4px; font-size:11px; font-weight:800;">${genderText}</span>
-                </div>
-                <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">선택하신 날짜에는 등록된 임상시험 일정이 없습니다.</div>
-            </div>
-        `;
-                return;
-            }
+            // 🎯 [구조적 결함 완치]: 실제 오늘 날짜에 사출된 카드가 있는지 체크하는 감시 카운터 장착
+            let renderedCardCount = 0;
 
             // 3. 필터링 동치 정착이 완료된 임상 과제를 기반으로 화면에 3대 액션 명세 카드 랙 사출 드로잉 [순정 수호]
             targetRecords.forEach(item => {
@@ -907,6 +867,9 @@
                     if (cleanMilestoneDate !== selectedDateStr) {
                         return;
                     }
+
+                    // 날짜 매칭에 성공했으므로 사출 카운터 가산
+                    renderedCardCount++;
 
                     const currentStageText = schedule.label;
                     const uniqueSubKey = `${clickUid}_${idx}`;

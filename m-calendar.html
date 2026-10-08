@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>111임상시험 일정관리</title>
+    <title>임상시험 일정관리</title>
     <!-- 아이콘 팩 연동 (안정적인 구동 방어) -->
     <link rel="stylesheet" href="https://cloudflare.com">
     <style>
@@ -612,7 +612,7 @@
     <script>
         // ===== 1. 달력 주간 변수 및 선택 날짜 정밀 추적 포인터 =====
         let currentDate = new Date();
-        if (currentDate.getFullYear() < 2026) { currentDate = new Date("2026-10-08"); }
+        if (currentDate.getFullYear() < 2026) { currentDate = new Date("2026-12-04"); }
 
         // [테두리 보존 락인] 실시간 현재 진짜 오늘 날짜 고정 문자열 추출
         const sysTodayObj = new Date();
@@ -635,26 +635,33 @@
                     currentCertifiedUser = parsedLogUser.name.toString().trim();
                     sessionStorage.setItem('certifiedUserName', currentCertifiedUser);
                 }
-            } catch (e) {
-                console.error("[전산 오류] 로그인 캐시 복합 파싱 실패:", e);
-            }
+            } catch (e) { console.error("[전산 오류] 로그인 캐시 복합 파싱 실패:", e); }
         }
 
-        // [초기 가짜 잔상 완전 소독]: 백업 세션 부재 시 홍길동을 강제 주입하던 구문을 파쇄하고 투명한 대기 상태로 변경
+        // 만약 백업 세션까지 부재 시 안전가드로 폴백 바인딩
         if (!currentCertifiedUser) {
-            currentCertifiedUser = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
+            currentCertifiedUser = "홍길동";
+            sessionStorage.setItem('certifiedUserName', "홍길동");
         }
 
-        function getMasterData() { return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || []; }
-        function getApplicantData() { return JSON.parse(localStorage.getItem('dataStoreApplicant')) || []; }
-        // [시스템 당일 고정 정책]: 화살표 작동 시 무조건 당일 날짜만 타깃 고정
+        function getMasterData() {
+            return JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
+        }
+        function getApplicantData() {
+            return JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+        }
         function moveMonth(v) {
             currentDate.setDate(currentDate.getDate() + (v * 7));
+
+            // [시스템 당일 고정 정책]: 주차 이동 여부와 상관없이 항상 진짜 오늘 날짜만 강제 선택되도록 고정 
             selectedDateStr = sysTodayStr;
+
             renderCalendar();
         }
 
+        // [시험현황] 부모창 연동 엔진
         function executeDownload() {
+            console.log("[원격 인터록 작동] 나의 시험현황 화면으로 강제 이송 패킷 발행.");
             if (window.parent) {
                 window.parent.postMessage({ action: "GOTO_STEP_4", timestamp: Date.now() }, "*");
             } else if (window.opener && !window.opener.closed) {
@@ -662,7 +669,17 @@
             }
         }
 
+        let currentActiveModalJob = null;
+        let currentTemporaryUid = "";
         window.currentWeeklyDateKeys = [];
+
+        function calculateSubtractedDate(baseStr, minusDays) {
+            if (!baseStr || baseStr.includes("추후")) return null;
+            const dObj = new Date(baseStr.trim());
+            if (isNaN(dObj.getTime())) return null;
+            dObj.setDate(dObj.getDate() - minusDays);
+            return `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, '0')}-${String(dObj.getDate()).padStart(2, '0')}`;
+        }
 
         // ==========================================================================
         // [진짜 문제 완치] 날짜 비교 포맷 하이픈 통일 및 3대 버튼 카드 팩토리 활성화
@@ -700,11 +717,12 @@
                 }
 
                 const dayBtn = document.createElement('div');
-                dayBtn.id = `weekly_day_cell_${formattedDateKey}`;
-                let todayClass = (formattedDateKey === sysTodayStr) ? " today-border" : "";
-                dayBtn.className = `weekly-day-btn${todayClass}`;
+                let todayClass = (formattedDateKey === sysTodayStr) ? " today-border today-neon-marker" : "";
 
+                dayBtn.id = `weekly_day_cell_${formattedDateKey}`;
+                dayBtn.className = `weekly-day-btn${todayClass}`;
                 dayBtn.innerHTML = `<div class="day-name">${dayNamesShort[i]}</div><div class="day-date">${loopDate.getDate()}</div>`;
+
                 dayBtn.onclick = function () {
                     window.isDayButtonClicked = true;
                     selectedDateStr = formattedDateKey;
@@ -735,32 +753,16 @@
             const records = getMasterData();
             let applicantDB = getApplicantData() || [];
 
-            // [정밀 동기화] 세션에 박힌 실시간 유저명을 최우선으로 가로채기
-            let liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser || "";
-            let targetSsn = localStorage.getItem('loggedInUserSsn') || "";
-
-            // 타이밍 차이로 개별 키가 유실되었을 때를 대비한 원장 객체 2중 수색선
-            if (!liveCertifiedName || !targetSsn) {
-                let parentUserRaw = localStorage.getItem('loggedInUser');
-                if (parentUserRaw) {
-                    try {
-                        let parsedParentUser = JSON.parse(parentUserRaw);
-                        if (parsedParentUser) {
-                            if (parsedParentUser.name && !liveCertifiedName) liveCertifiedName = parsedParentUser.name.toString().trim();
-                            if (parsedParentUser.ssn && !targetSsn) targetSsn = parsedParentUser.ssn.toString().trim();
-                        }
-                    } catch (e) {
-                        console.error("[전산 오류] renderDailyCards 객체 파싱 실패:", e);
-                    }
-                }
-            }
-
-            if (!liveCertifiedName || liveCertifiedName === "홍길동") { liveCertifiedName = "인증 대상자"; }
-
+            // [정밀 동기화]: window.onload에서 정제되어 박힌 세션 유저명을 최우선으로 가로채기
+            const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser;
             const cleanSessionName = liveCertifiedName.replace(/\s/g, "");
-            const cleanSsn = targetSsn.replace(/[^0-9a-zA-Z]/g, "");
-            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "------";
 
+            // [잔상 파쇄]: 가짜 데이터(851023-2)를 완전히 들어내고 공백 처리하여 초기 랙 방어
+            const targetSsn = localStorage.getItem('loggedInUserSsn') || sessionStorage.getItem('loggedInUserSsn') || "";
+            const cleanSsn = targetSsn.replace(/[^0-9a-zA-Z]/g, "");
+            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "";
+
+            // 기본 상태를 대기 상태(-)로 설정하여 가짜 정보 노출을 전면 차단
             let genderText = "-";
             let genderClass = "gender-indicator-badge";
 
@@ -773,18 +775,9 @@
                     genderText = "여";
                     genderClass = "gender-indicator-badge gender-f";
                 }
-            }
-
-            const pIframe = window.parent ? window.parent.document : null;
-            const lockProfileSlot = document.getElementById('lblSetTargetNew') || (pIframe ? pIframe.getElementById('lblSetTargetNew') : null);
-            if (lockProfileSlot) {
-                if (cleanSessionName) {
-                    lockProfileSlot.innerHTML = `
-                <span style="color:#ffffff; font-weight:800;">${liveCertifiedName}</span>
-                <span style="color:rgba(255,255,255,0.4); font-weight: 500; margin-left:2px;">(${displayBirth6})</span>
-                <span class="${genderClass}" style="margin-left: 5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight:800; display: inline-block; line-height:1.3;">${genderText}</span>
-            `;
-                }
+            } else if (cleanSsn.length > 0) {
+                genderText = "확인중";
+                genderClass = "gender-indicator-badge gender-wait";
             }
 
             const myLiveJobRecord = [...applicantDB].reverse().find(app => {
@@ -794,12 +787,27 @@
                 return cleanDbName === cleanSessionName && currentLiveStatus !== "" && !["종료", "탈락", "심사탈락"].includes(currentLiveStatus);
             });
 
-            // [안테나 1]: 배정 과제 기록 데이터 자체가 완전히 누적되지 않은 피험자 (빨간색 고대비 단정화)
+            const pIframe = window.parent ? window.parent.document : null;
+            const lockProfileSlot = document.getElementById('lblSetTargetNew') || (pIframe ? pIframe.getElementById('lblSetTargetNew') : null);
+            if (lockProfileSlot) {
+                // 유저 정보가 정상적으로 포획되었을 때만 프로필 영역을 깨끗하게 렌더링
+                if (cleanSessionName && cleanSessionName !== "홍길동") {
+                    lockProfileSlot.innerHTML = `
+                <span style="color:#ffffff; font-weight:800;">${liveCertifiedName}</span>
+                <span style="color:rgba(255,255,255,0.4); font-weight: 500; margin-left:2px;">(${displayBirth6})</span>
+                <span class="${genderClass}" style="margin-left: 5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight:800; display: inline-block; line-height:1.3;">${genderText}</span>
+            `;
+                }
+            }
+
             if (!myLiveJobRecord) {
                 cardBoard.innerHTML = `
-            <div style="color: #f43f5e; font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12.5px; color: #f43f5e; font-weight: 700;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 24px 16px; border-radius: 14px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+                <i class="fa-solid fa-calendar-xmark" style="font-size: 26px; color: var(--text-muted); margin-bottom: 10px; display: block;"></i>
+                <div style="color:var(--text-color); font-weight: 700; font-size: 14px; margin-bottom: 4px;">배정된 임상시험 정보가 없습니다.</div>
+                <div style="color:var(--text-muted); font-size: 12px; font-weight: 500; line-height: 1.4;">
+                    대상자님은 현재 참여 중이거나 전산 심사 대기 중인<br>임상시험 과제 일정이 존재하지 않습니다.
+                </div>
             </div>`;
                 return;
             }
@@ -807,46 +815,30 @@
             let hasWeeklyScheduleInThisWindow = false;
             const weeklyKeys = window.currentWeeklyDateKeys || [];
 
-            // [마스터 타격 교정]: 대상자가 과제 미배정 상태이거나 명칭 랙이 발생해도 원장 스케줄을 추적할 수 있도록 가드 완화
-            let matchedRecruitmentItem = records.find(item => {
-                if (!item.title || !myLiveJobRecord || !myLiveJobRecord.title) return false;
+            const matchedRecruitmentItem = records.find(item => {
+                if (!item.title) return false;
                 return myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase() === item.title.toString().replace(/\s/g, "").toLowerCase();
             });
 
-            const targetScanItems = matchedRecruitmentItem ? [matchedRecruitmentItem] : records;
-
-            const formatToKey = (rawStr) => {
-                if (!rawStr || rawStr.trim() === "" || rawStr === "미정") return null;
-                const digits = rawStr.replace(/[^0-9]/g, "");
-                if (digits.length !== 8) return rawStr.trim();
-                return `${digits.substring(0, 4)}-${digits.substring(4, 6)}-${digits.substring(6, 8)}`;
-            };
-
-            // 주간 내 마일스톤 교차 수색용 맵 빌더
-            let weeklyTimelineMap = {};
-
-            for (let item of targetScanItems) {
-                if (!item) continue;
+            if (matchedRecruitmentItem) {
                 let tempMap = {};
-                if (item.examSchedule) { let k = formatToKey(item.examSchedule); if (k) tempMap[k] = "스크리닝 방문"; }
-                if (item.recDate) { let k = formatToKey(item.recDate); if (k) tempMap[k] = "소집(입원)"; }
-                if (item.visitDate1) { let k = formatToKey(item.visitDate1); if (k) tempMap[k] = "1차 방문채혈"; }
-                if (item.visitDate2) { let k = formatToKey(item.visitDate2); if (k) tempMap[k] = "2차 방문채혈"; }
-                if (item.visitDate3) { let k = formatToKey(item.visitDate3); if (k) tempMap[k] = "3차 방문채혈"; }
-                if (item.visitDate4) { let k = formatToKey(item.visitDate4); if (k) tempMap[k] = "4차 방문채혈"; }
-                if (item.endExamDate) { let k = formatToKey(item.endExamDate); if (k) tempMap[k] = "종료검사"; }
+                if (matchedRecruitmentItem.examSchedule) tempMap[matchedRecruitmentItem.examSchedule.trim()] = "스크리닝 방문";
+                if (matchedRecruitmentItem.recDate) tempMap[matchedRecruitmentItem.recDate.trim()] = "소집(입원)";
+                if (matchedRecruitmentItem.visitDate1) tempMap[matchedRecruitmentItem.visitDate1.trim()] = "1차 방문채혈";
+                if (matchedRecruitmentItem.visitDate2) tempMap[matchedRecruitmentItem.visitDate2.trim()] = "2차 방문채혈";
+                if (matchedRecruitmentItem.visitDate3) tempMap[matchedRecruitmentItem.visitDate3.trim()] = "3차 방문채혈";
+                if (matchedRecruitmentItem.visitDate4) tempMap[matchedRecruitmentItem.visitDate4.trim()] = "4차 방문채혈";
+                if (matchedRecruitmentItem.endExamDate) tempMap[matchedRecruitmentItem.endExamDate.trim()] = "종료검사";
 
-                for (const datekey of Object.keys(tempMap)) {
-                    if (weeklyKeys.includes(datekey)) {
+                for (const dateKey of Object.keys(tempMap)) {
+                    if (weeklyKeys.includes(dateKey)) {
                         hasWeeklyScheduleInThisWindow = true;
-                        matchedRecruitmentItem = item;
                     }
-                    weeklyTimelineMap[datekey] = tempMap[datekey];
                 }
             }
 
             const targetRecords = records.filter(item => {
-                if (!item.title || !myLiveJobRecord || !myLiveJobRecord.title) return false;
+                if (!item.title) return false;
                 const cleanMyTitle = myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase();
                 const cleanItemTitle = item.title.toString().replace(/\s/g, "").toLowerCase();
                 if (cleanMyTitle !== "신규방문과제미배정" && cleanMyTitle !== cleanItemTitle) return false;
@@ -854,7 +846,6 @@
             });
 
             let renderedCardCount = 0;
-            //여기까지 문제없음
 
             targetRecords.forEach(item => {
                 const thText = (item.th || "2기").trim();
@@ -1047,12 +1038,14 @@
                 return;
             }
 
+
+
             // [안테나 B]: 이번 주 범위 내에 다른 일정은 존재하나, 오늘 터치해 선택한 특정 날짜 하루에만 일정이 비어있을 때 (프로필 제거형)
             if (renderedCardCount === 0) {
                 cardBoard.innerHTML = `
-            <div style="color: #f43f5e; font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12.5px; color: #f43f5e; font-weight: 700;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
+            <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
+                <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
+                <div style="font-size: 12.5px; color: #f43f5e; font-weight: 600;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
             </div>`;
                 return;
             }
@@ -1101,18 +1094,21 @@
         window.onload = function () {
             // [가변 유저 대응형 최종 완착] 독립 기동 즉시 진짜 내 세션 가로채기 3중 수신소
             let logUserStr = localStorage.getItem('loggedInUser');
-            let activeTargetName = "";
-            let logUserSsn = "";
 
-            // [교정 포인트 1]: 다른 가드 조건 없이 'loggedInUser' 객체 내부의 진짜 회원 정보를 무조건 최우선으로 디코딩 파싱
+            // [정밀 타격 급소 교정 1]: 구형 객체 수색을 파쇄하고 실시간 진짜 로그인 유저명 키값 1순위 직격 가로채기
+            let activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
+            let logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
+
             if (logUserStr) {
                 try {
+                    // [정밀 타격 급소 교정 2]: JSON parse 오탈자 소독 및 안전 파싱 수술
                     let parsedLogUser = JSON.parse(logUserStr);
                     if (parsedLogUser) {
-                        if (parsedLogUser.name) {
+                        if (parsedLogUser.name && !activeTargetName) {
                             activeTargetName = parsedLogUser.name.toString().trim();
                         }
-                        if (parsedLogUser.ssn) {
+                        // 주 데이터 원장에 ssn이 존재할 경우 가짜 더미가 끼어들 여지를 완전 차단
+                        if (parsedLogUser.ssn && !logUserSsn) {
                             logUserSsn = parsedLogUser.ssn.toString().trim();
                         }
                     }
@@ -1121,38 +1117,31 @@
                 }
             }
 
-            // 2차 백업 수색선 작동 (원장 객체가 완전히 비어있을 때만 개별 키값 추적)
-            if (!activeTargetName) {
-                activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
+            // [풀백 가드 교정]: 시스템 오인을 유도하던 "홍길동" 단어를 전면 소독하고 유연한 가드로 대체
+            if (!activeTargetName || activeTargetName === "홍길동") {
+                activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "인증 대상자";
             }
+
+            // 주 데이터 캐시와 개별 스토리지에서 모두 누락되었을 때만 완전히 비워서 비정상 출력을 차단
             if (!logUserSsn) {
                 logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
             }
-
-            // [교정 포인트 2]: 가짜 임시어 "인증 대상자" 및 "홍길동" 단어를 영구 제거하여 전역 메모리 오염 원천 차단
-            if (!activeTargetName || activeTargetName === "홍길동") {
-                activeTargetName = currentCertifiedUser || "";
-            }
-            // 전산망 최하위 가드 처리
-            if (!activeTargetName) { activeTargetName = "인증 대상자"; }
-
-            // 최종 정제 완료된 유저 성명과 주민번호 정보를 로컬 세션에 확실히 락인(Lock-in)
             sessionStorage.setItem('certifiedUserName', activeTargetName);
-            localStorage.setItem('certifiedUserName', activeTargetName);
-            if (logUserSsn) {
-                localStorage.setItem('loggedInUserSsn', logUserSsn);
-            }
 
-            // 주민번호 기반 생년월일 6자리 및 성별 식별 인터록 완착
+            // [정밀 수술 완수 구역]: 가짜 데이터(851023)와 뒤집히는 성별 로직을 완전히 청소
             const cleanSsn = logUserSsn.replace(/[^0-9a-zA-Z]/g, "");
 
-            // 진짜 데이터가 로드되었을 때만 6자리를 자르고, 완벽히 비어있으면 바(-) 마크로 투명 대기
-            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "------";
+            // 주민번호 원장이 들어와 있을 때만 6자리를 안전하게 자르고, 비어있다면 가짜 숫자 대신 공백("") 처리
+            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "";
+
             let genderText = "-";
             let genderClass = "gender-indicator-badge";
 
             if (cleanSsn.length >= 7) {
+                // 하이픈이 소독된 상태이므로 정확히 7번째 자리(인덱스 6)의 문자 조각을 고정 래핑 추출
                 const genderMarker = cleanSsn.charAt(6).toUpperCase();
+
+                // 대한민국 표준 주민등록번호 정책 마킹 바인딩 (1, 3, 5, M = 남성 / 2, 4, 6, F = 여성)
                 if (["1", "3", "5", "M"].includes(genderMarker)) {
                     genderText = "남";
                     genderClass = "gender-indicator-badge gender-m";
@@ -1160,9 +1149,13 @@
                     genderText = "여";
                     genderClass = "gender-indicator-badge gender-f";
                 }
+            } else if (cleanSsn.length > 0) {
+                // 데이터 전송 타이밍 차이로 생년월일만 먼저 로드된 임시 상태 가드
+                genderText = "확인중";
+                genderClass = "gender-indicator-badge gender-wait";
             }
 
-            // 상단 네온 프로필 팩토리 초기화 즉시 직격 사출 (시간차 랙 완치)
+            // 상단 네온 프로필 팩토리 바인딩 동기화 완료
             const selfTargetSlot = document.getElementById('lblSetTargetNew') || (window.parent ? window.parent.document.getElementById('lblSetTargetNew') : null);
             if (selfTargetSlot) {
                 selfTargetSlot.innerHTML = `

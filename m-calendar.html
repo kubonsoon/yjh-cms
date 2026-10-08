@@ -985,19 +985,33 @@
                 const daysMapShort = ['일', '월', '화', '수', '목', '금', '토'];
                 let weeklyScheduleBriefingHtml = "";
 
+                // [안전 보드]: 혹시 세션 동기화 실패로 변수가 유실되었을 때를 대비한 2중 가드로컬 재파싱
+                let fallbackRecruitmentItem = matchedRecruitmentItem;
+                if (!fallbackRecruitmentItem) {
+                    const localRecords = getMasterData();
+                    const cleanLiveName = (localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser || "").replace(/\s/g, "");
+                    const liveAppDB = getApplicantData() || [];
+                    const activeTargetJob = [...liveAppDB].reverse().find(app => app && app.name && app.name.replace(/\s/g, "") === cleanLiveName && !["종료", "탈락"].includes(app.stage));
+
+                    if (activeTargetJob && activeTargetJob.title) {
+                        fallbackRecruitmentItem = localRecords.find(item => item.title && item.title.replace(/\s/g, "").toLowerCase() === activeTargetJob.title.replace(/\s/g, "").toLowerCase());
+                    }
+                }
+
                 if (window.currentWeeklyDateKeys && window.currentWeeklyDateKeys.length > 0) {
                     window.currentWeeklyDateKeys.forEach(dateKey => {
                         let activeStages = [];
                         const cleanKey = dateKey.trim();
 
-                        if (matchedRecruitmentItem) {
-                            if (matchedRecruitmentItem.examSchedule && matchedRecruitmentItem.examSchedule.trim() === cleanKey) activeStages.push("스크리닝 방문");
-                            if (matchedRecruitmentItem.recDate && matchedRecruitmentItem.recDate.trim() === cleanKey) activeStages.push("소집(입원)");
-                            if (matchedRecruitmentItem.visitDate1 && matchedRecruitmentItem.visitDate1.trim() === cleanKey) activeStages.push("1차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate2 && matchedRecruitmentItem.visitDate2.trim() === cleanKey) activeStages.push("2차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate3 && matchedRecruitmentItem.visitDate3.trim() === cleanKey) activeStages.push("3차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate4 && matchedRecruitmentItem.visitDate4.trim() === cleanKey) activeStages.push("4차 방문채혈");
-                            if (matchedRecruitmentItem.endExamDate && matchedRecruitmentItem.endExamDate.trim() === cleanKey) activeStages.push("종료검사");
+                        // [정밀 동기화 수술]: 백업 아이템까지 동원하여 공백 무관 실시간 매칭 실현
+                        if (fallbackRecruitmentItem) {
+                            if (fallbackRecruitmentItem.examSchedule && fallbackRecruitmentItem.examSchedule.trim() === cleanKey) activeStages.push("스크리닝 방문");
+                            if (fallbackRecruitmentItem.recDate && fallbackRecruitmentItem.recDate.trim() === cleanKey) activeStages.push("소집(입원)");
+                            if (fallbackRecruitmentItem.visitDate1 && fallbackRecruitmentItem.visitDate1.trim() === cleanKey) activeStages.push("1차 방문채혈");
+                            if (fallbackRecruitmentItem.visitDate2 && fallbackRecruitmentItem.visitDate2.trim() === cleanKey) activeStages.push("2차 방문채혈");
+                            if (fallbackRecruitmentItem.visitDate3 && fallbackRecruitmentItem.visitDate3.trim() === cleanKey) activeStages.push("3차 방문채혈");
+                            if (fallbackRecruitmentItem.visitDate4 && fallbackRecruitmentItem.visitDate4.trim() === cleanKey) activeStages.push("4차 방문채혈");
+                            if (fallbackRecruitmentItem.endExamDate && fallbackRecruitmentItem.endExamDate.trim() === cleanKey) activeStages.push("종료검사");
                         }
 
                         const dateParts = cleanKey.split('-');
@@ -1034,34 +1048,6 @@
                 <div style="display:flex; flex-direction:column; gap:2px;">
                     ${weeklyScheduleBriefingHtml}
                 </div>
-            </div>`;
-                return; // 락인: 첫 로드 시 브리핑 리스트를 그리고 안전하게 여기서 함수 종료
-            }
-
-            // =========================================================================
-            // [예외 가드 블록 1]: 주차 이동 화살표를 눌렀는데 이번 주 전체에 일정이 아예 없을 때 (골드 스킨)
-            // =========================================================================
-            if (!hasWeeklyScheduleInThisWindow && window.isWeekArrowClicked) {
-                cardBoard.innerHTML = `
-            <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
-                <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: #eab308; margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12px; color: #eab308; font-weight: 700;">이번주에는 등록된 임상시험 일정이 없습니다</div>
-            </div>`;
-                return;
-            }
-
-            // =========================================================================
-            // 💡 [주의] 이 자리에 원본의 진짜 일자별 카드 조각 생성 팩토리(targetRecords.forEach)가 위치해 있어야 합니다.
-            // =========================================================================
-
-            // =========================================================================
-            // [예외 가드 블록 2]: 요일을 직접 눌렀거나 첫 로드 시 데이터가 비어있을 때 (스카이 블루 스킨)
-            // =========================================================================
-            if (renderedCardCount === 0) {
-                cardBoard.innerHTML = `
-            <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12.5px; color: #38bdf8; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다</div>
             </div>`;
                 return;
             }

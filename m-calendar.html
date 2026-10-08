@@ -804,13 +804,10 @@
 
             if (!myLiveJobRecord) {
                 cardBoard.innerHTML = `
-            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 24px 16px; border-radius: 14px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 26px; color: var(--text-muted); margin-bottom: 10px; display: block;"></i>
-                <div style="color:var(--text-color); font-weight: 700; font-size: 14px; margin-bottom: 4px;">배정된 임상시험 정보가 없습니다.</div>
-                <div style="color:var(--text-muted); font-size: 12px; font-weight: 500; line-height: 1.4;">
-                    대상자님은 현재 참여 중이거나 전산 심사 대기 중인<br>임상시험 과제 일정이 존재하지 않습니다.
-                </div>
-            </div>`;
+             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%;">
+                        <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
+                        <div style="font-size: 12.5px; color: var(--text-muted); font-weight: 600;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
+                    </div>`;
                 return;
             }
 

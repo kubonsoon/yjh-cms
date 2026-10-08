@@ -981,7 +981,7 @@
             });
 
             // [완벽 치유 안테나 A]: 현재 열린 7일 주간 범위 전체에 걸쳐 종합 브리핑 캘린더 사출
-            if (hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked && !window.isWeekArrowClicked) {
+            if (hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked && (window.isWeekArrowClicked === false || typeof window.isWeekArrowClicked === 'undefined')) {
                 const daysMapShort = ['일', '월', '화', '수', '목', '금', '토'];
                 let weeklyScheduleBriefingHtml = "";
 

@@ -1052,25 +1052,29 @@
                 } catch (e) { console.error("[전산 오류] 자식 달력 내부 성명 캐시 해독 실패:", e); }
             }
 
-            // 만약 백업 세션까지 전부 부재 시에만 안전 가드 적용
-            if (!activeTargetName) { activeTargetName = "홍길동"; }
+            // 만약 세션 스토리지 및 캐시가 모두 부재할 때만 최하위 가드로 백업 데이터 적용
+            if (!activeTargetName || activeTargetName === "홍길동") {
+                activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "홍길동";
+            }
             sessionStorage.setItem('certifiedUserName', activeTargetName);
 
+            // 주민번호 기반 생년월일 6자리 및 성별 식별 인터록 완착
             const cleanSsn = logUserSsn.replace(/[^0-9a-zA-Z]/g, "");
             const displayBirth6 = cleanSsn.substring(0, 6) || "951007";
-
             let genderText = "여", genderClass = "gender-indicator-badge gender-f";
-            if (cleanSsn.endsWith("1") || cleanSsn.endsWith("3") || cleanSsn.includes("M") || cleanSsn.endsWith("M")) {
-                genderText = "남"; genderClass = "gender-indicator-badge gender-m";
+
+            if (cleanSsn.endsWith("1") || cleanSsn.endsWith("3") || cleanSsn.includes("M") || cleanSsn.endsWith("M") || cleanSsn.charAt(6) === "1" || cleanSsn.charAt(6) === "3") {
+                genderText = "남";
+                genderClass = "gender-indicator-badge gender-m";
             }
 
-            // [자물쇠 옆 프로필 영역 진짜 성명+생년월일+성별 네온 배지 단일 팩토리 마운트]
-            const selfTargetSlot = document.getElementById('lblSetTargetNew') || document.querySelector('.scheduler-profile-bar .user-meta-info');
+            // 상단 네on 프로필 팩토리 바인딩 동기화 완료
+            const selfTargetSlot = document.getElementById('lblSetTargetNew') || (window.parent ? window.parent.document.getElementById('lblSetTargetNew') : null);
             if (selfTargetSlot) {
                 selfTargetSlot.innerHTML = `
-            <span style="color:#ffffff; font-weight:800;">👤 ${activeTargetName}</span>
-            <span style="color:rgba(255, 255, 255, 0.4); font-weight:500; margin-left:2px;">(${displayBirth6})</span>
-            <span class="${genderClass}" style="margin-left:5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight:800; display: inline-block; line-height:1.3;">${genderText}</span>
+            <span style="color:#ffffff; font-weight:800;">👤 \${activeTargetName}</span>
+            <span style="color:rgba(255, 255, 255, 0.4); font-weight:500; margin-left:2px;">(\${displayBirth6})</span>
+            <span class="\${genderClass}" style="margin-left: 5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight: 800; display: inline-block; line-height:1.3;">\${genderText}</span>
         `;
             }
 

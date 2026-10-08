@@ -1077,30 +1077,44 @@
         // 🔒 [가변 유저 대응형 최종 완착] 독립 기동 즉시 진짜 내 세션 가로채기 3중 수신소
         // ==========================================================================
         window.onload = function () {
+            // [가변 유저 대응형 최종 완착] 독립 기동 즉시 진짜 내 세션 가로채기 3중 수신소
             let logUserStr = localStorage.getItem('loggedInUser');
-            let logUserSsn = localStorage.getItem('loggedInUserSsn') || "951007-2";
 
-            // 🎯 [정밀 타격 급소 교정]: 구형 객체 수색을 파쇄하고 실시간 진짜 로그인 유저명 키값 1순위 직격 가로채기
+            // [정밀 타격 급소 교정 1]: 구형 객체 수색을 파쇄하고 실시간 진짜 로그인 유저명 키값 1순위 직격 가로채기
             let activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
+            let logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
 
-            if (logUserStr && !activeTargetName) {
+            if (logUserStr) {
                 try {
+                    // [정밀 타격 급소 교정 2]: JSON parse 오탈자(\$ 기호 등) 소독 및 안전 파싱 수술
                     let parsedLogUser = JSON.parse(logUserStr);
-                    if (parsedLogUser && parsedLogUser.name) {
-                        activeTargetName = parsedLogUser.name.toString().trim();
+                    if (parsedLogUser) {
+                        if (parsedLogUser.name && !activeTargetName) {
+                            activeTargetName = parsedLogUser.name.toString().trim();
+                        }
+                        // 주 데이터 원장에 ssn이 존재할 경우 가짜 더미(951007)가 끼어들 여지를 완전 차단
+                        if (parsedLogUser.ssn && !logUserSsn) {
+                            logUserSsn = parsedLogUser.ssn.toString().trim();
+                        }
                     }
-                } catch (e) { console.error("[전산 오류] 자식 달력 내부 성명 캐시 해독 실패:", e); }
+                } catch (e) {
+                    console.error("[전산 오류] 자식 달력 내부 성명 캐시 해독 실패:", e);
+                }
             }
 
             // 만약 세션 스토리지 및 캐시가 모두 부재할 때만 최하위 가드로 백업 데이터 적용
             if (!activeTargetName || activeTargetName === "홍길동") {
                 activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "홍길동";
             }
+            if (!logUserSsn) {
+                logUserSsn = localStorage.getItem('loggedInUserSsn') || "851023-2"; // renderDailyCards 기본값인 851023과 동기화 일치
+            }
+
             sessionStorage.setItem('certifiedUserName', activeTargetName);
 
             // 주민번호 기반 생년월일 6자리 및 성별 식별 인터록 완착
             const cleanSsn = logUserSsn.replace(/[^0-9a-zA-Z]/g, "");
-            const displayBirth6 = cleanSsn.substring(0, 6) || "951007";
+            const displayBirth6 = cleanSsn.substring(0, 6) || "851023";
             let genderText = "여", genderClass = "gender-indicator-badge gender-f";
 
             if (cleanSsn.endsWith("1") || cleanSsn.endsWith("3") || cleanSsn.includes("M") || cleanSsn.endsWith("M") || cleanSsn.charAt(6) === "1" || cleanSsn.charAt(6) === "3") {
@@ -1108,13 +1122,13 @@
                 genderClass = "gender-indicator-badge gender-m";
             }
 
-            // 상단 네on 프로필 팩토리 바인딩 동기화 완료
+            // 상단 네온 프로필 팩토리 바인딩 동기화 완료
             const selfTargetSlot = document.getElementById('lblSetTargetNew') || (window.parent ? window.parent.document.getElementById('lblSetTargetNew') : null);
             if (selfTargetSlot) {
                 selfTargetSlot.innerHTML = `
-            <span style="color:#ffffff; font-weight:800;">👤 \${activeTargetName}</span>
-            <span style="color:rgba(255, 255, 255, 0.4); font-weight:500; margin-left:2px;">(\${displayBirth6})</span>
-            <span class="\${genderClass}" style="margin-left: 5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight: 800; display: inline-block; line-height:1.3;">\${genderText}</span>
+            <span style="color:#ffffff; font-weight:800;">${activeTargetName}</span>
+            <span style="color:rgba(255, 255, 255, 0.4); font-weight: 500; margin-left:2px;">(${displayBirth6})</span>
+            <span class="${genderClass}" style="margin-left: 5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight: 800; display: inline-block; line-height:1.3;">${genderText}</span>
         `;
             }
 

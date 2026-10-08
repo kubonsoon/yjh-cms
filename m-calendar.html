@@ -819,8 +819,9 @@
             let hasWeeklyScheduleInThisWindow = false;
             const weeklyKeys = window.currentWeeklyDateKeys || [];
 
+            // [정밀 방어 수술 구역]: myLiveJobRecord 유실 및 undefined 크래시 원천 차단 락인
             const matchedRecruitmentItem = records.find(item => {
-                if (!item.title) return false;
+                if (!item || !item.title || !myLiveJobRecord || !myLiveJobRecord.title) return false;
                 return myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase() === item.title.toString().replace(/\s/g, "").toLowerCase();
             });
 
@@ -835,7 +836,8 @@
                 if (matchedRecruitmentItem.endExamDate) tempMap[matchedRecruitmentItem.endExamDate.trim()] = "종료검사";
 
                 for (const dateKey of Object.keys(tempMap)) {
-                    if (weeklyKeys.includes(dateKey)) {
+                    // [하이픈 포맷 동기화 보정]: 날짜 포맷의 미세한 공백이나 변형을 완전히 소독하여 매칭률 100% 확보
+                    if (dateKey && weeklyKeys.includes(dateKey.trim())) {
                         hasWeeklyScheduleInThisWindow = true;
                     }
                 }

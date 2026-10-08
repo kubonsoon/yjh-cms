@@ -1086,13 +1086,13 @@
 
             if (logUserStr) {
                 try {
-                    // [정밀 타격 급소 교정 2]: JSON parse 오탈자(\$ 기호 등) 소독 및 안전 파싱 수술
+                    // [정밀 타격 급소 교정 2]: JSON parse 오탈자 소독 및 안전 파싱 수술
                     let parsedLogUser = JSON.parse(logUserStr);
                     if (parsedLogUser) {
                         if (parsedLogUser.name && !activeTargetName) {
                             activeTargetName = parsedLogUser.name.toString().trim();
                         }
-                        // 주 데이터 원장에 ssn이 존재할 경우 가짜 더미(951007)가 끼어들 여지를 완전 차단
+                        // 주 데이터 원장에 ssn이 존재할 경우 가짜 더미가 끼어들 여지를 완전 차단
                         if (parsedLogUser.ssn && !logUserSsn) {
                             logUserSsn = parsedLogUser.ssn.toString().trim();
                         }
@@ -1102,24 +1102,42 @@
                 }
             }
 
-            // 만약 세션 스토리지 및 캐시가 모두 부재할 때만 최하위 가드로 백업 데이터 적용
+            // [풀백 가드 교정]: 시스템 오인을 유도하던 "홍길동" 단어를 전면 소독하고 유연한 가드로 대체
             if (!activeTargetName || activeTargetName === "홍길동") {
-                activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "홍길동";
-            }
-            if (!logUserSsn) {
-                logUserSsn = localStorage.getItem('loggedInUserSsn') || "851023-2"; // renderDailyCards 기본값인 851023과 동기화 일치
+                activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "인증 대상자";
             }
 
+            // 주 데이터 캐시와 개별 스토리지에서 모두 누락되었을 때만 완전히 비워서 비정상 출력을 차단
+            if (!logUserSsn) {
+                logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
+            }
             sessionStorage.setItem('certifiedUserName', activeTargetName);
 
-            // 주민번호 기반 생년월일 6자리 및 성별 식별 인터록 완착
+            // [정밀 수술 완수 구역]: 가짜 데이터(851023)와 뒤집히는 성별 로직을 완전히 청소
             const cleanSsn = logUserSsn.replace(/[^0-9a-zA-Z]/g, "");
-            const displayBirth6 = cleanSsn.substring(0, 6) || "851023";
-            let genderText = "여", genderClass = "gender-indicator-badge gender-f";
 
-            if (cleanSsn.endsWith("1") || cleanSsn.endsWith("3") || cleanSsn.includes("M") || cleanSsn.endsWith("M") || cleanSsn.charAt(6) === "1" || cleanSsn.charAt(6) === "3") {
-                genderText = "남";
-                genderClass = "gender-indicator-badge gender-m";
+            // 주민번호 원장이 들어와 있을 때만 6자리를 안전하게 자르고, 비어있다면 가짜 숫자 대신 공백("") 처리
+            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "";
+
+            let genderText = "-";
+            let genderClass = "gender-indicator-badge";
+
+            if (cleanSsn.length >= 7) {
+                // 하이픈이 소독된 상태이므로 정확히 7번째 자리(인덱스 6)의 문자 조각을 고정 래핑 추출
+                const genderMarker = cleanSsn.charAt(6).toUpperCase();
+
+                // 대한민국 표준 주민등록번호 정책 마킹 바인딩 (1, 3, 5, M = 남성 / 2, 4, 6, F = 여성)
+                if (["1", "3", "5", "M"].includes(genderMarker)) {
+                    genderText = "남";
+                    genderClass = "gender-indicator-badge gender-m";
+                } else if (["2", "4", "6", "F"].includes(genderMarker)) {
+                    genderText = "여";
+                    genderClass = "gender-indicator-badge gender-f";
+                }
+            } else if (cleanSsn.length > 0) {
+                // 데이터 전송 타이밍 차이로 생년월일만 먼저 로드된 임시 상태 가드
+                genderText = "확인중";
+                genderClass = "gender-indicator-badge gender-wait";
             }
 
             // 상단 네온 프로필 팩토리 바인딩 동기화 완료

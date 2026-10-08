@@ -735,11 +735,11 @@
             const records = getMasterData();
             let applicantDB = getApplicantData() || [];
 
-            // [정밀 동기화] 세션에 박힌 실시간 유저명을 최우선으로 가로채기
+            // [정밀 동기화]: window.onload가 가공해 놓은 진짜 유저 데이터 패킷의 우선순위를 1순위로 인계
             let liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser || "";
             let targetSsn = localStorage.getItem('loggedInUserSsn') || "";
 
-            // 타이밍 차이로 개별 키가 유실되었을 때를 대비한 원장 객체 2중 수색선
+            // [타이밍 랙 완치]: 만약 렌더링 타이밍에 개별 키가 미처 풀리지 않았다면 객체 원장(loggedInUser)에서 즉시 교차 복합 수색
             if (!liveCertifiedName || !targetSsn) {
                 let parentUserRaw = localStorage.getItem('loggedInUser');
                 if (parentUserRaw) {
@@ -755,10 +755,13 @@
                 }
             }
 
+            // 만약 전산망에 세션이 아예 부재할 때만 리스크 방지용 가드 처리
             if (!liveCertifiedName || liveCertifiedName === "홍길동") { liveCertifiedName = "인증 대상자"; }
 
             const cleanSessionName = liveCertifiedName.replace(/\s/g, "");
             const cleanSsn = targetSsn.replace(/[^0-9a-zA-Z]/g, "");
+
+            // 진짜 주민번호 데이터가 로드되었을 때만 6자리를 안전하게 잘라내고, 완전히 비어있을 때는 하이픈(------) 마크로 가짜 정보 노출 방어
             const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "------";
 
             let genderText = "-";
@@ -773,6 +776,9 @@
                     genderText = "여";
                     genderClass = "gender-indicator-badge gender-f";
                 }
+            } else if (cleanSsn.length > 0) {
+                genderText = "확인중";
+                genderClass = "gender-indicator-badge gender-wait";
             }
 
             const pIframe = window.parent ? window.parent.document : null;
@@ -787,20 +793,12 @@
                 }
             }
 
-            const myLiveJobRecord = [...applicantDB].reverse().find(app => {
-                if (!app || !app.name) return false;
-                const cleanDbName = app.name.toString().replace(/\s/g, "");
-                const currentLiveStatus = (app.status || app.stage || "").toString().trim();
-                return cleanDbName === cleanSessionName && currentLiveStatus !== "" && !["종료", "탈락", "심사탈락"].includes(currentLiveStatus);
-            });
-
-            // [통합 안테나 1]: 배정 과제 기록 데이터 자체가 완전히 누적되지 않은 피험자 (빨간색 고대비 단정화)
             if (!myLiveJobRecord) {
                 cardBoard.innerHTML = `
-            <div style="color: #f43f5e; font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12.5px; color: #f43f5e; font-weight: 700;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
-            </div>`;
+             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%;">
+                        <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
+                        <div style="font-size: 12.5px; color: #f43f5e; font-weight: 600;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
+                    </div>`;
                 return;
             }
 
@@ -814,21 +812,13 @@
 
             if (matchedRecruitmentItem) {
                 let tempMap = {};
-                // [정밀 보정]: 원장의 날짜 문자열에서 특수문자를 정제하고 표준 하이픈 구조(YYYY-MM-DD)로 강제 정렬하여 매칭 실패를 원천 차단
-                const formatToKey = (rawStr) => {
-                    if (!rawStr || rawStr.trim() === "" || rawStr === "미정") return null;
-                    const digits = rawStr.replace(/[^0-9]/g, ""); // 숫자만 강제 추출
-                    if (digits.length !== 8) return rawStr.trim(); // 8자리가 아닐 땐 기본 트리밍 백업
-                    return `${digits.substring(0, 4)}-${digits.substring(4, 6)}-${digits.substring(6, 8)}`;
-                };
-
-                if (matchedRecruitmentItem.examSchedule) { let k = formatToKey(matchedRecruitmentItem.examSchedule); if (k) tempMap[k] = "스크리닝 방문"; }
-                if (matchedRecruitmentItem.recDate) { let k = formatToKey(matchedRecruitmentItem.recDate); if (k) tempMap[k] = "소집(입원)"; }
-                if (matchedRecruitmentItem.visitDate1) { let k = formatToKey(matchedRecruitmentItem.visitDate1); if (k) tempMap[k] = "1차 방문채혈"; }
-                if (matchedRecruitmentItem.visitDate2) { let k = formatToKey(matchedRecruitmentItem.visitDate2); if (k) tempMap[k] = "2차 방문채혈"; }
-                if (matchedRecruitmentItem.visitDate3) { let k = formatToKey(matchedRecruitmentItem.visitDate3); if (k) tempMap[k] = "3차 방문채혈"; }
-                if (matchedRecruitmentItem.visitDate4) { let k = formatToKey(matchedRecruitmentItem.visitDate4); if (k) tempMap[k] = "4차 방문채혈"; }
-                if (matchedRecruitmentItem.endExamDate) { let k = formatToKey(matchedRecruitmentItem.endExamDate); if (k) tempMap[k] = "종료검사"; }
+                if (matchedRecruitmentItem.examSchedule) tempMap[matchedRecruitmentItem.examSchedule.trim()] = "스크리닝 방문";
+                if (matchedRecruitmentItem.recDate) tempMap[matchedRecruitmentItem.recDate.trim()] = "소집(입원)";
+                if (matchedRecruitmentItem.visitDate1) tempMap[matchedRecruitmentItem.visitDate1.trim()] = "1차 방문채혈";
+                if (matchedRecruitmentItem.visitDate2) tempMap[matchedRecruitmentItem.visitDate2.trim()] = "2차 방문채혈";
+                if (matchedRecruitmentItem.visitDate3) tempMap[matchedRecruitmentItem.visitDate3.trim()] = "3차 방문채혈";
+                if (matchedRecruitmentItem.visitDate4) tempMap[matchedRecruitmentItem.visitDate4.trim()] = "4차 방문채혈";
+                if (matchedRecruitmentItem.endExamDate) tempMap[matchedRecruitmentItem.endExamDate.trim()] = "종료검사";
 
                 for (const dateKey of Object.keys(tempMap)) {
                     if (weeklyKeys.includes(dateKey)) {
@@ -873,7 +863,6 @@
                     card.className = 'trial-manifest-card';
                     card.setAttribute("style", "margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);");
 
-                    // 요청하신 정품 마크업 형태 그대로 원본 복구
                     card.innerHTML = `
                 <div class="card-top-row">
                     <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${currentStageText}</div>

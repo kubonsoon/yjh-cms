@@ -735,11 +735,11 @@
             const records = getMasterData();
             let applicantDB = getApplicantData() || [];
 
-            // [정밀 동기화]: window.onload가 가공해 놓은 진짜 유저 데이터 패킷의 우선순위를 1순위로 인계
+            // [정밀 동기화] 세션에 박힌 실시간 유저명을 최우선으로 가로채기
             let liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser || "";
             let targetSsn = localStorage.getItem('loggedInUserSsn') || "";
 
-            // [타이밍 랙 완치]: 만약 렌더링 타이밍에 개별 키가 미처 풀리지 않았다면 객체 원장(loggedInUser)에서 즉시 교차 복합 수색
+            // 타이밍 차이로 개별 키가 유실되었을 때를 대비한 원장 객체 2중 수색선
             if (!liveCertifiedName || !targetSsn) {
                 let parentUserRaw = localStorage.getItem('loggedInUser');
                 if (parentUserRaw) {
@@ -755,13 +755,10 @@
                 }
             }
 
-            // 만약 전산망에 세션이 아예 부재할 때만 리스크 방지용 가드 처리
             if (!liveCertifiedName || liveCertifiedName === "홍길동") { liveCertifiedName = "인증 대상자"; }
 
             const cleanSessionName = liveCertifiedName.replace(/\s/g, "");
             const cleanSsn = targetSsn.replace(/[^0-9a-zA-Z]/g, "");
-
-            // 진짜 주민번호 데이터가 로드되었을 때만 6자리를 안전하게 잘라내고, 완전히 비어있을 때는 하이픈(------) 마크로 가짜 정보 노출 방어
             const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "------";
 
             let genderText = "-";
@@ -776,9 +773,6 @@
                     genderText = "여";
                     genderClass = "gender-indicator-badge gender-f";
                 }
-            } else if (cleanSsn.length > 0) {
-                genderText = "확인중";
-                genderClass = "gender-indicator-badge gender-wait";
             }
 
             const pIframe = window.parent ? window.parent.document : null;

@@ -533,7 +533,7 @@
         }
 
         .card-btn.history-sync:active {
-            background: #e5a91d !important;
+            background: #0e66e9 !important;
         }
     </style>
 
@@ -880,6 +880,15 @@
                 const weeklyList = item._computedWeeklyList || [];
 
                 weeklyList.forEach((schedule, idx) => {
+
+                    // ==========================================
+                    // 수정/변경 소스 (날짜 일치 판별 및 필터링 가드 조건 추가)
+                    // ==========================================
+                    // 💡 [확실한 수정] 현재 캘린더 일정이 사용자가 주간 바에서 선택한 날짜와 다르면 화면 사출을 차단합니다.
+                    if (schedule.dateStr !== selectedDateStr) {
+                        return;
+                    }
+
                     const currentStageText = schedule.labelText || "";
                     const uniqueSubKey = `${clickUid}_${idx}`;
                     const card = document.createElement('div');

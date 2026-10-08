@@ -652,9 +652,12 @@
         }
         function moveMonth(v) {
             currentDate.setDate(currentDate.getDate() + (v * 7));
-
-            // [시스템 당일 고정 정책]: 주차 이동 여부와 상관없이 항상 진짜 오늘 날짜만 강제 선택되도록 고정 
+            // [시스템 당일 고정 정책]: 주차 이동 여부와 상관없이 항상 진짜 오늘 날짜만 강제 선택되도록 고정
             selectedDateStr = sysTodayStr;
+
+            // [기획 반영]: 화살표를 눌러 주간을 이동했음을 시스템에 명시적으로 각인
+            window.isWeekArrowClicked = true;
+            window.isDayButtonClicked = false;
 
             renderCalendar();
         }
@@ -725,6 +728,7 @@
 
                 dayBtn.onclick = function () {
                     window.isDayButtonClicked = true;
+                    window.isWeekArrowClicked = false; // 요일을 직접 클릭했으므로 주차 이동 플래그 즉시 해제
                     selectedDateStr = formattedDateKey;
                     document.querySelectorAll('.weekly-day-btn').forEach(btn => { btn.classList.remove('active'); });
                     dayBtn.classList.add('active');
@@ -977,7 +981,7 @@
             });
 
             // [완벽 치유 안테나 A]: 현재 열린 7일 주간 범위 전체에 걸쳐 종합 브리핑 캘린더 사출
-            if (hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked) {
+            if (hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked && !window.isWeekArrowClicked) {
                 const daysMapShort = ['일', '월', '화', '수', '목', '금', '토'];
                 let weeklyScheduleBriefingHtml = "";
 
@@ -1034,8 +1038,8 @@
                 return;
             }
 
-            // [반전 보정]: 이번 주간 전체에 내 스케줄이 '단 하나도 존재하지 않을 때(false)' 깔끔한 안내 박스로 마무리
-            if (!hasWeeklyScheduleInThisWindow) {
+            // [반전 보정]: 화살표 주차 이동 버튼을 클릭하여 이동했는데, 이번 주간 전체에 내 스케줄이 '단 하나도 존재하지 않을 때'
+            if (!hasWeeklyScheduleInThisWindow && window.isWeekArrowClicked) {
                 cardBoard.innerHTML = `
             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                 <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
@@ -1044,12 +1048,12 @@
                 return;
             }
 
-            // [안테나 B]: 이번 주 범위 내에 다른 일정은 존재하나, 오늘 터치해 선택한 특정 날짜 하루에만 일정이 비어있을 때 (프로필 제거형)
+            // [안테나 B]: 첫 로드 상태이거나 특정 일자를 터치해 선택했는데 당일 데이터가 비어있을 때 (요구사항 요구 문구 100% 매립 및 등록된 배지 단어 소독)
             if (renderedCardCount === 0) {
                 cardBoard.innerHTML = `
             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                 <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12.5px; color: #f43f5e; font-weight: 600;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
+                <div style="font-size: 12.5px; color: #f43f5e; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다</div>
             </div>`;
                 return;
             }

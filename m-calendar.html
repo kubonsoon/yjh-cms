@@ -971,7 +971,7 @@
             });
 
             // [완벽 치유 안테나 A]: 현재 열린 7일 주간 범위 전체에 걸쳐 종합 브리핑 캘린더 사출
-            if (hasWeeklyScheduleInThisWindow) {
+            if (hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked) {
                 const daysMapShort = ['일', '월', '화', '수', '목', '금', '토'];
                 let weeklyScheduleBriefingHtml = "";
 
@@ -1037,8 +1037,6 @@
             </div>`;
                 return;
             }
-
-
 
             // [안테나 B]: 이번 주 범위 내에 다른 일정은 존재하나, 오늘 터치해 선택한 특정 날짜 하루에만 일정이 비어있을 때 (프로필 제거형)
             if (renderedCardCount === 0) {

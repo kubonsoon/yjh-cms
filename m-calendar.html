@@ -955,18 +955,16 @@
                 });
             });
 
-            // [대개혁 안테나 A]: 현재 열린 7일 주간 범위 전체를 통틀어 대상자의 마일스톤이 단 하나도 걸쳐 있지 않을 때 
+            // [완벽 치유 안테나 A]: 현재 열린 7일 주간 범위 전체에 걸쳐 종합 브리핑 캘린더 사출
             if (!hasWeeklyScheduleInThisWindow) {
-                // 1. 이번 주간에 포함된 7일 날짜 데이터 가공용 배열 선언
                 const daysMapShort = ['일', '월', '화', '수', '목', '금', '토'];
                 let weeklyScheduleBriefingHtml = "";
 
-                // 2. 현재 화면에 표시된 7일간의 날짜 키(window.currentWeeklyDateKeys)를 순회하며 매칭되는 스케줄 수집
                 if (window.currentWeeklyDateKeys && window.currentWeeklyDateKeys.length > 0) {
                     window.currentWeeklyDateKeys.forEach(dateKey => {
-                        // 원장 스케줄 매트릭스 재조립 및 당일 일치 여부 정밀 추적
                         let matchedStageName = "";
 
+                        // [정밀 보정]: 로컬스토리지 원장 데이터 포맷과 화면의 7일 레일 날짜 조각을 명확히 싱크 매칭
                         if (matchedRecruitmentItem) {
                             if (matchedRecruitmentItem.examSchedule && matchedRecruitmentItem.examSchedule.trim() === dateKey) matchedStageName = "스크리닝 방문";
                             else if (matchedRecruitmentItem.recDate && matchedRecruitmentItem.recDate.trim() === dateKey) matchedStageName = "소집(입원)";
@@ -977,34 +975,41 @@
                             else if (matchedRecruitmentItem.endExamDate && matchedRecruitmentItem.endExamDate.trim() === dateKey) matchedStageName = "종료검사";
                         }
 
-                        // 날짜 조각 파싱 및 요일 추출 후 가독성 스킨 조립
+                        // [버그 치유 포인트]: dateKey("2026-10-08")의 배열 인덱스를 명확히 분리 추출하여 날짜 객체 파싱 실패 차단
                         const dateParts = dateKey.split('-');
-                        const loopDateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+                        const targetYear = parseInt(dateParts[0], 10);
+                        const targetMonth = parseInt(dateParts[1], 10);
+                        const targetDay = parseInt(dateParts[2], 10);
+
+                        // 자바스크립트의 Month는 0부터 시작하므로 -1 처리를 명확히 반영하여 요일 깨짐 원천 방어
+                        const loopDateObj = new Date(targetYear, targetMonth - 1, targetDay);
                         const dayName = daysMapShort[loopDateObj.getDay()];
-                        const formattedLabel = `${dateParts[0]}년 ${dateParts[1]}월 ${dateParts[2]}일 (${dayName})`;
+
+                        // 가독성 높은 한국어 표준 가이드 라벨 텍스트 사출
+                        const formattedLabel = `${targetYear}년 ${String(targetMonth).padStart(2, '0')}월 ${String(targetDay).padStart(2, '0')}일 (${dayName})`;
 
                         if (matchedStageName !== "") {
-                            // 일정이 존재하는 날짜행은 야광 하늘색 고대비 라벨로 래핑
+                            // 일정이 매칭된 진짜 날짜는 야광 하늘색 라벨 배지로 강조 출력
                             weeklyScheduleBriefingHtml += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.2); padding:8px 12px; border-radius:8px; margin-bottom:5px; font-size:12.5px;">
-                            <span style="color:var(--text-muted); font-weight:600;">${formattedLabel}</span>
-                            <span style="color:#0ea5e9; font-weight:800; font-size:13px;"><i class="fa-solid fa-circle-dot" style="font-size:8px; margin-right:4px;"></i>${matchedStageName}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.25); padding:10px 12px; border-radius:8px; margin-bottom:5px; font-size:12.5px;">
+                            <span style="color:#ffffff; font-weight:600;">${formattedLabel}</span>
+                            <span style="color:#0ea5e9; font-weight:800; font-size:13px;"><i class="fa-solid fa-circle-dot" style="font-size:8px; margin-right:5px;"></i>${matchedStageName}</span>
                         </div>`;
                         } else {
-                            // 일정이 없는 날짜행은 흐릿한 플랫 스타일로 패킹
+                            // 일정이 없는 일반 일자는 플랫하게 대시(-) 처리
                             weeklyScheduleBriefingHtml += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 12px; border-bottom:1px solid rgba(255,255,255,0.02); font-size:12px; color:rgba(255,255,255,0.3);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px; color:rgba(255,255,255,0.35);">
                             <span>${formattedLabel}</span>
-                            <span style="font-weight:500;">-</span>
+                            <span style="font-weight:500; color:rgba(255,255,255,0.2);">-</span>
                         </div>`;
                         }
                     });
                 }
 
-                // 3. 최종 정밀 계산 완료된 주간 일정 보드판 사출 drawing
+                // 최종 수집 완료된 주간 종합 브리핑 테이블 드로잉
                 cardBoard.innerHTML = `
             <div style="background:var(--card-color); border:1px solid var(--border-color); padding:14px; border-radius:14px; width:100%; box-shadow:0 4px 6px rgba(0,0,0,0.3);">
-                <div style="font-size:13px; font-weight:800; color:var(--warning-color); margin-bottom:10px; display:flex; align-items:center; gap:5px;">
+                <div style="font-size:13px; font-weight:800; color:var(--warning-color); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
                     <i class="fa-solid fa-list-check"></i> 해당 주간 임상스케줄 종합 브리핑
                 </div>
                 <div style="display:flex; flex-direction:column; gap:2px;">
@@ -1013,6 +1018,7 @@
             </div>`;
                 return;
             }
+
 
             // [안테나 B]: 이번 주 범위 내에 다른 일정은 존재하나, 오늘 터치해 선택한 특정 날짜 하루에만 일정이 비어있을 때 (프로필 제거형)
             if (renderedCardCount === 0) {

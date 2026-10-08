@@ -901,91 +901,108 @@
                     }
 
                     cardBoard.appendChild(card);
+                }); // 💡 [정밀 수리 완료] originalMilestones.forEach 반복문이 여기서 정확하게 안전 종료됩니다.
 
-                    // ===== [순정 정품 4대 행정 안전 가드 신청 파이프라인 원형 보존 적재] =====
-                    const btnJoin = document.getElementById(`btn_card_join_${uniqueSubKey}`);
-                    if (btnJoin) {
-                        btnJoin.onclick = function (e) {
-                            e.preventDefault();
-                            let appDB = getApplicantData();
-                            const activeJobRecord = appDB.find(app => {
-                                const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
-                                const dbTitle = (app.title || '').toString().trim();
-                                return cleanDbName === cleanSessionName && app.stage !== "종료" && dbTitle !== "신규 방문 과제 미배정";
-                            });
+                // ===== [순정 정품 4대 행정 안전 가드 신청 파이프라인 원형 보존 적재] =====
+                const btnJoin = document.getElementById(`btn_card_join_${uniqueSubKey}`);
+                if (btnJoin) {
+                    btnJoin.onclick = function (e) {
+                        e.preventDefault();
+                        let appDB = getApplicantData();
+                        const activeJobRecord = appDB.find(app => {
+                            const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
+                            const dbTitle = (app.title || '').toString().trim();
+                            return cleanDbName === cleanSessionName && app.stage !== "종료" && dbTitle !== "신규 방문 과제 미배정";
+                        });
 
-                            if (activeJobRecord && !myLiveJobRecord) {
-                                alert("중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산심사 대기 중인 임상시험 과제가 존재합니다.");
+                        if (activeJobRecord && !myLiveJobRecord) {
+                            alert("중복 신청 불가 안내\n\n대상자님은 현재 참여 중이거나 전산심사 대기 중인 임상시험 과제가 존재합니다.");
+                            return;
+                        }
+
+                        const finishedJobs = appDB.filter(app => {
+                            const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
+                            return cleanDbName === cleanSessionName && app.stage === "종료" && app.recDate;
+                        });
+
+                        if (finishedJobs.length > 0 && !myLiveJobRecord) {
+                            finishedJobs.sort((a, b) => new Date(b.recDate) - new Date(a.recDate));
+                            const lastFinishedJob = finishedJobs[0]; // 안전한 단일 객체 참조 보정
+                            const systemCurrentTime = new Date();
+                            const lastExamDate = new Date(lastFinishedJob.recDate);
+                            const dayDiff = Math.floor((systemCurrentTime.getTime() - lastExamDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                            if (dayDiff < 180) {
+                                alert("전산망 보안 안내\n\n대상자님은 마지막 시험 참여 후 아직 6개월이 경과하지 않았습니다.");
                                 return;
                             }
+                        }
 
-                            const finishedJobs = appDB.filter(app => {
-                                const cleanDbName = (app.name || '').toString().replace(/\s/g, "");
-                                return cleanDbName === cleanSessionName && app.stage === "종료" && app.recDate;
-                            });
+                        const isAlreadyClickedThisJob = appDB.some(app => (app.name || '').toString().trim() === (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser) && (app.title || '').toString().trim() === (item.title || '').toString().trim() && (app.th || '').toString().trim() === thText);
+                        let targetIdx = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName);
 
-                            if (finishedJobs.length > 0 && !myLiveJobRecord) {
-                                finishedJobs.sort((a, b) => new Date(b.recDate) - new Date(a.recDate));
-                                const lastFinishedJob = finishedJobs[0]; // 배열 첫 번째 객체 참조 안정화
-                                const systemCurrentTime = new Date();
-                                const lastExamDate = new Date(lastFinishedJob.recDate);
-                                const dayDiff = Math.floor((systemCurrentTime.getTime() - lastExamDate.getTime()) / (1000 * 60 * 60 * 24));
+                        if (targetIdx !== -1 && isAlreadyClickedThisJob) {
+                            let cleanFriendlyStage = "소집";
+                            if (currentStageText.includes("1차")) cleanFriendlyStage = "1차방문";
+                            else if (currentStageText.includes("2차")) cleanFriendlyStage = "2차방문";
+                            else if (currentStageText.includes("3차")) cleanFriendlyStage = "3차방문";
+                            else if (currentStageText.includes("4차")) cleanFriendlyStage = "4차방문";
+                            else if (currentStageText.includes("종료검사") || currentStageText.includes("종료")) cleanFriendlyStage = "종료방문";
 
-                                if (dayDiff < 180) {
-                                    alert("전산망 보안 안내\n\n대상자님은 마지막 시험 참여 후 아직 6개월이 경과하지 않았습니다.");
-                                    return;
-                                }
-                            }
-
-                            const isAlreadyClickedThisJob = appDB.some(app => (app.name || '').toString().trim() === (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser) && (app.title || '').toString().trim() === (item.title || '').toString().trim() && (app.th || '').toString().trim() === thText);
-                            let targetIdx = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName);
-
-                            if (targetIdx !== -1 && isAlreadyClickedThisJob) {
-                                let cleanFriendlyStage = "소집";
-                                if (currentStageText.includes("1차")) cleanFriendlyStage = "1차방문";
-                                else if (currentStageText.includes("2차")) cleanFriendlyStage = "2차방문";
-                                else if (currentStageText.includes("3차")) cleanFriendlyStage = "3차방문";
-                                else if (currentStageText.includes("4차")) cleanFriendlyStage = "4차방문";
-                                else if (currentStageText.includes("종료검사") || currentStageText.includes("종료")) cleanFriendlyStage = "종료방문";
-
-                                appDB[targetIdx].status = cleanFriendlyStage;
-                                appDB[targetIdx].stage = cleanFriendlyStage;
-                                localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                                alert(`인증 성공\n\n대상자님의 참여 상태가 출석 [${appDB[targetIdx].status}] 단계로 정상 전진 업데이트 커밋되었습니다.`);
-
-                                if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") { window.opener.refreshApplicantView(); }
-                                renderCalendar();
-                                return;
-                            }
-
-                            let targetIdxNew = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName && (u.title || '').toString().trim() === "신규 방문 과제 미배정");
-                            const liveQuotaCount = appDB.filter(u => (u.title || '').toString().replace(/\s/g, "") === item.title.toString().replace(/\s/g, "") && (u.th || '').toString().replace(/\s/g, "") === thText.toString().replace(/\s/g, "")).length;
-
-                            const nextLineNumber = liveQuotaCount + 1;
-                            const liveProgressFormat = nextLineNumber + "/60";
-                            const newApplicantRecord = {
-                                uid: (targetIdxNew !== -1 ? appDB[targetIdxNew].uid : ("NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000))),
-                                name: localStorage.getItem('certifiedUserName') || currentCertifiedUser, title: item.title, th: thText, count: liveProgressFormat, nCount: 60, period: item.period || "0",
-                                ssn: activeJobRecord && activeJobRecord.ssn ? activeJobRecord.ssn : "050607-2",
-                                phone: activeJobRecord && activeJobRecord.phone ? activeJobRecord.phone : "010-0000-0000",
-                                gender: myLiveJobRecord.gender || "여", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus4: "대기",
-                                result: "대기", isDutyAgreed: "대기", isCallAgreed: "대기", category: "M인증", stage: "신검대기", regDate: new Date().toISOString().split('T')
-                            };
-
-                            if (targetIdxNew !== -1) { appDB[targetIdxNew] = Object.assign({}, appDB[targetIdxNew], newApplicantRecord); }
-                            else if (targetIdx !== -1) { appDB[targetIdx] = Object.assign({}, appDB[targetIdx], newApplicantRecord); }
-                            else { appDB.push(newApplicantRecord); }
-
+                            appDB[targetIdx].status = cleanFriendlyStage;
+                            appDB[targetIdx].stage = cleanFriendlyStage;
                             localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                            alert(`[신청 접수 완료]\n\n${localStorage.getItem('certifiedUserName') || currentCertifiedUser} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
-                            renderDailyCards();
-                        };
-                    }
+                            alert(`인증 성공\n\n대상자님의 참여 상태가 출석 [${appDB[targetIdx].status}] 단계로 정상 전진 업데이트 커밋되었습니다.`);
 
-                    if (document.getElementById(`btn_card_reject_${uniqueSubKey}`)) { document.getElementById(`btn_card_reject_${uniqueSubKey}`).onclick = function (e) { e.preventDefault(); alert('미참여 신청 되었습니다.'); }; }
-                    if (document.getElementById(`btn_card_hist_${uniqueSubKey}`)) { document.getElementById(`btn_card_hist_${uniqueSubKey}`).onclick = function (e) { e.preventDefault(); openIndividualHistoryModalInMobile(cleanSessionName, item.title, thText); }; }
-                }); // 💡 3조각에서 열렸던 originalMilestones.forEach 반복문 닫힘
-            }); // 💡 2조각에서 열렸던 targetRecords.forEach 반복문 닫힘
+                            if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") { window.opener.refreshApplicantView(); }
+                            renderCalendar();
+                            return;
+                        }
+
+                        let targetIdxNew = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName && (u.title || '').toString().trim() === "신규 방문 과제 미배정");
+                        const liveQuotaCount = appDB.filter(u => (u.title || '').toString().replace(/\s/g, "") === item.title.toString().replace(/\s/g, "") && (u.th || '').toString().replace(/\s/g, "") === thText.toString().replace(/\s/g, "")).length;
+
+                        const nextLineNumber = liveQuotaCount + 1;
+                        const liveProgressFormat = nextLineNumber + "/60";
+                        const newApplicantRecord = {
+                            uid: (targetIdxNew !== -1 ? appDB[targetIdxNew].uid : ("NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000))),
+                            name: localStorage.getItem('certifiedUserName') || currentCertifiedUser, title: item.title, th: thText, count: liveProgressFormat, nCount: 60, period: item.period || "0",
+                            ssn: activeJobRecord && activeJobRecord.ssn ? activeJobRecord.ssn : "050607-2",
+                            phone: activeJobRecord && activeJobRecord.phone ? activeJobRecord.phone : "010-0000-0000",
+                            gender: myLiveJobRecord.gender || "여", payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus4: "대기",
+                            result: "대기", isDutyAgreed: "대기", isCallAgreed: "대기", category: "M인증", stage: "신검대기", regDate: new Date().toISOString().split('T')
+                        };
+
+                        if (targetIdxNew !== -1) { appDB[targetIdxNew] = Object.assign({}, appDB[targetIdxNew], newApplicantRecord); }
+                        else if (targetIdx !== -1) { appDB[targetIdx] = Object.assign({}, appDB[targetIdx], newApplicantRecord); }
+                        else { appDB.push(newApplicantRecord); }
+
+                        localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                        alert(`[신청 접수 완료]\n\n${localStorage.getItem('certifiedUserName') || currentCertifiedUser} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
+                        renderDailyCards();
+                    };
+                }
+
+                if (document.getElementById(`btn_card_reject_${uniqueSubKey}`)) { document.getElementById(`btn_card_reject_${uniqueSubKey}`).onclick = function (e) { e.preventDefault(); alert('미참여 신청 되었습니다.'); }; }
+                if (document.getElementById(`btn_card_hist_${uniqueSubKey}`)) { document.getElementById(`btn_card_hist_${uniqueSubKey}`).onclick = function (e) { e.preventDefault(); openIndividualHistoryModalInMobile(cleanSessionName, item.title, thText); }; }
+            }); // 💡 targetRecords.forEach 상위 반복문이 여기서 매끄럽게 종료 닫힙니다.
+
+            // 🎯 [공백 요일 완치 가드]: 오늘 날짜에 분사되어 찍힌 임상 카드가 한 장도 없다면 예외 안내 보드를 즉시 사출합니다.
+            if (renderedCardCount === 0) {
+                const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser);
+
+                cardBoard.innerHTML = `
+                    <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
+                        <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
+                        <div style="color: #ffffff; font-weight: 800; font-size: 14.5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <span>👤 ${liveCertifiedName} (${displayBirth6})</span>
+                            <span class="${genderClass}" style="padding:1px 5px; border-radius:4px; font-size:11px; font-weight:800;">${genderText}</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">선택하신 날짜에는 등록된 임상시험 일정이 없습니다.</div>
+                    </div>
+                `;
+                return;
+            }
         }
 
 

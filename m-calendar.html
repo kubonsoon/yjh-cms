@@ -624,7 +624,7 @@
         let selectedDateStr = `${yyyy}-${mm}-${dd}`;
         let currentFilter = 'ALL';
 
-        // [가변 유저 보안 인터록] 부모 창 진짜 실시간 로그인 데이터 패킷 무지연 가로채기
+        // ===== 1. 가변 유저 보안 인터록 전역 초기화 교정 완착 =====
         let currentCertifiedUser = sessionStorage.getItem('certifiedUserName') || localStorage.getItem('certifiedUserName') || "";
         let cachedLogUserStr = localStorage.getItem('loggedInUser');
 
@@ -635,13 +635,14 @@
                     currentCertifiedUser = parsedLogUser.name.toString().trim();
                     sessionStorage.setItem('certifiedUserName', currentCertifiedUser);
                 }
-            } catch (e) { console.error("[전산 오류] 로그인 캐시 복합 파싱 실패:", e); }
+            } catch (e) {
+                console.error("[전산 오류] 로그인 캐시 복합 파싱 실패:", e);
+            }
         }
 
-        // 만약 백업 세션까지 부재 시 안전가드로 폴백 바인딩
+        // [초기 가짜 잔상 완전 소독]: 홍길동 문자열을 완전히 지워 초기 로드 메모리 오염을 원천 차단
         if (!currentCertifiedUser) {
-            currentCertifiedUser = "홍길동";
-            sessionStorage.setItem('certifiedUserName', "홍길동");
+            currentCertifiedUser = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
         }
 
         function getMasterData() {
@@ -789,9 +790,10 @@
 
             const pIframe = window.parent ? window.parent.document : null;
             const lockProfileSlot = document.getElementById('lblSetTargetNew') || (pIframe ? pIframe.getElementById('lblSetTargetNew') : null);
+
             if (lockProfileSlot) {
-                // 유저 정보가 정상적으로 포획되었을 때만 프로필 영역을 깨끗하게 렌더링
-                if (cleanSessionName && cleanSessionName !== "홍길동") {
+                // [완치 포인트]: 진짜 로그인 유저가 실시간 로드되는 즉시 거름망 없이 프로필, 생년월일, 성별 배지를 원샷 사출합니다.
+                if (cleanSessionName) {
                     lockProfileSlot.innerHTML = `
                 <span style="color:#ffffff; font-weight:800;">${liveCertifiedName}</span>
                 <span style="color:rgba(255,255,255,0.4); font-weight: 500; margin-left:2px;">(${displayBirth6})</span>
@@ -1094,14 +1096,11 @@
         window.onload = function () {
             // [가변 유저 대응형 최종 완착] 독립 기동 즉시 진짜 내 세션 가로채기 3중 수신소
             let logUserStr = localStorage.getItem('loggedInUser');
-
-            // [정밀 타격 급소 교정 1]: 구형 객체 수색을 파쇄하고 실시간 진짜 로그인 유저명 키값 1순위 직격 가로채기
             let activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
             let logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
 
             if (logUserStr) {
                 try {
-                    // [정밀 타격 급소 교정 2]: JSON parse 오탈자 소독 및 안전 파싱 수술
                     let parsedLogUser = JSON.parse(logUserStr);
                     if (parsedLogUser) {
                         if (parsedLogUser.name && !activeTargetName) {
@@ -1117,31 +1116,25 @@
                 }
             }
 
-            // [풀백 가드 교정]: 시스템 오인을 유도하던 "홍길동" 단어를 전면 소독하고 유연한 가드로 대체
+            // 만약 세션 스토리지 및 캐시가 모두 부재할 때만 시스템 정지 방지용 플레이스홀더 적용
             if (!activeTargetName || activeTargetName === "홍길동") {
                 activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "인증 대상자";
             }
-
-            // 주 데이터 캐시와 개별 스토리지에서 모두 누락되었을 때만 완전히 비워서 비정상 출력을 차단
             if (!logUserSsn) {
                 logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
             }
             sessionStorage.setItem('certifiedUserName', activeTargetName);
 
-            // [정밀 수술 완수 구역]: 가짜 데이터(851023)와 뒤집히는 성별 로직을 완전히 청소
+            // 주민번호 기반 생년월일 6자리 및 성별 식별 인터록 완착
             const cleanSsn = logUserSsn.replace(/[^0-9a-zA-Z]/g, "");
 
-            // 주민번호 원장이 들어와 있을 때만 6자리를 안전하게 자르고, 비어있다면 가짜 숫자 대신 공백("") 처리
-            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "";
-
+            // 진짜 주민번호 데이터가 확보되었을 때만 자르고, 비어있으면 투명하게 대기 마크 처리
+            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "------";
             let genderText = "-";
             let genderClass = "gender-indicator-badge";
 
             if (cleanSsn.length >= 7) {
-                // 하이픈이 소독된 상태이므로 정확히 7번째 자리(인덱스 6)의 문자 조각을 고정 래핑 추출
                 const genderMarker = cleanSsn.charAt(6).toUpperCase();
-
-                // 대한민국 표준 주민등록번호 정책 마킹 바인딩 (1, 3, 5, M = 남성 / 2, 4, 6, F = 여성)
                 if (["1", "3", "5", "M"].includes(genderMarker)) {
                     genderText = "남";
                     genderClass = "gender-indicator-badge gender-m";
@@ -1149,13 +1142,9 @@
                     genderText = "여";
                     genderClass = "gender-indicator-badge gender-f";
                 }
-            } else if (cleanSsn.length > 0) {
-                // 데이터 전송 타이밍 차이로 생년월일만 먼저 로드된 임시 상태 가드
-                genderText = "확인중";
-                genderClass = "gender-indicator-badge gender-wait";
             }
 
-            // 상단 네온 프로필 팩토리 바인딩 동기화 완료
+            // 상단 네온 프로필 팩토리 초기화 즉시 직격 사출 (시간차 랙 해결)
             const selfTargetSlot = document.getElementById('lblSetTargetNew') || (window.parent ? window.parent.document.getElementById('lblSetTargetNew') : null);
             if (selfTargetSlot) {
                 selfTargetSlot.innerHTML = `

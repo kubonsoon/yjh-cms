@@ -720,7 +720,8 @@
             const cardBoard = document.getElementById('dailyCardBoard');
             if (!cardBoard) return;
 
-            // 💡 [버그 2번 완치]: 주간 화살표 이동 시 유령 카드가 남는 현상을 원천 차단하기 위해 무조건 싹 청소 후 전개
+            // 💡 [버그 완치]: 함수 내부의 그 어떤 가드 조건문보다 최상단 0순위에서 도화지를 비웁니다.
+            // 이로 인해 주간 화살표를 누를 때 탈출문에 막히지 않고 무지연으로 기존 카드가 즉각 소독 청소됩니다.
             cardBoard.innerHTML = '';
 
             const records = getMasterData();
@@ -762,6 +763,7 @@
                 }
             }
 
+            // 유효 참여 과제가 전혀 잡히지 않는 비배정 유저인 경우의 단독 예외 가드판
             if (!myLiveJobRecord) {
                 cardBoard.innerHTML = `
             <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 16px; border-radius: 12px; margin-bottom: 12px;">
@@ -778,11 +780,36 @@
                 return;
             }
 
-            // 2. 마스터 공고 원장을 순회하며 로그인 대상자의 연계 과제 타이틀을 필터링 및 동적 계산 조인
-            let hasWeeklyScheduleInThisWindow = false; // 현재 주간 바 영역 내에 매칭되는 일정이 존재하는지 체크하는 감시 안테나
-            let currentWeeklyAllBriefingHtml = ""; // 이번주 전체 일정 일괄 브리핑 묶음판
-            let currentRecruitmentItem = null;
+            // 🎯 [안테나 A 먹통 버그 완치]: 비동기 타이밍 충돌을 차단하기 위해 마스터 구역에서 주간 범위 일정을 선행 검문합니다.
+            let hasWeeklyScheduleInThisWindow = false;
+            let currentWeeklyAllBriefingHtml = "";
+            const weeklyKeys = window.currentWeeklyDateKeys || [];
 
+            // 현재 대상자의 온라인 연계 과제 오브젝트 원본 사전 색인 추출
+            const matchedRecruitmentItem = records.find(item => {
+                if (!item.title) return false;
+                return myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase() === item.title.toString().replace(/\s/g, "").toLowerCase();
+            });
+
+            if (matchedRecruitmentItem) {
+                let tempMap = {};
+                if (matchedRecruitmentItem.examSchedule) tempMap[matchedRecruitmentItem.examSchedule.trim()] = "스크리닝 방문";
+                if (matchedRecruitmentItem.recDate) tempMap[matchedRecruitmentItem.recDate.trim()] = "소집(입원)";
+                if (matchedRecruitmentItem.visitDate1) tempMap[matchedRecruitmentItem.visitDate1.trim()] = "1차 방문채혈";
+                if (matchedRecruitmentItem.visitDate2) tempMap[matchedRecruitmentItem.visitDate2.trim()] = "2차 방문채혈";
+                if (matchedRecruitmentItem.visitDate3) tempMap[matchedRecruitmentItem.visitDate3.trim()] = "3차 방문채혈";
+                if (matchedRecruitmentItem.visitDate4) tempMap[matchedRecruitmentItem.visitDate4.trim()] = "4차 방문채혈";
+                if (matchedRecruitmentItem.endExamDate) tempMap[matchedRecruitmentItem.endExamDate.trim()] = "종료검사";
+
+                for (const dateKey of Object.keys(tempMap)) {
+                    if (weeklyKeys.includes(dateKey)) {
+                        hasWeeklyScheduleInThisWindow = true; // 이번 주간 범위 내에 내 7대 마일스톤이 존재함이 명백히 증명 완착
+                    }
+                }
+            }
+
+            // 2. 마스터 공고 원장을 순회하며 로그인 대상자의 연계 과제 타이틀을 필터링 및 동적 계산 조인
+            let currentRecruitmentItem = null;
             const targetRecords = records.filter(item => {
                 if (!item.title) return false;
                 const cleanMyTitle = myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase();
@@ -790,49 +817,10 @@
                 if (cleanMyTitle !== "신규방문과제미배정" && cleanMyTitle !== cleanItemTitle) return false;
 
                 currentRecruitmentItem = item;
-
-                // 🎯 [정밀 교정 완료]: 지급일 차감 수식 대신, 대장의 정품 실제 방문일 변수를 1:1 다이렉트 매핑
-                let itemScheduleMap = {};
-                if (item.examSchedule) itemScheduleMap[item.examSchedule.trim()] = "스크리닝 방문";
-                if (item.recDate) itemScheduleMap[item.recDate.trim()] = "소집 방문 (임상시험 시작)";
-                if (item.visitDate1) itemScheduleMap[item.visitDate1.trim()] = "1차 방문채혈";
-                if (item.visitDate2) itemScheduleMap[item.visitDate2.trim()] = "2차 방문채혈";
-                if (item.visitDate3) itemScheduleMap[item.visitDate3.trim()] = "3차 방문채혈";
-                if (item.visitDate4) itemScheduleMap[item.visitDate4.trim()] = "4차 방문채혈";
-                if (item.endExamDate) itemScheduleMap[item.endExamDate.trim()] = "종료검사";
-
-                // 🎯 [주간 바 전수 검사]: 현재 켜져 있는 주간 바(7일) 영역 내에 내 일정이 걸쳐 있는지 스캔
-                const weeklyKeys = window.currentWeeklyDateKeys || [];
-                let briefingLines = [];
-
-                // 내 전체 7대 일정 캘린더 맵을 순회하며 이번 주간 바 날짜들과 교차 매칭 검문
-                for (const [dateKey, stageName] of Object.entries(itemScheduleMap)) {
-                    if (weeklyKeys.includes(dateKey)) {
-                        hasWeeklyScheduleInThisWindow = true; // 이번 주간 바에 내 임상 일정이 걸쳐 있음 포착
-                    }
-
-                    // 7대 마스터 족보 전체 리스트를 기획 서식(• yyyy년 mm월 dd일 (요일) : 차수명)으로 빌드업
-                    const dayObj = new Date(dateKey);
-                    if (!isNaN(dayObj.getTime())) {
-                        const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
-                        const formattedDateString = `${dayObj.getFullYear()}년 ${String(dayObj.getMonth() + 1).padStart(2, '0')}월 ${String(dayObj.getDate()).padStart(2, '0')}일 (${dayNamesShort[dayObj.getDay()]})`;
-
-                        let displayStageName = stageName;
-                        if (stageName.includes("스크리닝 방문")) displayStageName = "스크리닝";
-                        else if (stageName.includes("소집 방문")) displayStageName = "소집(입원)";
-
-                        briefingLines.push(`• ${formattedDateString} : ${displayStageName}`);
-                    }
-                }
-
-                // 날짜 순서대로 이탈 없이 정렬한 뒤 줄바꿈 태그(<br>) 파이프라인으로 최종 바인딩
-                currentWeeklyAllBriefingHtml = briefingLines.join('<br>');
-
                 return true;
             });
 
-
-            // 🎯 [구조적 결함 완치]: 실제 오늘 날짜에 사출된 카드가 있는지 체크하는 감시 카운터 장착
+            // 🎯 [구조적 결함 완치]: 실제 오늘 날짜에 사출된 카드가 있는지 체크하는 감시 카운터 초기화
             let renderedCardCount = 0;
 
             // 3. 필터링 동치 정착이 완료된 임상 과제를 기반으로 화면에 3대 액션 명세 카드 랙 사출 드로잉 [순정 수호]
@@ -841,7 +829,7 @@
                 const clickUid = item.uid ? item.uid : item.title;
                 const dynamicColorClass = `th-color-${thText}`;
 
-                // 1. 공고 원고 내부의 7대 정품 변수와 라벨 문자열 딕셔너리 조립
+                // 1. 공고 원고 내부의 7대 정품 실제 방문일 변수와 라벨 문자열 매트릭스 조립
                 const originalMilestones = [
                     { dateStr: item.examSchedule, label: "스크리닝 방문" },
                     { dateStr: item.recDate, label: "소집(입원)" },
@@ -852,7 +840,7 @@
                     { dateStr: item.endExamDate, label: "종료검사" }
                 ];
 
-                // 2. 가공 배열 대신 정품 마일스톤 배열을 순회하며 selectedDateStr과 일치성 대조
+                // 2. 정품 마일스톤 배열을 순회하며 사용자가 터치한 날짜(selectedDateStr)와 정밀 교차 검문
                 originalMilestones.forEach((schedule, idx) => {
                     if (!schedule.dateStr || schedule.dateStr.trim() === "" || schedule.dateStr === "미정") {
                         return;
@@ -861,12 +849,12 @@
                     // 날짜 하이픈 기호 포맷 소독 정제
                     const cleanMilestoneDate = schedule.dateStr.trim().replace(/[^0-9-]/g, "");
 
-                    // 💡 [핵심 정밀 타격]: 선택된 날짜와 원장 날짜가 일치하지 않으면 사출을 완벽 봉쇄 차단
+                    // 💡 [확실한 수정]: 선택된 날짜와 원장 날짜가 일치하지 않으면 사출을 완벽 봉쇄 차단
                     if (cleanMilestoneDate !== selectedDateStr) {
                         return;
                     }
 
-                    // 날짜 매칭에 성공했으므로 사출 카운터 가산
+                    // 날짜 매칭에 성공했으므로 실시간 사출 카운터 가산
                     renderedCardCount++;
 
                     const currentStageText = schedule.label;
@@ -874,7 +862,7 @@
                     const card = document.createElement('div');
                     card.className = 'trial-manifest-card';
 
-                    // 💡 [배경 가독성 솔리드 패킹 인상 완착]
+                    // 💡 [배경 가독성 솔리드 패킹 인상 완착 - 흐릿함 완전 박멸]
                     card.setAttribute("style", "margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);");
 
                     card.innerHTML = `
@@ -893,10 +881,9 @@
 </div>
 `;
 
-                    // 💡 [버그 1번 완치]: 스크리닝이 아니라고 해서 글자를 흐릿하게 강제 암전시키던 미래 날짜 락인(mobile-future-lock) 간섭 로직을 파쇄하여 모든 일정이 선명히 표출되도록 고대비 복원했습니다.
-
+                    // 💡 [가독성 수호 개혁]: 흐릿하게 시인성을 다운시키던 기존 mobile-future-lock 클래스 강제 추가 코드를 과감히 폐쇄하여 100% 선명도를 유지합니다.
                     cardBoard.appendChild(card);
-                }); // 💡 [중괄호 정밀 수리 완료]: 내부 originalMilestones.forEach 반복문이 여기서 완벽하게 단독 마감 종료됩니다.
+                }); // 💡 내부 originalMilestones.forEach 반복문 마감 종료
 
                 // ===== [순정 정품 4대 행정 안전 가드 신청 파이프라인 원형 보존 적재] =====
                 const btnJoin = document.getElementById(`btn_card_join_${uniqueSubKey}`);
@@ -922,7 +909,7 @@
 
                         if (finishedJobs.length > 0 && !myLiveJobRecord) {
                             finishedJobs.sort((a, b) => new Date(b.recDate) - new Date(a.recDate));
-                            const lastFinishedJob = finishedJobs;
+                            const lastFinishedJob = finishedJobs[0]; // 안전한 최상위 단일 레코드 객체 정밀 타깃팅
                             const systemCurrentTime = new Date();
                             const lastExamDate = new Date(lastFinishedJob.recDate);
                             const dayDiff = Math.floor((systemCurrentTime.getTime() - lastExamDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -980,10 +967,13 @@
 
                 if (document.getElementById(`btn_card_reject_${uniqueSubKey}`)) { document.getElementById(`btn_card_reject_${uniqueSubKey}`).onclick = function (e) { e.preventDefault(); alert('미참여 신청 되었습니다.'); }; }
                 if (document.getElementById(`btn_card_hist_${uniqueSubKey}`)) { document.getElementById(`btn_card_hist_${uniqueSubKey}`).onclick = function (e) { e.preventDefault(); openIndividualHistoryModalInMobile(cleanSessionName, item.title, thText); }; }
-            }); // 💡 [중괄호 정밀 수리 완착]: 최상위 targetRecords.forEach 상위 반복문이 여기서 완벽히 폐쇄 마감됩니다.
+            }); // 💡 최상위 targetRecords.forEach 상위 반복문 정합 종료
 
+            // =========================================================================
+            // 🎯 [수정 및 기획안 완착]: 선행 계산 및 카운터를 통한 예외 제어 분기점 최종 가동
+            // =========================================================================
 
-            // 🎯 [안테나 A 가드]: 사용자가 보고 있는 이번 주간 바 범위 전체에 대상자의 임상 일정이 단 하나도 걸쳐 있지 않을 때
+            // 🎯 [안테나 A]: 현재 열린 7일 주간 범위 전체를 통틀어 대상자의 마일스톤이 단 하나도 걸쳐 있지 않을 때
             if (!hasWeeklyScheduleInThisWindow) {
                 const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser);
                 cardBoard.innerHTML = `
@@ -999,7 +989,7 @@
                 return;
             }
 
-            // 🎯 [안테나 B 가드]: 이번 주간에 전체 일정은 존재하지만, 오늘 터치해 선택한 특정 날짜 하루에만 내 일정이 비어있을 때
+            // 🎯 [안테나 B]: 이번 주 범위 내에 다른 일정은 존재하나, 오늘 터치해 선택한 특정 날짜 하루에만 일정이 비어있을 때
             if (renderedCardCount === 0) {
                 const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser);
                 cardBoard.innerHTML = `

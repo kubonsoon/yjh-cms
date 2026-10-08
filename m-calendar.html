@@ -794,7 +794,7 @@
                 return cleanDbName === cleanSessionName && currentLiveStatus !== "" && !["종료", "탈락", "심사탈락"].includes(currentLiveStatus);
             });
 
-            // [통합 안테나 1]: 배정 과제 기록 데이터 자체가 완전히 누적되지 않은 피험자 (빨간색 고대비 단정화)
+            // [안테나 1]: 배정 과제 기록 데이터 자체가 완전히 누적되지 않은 피험자 (빨간색 고대비 단정화)
             if (!myLiveJobRecord) {
                 cardBoard.innerHTML = `
             <div style="color: #f43f5e; font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%;">
@@ -813,7 +813,6 @@
                 return myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase() === item.title.toString().replace(/\s/g, "").toLowerCase();
             });
 
-            // 만약 대상자 타이틀이 미배정 상태여서 매칭에 실패했다면, records 원장 전체의 스케줄 파킷을 교차 추적소 기동
             const targetScanItems = matchedRecruitmentItem ? [matchedRecruitmentItem] : records;
 
             const formatToKey = (rawStr) => {
@@ -823,11 +822,12 @@
                 return `${digits.substring(0, 4)}-${digits.substring(4, 6)}-${digits.substring(6, 8)}`;
             };
 
-            // 스캔 대상 풀(원장 전체)을 순회하며 현재 7일 레일 주간 내에 내 마일스톤 날짜가 단 하나라도 존재하는지 정밀 수색
+            // 주간 내 마일스톤 교차 수색용 맵 빌더
+            let weeklyTimelineMap = {};
+
             for (let item of targetScanItems) {
                 if (!item) continue;
                 let tempMap = {};
-
                 if (item.examSchedule) { let k = formatToKey(item.examSchedule); if (k) tempMap[k] = "스크리닝 방문"; }
                 if (item.recDate) { let k = formatToKey(item.recDate); if (k) tempMap[k] = "소집(입원)"; }
                 if (item.visitDate1) { let k = formatToKey(item.visitDate1); if (k) tempMap[k] = "1차 방문채혈"; }
@@ -836,15 +836,13 @@
                 if (item.visitDate4) { let k = formatToKey(item.visitDate4); if (k) tempMap[k] = "4차 방문채혈"; }
                 if (item.endExamDate) { let k = formatToKey(item.endExamDate); if (k) tempMap[k] = "종료검사"; }
 
-                for (const dateKey of Object.keys(tempMap)) {
-                    if (weeklyKeys.includes(dateKey)) {
+                for (const datekey of Object.keys(tempMap)) {
+                    if (weeklyKeys.includes(datekey)) {
                         hasWeeklyScheduleInThisWindow = true;
-                        // 안테나 A에 데이터 조각을 뿌려주기 위해 전역 바인딩용 포인터 복사
                         matchedRecruitmentItem = item;
-                        break;
                     }
+                    weeklyTimelineMap[datekey] = tempMap[datekey];
                 }
-                if (hasWeeklyScheduleInThisWindow) break;
             }
 
             const targetRecords = records.filter(item => {
@@ -876,28 +874,29 @@
                     const cleanMilestoneDate = schedule.dateStr.trim().replace(/[^0-9-]/g, "");
                     if (cleanMilestoneDate !== selectedDateStr) return;
 
-                    renderedCardCount++;
                     const currentStageText = schedule.label;
+                    renderedCardCount++;
                     const uniqueSubKey = `${clickUid}_${idx}`;
+
                     const card = document.createElement('div');
                     card.className = 'trial-manifest-card';
                     card.setAttribute("style", "margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);");
 
                     card.innerHTML = `
-                        <div class="card-top-row">
-                            <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${currentStageText}</div>
-                        </div>
-                        <div class="card-meta-grid" style="margin-top:6px;">
-                            <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">${item.title || '임상 과제명 미지정'}</span></div>
-                            <div>배정 정원: <span>${item.count ? item.count + '명' : ''}</span></div>
-                            <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>
-                        </div>
-                        <div class="card-action-bar" id="ui_action_bar_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
-                            <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
-                            <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background:#475569;">미참여</button>
-                            <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i> 이력조회</button>
-                        </div>
-                    `;
+                <div class="card-top-row">
+                    <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${currentStageText}</div>
+                </div>
+                <div class="card-meta-grid" style="margin-top:6px;">
+                    <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">${item.title || '임상 과제명 미지정'}</span></div>
+                    <div>배정 정원: <span>${item.count ? item.count + '명' : ''}</span></div>
+                    <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>
+                </div>
+                <div class="card-action-bar" id="ui_action_bar_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+                    <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
+                    <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background: #475569;">미참여</button>
+                    <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i> 이력조회</button>
+                </div>
+            `;
                     cardBoard.appendChild(card);
 
                     setTimeout(() => {
@@ -917,11 +916,16 @@
                                     return;
                                 }
 
-                                const isAlreadyClickedThisJob = appDB.some(app => (app.name || '').toString().trim() === (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser) && (app.title || '').toString().trim() === (item.title || '').toString().trim() && (app.th || '').toString().trim() === thText);
-                                let targetIdx = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName);
+                                const isAlreadyClickedThisJob = appDB.some(app =>
+                                    (app.name || '').toString().trim() === (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser) &&
+                                    (app.title || '').toString().trim() === (item.title || '').toString().trim() &&
+                                    (app.th || '').toString().trim() === thText
+                                );
+
+                                let targetIdx = appDB.findIndex(u => (u.name || "").toString().replace(/\s/g, "") === cleanSessionName);
 
                                 if (targetIdx !== -1 && isAlreadyClickedThisJob) {
-                                    let cleanFriendlyStage = "소집";
+                                    let cleanFriendlyStage = "";
                                     if (currentStageText.includes("1차")) cleanFriendlyStage = "1차방문";
                                     else if (currentStageText.includes("2차")) cleanFriendlyStage = "2차방문";
                                     else if (currentStageText.includes("3차")) cleanFriendlyStage = "3차방문";
@@ -931,7 +935,8 @@
                                     appDB[targetIdx].status = cleanFriendlyStage;
                                     appDB[targetIdx].stage = cleanFriendlyStage;
                                     localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                                    alert(`인증 성공\n\n대상자님의 참여 상태가 출석 [${appDB[targetIdx].status}] 단계로 정상 전진 업데이트 커밋되었습니다.`);
+
+                                    alert(`인증 성공\n\n대상자님의 참여 상태가 출석 정상 전진 업데이트 커밋되었습니다.\n[${appDB[targetIdx].status}] 단계로 전진.`);
 
                                     if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                                         window.opener.refreshApplicantView();
@@ -940,13 +945,14 @@
                                     return;
                                 }
 
-                                let targetIdxNew = appDB.findIndex(u => (u.name || '').toString().trim().replace(/\s/g, "") === cleanSessionName && (u.title || '').toString().trim() === "신규 방문 과제 미배정");
+                                let targetIdxNew = appDB.findIndex(u => (u.name || '').toString().replace(/\s/g, "") === cleanSessionName && (u.title || '').toString().trim() === "신규 방문 과제 미배정");
                                 const liveQuotaCount = appDB.filter(u => (u.title || '').toString().replace(/\s/g, "") === item.title.toString().replace(/\s/g, "") && (u.th || '').toString().replace(/\s/g, "") === thText.toString().replace(/\s/g, "")).length;
-
                                 const nextLineNumber = liveQuotaCount + 1;
                                 const liveProgressFormat = nextLineNumber + "/60";
+
                                 const newApplicantRecord = {
                                     uid: (targetIdxNew !== -1 ? appDB[targetIdxNew].uid : ("NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000))),
+                                    currentCertifiedUser,
                                     name: localStorage.getItem('certifiedUserName') || currentCertifiedUser,
                                     title: item.title,
                                     th: thText,
@@ -987,19 +993,7 @@
 
                 if (window.currentWeeklyDateKeys && window.currentWeeklyDateKeys.length > 0) {
                     window.currentWeeklyDateKeys.forEach(dateKey => {
-                        let activeStages = [];
                         const cleanKey = dateKey.trim();
-
-                        if (matchedRecruitmentItem) {
-                            if (matchedRecruitmentItem.examSchedule && matchedRecruitmentItem.examSchedule.trim() === cleanKey) activeStages.push("스크리닝 방문");
-                            if (matchedRecruitmentItem.recDate && matchedRecruitmentItem.recDate.trim() === cleanKey) activeStages.push("소집(입원)");
-                            if (matchedRecruitmentItem.visitDate1 && matchedRecruitmentItem.visitDate1.trim() === cleanKey) activeStages.push("1차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate2 && matchedRecruitmentItem.visitDate2.trim() === cleanKey) activeStages.push("2차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate3 && matchedRecruitmentItem.visitDate3.trim() === cleanKey) activeStages.push("3차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate4 && matchedRecruitmentItem.visitDate4.trim() === cleanKey) activeStages.push("4차 방문채혈");
-                            if (matchedRecruitmentItem.endExamDate && matchedRecruitmentItem.endExamDate.trim() === cleanKey) activeStages.push("종료검사");
-                        }
-
                         const dateParts = cleanKey.split('-');
                         const targetYear = parseInt(dateParts[0], 10);
                         const targetMonth = parseInt(dateParts[1], 10);
@@ -1009,36 +1003,40 @@
                         const dayName = daysMapShort[loopDateObj.getDay()];
                         const formattedLabel = `${targetYear}년 ${String(targetMonth).padStart(2, '0')}월 ${String(targetDay).padStart(2, '0')}일 (${dayName})`;
 
-                        if (activeStages.length > 0) {
-                            const combinedStages = activeStages.join(', ');
+                        // 원장 스케줄 맵에서 일치하는 마일스톤 추출
+                        const currentStageText = weeklyTimelineMap[cleanKey];
+
+                        if (currentStageText) {
                             weeklyScheduleBriefingHtml += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.25); padding:10px 12px; border-radius:8px; margin-bottom:5px; font-size:12.5px;">
-                            <span style="color:#ffffff; font-weight:600;">${formattedLabel}</span>
-                            <span style="color:#0ea5e9; font-weight:800; font-size:13px;"><i class="fa-solid fa-circle-dot" style="font-size:8px; margin-right:5px;"></i>${combinedStages}</span>
+                        <div style="display: flex; justify-content: space-between; align-items:center; background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.25); padding: 10px 12px; border-radius: 8px; margin-bottom: 5px; font-size:12.5px;">
+                            <span style="color:#ffffff; font-weight:600;">• ${formattedLabel} :</span>
+                            <span style="color:#0ea5e9; font-weight:800; font-size:13px;"><i class="fa-solid fa-circle-dot" style="font-size:8px; margin-right:5px;"></i>${currentStageText}</span>
                         </div>`;
                         } else {
                             weeklyScheduleBriefingHtml += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px; color:rgba(255,255,255,0.35);">
-                            <span>${formattedLabel}</span>
+                        <div style="display: flex; justify-content: space-between; align-items:center; padding: 8px 12px; border-bottom:1px solid rgba(255, 255, 255,0.04); font-size:12px; color: rgba(255,255,255,0.35);">
+                            <span>• ${formattedLabel} :</span>
                             <span style="font-weight:500; color:rgba(255,255,255,0.2);">-</span>
                         </div>`;
                         }
                     });
                 }
 
-                cardBoard.innerHTML = `
-            <div style="background:var(--card-color); border:1px solid var(--border-color); padding:14px; border-radius:14px; width:100%; box-shadow:0 4px 6px rgba(0,0,0,0.3);">
-                <div style="font-size:13px; font-weight:800; color:var(--warning-color); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-list-check"></i> 해당 주간 임상 일정
-                </div>
-                <div style="display:flex; flex-direction:column; gap:2px;">
-                    ${weeklyScheduleBriefingHtml}
-                </div>
-            </div>`;
+                const briefingBox = document.createElement('div');
+                briefingBox.setAttribute("style", "margin-top: 14px; background: var(--card-color); border: 1px solid var(--border-color); padding: 14px; border-radius: 14px; width: 100%; box-shadow:0 4px 6px rgba(0,0,0,0.3);");
+                briefingBox.innerHTML = `
+            <div style="font-size:13px; font-weight:800; color:var(--warning-color); margin-bottom: 12px; display: flex; align-items:center; gap: 6px;">
+                <i class="fa-solid fa-list-check"></i> 해당 주간 임상 일정 관제 통합 브리핑
+            </div>
+            <div style="display: flex; flex-direction: column; gap:2px;">
+                ${weeklyScheduleBriefingHtml}
+            </div>
+        `;
+                cardBoard.appendChild(briefingBox);
                 return;
             }
 
-            // [반전 보정]: 이번 주간 전체에 내 스케줄이 '단 하나도 존재하지 않을 때(false)' 깔끔한 안내 박스로 마무리
+            // [반전 보정]: 이번 주간 전체에 내 스케줄이 '단 하나도 존재하지 않을 때'
             if (!hasWeeklyScheduleInThisWindow) {
                 cardBoard.innerHTML = `
             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
@@ -1048,14 +1046,15 @@
                 return;
             }
 
-            // [안테나 B]: 이번 주 범위 내에 다른 일정은 존재하나, 오늘 터치해 선택한 특정 날짜 하루에만 일정이 비어있을 때 (프로필 제거형)
+            // [안테나 B]: 이번 주 범위 내에 다른 일정은 존재하나, 오늘 터치해 선택한 특정 날짜 하루에만 일정이 비어있을 때
             if (renderedCardCount === 0) {
-                cardBoard.innerHTML = `
-            <div style="color: #f43f5e; font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12.5px; color: #f43f5e; font-weight: 700;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
-            </div>`;
-                return;
+                const fallbackBox = document.createElement('div');
+                fallbackBox.setAttribute("style", "color: #f43f5e; font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%; margin-bottom:10px;");
+                fallbackBox.innerHTML = `
+            <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
+            <div style="font-size: 12.5px; color: #f43f5e; font-weight: 700;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
+        `;
+                cardBoard.insertBefore(fallbackBox, cardBoard.firstChild);
             }
         }
 

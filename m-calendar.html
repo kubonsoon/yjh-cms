@@ -983,11 +983,12 @@
             }); // 💡 [중괄호 정밀 수리 완착]: 최상위 targetRecords.forEach 상위 반복문이 여기서 완벽히 폐쇄 마감됩니다.
 
 
-            // 안테나 A: 사용자가 보고 있는 이번 주간 바 범위 전체에 내 임상 일정이 단 하나도 안 걸쳐 있을 때
+            // 🎯 [안테나 A 가드]: 사용자가 보고 있는 이번 주간 바 범위 전체에 대상자의 임상 일정이 단 하나도 걸쳐 있지 않을 때
             if (!hasWeeklyScheduleInThisWindow) {
+                const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser);
                 cardBoard.innerHTML = `
                     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
-                        <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
+                        <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
                         <div style="color: #ffffff; font-weight: 800; font-size: 14.5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 5px;">
                             <span>👤 ${liveCertifiedName} (${displayBirth6})</span>
                             <span class="${genderClass}" style="padding:1px 5px; border-radius:4px; font-size:11px; font-weight:800;">${genderText}</span>
@@ -998,8 +999,9 @@
                 return;
             }
 
-            // 안테나 B: 이번 주간에 일정은 존재하지만, 오늘 선택한 특정 날짜 하루에만 내 일정이 비어있을 때
+            // 🎯 [안테나 B 가드]: 이번 주간에 전체 일정은 존재하지만, 오늘 터치해 선택한 특정 날짜 하루에만 내 일정이 비어있을 때
             if (renderedCardCount === 0) {
+                const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || (myLiveJobRecord ? myLiveJobRecord.name : currentCertifiedUser);
                 cardBoard.innerHTML = `
                     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                         <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>

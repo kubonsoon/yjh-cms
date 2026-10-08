@@ -814,13 +814,21 @@
 
             if (matchedRecruitmentItem) {
                 let tempMap = {};
-                if (matchedRecruitmentItem.examSchedule) tempMap[matchedRecruitmentItem.examSchedule.trim()] = "스크리닝 방문";
-                if (matchedRecruitmentItem.recDate) tempMap[matchedRecruitmentItem.recDate.trim()] = "소집(입원)";
-                if (matchedRecruitmentItem.visitDate1) tempMap[matchedRecruitmentItem.visitDate1.trim()] = "1차 방문채혈";
-                if (matchedRecruitmentItem.visitDate2) tempMap[matchedRecruitmentItem.visitDate2.trim()] = "2차 방문채혈";
-                if (matchedRecruitmentItem.visitDate3) tempMap[matchedRecruitmentItem.visitDate3.trim()] = "3차 방문채혈";
-                if (matchedRecruitmentItem.visitDate4) tempMap[matchedRecruitmentItem.visitDate4.trim()] = "4차 방문채혈";
-                if (matchedRecruitmentItem.endExamDate) tempMap[matchedRecruitmentItem.endExamDate.trim()] = "종료검사";
+                // [정밀 보정]: 원장의 날짜 문자열에서 특수문자를 정제하고 표준 하이픈 구조(YYYY-MM-DD)로 강제 정렬하여 매칭 실패를 원천 차단
+                const formatToKey = (rawStr) => {
+                    if (!rawStr || rawStr.trim() === "" || rawStr === "미정") return null;
+                    const digits = rawStr.replace(/[^0-9]/g, ""); // 숫자만 강제 추출
+                    if (digits.length !== 8) return rawStr.trim(); // 8자리가 아닐 땐 기본 트리밍 백업
+                    return `${digits.substring(0, 4)}-${digits.substring(4, 6)}-${digits.substring(6, 8)}`;
+                };
+
+                if (matchedRecruitmentItem.examSchedule) { let k = formatToKey(matchedRecruitmentItem.examSchedule); if (k) tempMap[k] = "스크리닝 방문"; }
+                if (matchedRecruitmentItem.recDate) { let k = formatToKey(matchedRecruitmentItem.recDate); if (k) tempMap[k] = "소집(입원)"; }
+                if (matchedRecruitmentItem.visitDate1) { let k = formatToKey(matchedRecruitmentItem.visitDate1); if (k) tempMap[k] = "1차 방문채혈"; }
+                if (matchedRecruitmentItem.visitDate2) { let k = formatToKey(matchedRecruitmentItem.visitDate2); if (k) tempMap[k] = "2차 방문채혈"; }
+                if (matchedRecruitmentItem.visitDate3) { let k = formatToKey(matchedRecruitmentItem.visitDate3); if (k) tempMap[k] = "3차 방문채혈"; }
+                if (matchedRecruitmentItem.visitDate4) { let k = formatToKey(matchedRecruitmentItem.visitDate4); if (k) tempMap[k] = "4차 방문채혈"; }
+                if (matchedRecruitmentItem.endExamDate) { let k = formatToKey(matchedRecruitmentItem.endExamDate); if (k) tempMap[k] = "종료검사"; }
 
                 for (const dateKey of Object.keys(tempMap)) {
                     if (weeklyKeys.includes(dateKey)) {

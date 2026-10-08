@@ -985,21 +985,36 @@
                 const daysMapShort = ['일', '월', '화', '수', '목', '금', '토'];
                 let weeklyScheduleBriefingHtml = "";
 
+                // [정밀 방어선]: 첫 로드 시 로그인 상태 변화로 인해 변수가 흔들릴 때 실시간 원격 강제 추적 역교정
+                let secureRecruitmentItem = matchedRecruitmentItem;
+                if (!secureRecruitmentItem) {
+                    const localRecords = getMasterData() || [];
+                    const cleanLiveName = (localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser || "").replace(/\s/g, "");
+                    const liveAppDB = getApplicantData() || [];
+                    const activeTargetJob = [...liveAppDB].reverse().find(app => app && app.name && app.name.replace(/\s/g, "") === cleanLiveName && !["종료", "탈락", "심사탈락"].includes(app.stage));
+
+                    if (activeTargetJob && activeTargetJob.title) {
+                        secureRecruitmentItem = localRecords.find(item => item.title && item.title.replace(/\s/g, "").toLowerCase() === activeTargetJob.title.replace(/\s/g, "").toLowerCase());
+                    }
+                }
+
                 if (window.currentWeeklyDateKeys && window.currentWeeklyDateKeys.length > 0) {
                     window.currentWeeklyDateKeys.forEach(dateKey => {
                         let activeStages = [];
                         const cleanKey = dateKey.trim();
 
-                        if (matchedRecruitmentItem) {
-                            if (matchedRecruitmentItem.examSchedule && matchedRecruitmentItem.examSchedule.trim() === cleanKey) activeStages.push("스크리닝 방문");
-                            if (matchedRecruitmentItem.recDate && matchedRecruitmentItem.recDate.trim() === cleanKey) activeStages.push("소집(입원)");
-                            if (matchedRecruitmentItem.visitDate1 && matchedRecruitmentItem.visitDate1.trim() === cleanKey) activeStages.push("1차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate2 && matchedRecruitmentItem.visitDate2.trim() === cleanKey) activeStages.push("2차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate3 && matchedRecruitmentItem.visitDate3.trim() === cleanKey) activeStages.push("3차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate4 && matchedRecruitmentItem.visitDate4.trim() === cleanKey) activeStages.push("4차 방문채혈");
-                            if (matchedRecruitmentItem.endExamDate && matchedRecruitmentItem.endExamDate.trim() === cleanKey) activeStages.push("종료검사");
+                        // [데이터 결합 락인]: 가로챈 보안 아이템을 기반으로 요일별 일정 문자열 바인딩
+                        if (secureRecruitmentItem) {
+                            if (secureRecruitmentItem.examSchedule && secureRecruitmentItem.examSchedule.trim() === cleanKey) activeStages.push("스크리닝 방문");
+                            if (secureRecruitmentItem.recDate && secureRecruitmentItem.recDate.trim() === cleanKey) activeStages.push("소집(입원)");
+                            if (secureRecruitmentItem.visitDate1 && secureRecruitmentItem.visitDate1.trim() === cleanKey) activeStages.push("1차 방문채혈");
+                            if (secureRecruitmentItem.visitDate2 && secureRecruitmentItem.visitDate2.trim() === cleanKey) activeStages.push("2차 방문채혈");
+                            if (secureRecruitmentItem.visitDate3 && secureRecruitmentItem.visitDate3.trim() === cleanKey) activeStages.push("3차 방문채혈");
+                            if (secureRecruitmentItem.visitDate4 && secureRecruitmentItem.visitDate4.trim() === cleanKey) activeStages.push("4차 방문채혈");
+                            if (secureRecruitmentItem.endExamDate && secureRecruitmentItem.endExamDate.trim() === cleanKey) activeStages.push("종료검사");
                         }
 
+                        // [원본 유지 락인]: 날짜 배열 정밀 가로채기 대괄호 구문 구조 완전 사수
                         const dateParts = cleanKey.split('-');
                         const targetYear = parseInt(dateParts[0], 10);
                         const targetMonth = parseInt(dateParts[1], 10);
@@ -1035,11 +1050,11 @@
                     ${weeklyScheduleBriefingHtml}
                 </div>
             </div>`;
-                return; // 락인: 첫 로드 시 브리핑 리스트를 그리고 안전하게 여기서 함수 종료
+                return; // 첫 로드 시 브리핑 리스트를 정상 조출한 뒤 제어권 종료
             }
 
             // =========================================================================
-            // [예외 가드 블록 1]: 주차 이동 화살표를 눌렀는데 이번 주 전체에 일정이 아예 없을 때 (골드 스킨)
+            // [예외 가드 블록 1]: 주차 이동 화살표를 눌렀는데 이번 주 전체에 일정이 아예 없을 때 (골드 스킨 유지)
             // =========================================================================
             if (!hasWeeklyScheduleInThisWindow && window.isWeekArrowClicked) {
                 cardBoard.innerHTML = `
@@ -1051,11 +1066,11 @@
             }
 
             // =========================================================================
-            // 💡 [주의] 이 자리에 원본의 진짜 일자별 카드 조각 생성 팩토리(targetRecords.forEach)가 위치해 있어야 합니다.
+            // 💡 [주의] 이 자리에 원본의 진짜 일자별 카드 조각 생성 팩토리(targetRecords.forEach)가 위치해야 합니다.
             // =========================================================================
 
             // =========================================================================
-            // [예외 가드 블록 2]: 요일을 직접 눌렀거나 첫 로드 시 데이터가 비어있을 때 (스카이 블루 스킨)
+            // [예외 가드 블록 2]: 요일을 직접 눌렀거나 첫 로드 시 데이터가 비어있을 때 (스카이 블루 스킨 유지)
             // =========================================================================
             if (renderedCardCount === 0) {
                 cardBoard.innerHTML = `
@@ -1065,6 +1080,7 @@
             </div>`;
                 return;
             }
+
         }
 
         //참여누적 이력조회 ㅇ

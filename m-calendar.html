@@ -981,7 +981,7 @@
             });
 
             // [완벽 치유 안테나 A]: 현재 열린 7일 주간 범위 전체에 걸쳐 종합 브리핑 캘린더 사출
-            if (hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked && (window.isWeekArrowClicked === false || typeof window.isWeekArrowClicked === 'undefined')) {
+            if (hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked && !window.isWeekArrowClicked) {
                 const daysMapShort = ['일', '월', '화', '수', '목', '금', '토'];
                 let weeklyScheduleBriefingHtml = "";
 
@@ -1035,25 +1035,25 @@
                     ${weeklyScheduleBriefingHtml}
                 </div>
             </div>`;
-                return;
+                return; // 첫 로드 성공 시 상세 카드로 흐르지 않게 안전 락 차단
             }
 
-            // [반전 보정]: 화살표 주차 이동 버튼을 클릭하여 이동했는데, 이번 주간 전체에 내 스케줄이 '단 하나도 존재하지 않을 때'
+            // [예외 가드 블록 1]: 주차 이동 화살표를 눌렀는데 이번 주 전체에 일정이 아예 없을 때
             if (!hasWeeklyScheduleInThisWindow && window.isWeekArrowClicked) {
                 cardBoard.innerHTML = `
             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                 <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12px; color: #f43f5e; font-weight: 700;">이번주에는 등록된 임상시험 일정이 없습니다</div>
+                <div style="font-size: 12px; color: #eab308; font-weight: 700;">이번주에는 등록된 임상시험 일정이 없습니다</div>
             </div>`;
                 return;
             }
 
-            // [안테나 B]: 첫 로드 상태이거나 특정 일자를 터치해 선택했는데 당일 데이터가 비어있을 때 (요구사항 요구 문구 100% 매립 및 등록된 배지 단어 소독)
+            // [예외 가드 블록 2]: 첫 로드 시 데이터가 아예 없거나, 특정 요일을 눌렀는데 당일 일정이 비어있을 때
             if (renderedCardCount === 0) {
                 cardBoard.innerHTML = `
             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                 <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12.5px; color: #f43f5e; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다</div>
+                <div style="font-size: 12.5px; color: #0ea5e9; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다</div>
             </div>`;
                 return;
             }

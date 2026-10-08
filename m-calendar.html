@@ -873,21 +873,22 @@
                     card.className = 'trial-manifest-card';
                     card.setAttribute("style", "margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);");
 
+                    // 요청하신 정품 마크업 형태 그대로 원본 복구
                     card.innerHTML = `
-                        <div class="card-top-row">
-                            <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${currentStageText}</div>
-                        </div>
-                        <div class="card-meta-grid" style="margin-top:6px;">
-                            <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">${item.title || '임상 과제명 미지정'}</span></div>
-                            <div>배정 정원: <span>${item.count ? item.count + '명' : ''}</span></div>
-                            <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>
-                        </div>
-                        <div class="card-action-bar" id="ui_action_bar_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
-                            <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
-                            <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background:#475569;">미참여</button>
-                            <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i> 이력조회</button>
-                        </div>
-                    `;
+                <div class="card-top-row">
+                    <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${currentStageText}</div>
+                </div>
+                <div class="card-meta-grid" style="margin-top:6px;">
+                    <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">${item.title || '임상 과제명 미지정'}</span></div>
+                    <div>배정 정원: <span>${item.count ? item.count + '명' : ''}</span></div>
+                    <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>
+                </div>
+                <div class="card-action-bar" id="ui_action_bar_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+                    <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
+                    <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background:#475569;">미참여</button>
+                    <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i> 이력조회</button>
+                </div>
+            `;
                     cardBoard.appendChild(card);
 
                     setTimeout(() => {

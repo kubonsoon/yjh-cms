@@ -956,47 +956,42 @@
             });
 
             // [완벽 치유 안테나 A]: 현재 열린 7일 주간 범위 전체에 걸쳐 종합 브리핑 캘린더 사출
-            if (!hasWeeklyScheduleInThisWindow) {
+            if (hasWeeklyScheduleInThisWindow) {
                 const daysMapShort = ['일', '월', '화', '수', '목', '금', '토'];
                 let weeklyScheduleBriefingHtml = "";
 
                 if (window.currentWeeklyDateKeys && window.currentWeeklyDateKeys.length > 0) {
                     window.currentWeeklyDateKeys.forEach(dateKey => {
-                        let matchedStageName = "";
+                        let activeStages = [];
+                        const cleanKey = dateKey.trim();
 
-                        // [정밀 보정]: 로컬스토리지 원장 데이터 포맷과 화면의 7일 레일 날짜 조각을 명확히 싱크 매칭
                         if (matchedRecruitmentItem) {
-                            if (matchedRecruitmentItem.examSchedule && matchedRecruitmentItem.examSchedule.trim() === dateKey) matchedStageName = "스크리닝 방문";
-                            else if (matchedRecruitmentItem.recDate && matchedRecruitmentItem.recDate.trim() === dateKey) matchedStageName = "소집(입원)";
-                            else if (matchedRecruitmentItem.visitDate1 && matchedRecruitmentItem.visitDate1.trim() === dateKey) matchedStageName = "1차 방문채혈";
-                            else if (matchedRecruitmentItem.visitDate2 && matchedRecruitmentItem.visitDate2.trim() === dateKey) matchedStageName = "2차 방문채혈";
-                            else if (matchedRecruitmentItem.visitDate3 && matchedRecruitmentItem.visitDate3.trim() === dateKey) matchedStageName = "3차 방문채혈";
-                            else if (matchedRecruitmentItem.visitDate4 && matchedRecruitmentItem.visitDate4.trim() === dateKey) matchedStageName = "4차 방문채혈";
-                            else if (matchedRecruitmentItem.endExamDate && matchedRecruitmentItem.endExamDate.trim() === dateKey) matchedStageName = "종료검사";
+                            if (matchedRecruitmentItem.examSchedule && matchedRecruitmentItem.examSchedule.trim() === cleanKey) activeStages.push("스크리닝 방문");
+                            if (matchedRecruitmentItem.recDate && matchedRecruitmentItem.recDate.trim() === cleanKey) activeStages.push("소집(입원)");
+                            if (matchedRecruitmentItem.visitDate1 && matchedRecruitmentItem.visitDate1.trim() === cleanKey) activeStages.push("1차 방문채혈");
+                            if (matchedRecruitmentItem.visitDate2 && matchedRecruitmentItem.visitDate2.trim() === cleanKey) activeStages.push("2차 방문채혈");
+                            if (matchedRecruitmentItem.visitDate3 && matchedRecruitmentItem.visitDate3.trim() === cleanKey) activeStages.push("3차 방문채혈");
+                            if (matchedRecruitmentItem.visitDate4 && matchedRecruitmentItem.visitDate4.trim() === cleanKey) activeStages.push("4차 방문채혈");
+                            if (matchedRecruitmentItem.endExamDate && matchedRecruitmentItem.endExamDate.trim() === cleanKey) activeStages.push("종료검사");
                         }
 
-                        // [버그 치유 포인트]: dateKey("2026-10-08")의 배열 인덱스를 명확히 분리 추출하여 날짜 객체 파싱 실패 차단
-                        const dateParts = dateKey.split('-');
+                        const dateParts = cleanKey.split('-');
                         const targetYear = parseInt(dateParts[0], 10);
                         const targetMonth = parseInt(dateParts[1], 10);
                         const targetDay = parseInt(dateParts[2], 10);
 
-                        // 자바스크립트의 Month는 0부터 시작하므로 -1 처리를 명확히 반영하여 요일 깨짐 원천 방어
                         const loopDateObj = new Date(targetYear, targetMonth - 1, targetDay);
                         const dayName = daysMapShort[loopDateObj.getDay()];
-
-                        // 가독성 높은 한국어 표준 가이드 라벨 텍스트 사출
                         const formattedLabel = `${targetYear}년 ${String(targetMonth).padStart(2, '0')}월 ${String(targetDay).padStart(2, '0')}일 (${dayName})`;
 
-                        if (matchedStageName !== "") {
-                            // 일정이 매칭된 진짜 날짜는 야광 하늘색 라벨 배지로 강조 출력
+                        if (activeStages.length > 0) {
+                            const combinedStages = activeStages.join(', ');
                             weeklyScheduleBriefingHtml += `
                         <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.25); padding:10px 12px; border-radius:8px; margin-bottom:5px; font-size:12.5px;">
                             <span style="color:#ffffff; font-weight:600;">${formattedLabel}</span>
-                            <span style="color:#0ea5e9; font-weight:800; font-size:13px;"><i class="fa-solid fa-circle-dot" style="font-size:8px; margin-right:5px;"></i>${matchedStageName}</span>
+                            <span style="color:#0ea5e9; font-weight:800; font-size:13px;"><i class="fa-solid fa-circle-dot" style="font-size:8px; margin-right:5px;"></i>${combinedStages}</span>
                         </div>`;
                         } else {
-                            // 일정이 없는 일반 일자는 플랫하게 대시(-) 처리
                             weeklyScheduleBriefingHtml += `
                         <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px; color:rgba(255,255,255,0.35);">
                             <span>${formattedLabel}</span>
@@ -1006,7 +1001,6 @@
                     });
                 }
 
-                // 최종 수집 완료된 주간 종합 브리핑 테이블 드로잉
                 cardBoard.innerHTML = `
             <div style="background:var(--card-color); border:1px solid var(--border-color); padding:14px; border-radius:14px; width:100%; box-shadow:0 4px 6px rgba(0,0,0,0.3);">
                 <div style="font-size:13px; font-weight:800; color:var(--warning-color); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
@@ -1018,6 +1012,17 @@
             </div>`;
                 return;
             }
+
+            // [반전 보정]: 이번 주간 전체에 내 스케줄이 '단 하나도 존재하지 않을 때(false)' 깔끔한 안내 박스로 마무리
+            if (!hasWeeklyScheduleInThisWindow) {
+                cardBoard.innerHTML = `
+            <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
+                <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
+                <div style="font-size: 12px; color: #f43f5e; font-weight: 700;">이번주에는 등록된 임상시험 일정이 없습니다</div>
+            </div>`;
+                return;
+            }
+
 
 
             // [안테나 B]: 이번 주 범위 내에 다른 일정은 존재하나, 오늘 터치해 선택한 특정 날짜 하루에만 일정이 비어있을 때 (프로필 제거형)

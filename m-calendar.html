@@ -525,6 +525,16 @@
             font-weight: 900 !important;
             text-shadow: 0 0 6px rgba(0, 240, 255, 0.8) !important;
         }
+
+        /* 대상자 목록의 이력 스킨과 동일한 시인성을 확보하기 위한 warning 계열 색상 바인딩 */
+        .card-btn.history-sync {
+            background: var(--warning-color) !important;
+            color: #0b0f19 !important;
+        }
+
+        .card-btn.history-sync:active {
+            background: #e5a91d !important;
+        }
     </style>
 
 </head>
@@ -877,20 +887,19 @@
                     card.setAttribute("style", "margin-bottom: 10px; border: 1px solid var(--border-color);");
 
                     card.innerHTML = `
-                <div class="card-top-row">
-                    <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${currentStageText}</div>
-                    <div class="card-th-badge ${dynamicColorClass}">[${thText}]</div>
-                </div>
-                <div class="card-meta-grid" style="margin-top:6px;">
-                    <div>연계 과제: <span style="color:#38bdf8; font-weight:700;">${item.title || '임상 과제명 미지정'}</span></div>
-                    <div>배정 정원: <span>${item.count ? item.count + '명' : '-'}</span></div>
-                    <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>
-                </div>
-                <div class="card-action-bar" id="ui_action_bar_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
-                    <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
-                    <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background:#475569;">미 참여</button>
-                    <button type="button" class="card-btn close" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px; background:#1e293b;"><i class="fa-solid fa-clock-history"></i> 이력</button>
-                </div>
+                     <div class="card-top-row">
+                     <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;"> \${currentStageText}</div>
+                     </div>
+                     <div class="card-meta-grid" style="margin-top:6px;">
+                     <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">\${item.title || '임상 과제명 미지정'}</span></div>
+                     <div>배정 정원: <span>\${item.count? item.count + '명' : ''}</span></div>
+                     <div>임상 기간: <span>\${item.period? item.period + '시간' : ''}</span></div>
+                     </div>
+                     <div class="card-action-bar" id="ui_action_bar_\${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+                     <button type="button" class="card-btn join" id="btn_card_join_\${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
+                     <button type="button" class="card-btn reject" id="btn_card_reject_\${uniqueSubKey}" style="height:32px; font-size:12.5px; background:#475569;">미 참여</button>
+                     <button type="button" class="card-btn history-sync" id="btn_card_hist_\${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i> 이력</button>
+                     </div>
             `;
 
                     const liveStatusText = myLiveJobRecord.status || myLiveJobRecord.stage || "신검대기";

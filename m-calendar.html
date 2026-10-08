@@ -754,16 +754,35 @@
             const records = getMasterData();
             let applicantDB = getApplicantData() || [];
 
-            // [정밀 동기화]: window.onload에서 정제되어 박힌 세션 유저명을 최우선으로 가로채기
-            const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser;
+            // [정밀 동기화]: window.onload가 가공해 놓은 진짜 유저 데이터 패킷의 우선순위를 1순위로 인계
+            let liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser || "";
+            let targetSsn = localStorage.getItem('loggedInUserSsn') || "";
+
+            // [타이밍 랙 완치]: 만약 렌더링 타이밍에 개별 키가 미처 풀리지 않았다면 객체 원장(loggedInUser)에서 즉시 교차 복합 수색
+            if (!liveCertifiedName || !targetSsn) {
+                let parentUserRaw = localStorage.getItem('loggedInUser');
+                if (parentUserRaw) {
+                    try {
+                        let parsedParentUser = JSON.parse(parentUserRaw);
+                        if (parsedParentUser) {
+                            if (parsedParentUser.name && !liveCertifiedName) liveCertifiedName = parsedParentUser.name.toString().trim();
+                            if (parsedParentUser.ssn && !targetSsn) targetSsn = parsedParentUser.ssn.toString().trim();
+                        }
+                    } catch (e) {
+                        console.error("[전산 오류] renderDailyCards 객체 파싱 실패:", e);
+                    }
+                }
+            }
+
+            // 만약 전산망에 세션이 아예 부재할 때만 리스크 방지용 가드 처리
+            if (!liveCertifiedName || liveCertifiedName === "홍길동") { liveCertifiedName = "인증 대상자"; }
+
             const cleanSessionName = liveCertifiedName.replace(/\s/g, "");
-
-            // [잔상 파쇄]: 가짜 데이터(851023-2)를 완전히 들어내고 공백 처리하여 초기 랙 방어
-            const targetSsn = localStorage.getItem('loggedInUserSsn') || sessionStorage.getItem('loggedInUserSsn') || "";
             const cleanSsn = targetSsn.replace(/[^0-9a-zA-Z]/g, "");
-            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "";
 
-            // 기본 상태를 대기 상태(-)로 설정하여 가짜 정보 노출을 전면 차단
+            // 진짜 주민번호 데이터가 로드되었을 때만 6자리를 안전하게 잘라내고, 완전히 비어있을 때는 하이픈(------) 마크로 가짜 정보 노출 방어
+            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "------";
+
             let genderText = "-";
             let genderClass = "gender-indicator-badge";
 
@@ -781,18 +800,9 @@
                 genderClass = "gender-indicator-badge gender-wait";
             }
 
-            const myLiveJobRecord = [...applicantDB].reverse().find(app => {
-                if (!app || !app.name) return false;
-                const cleanDbName = app.name.toString().replace(/\s/g, "");
-                const currentLiveStatus = (app.status || app.stage || "").toString().trim();
-                return cleanDbName === cleanSessionName && currentLiveStatus !== "" && !["종료", "탈락", "심사탈락"].includes(currentLiveStatus);
-            });
-
             const pIframe = window.parent ? window.parent.document : null;
             const lockProfileSlot = document.getElementById('lblSetTargetNew') || (pIframe ? pIframe.getElementById('lblSetTargetNew') : null);
-
             if (lockProfileSlot) {
-                // [완치 포인트]: 진짜 로그인 유저가 실시간 로드되는 즉시 거름망 없이 프로필, 생년월일, 성별 배지를 원샷 사출합니다.
                 if (cleanSessionName) {
                     lockProfileSlot.innerHTML = `
                 <span style="color:#ffffff; font-weight:800;">${liveCertifiedName}</span>
@@ -1037,8 +1047,6 @@
                 return;
             }
 
-
-
             // [안테나 B]: 이번 주 범위 내에 다른 일정은 존재하나, 오늘 터치해 선택한 특정 날짜 하루에만 일정이 비어있을 때 (프로필 제거형)
             if (renderedCardCount === 0) {
                 cardBoard.innerHTML = `
@@ -1093,18 +1101,18 @@
         window.onload = function () {
             // [가변 유저 대응형 최종 완착] 독립 기동 즉시 진짜 내 세션 가로채기 3중 수신소
             let logUserStr = localStorage.getItem('loggedInUser');
-            let activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
-            let logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
+            let activeTargetName = "";
+            let logUserSsn = "";
 
+            // [교정 포인트 1]: 다른 가드 조건 없이 'loggedInUser' 객체 내부의 진짜 회원 정보를 무조건 최우선으로 디코딩 파싱
             if (logUserStr) {
                 try {
                     let parsedLogUser = JSON.parse(logUserStr);
                     if (parsedLogUser) {
-                        if (parsedLogUser.name && !activeTargetName) {
+                        if (parsedLogUser.name) {
                             activeTargetName = parsedLogUser.name.toString().trim();
                         }
-                        // 주 데이터 원장에 ssn이 존재할 경우 가짜 더미가 끼어들 여지를 완전 차단
-                        if (parsedLogUser.ssn && !logUserSsn) {
+                        if (parsedLogUser.ssn) {
                             logUserSsn = parsedLogUser.ssn.toString().trim();
                         }
                     }
@@ -1113,19 +1121,32 @@
                 }
             }
 
-            // 만약 세션 스토리지 및 캐시가 모두 부재할 때만 시스템 정지 방지용 플레이스홀더 적용
-            if (!activeTargetName || activeTargetName === "홍길동") {
-                activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "인증 대상자";
+            // 2차 백업 수색선 작동 (원장 객체가 완전히 비어있을 때만 개별 키값 추적)
+            if (!activeTargetName) {
+                activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
             }
             if (!logUserSsn) {
                 logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
             }
+
+            // [교정 포인트 2]: 가짜 임시어 "인증 대상자" 및 "홍길동" 단어를 영구 제거하여 전역 메모리 오염 원천 차단
+            if (!activeTargetName || activeTargetName === "홍길동") {
+                activeTargetName = currentCertifiedUser || "";
+            }
+            // 전산망 최하위 가드 처리
+            if (!activeTargetName) { activeTargetName = "인증 대상자"; }
+
+            // 최종 정제 완료된 유저 성명과 주민번호 정보를 로컬 세션에 확실히 락인(Lock-in)
             sessionStorage.setItem('certifiedUserName', activeTargetName);
+            localStorage.setItem('certifiedUserName', activeTargetName);
+            if (logUserSsn) {
+                localStorage.setItem('loggedInUserSsn', logUserSsn);
+            }
 
             // 주민번호 기반 생년월일 6자리 및 성별 식별 인터록 완착
             const cleanSsn = logUserSsn.replace(/[^0-9a-zA-Z]/g, "");
 
-            // 진짜 주민번호 데이터가 확보되었을 때만 자르고, 비어있으면 투명하게 대기 마크 처리
+            // 진짜 데이터가 로드되었을 때만 6자리를 자르고, 완벽히 비어있으면 바(-) 마크로 투명 대기
             const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "------";
             let genderText = "-";
             let genderClass = "gender-indicator-badge";
@@ -1141,7 +1162,7 @@
                 }
             }
 
-            // 상단 네온 프로필 팩토리 초기화 즉시 직격 사출 (시간차 랙 해결)
+            // 상단 네온 프로필 팩토리 초기화 즉시 직격 사출 (시간차 랙 완치)
             const selfTargetSlot = document.getElementById('lblSetTargetNew') || (window.parent ? window.parent.document.getElementById('lblSetTargetNew') : null);
             if (selfTargetSlot) {
                 selfTargetSlot.innerHTML = `

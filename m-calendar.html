@@ -877,19 +877,33 @@
                 const thText = (item.th || "2기").trim();
                 const clickUid = item.uid ? item.uid : item.title;
                 const dynamicColorClass = `th-color-${thText}`;
-                const weeklyList = item._computedWeeklyList || [];
 
-                weeklyList.forEach((schedule, idx) => {
+                // 1. 공고 원고 내부의 7대 정품 변수와 라벨 문자열 딕셔너리 조립
+                const originalMilestones = [
+                    { dateStr: item.examSchedule, label: "스크리닝 방문" },
+                    { dateStr: item.recDate, label: "소집(입원)" },
+                    { dateStr: item.visitDate1, label: "1차 방문채혈" },
+                    { dateStr: item.visitDate2, label: "2차 방문채혈" },
+                    { dateStr: item.visitDate3, label: "3차 방문채혈" },
+                    { dateStr: item.visitDate4, label: "4차 방문채혈" },
+                    { dateStr: item.endExamDate, label: "종료검사" }
+                ];
 
-                    // ==========================================
-                    // 수정/변경 소스 (날짜 일치 판별 및 필터링 가드 조건 추가)
-                    // ==========================================
-                    // 💡 [확실한 수정] 현재 캘린더 일정이 사용자가 주간 바에서 선택한 날짜와 다르면 화면 사출을 차단합니다.
-                    if (schedule.dateStr !== selectedDateStr) {
+                // 2. 가공 배열 대신 정품 마일스톤 배열을 순회하며 selectedDateStr과 일치성 대조
+                originalMilestones.forEach((schedule, idx) => {
+                    if (!schedule.dateStr || schedule.dateStr.trim() === "" || schedule.dateStr === "미정") {
                         return;
                     }
 
-                    const currentStageText = schedule.labelText || "";
+                    // 날짜 하이픈 기호 포맷 소독 정제
+                    const cleanMilestoneDate = schedule.dateStr.trim().replace(/[^0-9-]/g, "");
+
+                    // 선택된 날짜와 원장 날짜가 일치하지 않으면 패스
+                    if (cleanMilestoneDate !== selectedDateStr) {
+                        return;
+                    }
+
+                    const currentStageText = schedule.label;
                     const uniqueSubKey = `${clickUid}_${idx}`;
                     const card = document.createElement('div');
                     card.className = 'trial-manifest-card';
@@ -913,7 +927,9 @@
 
                     const liveStatusText = myLiveJobRecord.status || myLiveJobRecord.stage || "신검대기";
                     if (liveStatusText === "신검대기" || liveStatusText === "신검통과") {
-                        if (!currentStageText.includes("스크리닝")) { card.classList.add('mobile-future-lock'); }
+                        if (!currentStageText.includes("스크리닝")) {
+                            card.classList.add('mobile-future-lock');
+                        }
                     }
 
                     cardBoard.appendChild(card);

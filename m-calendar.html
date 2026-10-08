@@ -753,16 +753,31 @@
             const records = getMasterData();
             let applicantDB = getApplicantData() || [];
 
+            // [정밀 동기화]: window.onload에서 정제되어 박힌 세션 유저명을 최우선으로 가로채기
             const liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser;
             const cleanSessionName = liveCertifiedName.replace(/\s/g, "");
 
-            const targetSsn = localStorage.getItem('loggedInUserSsn') || sessionStorage.getItem('loggedInUserSsn') || "851023-2";
-            const cleanSsn = targetSsn.replace(/[^0-9]/g, "");
-            const displayBirth6 = cleanSsn.substring(0, 6) || "851023";
-            let genderText = "여", genderClass = "gender-indicator-badge gender-f";
-            if (cleanSsn.endsWith("1") || cleanSsn.endsWith("3") || cleanSsn.includes("M") || cleanSsn.endsWith("M") || cleanSsn.charAt(6) === "1" || cleanSsn.charAt(6) === "3") {
-                genderText = "남";
-                genderClass = "gender-indicator-badge gender-m";
+            // [잔상 파쇄]: 가짜 데이터(851023-2)를 완전히 들어내고 공백 처리하여 초기 랙 방어
+            const targetSsn = localStorage.getItem('loggedInUserSsn') || sessionStorage.getItem('loggedInUserSsn') || "";
+            const cleanSsn = targetSsn.replace(/[^0-9a-zA-Z]/g, "");
+            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "";
+
+            // 기본 상태를 대기 상태(-)로 설정하여 가짜 정보 노출을 전면 차단
+            let genderText = "-";
+            let genderClass = "gender-indicator-badge";
+
+            if (cleanSsn.length >= 7) {
+                const genderMarker = cleanSsn.charAt(6).toUpperCase();
+                if (["1", "3", "5", "M"].includes(genderMarker)) {
+                    genderText = "남";
+                    genderClass = "gender-indicator-badge gender-m";
+                } else if (["2", "4", "6", "F"].includes(genderMarker)) {
+                    genderText = "여";
+                    genderClass = "gender-indicator-badge gender-f";
+                }
+            } else if (cleanSsn.length > 0) {
+                genderText = "확인중";
+                genderClass = "gender-indicator-badge gender-wait";
             }
 
             const myLiveJobRecord = [...applicantDB].reverse().find(app => {
@@ -775,23 +790,23 @@
             const pIframe = window.parent ? window.parent.document : null;
             const lockProfileSlot = document.getElementById('lblSetTargetNew') || (pIframe ? pIframe.getElementById('lblSetTargetNew') : null);
             if (lockProfileSlot) {
-                lockProfileSlot.innerHTML = `
-            <span style="color:#ffffff; font-weight:800;">${liveCertifiedName}</span>
-            <span style="color:rgba(255,255,255,0.4); font-weight: 500; margin-left:2px;">(${displayBirth6})</span>
-            <span class="${genderClass}" style="margin-left: 5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight:800; display: inline-block; line-height:1.3;">${genderText}</span>
-        `;
+                // 유저 정보가 정상적으로 포획되었을 때만 프로필 영역을 깨끗하게 렌더링
+                if (cleanSessionName && cleanSessionName !== "홍길동") {
+                    lockProfileSlot.innerHTML = `
+                <span style="color:#ffffff; font-weight:800;">${liveCertifiedName}</span>
+                <span style="color:rgba(255,255,255,0.4); font-weight: 500; margin-left:2px;">(${displayBirth6})</span>
+                <span class="${genderClass}" style="margin-left: 5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight:800; display: inline-block; line-height:1.3;">${genderText}</span>
+            `;
+                }
             }
 
             if (!myLiveJobRecord) {
                 cardBoard.innerHTML = `
-            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 16px; border-radius: 12px; margin-bottom: 12px;">
-                <div style="margin-bottom: 8px; font-size: 13px;">
-                    <span style="color:#ffffff; font-weight:800;">${liveCertifiedName}</span>
-                    <span style="color:rgba(255,255,255,0.4); font-weight:500; margin-left:2px;">(${displayBirth6})</span>
-                    <span class="${genderClass}" style="margin-left: 5px; padding:1px 5px; border-radius: 4px; font-size: 11px; font-weight:800; display: inline-block; line-height:1.3;">${genderText}</span>
-                </div>
-                <div style="color:var(--text-muted); text-align:center; padding:15px; font-size: 13px; font-weight: 500;">
-                    선택하신 일자에는 등록된 임상시험 일정이 없습니다.
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 24px 16px; border-radius: 14px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+                <i class="fa-solid fa-calendar-xmark" style="font-size: 26px; color: var(--text-muted); margin-bottom: 10px; display: block;"></i>
+                <div style="color:var(--text-color); font-weight: 700; font-size: 14px; margin-bottom: 4px;">배정된 임상시험 정보가 없습니다.</div>
+                <div style="color:var(--text-muted); font-size: 12px; font-weight: 500; line-height: 1.4;">
+                    대상자님은 현재 참여 중이거나 전산 심사 대기 중인<br>임상시험 과제 일정이 존재하지 않습니다.
                 </div>
             </div>`;
                 return;

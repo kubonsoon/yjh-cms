@@ -532,8 +532,12 @@
             color: #0b0f19 !important;
         }
 
+        /* [정밀 교정]: 누르는 순간 강력한 !important로 노란색 락을 깨부수고 파란색 사출 */
         .card-btn.history-sync:active {
             background: #0e66e9 !important;
+            /* 👈 !important 추가 */
+            color: #ffffff !important;
+            /* 클릭 시 글자색도 화이트로 반전시켜 시인성 극대화 */
         }
     </style>
 
@@ -907,7 +911,7 @@
                 <div class="card-action-bar" id="ui_action_bar_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
                     <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
                     <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background:#475569;">미참여</button>
-                    <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i> 이력조회</button>
+                    <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i>이력조회</button>
                 </div>
             `;
                     cardBoard.appendChild(card);

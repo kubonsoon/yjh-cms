@@ -635,13 +635,14 @@
                     currentCertifiedUser = parsedLogUser.name.toString().trim();
                     sessionStorage.setItem('certifiedUserName', currentCertifiedUser);
                 }
-            } catch (e) { console.error("[전산 오류] 로그인 캐시 복합 파싱 실패:", e); }
+            } catch (e) {
+                console.error("[전산 오류] 로그인 캐시 복합 파싱 실패:", e);
+            }
         }
 
-        // 만약 백업 세션까지 부재 시 안전가드로 폴백 바인딩
+        // [초기 가짜 잔상 완전 소독]: 백업 세션 부재 시 홍길동을 강제 주입하던 구문을 파쇄하고 투명한 대기 상태로 변경
         if (!currentCertifiedUser) {
-            currentCertifiedUser = "홍길동";
-            sessionStorage.setItem('certifiedUserName', "홍길동");
+            currentCertifiedUser = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
         }
 
         function getMasterData() {

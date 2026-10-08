@@ -787,42 +787,66 @@
                 }
             }
 
+            const myLiveJobRecord = [...applicantDB].reverse().find(app => {
+                if (!app || !app.name) return false;
+                const cleanDbName = app.name.toString().replace(/\s/g, "");
+                const currentLiveStatus = (app.status || app.stage || "").toString().trim();
+                return cleanDbName === cleanSessionName && currentLiveStatus !== "" && !["종료", "탈락", "심사탈락"].includes(currentLiveStatus);
+            });
+
+            // [안테나 1]: 배정 과제 기록 데이터 자체가 완전히 누적되지 않은 피험자 (빨간색 고대비 단정화)
             if (!myLiveJobRecord) {
                 cardBoard.innerHTML = `
-             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%;">
-                        <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
-                        <div style="font-size: 12.5px; color: #f43f5e; font-weight: 600;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
-                    </div>`;
+            <div style="color: #f43f5e; font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; width: 100%;">
+                <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #f43f5e; margin-bottom: 8px; display: block;"></i>
+                <div style="font-size: 12.5px; color: #f43f5e; font-weight: 700;">선택하신 일자에는 등록된 임상시험 일정이 없습니다</div>
+            </div>`;
                 return;
             }
 
             let hasWeeklyScheduleInThisWindow = false;
             const weeklyKeys = window.currentWeeklyDateKeys || [];
 
-            const matchedRecruitmentItem = records.find(item => {
-                if (!item.title) return false;
+            // [마스터 타격 교정]: 대상자가 과제 미배정 상태이거나 명칭 랙이 발생해도 원장 스케줄을 추적할 수 있도록 가드 완화
+            let matchedRecruitmentItem = records.find(item => {
+                if (!item.title || !myLiveJobRecord || !myLiveJobRecord.title) return false;
                 return myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase() === item.title.toString().replace(/\s/g, "").toLowerCase();
             });
 
-            if (matchedRecruitmentItem) {
-                let tempMap = {};
-                if (matchedRecruitmentItem.examSchedule) tempMap[matchedRecruitmentItem.examSchedule.trim()] = "스크리닝 방문";
-                if (matchedRecruitmentItem.recDate) tempMap[matchedRecruitmentItem.recDate.trim()] = "소집(입원)";
-                if (matchedRecruitmentItem.visitDate1) tempMap[matchedRecruitmentItem.visitDate1.trim()] = "1차 방문채혈";
-                if (matchedRecruitmentItem.visitDate2) tempMap[matchedRecruitmentItem.visitDate2.trim()] = "2차 방문채혈";
-                if (matchedRecruitmentItem.visitDate3) tempMap[matchedRecruitmentItem.visitDate3.trim()] = "3차 방문채혈";
-                if (matchedRecruitmentItem.visitDate4) tempMap[matchedRecruitmentItem.visitDate4.trim()] = "4차 방문채혈";
-                if (matchedRecruitmentItem.endExamDate) tempMap[matchedRecruitmentItem.endExamDate.trim()] = "종료검사";
+            const targetScanItems = matchedRecruitmentItem ? [matchedRecruitmentItem] : records;
 
-                for (const dateKey of Object.keys(tempMap)) {
-                    if (weeklyKeys.includes(dateKey)) {
+            const formatToKey = (rawStr) => {
+                if (!rawStr || rawStr.trim() === "" || rawStr === "미정") return null;
+                const digits = rawStr.replace(/[^0-9]/g, "");
+                if (digits.length !== 8) return rawStr.trim();
+                return `${digits.substring(0, 4)}-${digits.substring(4, 6)}-${digits.substring(6, 8)}`;
+            };
+
+            // 주간 내 마일스톤 교차 수색용 맵 빌더
+            let weeklyTimelineMap = {};
+
+            for (let item of targetScanItems) {
+                if (!item) continue;
+                let tempMap = {};
+                if (item.examSchedule) { let k = formatToKey(item.examSchedule); if (k) tempMap[k] = "스크리닝 방문"; }
+                if (item.recDate) { let k = formatToKey(item.recDate); if (k) tempMap[k] = "소집(입원)"; }
+                if (item.visitDate1) { let k = formatToKey(item.visitDate1); if (k) tempMap[k] = "1차 방문채혈"; }
+                if (item.visitDate2) { let k = formatToKey(item.visitDate2); if (k) tempMap[k] = "2차 방문채혈"; }
+                if (item.visitDate3) { let k = formatToKey(item.visitDate3); if (k) tempMap[k] = "3차 방문채혈"; }
+                if (item.visitDate4) { let k = formatToKey(item.visitDate4); if (k) tempMap[k] = "4차 방문채혈"; }
+                if (item.endExamDate) { let k = formatToKey(item.endExamDate); if (k) tempMap[k] = "종료검사"; }
+
+                for (const datekey of Object.keys(tempMap)) {
+                    if (weeklyKeys.includes(datekey)) {
                         hasWeeklyScheduleInThisWindow = true;
+                        matchedRecruitmentItem = item;
                     }
+                    weeklyTimelineMap[datekey] = tempMap[datekey];
                 }
             }
 
             const targetRecords = records.filter(item => {
-                if (!item.title) return false;
+                if (!item.title || !myLiveJobRecord || !myLiveJobRecord.title) return false;
                 const cleanMyTitle = myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase();
                 const cleanItemTitle = item.title.toString().replace(/\s/g, "").toLowerCase();
                 if (cleanMyTitle !== "신규방문과제미배정" && cleanMyTitle !== cleanItemTitle) return false;
@@ -830,6 +854,7 @@
             });
 
             let renderedCardCount = 0;
+            //여기까지 문제없음
 
             targetRecords.forEach(item => {
                 const thText = (item.th || "2기").trim();

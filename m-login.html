@@ -400,16 +400,39 @@
             box-sizing: border-box;
         }
 
+        /* 변경 후 반영된 코드 */
         .embedded-result-popup {
             background: #0b1528 !important;
             border-radius: 16px !important;
             width: 100% !important;
             text-align: center !important;
+
+
             border: 2px solid #1e293b !important;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4) !important;
             margin-top: 0px !important;
             /* 위쪽 유령 마진 공백을 원천 소독하여 가이드라인 바로 밑단으로 바짝 밀착 */
             box-sizing: border-box;
+        }
+
+        /* === [추가 및 보정 지점]: 원본 마크업 흐름을 깨지 않도록 독립형 모달 팝업 가독성 클래스 주입 === */
+        /* 어두운 테마 환경에서 신규 대상자 확인 알림의 시인성을 복구하기 위한 연한 그레이 색상 스킨 */
+        .modal-desc-zone {
+            color: #e5e7eb !important;
+            font-size: 13.5px !important;
+            line-height: 1.6 !important;
+            word-break: keep-all !important;
+        }
+
+        /* '180일 이상 기한이 지난 자', '실시간 일정관리 스케줄러' 등 기획 주요 키워드 고휘도 화이트 강조 */
+        .modal-desc-zone strong {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+        }
+
+        /* 본문 글자 단락과 하부 터치 버튼 간의 답답한 접촉 면적을 해결하기 위한 5px 이상(20px 적용) 여백 가드 */
+        .modal-action-btn-spacer {
+            margin-top: 20px !important;
         }
 
         .pop-icon-box {

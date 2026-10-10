@@ -1308,19 +1308,22 @@
                 const targetChannel = (typeof currentChannelName !== "undefined" && currentChannelName) ? currentChannelName : "간편인증";
                 const targetName = name || "대상자";
 
-                /* === [수정 및 보정 지점]: 변수 출력 자리에 대괄호 [ ] 를 감싸고 선명한 에메랄드 그린(#34d399) 컬러로 교정 === */
+                /* === [수정 및 보정 지점]: 다크 박스의 하단 마진(margin-bottom)을 0px로 압축하고, 본문 영역의 상단 마진을 완전히 제거하여 공백 소멸 === */
                 document.getElementById('txtPopMessage').innerHTML = `
-    <!-- 인증정보 요약 박스: 내부 패딩 및 마진 최소화로 세로폭 압축 -->
-    <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; text-align: left; font-size: 13px;">
-        <div style="margin-bottom: 4px; display: flex; align-items: center;">
+    <!-- 인증정보 요약 박스: 위로 밀착시키고 하단 마진을 완전히 소독하여 간격 벌어짐 차단 -->
+    <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 6px 12px; margin-top: -6px !important; margin-bottom: 0px !important; text-align: left; font-size: 13px; line-height: 1.2;">
+        <div style="margin-bottom: 3px; display: flex; align-items: center;">
             <span style="color: #64748b; width: 65px; flex-shrink: 0;">인증기관</span>
             <span style="color: #e2e8f0; font-weight: 600;"><span style="color: #34d399 !important; font-weight: 700;">[${targetChannel}]</span> 연동모듈</span>
         </div>
-        <div style="display: flex; align-items: center;"><span style="color: #64748b; width: 65px; flex-shrink: 0;">대상자</span><span style="color: #38bdf8; font-weight: 600;">${targetName}님 <span style="color: #94a3b8; font-size: 11px; font-weight: 400; margin-left: 4px;">(최초 방문 / 만료자)</span></span></div>
+        <div style="display: flex; align-items: center;">
+            <span style="color: #64748b; width: 65px; flex-shrink: 0;">대상자</span>
+            <span style="color: #38bdf8; font-weight: 600;">${targetName}님 <span style="color: #94a3b8; font-size: 11px; font-weight: 400; margin-left: 4px;">(최초 방문 / 만료자)</span></span>
+        </div>
     </div>
 
-    <!-- 안내 본문 영역: 세로 간격을 좁히고 문단 간 여백 최소화, 화이트와 실버그레이 배색으로 가독성 최적화 -->
-    <div style="text-align: center; font-size: 14px; padding: 0; margin: 0;">
+    <!-- 안내 본문 영역: 상단 여백(margin-top)을 4px로 극소화하여 박스 아랫단과 바짝 밀착 처리 -->
+    <div style="text-align: center; font-size: 14px; padding: 0; margin: 4px 0 0 0 !important;">
         <p style="margin: 0 0 6px 0; line-height: 1.4; color: #cbd5e1;">
             양지병원 임상시험 참여 이력이 없거나<br>
             최근 시험 참여 후 종료된 지<br><span style="color: #ef4444; font-weight: 700;">180일 이상</span> 지난 대상자입니다.

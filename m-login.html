@@ -388,16 +388,25 @@
 
         /* [3단계: 결과 알림 팝업] */
         .popup-display-zone {
-            flex: 1;
-            display: flex;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: flex-start !important;
-            /* 중앙 홀딩 가드를 파쇄하고 1·2단계처럼 상단 배치 개통 */
-            padding-top: 2px !important;
-            /* 1, 2단계 입력창 서식이 시작되는 물리적 상단 높이 좌표와 100% 동일화 */
-            width: 100%;
-            box-sizing: border-box;
+            background: #0f172a;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* === [수정 및 보정 지점]: 1~4단계 스타일 가이드라인을 역추적하여 색상, 정렬을 맞추고 규격 마진 주입 === */
+        .popup-display-zone p.msg-content {
+            /* 1. 박스 세로값을 슬림하게 줄이기 위해 상하 패딩을 축소하고 텍스트 정렬을 중앙으로 통일 */
+            padding: 10px 14px !important;
+            text-align: center !important;
+
+            /* 2. 타 단계 출력물과 이질감이 없도록 가독성이 높은 선명한 화이트/실버 톤으로 색상 변경 */
+            color: #f1f5f9 !important;
+            font-size: 14px;
+            line-height: 1.6;
+            word-break: keep-all;
+
+            /* 3. 박스 바로 밑에 배치되는 확인 버튼과의 간격을 정확히 5~7px 범위인 6px로 고정 가드 선언 */
+            margin-bottom: 6px !important;
         }
 
         /* 변경 후 반영된 코드 */

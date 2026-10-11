@@ -808,15 +808,20 @@
                 }
             }
 
-            if (!myLiveJobRecord) {
+            /* === [수정 및 보정 지점]: 신규 대상자 플래그(isNew) 및 가상 계정(VIRTUAL_) 판별 세션 식별 락 설계 === */
+            const cachedUserObj = JSON.parse(localStorage.getItem('loggedInUser')) || {};
+            const isGhostUser = cachedUserObj.isNew === true || (myLiveJobRecord && (myLiveJobRecord.isNewUserGhost === true || myLiveJobRecord.uid.toString().startsWith("VIRTUAL_")));
+
+            // 기존 참여자들에게는 원래의 필터와 가드를 100% 철저히 작동시키되, 신규 대상자 분기일 때만 안내창 차단막(return)을 우회 통과 개방
+            if (!myLiveJobRecord && !isGhostUser) {
                 cardBoard.innerHTML = `
-            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 24px 16px; border-radius: 14px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 26px; color: var(--text-muted); margin-bottom: 10px; display: block;"></i>
-                <div style="color:var(--text-color); font-weight: 700; font-size: 14px; margin-bottom: 4px;">배정된 임상시험 정보가 없습니다.</div>
-                <div style="color:var(--text-muted); font-size: 12px; font-weight: 500; line-height: 1.4;">
-                    대상자님은 현재 참여 중이거나 전산 심사 대기 중인<br>임상시험 과제 일정이 존재하지 않습니다.
-                </div>
-            </div>`;
+    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 24px 16px; border-radius: 14px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+    <i class="fa-solid fa-calendar-xmark" style="font-size: 26px; color: var(--text-muted); margin-bottom: 10px; display: block;"></i>
+    <div style="color:var(--text-color); font-weight: 700; font-size: 14px; margin-bottom: 4px;">배정된 임상시험 정보가 없습니다.</div>
+    <div style="color:var(--text-muted); font-size: 12px; font-weight: 500; line-height: 1.4;">
+    대상자님은 현재 참여 중이거나 전산 심사 대기 중인 <br> 임상시험 과제 일정이 존재하지 않습니다.
+    </div>
+    </div>`;
                 return;
             }
 
@@ -847,8 +852,12 @@
                 }
             }
 
+            /* === [수정 및 보정 지점]: 기존 유저 필터는 100% 유지하되, 신규 가상유저(isGhostUser) 분기일 때는 모든 공고 일정을 전수 통과 공급 === */
             const targetRecords = records.filter(item => {
-                if (!item.title) return false;
+                if (!item || !item.title) return false;
+                if (isGhostUser) return true; // 신규 및 180일 만료자는 필터막을 해제하고 모든 공고 데이터를 그대로 상속 배정
+
+                // 기존 정규 참여자 필터링 메커니즘 (원본 규칙 100% 철저히 보존)
                 const cleanMyTitle = myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase();
                 const cleanItemTitle = item.title.toString().replace(/\s/g, "").toLowerCase();
                 if (cleanMyTitle !== "신규방문과제미배정" && cleanMyTitle !== cleanItemTitle) return false;

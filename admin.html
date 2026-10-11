@@ -2238,7 +2238,8 @@
             let isDataCleaned = false;
             db.forEach((user) => {
                 /* === [추가 지점]: 가상 티켓 대상자 유입 시 초기 참여상태를 '대기'로 변환 및 커밋 === */
-                if (user && user.uid && user.uid.toString().startsWith("VIRTUAL_")) {
+                /* === [보정 지점]: 관리자가 수정 편집 중인 대상자(!user.isEditMode)일 때는 강제 리턴 롤백 가드를 완전 제외 차단시킴 === */
+                if (user && user.uid && user.uid.toString().startsWith("VIRTUAL_") && !user.isEditMode) {
                     if (!user.status || user.status === "신검대기") {
                         user.status = "대기";
                         isDataCleaned = true;
@@ -2248,7 +2249,6 @@
                         isDataCleaned = true;
                     }
                 }
-
                 if (
                     user.isDutyAgreed === undefined ||
                     user.isDutyAgreed === null ||
@@ -3374,14 +3374,13 @@
                         }
                         </td>
                         
-                        <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px; box-sizing: border-box !important;">
-                            <div style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
-                                <button type="button" class="btn-inline" onclick="openAppHistoryDetailModal(${masterIndex})" style="background: #0e66e9 !important; color: #ffffff !important; padding: 5px 6px !important; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">이력</button>
-                                <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
-<!-- === [보정 지점]: 문자열 주소 파괴를 차단하기 위해 함수 인자값 양옆에 탈출 따옴표('\\'') 장착 === -->
-<button type="button" class="btn-inline delete" onclick="removeApplicantRecord('\${row.uid}')">삭제</button>
-</div>
-                        </td>
+                       <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px; box-sizing: border-box !important;">
+    <div style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
+        <button type="button" class="btn-inline" onclick="openAppHistoryDetailModal(${masterIndex})" style="background: #0e66e9 !important; color: #ffffff !important; padding: 5px 6px !important; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">이력</button>
+        <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
+        <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')">삭제</button>
+    </div>
+</td>
                     `;
                 }
 

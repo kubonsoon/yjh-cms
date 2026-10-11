@@ -1220,14 +1220,18 @@
             // =========================================================================
             // [예외 가드 블록 2]: 특정 요일을 직접 클릭해서 들어왔는데 당일 데이터가 비어있을 때 (첫 번째 이미지의 스카이 블루 스킨)
             // =========================================================================
+            /* === [보정 지점]: 주간 전체 목록 상태(window.isDayButtonClicked가 false이고 아래 카드가 이미 있을 때)에는 이 안내문 출현을 완벽히 차단 박멸 === */
             const isGhostUserActionCheck = (typeof inlineGhostUserCheck !== "undefined") ? inlineGhostUserCheck : (cachedUserObj.isNew === true || (myLiveJobRecord && (myLiveJobRecord.isNewUserGhost === true || myLiveJobRecord.uid.toString().startsWith("VIRTUAL_"))));
 
-            if (renderedCardCount === 0 && (window.isDayButtonClicked || isGhostUserActionCheck)) {
+            // 신규 대상자 트랙이면서 주간 목록에 이미 대량의 카드가 뿌려져 상주하고 있다면 가드 가동을 강제 불허 처리
+            const isWeeklyListAlreadyPopulated = isGhostUserActionCheck && !window.isDayButtonClicked && (cardBoard.querySelectorAll('.trial-manifest-card').length > 0);
+
+            if (renderedCardCount === 0 && !isWeeklyListAlreadyPopulated && (window.isDayButtonClicked || isGhostUserActionCheck)) {
                 cardBoard.innerHTML = `
-                <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12.5px; color: #38bdf8; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다</div>
-                </div>`;
+    <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
+    <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
+    <div style="font-size: 12.5px; color: #38bdf8; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다</div>
+    </div>`;
                 return;
             }
         }

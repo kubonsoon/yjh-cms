@@ -3323,8 +3323,9 @@
                             ${row.ssn ? row.ssn.toString().trim().substring(0, 6) : "-"}
                         </td>
                         <td style="width: 4.5%; vertical-align: middle; text-align: center;">
-                            <span class="lvl-badge ${parseGenderFromSsn(db[masterIndex].ssn, row.name) === "남" ? "lvl-2" : "lvl-10"}">
-                                ${parseGenderFromSsn(db[masterIndex].ssn, row.name)}
+                            <!-- 💡 [진짜 마지막 버그 소독완료]: db[masterIndex] 노이즈를 완전히 걷어내고 순정 row.ssn 축선으로 1,000% 정밀 동치 매칭 -->
+                            <span class="lvl-badge ${parseGenderFromSsn(row.ssn, row.name) === "남" ? "lvl-2" : "lvl-10"}">
+                                ${parseGenderFromSsn(row.ssn, row.name)}
                             </span>
                         </td>
                         <td style="width: 11%; vertical-align: middle; text-align: center;">${formatPhone(row.phone)}</td>

@@ -3921,12 +3921,20 @@
                     applicantDB = dataStoreApplicant;
                 }
 
-                // ❸ 🎯 [DOM 다이렉트 스캔]: 현재 수정 폼 안에 물려있는 이름(name)과 전화번호(phone) 인풋창 요소를 가로채어 진짜 데이터 역추적
-                // 화면에 드러난 엘리먼트에서 masterIndex 찌꺼기가 꼬여있을 확률을 감안해 모든 ID 패턴 전수 대조 추적
-                // ❸ 🎯 [DOM 다이렉트 스캔]: 현재 수정 폼 안에 물려있는 인풋창 요소를 가로채어 진짜 데이터 역추적
+                // [식별자 우선 수거선]: 직접 백슬래시(\) 소독을 완료하신 히든 데이터 필드에서 진짜 고유 uid 파싱
+                const hiddenUidEl = document.getElementById(`inline-app-uid-${index}`);
+                const targetUid = hiddenUidEl ? hiddenUidEl.value : "";
+
+                // 정렬로 인해 뒤틀린 임시 index 대신 원장 대장 배열에서 진짜 피험자 방 번호(exactMasterIdx) 정밀 역추적
+                let exactMasterIdx = index;
+                if (targetUid) {
+                    const foundIdx = applicantDB.findIndex(d => String(d.uid) === String(targetUid));
+                    if (foundIdx !== -1) exactMasterIdx = foundIdx;
+                }
+
+                // ❸ 🎯 [DOM 다이렉트 스캔]: 뒤틀림이 소독된 exactMasterIdx를 축선으로 현재 수정 폼 안의 인풋창 요소를 가로챔
                 const findInputVal = (baseId) => {
-                    // 유효 스코프를 벗어난 row 객체 대신, 사전에 확보한 고유 targetUid 및 인덱스로 정확히 조준 타격
-                    const el = document.getElementById(`${baseId}-${targetUid}`) || document.getElementById(`${baseId}-${index}`) || document.querySelector(`[id^="${baseId}-"]`);
+                    const el = document.getElementById(`${baseId}-${exactMasterIdx}`) || document.getElementById(`${baseId}-${index}`) || document.querySelector(`[id^="${baseId}-"]`);
                     return el ? el.value.trim() : "";
                 };
 
@@ -3935,19 +3943,11 @@
 
                 if (!n || !ph) return alert("알림: 대상자 이름과 전화번호 데이터는 필수 항목이므로 빈칸으로 둘 수 없습니다.");
 
-                // ❹ 🔒 [초정밀 대상자 수색 레이더]: uid 기반 1순위 검색 가드를 탑재하여 이름/번호 수정 시에도 오차 없이 추적
-                let idx = -1;
+                // ❹ 🔒 [초정밀 대상자 수색 레이더]: 고유 식별자 uid 기반으로 대상 원본방 번호(idx) 최종 확정 락인
+                let idx = exactMasterIdx;
                 if (targetUid) {
-                    idx = applicantDB.findIndex(d => String(d.uid) === String(targetUid));
-                }
-
-                // uid 색인 실패 혹은 구형 상주 유저 대응용 2순위 이름/전화번호 대조 콤보 레이더 가동
-                if (idx === -1) {
-                    idx = applicantDB.findIndex(d => {
-                        const cleanDbName = (d.name || "").toString().replace(/\s/g, "");
-                        const cleanDbPhone = (d.phone || "").toString().replace(/[^0-9]/g, "");
-                        return cleanDbName === n.replace(/\s/g, "") && cleanDbPhone === ph;
-                    });
+                    const foundIdx = applicantDB.findIndex(d => String(d.uid) === String(targetUid));
+                    if (foundIdx !== -1) idx = foundIdx;
                 }
 
                 if (idx === -1) {
@@ -3958,9 +3958,9 @@
                 const origin = applicantDB[idx];
                 const id = origin.uid;
 
-                // ❺ 가변 컴포넌트 알맹이 값 강제 수거
+                // ❺ 가변 컴포넌트 알맹이 값 강제 수거 (exactMasterIdx 조준선 적용)
                 const getElVal = (baseId, fallback) => {
-                    const el = document.getElementById(`${baseId}-${index}`) || document.querySelector(`[id^="${baseId}-"]`);
+                    const el = document.getElementById(`${baseId}-${exactMasterIdx}`) || document.getElementById(`${baseId}-${index}`) || document.querySelector(`[id^="${baseId}-"]`);
                     return el ? el.value : fallback;
                 };
 

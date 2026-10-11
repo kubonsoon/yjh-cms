@@ -3310,10 +3310,6 @@
                     );
                     const finalAppCountText = liveAppIdxNum + "/" + trueParentQuota;
 
-                    // 🚀 ❸ [최종 조준선 동치화 화면 드로잉 마감]: db[masterIndex] 노이즈 전면 제거 및 순정 row 상속 투사
-                    const tr = document.createElement("tr");
-                    tr.setAttribute("data-uid", row.uid);
-
                     tr.innerHTML = `
                          <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important; box-sizing: border-box !important;" class="text-bold">${row.title || ""}</td>
                         <td style="width: 6%; vertical-align: middle; text-align: center;"><span class="lvl-badge ${thBadgeClass}">${row.th || "-"}</span></td>

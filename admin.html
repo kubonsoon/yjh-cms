@@ -4052,7 +4052,7 @@
 
                 // 🚀 🎯 [화면 출력 버퍼 동적 치환]: 통째 복사를 완전히 지워버리고 오직 수정이 발생한 고유 uid 대상자방만 화면 버퍼에서 칼정밀 치환!!
                 if (typeof db !== 'undefined' && db.length > 0) {
-                    const dbIdx = db.findIndex(item => item && item.uid === id);
+                    const dbIdx = db.findIndex(item => item && String(item.uid) === String(id));
                     if (dbIdx !== -1) db[dbIdx] = updatedPayload;
                 }
 

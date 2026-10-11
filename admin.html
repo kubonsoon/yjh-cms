@@ -2920,9 +2920,8 @@
                         pureQuotaOnly =
                             quotaTokens.length >= 2
                                 ? quotaTokens[quotaTokens.length - 1].replace(/[^0-9]/g, "")
-                                : quotaTokens.replace(/[^0-9]/g, "");
+                                : quotaTokens.replace(/[^0-9]/g, ""); // 💡 원본 에러 유발점: 배열 객체에 replace()를 사용하여 크래시 발생
                     }
-
                     tr.innerHTML = `
                   <!-- === [데이터 유실 방지 가드 주입]: 수정 시 가상 고유 키셋이 소멸·뒤틀리지 않도록 히든 데이터 필드 배치 === -->
           <input type="hidden" id="inline-app-uid-${masterIndex}" value="${row.uid}">

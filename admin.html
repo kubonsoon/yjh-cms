@@ -3909,32 +3909,21 @@
         * 🎯 [대상자목록 수정관련]: 목록 내에서 직접 수정한 가변 데이터를 대장에 영구 커밋하는 함수
         * (상단 등록 폼을 오염시키지 않고 목록 자체에서 실시간 세이브 및 성별 기호를 보존 처리합니다)
         */
-        function saveInlineApplicantRecord(index, explicitUid) {
+        function saveInlineApplicantRecord(index) {
             try {
-                // [역순 뒤틀림 영구 박멸선]: 줄 번호에 속지 않기 위해 현재 불이 켜진 수정 행을 직격 포착
-                const targetRowDOM = document.querySelector('.editing-row');
-                if (!targetRowDOM) return alert("수정 대상자 행 (Row)의 메모리 컨텍스트를 포착하지 못했습니다.");
+                // ❶ [역순 뒤틀림 영구 박멸선]: 줄 번호에 속지 않기 위해 현재 불이 켜진 수정 행을 직격 포착
+                const targetRowDOM = document.querySelector(`.editing-row`);
+                if (!targetRowDOM) return alert("수정 대상자 행(Row)의 메모리 컨텍스트를 포착하지 못했습니다.");
 
-                // [마스터 락킹 해제]: 줄 번호 인덱스를 완전히 불신 처리하고, 행 내부의 진짜타겟 엘리먼트 수색 가동
+                // ❷ [마스터 락킹 해제]: 줄 번호 인덱스를 완전히 불신 처리하고, 행 내부의 진짜 타겟 엘리먼트 수색 가동
                 let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
                 if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
                     applicantDB = dataStoreApplicant;
                 }
 
-                // ❶ [식별자 우선 수거선]: 목록 버튼이 넘겨준 explicitUid 또는 직접 보정하신 히든 데이터 필드에서 고유 식별자 확정 수집
-                const hiddenUidEl = document.getElementById(`inline-app-uid-${index}`);
-                const targetUid = explicitUid || (hiddenUidEl ? hiddenUidEl.value : "");
-
-                // ❷ [마스터 원장 정밀 락인 가드]: 가변 index 대신 확정된 고유 uid를 기반으로 원장 배열 내부의 진짜 방 번호 정밀 색인
-                let exactMasterIdx = index;
-                if (targetUid) {
-                    const foundIdx = applicantDB.findIndex(d => d && String(d.uid) === String(targetUid));
-                    if (foundIdx !== -1) exactMasterIdx = foundIdx;
-                }
-
-                // [DOM 다이렉트 스캔]: 뒤틀림이 완전 소독된 exactMasterIdx를 축선으로 정확한 현재 수정 행 인풋만 조준 스캔 (백슬래시 전면 배제)
+                // 🎯 [DOM 다이렉트 스캔]: 현재 수정 폼 안에 물려있는 이름(name)과 전화번호(phone) 인풋창 요소를 가로채어 진짜 데이터 역추적
                 const findInputVal = (baseId) => {
-                    const el = document.getElementById(`${baseId}-${exactMasterIdx}`) || document.getElementById(`${baseId}-${index}`);
+                    const el = document.getElementById(`${baseId}-${index}`) || document.querySelector(`[id^="${baseId}-"]`);
                     return el ? el.value.trim() : "";
                 };
 
@@ -3943,24 +3932,24 @@
 
                 if (!n || !ph) return alert("알림: 대상자 이름과 전화번호 데이터는 필수 항목이므로 빈칸으로 둘 수 없습니다.");
 
-                // ❸ [최종 커밋 조준선 동치화]: 최하단 applicantDB[idx] 수식과 완벽 연동되도록 진짜 원본방 번호(idx) 최종 확정 락업
-                let idx = exactMasterIdx;
-                if (targetUid) {
-                    const foundIdx = applicantDB.findIndex(d => d && String(d.uid) === String(targetUid));
-                    if (foundIdx !== -1) idx = foundIdx;
-                }
+                // ❹ [초정밀 대상자 수색 레이더]: 인덱스 번호를 완전히 배제하고, 원장 배열에서 '이름'과 '전화번호'가 100% 매칭되는 진짜 피험자 방을 직격 색인!!!
+                const idx = applicantDB.findIndex(d => {
+                    const cleanDbName = (d.name || "").toString().replace(/\s/g, "");
+                    const cleanDbPhone = (d.phone || "").toString().replace(/[^0-9]/g, "");
+                    return cleanDbName === n.replace(/\s/g, "") && cleanDbPhone === ph;
+                });
 
                 if (idx === -1) {
-                    return alert(`전산망 원장 패킷 매칭 실패: 일치하는 대상자 원본방을 찾을 수 없습니다.`);
+                    return alert(`전산망 원장 패킷 매칭 실패: 입력하신 이름[${n}]과 전화번호[${ph}]에 일치하는 대상자 원본방을 찾을 수 없습니다.`);
                 }
 
                 // 진짜 매칭된 타겟 원본방 락인
                 const origin = applicantDB[idx];
                 const id = origin.uid;
 
-                // ❺ 가변 컴포넌트 알맹이 값 강제 수거 (조준 축선 일치화 및 타인 방 데이터 복사 유발점 완전 소독)
+                // ❺ 가변 컴포넌트 알맹이 값 강제 수거
                 const getElVal = (baseId, fallback) => {
-                    const el = document.getElementById(`${baseId}-${exactMasterIdx}`) || document.getElementById(`${baseId}-${index}`);
+                    const el = document.getElementById(`${baseId}-${index}`) || document.querySelector(`[id^="${baseId}-"]`);
                     return el ? el.value : fallback;
                 };
 

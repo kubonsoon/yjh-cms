@@ -1102,168 +1102,232 @@
                     });
                 }
 
-                /* === [보정 지점 1]: 꼬인 구조를 순정 복구하고, 부모 조건식을 타격하여 신규 유저는 이 리턴 장벽을 안전하게 우회 통과시킴 === */
-                if (!window.isDayButtonClicked && !isGhostUser) {
-                    // [트랙 A: 기존 정규 참여 대상자 전용 공간] - 원래의 순정 브리핑 박스 레이아웃과 강제 이탈선(return)을 100% 원형 보존
-                    cardBoard.innerHTML = `
-        <div style="background:var(--card-color); border:1px solid var(--border-color); padding:14px; border-radius:14px; width:100%; box-shadow:0 4px 6px rgba(0,0,0,0.3);">
-        <div style="font-size:13px; font-weight:800; color:var(--warning-color); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
-            <i class="fa-solid fa-list-check"></i> 해당 주간 임상 일정
-        </div>
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            ${weeklyScheduleBriefingHtml}
-        </div>
-        </div>`;
-                    return; // 기존 유저는 여기서 정직하게 세션을 종료하여 화면을 가둠
+                /* === [정밀 주입 지점]: cardBoard.innerHTML 바로 윗단에 삽입되는 신규 대상자용 데이터 스위칭 코드 === */
+                if (isGhostUser) {
+                    let ghostWeekCardsHTML = "";
+
+                    // 모집공고 원장에 존재하는 모든 활성 시험 스케줄을 전수 스캔
+                    records.forEach(item => {
+                        if (!item || !item.title) return;
+
+                        const actualRawDate = item.date || item.recDate || item.regDate || item.startDate || "";
+                        const cleanRawDate = actualRawDate.toString().trim();
+
+                        // 이번 주 주간 범위(weeklyKeys) 내에 존재하는 실제 공고 데이터만 정밀 포획
+                        if (cleanRawDate && cleanRawDate.includes("-") && weeklyKeys.includes(cleanRawDate)) {
+                            const dTokens = cleanRawDate.split("-");
+                            const targetThClass = (item.th || "1기").replace(/\s/g, "");
+
+                            // 한글 날짜 명세 및 요일 조립 ("2026년 12월 04일 (금)")
+                            const dayIdxNum = new Date(Number(dTokens[0]), Number(dTokens[1]) - 1, Number(dTokens[2])).getDay();
+                            const weekKorCaption = ["일", "월", "화", "수", "목", "금", "토"][dayIdxNum];
+                            const targetEventDateStr = `${dTokens[0]}년 ${dTokens[1]}월 ${dTokens[2]}일 (${weekKorCaption})`;
+
+                            // 지정하신 '두 줄 가독성 최적화 스킨'과 [참여 / 미참여 잠금 / 이력조회] 단추 레이아웃 원자적 빌드
+                            ghostWeekCardsHTML += `
+                <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5); text-align: left;">
+                    <div class="card-top-row" style="padding-bottom: 2px;">
+                        <div style="display: flex; flex-direction: column; gap: 5px; width: 100%;">
+                            <div style="font-size: 14px; color: #cbd5e1; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                                <span>${targetEventDateStr}</span>
+                                <span style="color: #38bdf8; font-size: 13.5px; padding-left: 2px;">스크리닝</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 1px;">
+                                <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 15px; letter-spacing: -0.2px;">${item.title || "임상과제"}</div>
+                                <span class="card-th-badge th-color-${targetThClass}" style="margin: 0 !important; transform: scale(0.95); font-weight: 800;">${item.th || "1기"}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-meta-grid" style="margin-top:8px; border-top: 1px dashed #1e293b; padding-top: 6px; font-size: 12.5px; color: var(--text-muted); line-height: 1.5;">
+                        <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">${item.title || '임상 과제명 미지정'}</span></div>
+                        <div>배정 정원: <span>${item.count ? item.count + '명' : ''}</span></div>
+                        <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>
+                    </div>
+                    <div class="card-action-bar" id="ui_action_bar_the_unique_${item.uid}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+                        <button type="button" class="card-btn join" id="btn_card_join_${item.uid}" style="height:32px; font-size: 12.5px; background: #0ea5e9 !important; color: #ffffff !important;">참여</button>
+                        <button type="button" class="card-btn reject" id="btn_card_reject_${item.uid}" style="height:32px; font-size:12.5px; background:#475569; opacity: 0.5; cursor: not-allowed;" disabled>미참여</button>
+                        <button type="button" class="card-btn history-sync" id="btn_card_hist_${item.uid}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i>이력조회</button>
+                    </div>
+                </div>
+            `;
+                        }
+                    });
+
+                    // 만약 주간 전체에 실제 공고 일정이 단 1건도 없다면 지시하신 골드 스킨 예외 문구 카드로 대응
+                    if (ghostWeekCardsHTML === "") {
+                        weeklyScheduleBriefingHtml = `
+            <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 30px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
+                <i class="fa-solid fa-calendar-minus" style="font-size: 22px; color: #eab308; margin-bottom: 6px; display: block;"></i>
+                <div style="font-size: 12px; color: #eab308; font-weight: 700;">이번주에는 등록된 임상시험 일정이 없습니다</div>
+            </div>
+        `;
+                    } else {
+                        // 일정이 상주할 경우 다중 유입 내부 터치 스크롤바 바인딩 및 내용물 최종 수혈
+                        cardBoard.setAttribute("style", "max-height: 480px !important; overflow-y: auto !important; padding-right: 4px;");
+                        weeklyScheduleBriefingHtml = ghostWeekCardsHTML;
+                    }
                 }
 
-                // =========================================================================
-                // [예외 가드 블록 1]: 주차 이동 화살표를 눌렀는데 이번 주 전체에 일정이 아예 없을 때 (골드 스킨)
-                // =========================================================================
-                /* === [보정 지점 2]: 골드 스킨 예외 블록 역시 !isGhostUser 가드를 결합하여 중괄호 꼬임 없이 깔끔하게 인터록 완착 === */
-                if (!hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked && !isGhostUser) {
-                    cardBoard.innerHTML = `
+                cardBoard.innerHTML = `
+    <div style="background:var(--card-color); border:1px solid var(--border-color); padding:14px; border-radius:14px; width:100%; box-shadow:0 4px 6px rgba(0,0,0,0.3);">
+    <div style="font-size:13px; font-weight:800; color:var(--warning-color); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+        <i class="fa-solid fa-list-check"></i> 해당 주간 임상 일정
+    </div>
+    <div style="display:flex; flex-direction:column; gap:2px;">
+        ${weeklyScheduleBriefingHtml}
+    </div>
+    </div>`;
+
+                if (!isGhostUser) {
+                    return; // 기존 참여 유저의 주간 요약 브리핑 강제 탈출 락인막은 100% 순정 원형 보존
+                }
+            }
+
+            // =========================================================================
+            // [예외 가드 블록 1]: 주차 이동 화살표를 눌렀는데 이번 주 전체에 일정이 아예 없을 때 (골드 스킨)
+            // =========================================================================
+            if (!hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked && !isGhostUser) {
+                cardBoard.innerHTML = `
     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
     <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: #eab308; margin-bottom: 8px; display: block;"></i>
     <div style="font-size: 12px; color: #eab308; font-weight: 700;">이번주에는 등록된 임상시험 일정이 없습니다</div>
     </div>`;
-                    return; // 기존 참여 유저의 리턴 탈출 가드막은 100% 순정 원형 보존
-                }
+                return; // 기존 참여 유저의 리턴 탈출 가드막은 100% 순정 원형 보존
+            }
 
+            // =========================================================================
+            // 💡 [주의] 이 사이에 "진짜 일자별 카드 조각 생성 팩토리(targetRecords.forEach)"가 위치합니다.
+            // =========================================================================
 
-                // =========================================================================
-                // 💡 [주의] 이 사이에 "진짜 일자별 카드 조각 생성 팩토리(targetRecords.forEach)"가 위치합니다.
-                // =========================================================================
-
-                // =========================================================================
-                // [예외 가드 블록 2]: 특정 요일을 직접 클릭해서 들어왔는데 당일 데이터가 비어있을 때 (첫 번째 이미지의 스카이 블루 스킨)
-                // =========================================================================
-                if (renderedCardCount === 0 && window.isDayButtonClicked) {
-                    cardBoard.innerHTML = `
+            // =========================================================================
+            // [예외 가드 블록 2]: 특정 요일을 직접 클릭해서 들어왔는데 당일 데이터가 비어있을 때 (첫 번째 이미지의 스카이 블루 스킨)
+            // =========================================================================
+            if (renderedCardCount === 0 && window.isDayButtonClicked) {
+                cardBoard.innerHTML = `
                 <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                 <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
                 <div style="font-size: 12.5px; color: #38bdf8; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다</div>
                 </div>`;
-                    return;
-                }
+                return;
             }
+        }
 
-            //참여누적 이력조회 ㅇ
-            function openIndividualHistoryModalInMobile(currentSessionName, targetTitle, targetTh) {
-                let applicantDB = getApplicantData();
-                const scrollZone = document.getElementById("modal-history-scroll-zone");
-                if (!scrollZone) return; scrollZone.innerHTML = "";
-                const rawHistoryRecords = applicantDB.filter(item => (item.name || "").toString().trim() === currentSessionName);
-                document.getElementById("m-history-count-title").innerText = `참여 누적 내역 (${rawHistoryRecords.length}건)`;
+        //참여누적 이력조회 ㅇ
+        function openIndividualHistoryModalInMobile(currentSessionName, targetTitle, targetTh) {
+            let applicantDB = getApplicantData();
+            const scrollZone = document.getElementById("modal-history-scroll-zone");
+            if (!scrollZone) return; scrollZone.innerHTML = "";
+            const rawHistoryRecords = applicantDB.filter(item => (item.name || "").toString().trim() === currentSessionName);
+            document.getElementById("m-history-count-title").innerText = `참여 누적 내역 (${rawHistoryRecords.length}건)`;
 
-                if (rawHistoryRecords.length === 0) {
-                    scrollZone.innerHTML = '<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding: 20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>';
-                } else {
-                    rawHistoryRecords.forEach(row => {
-                        const isCurrentJob = ((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh);
-                        const miniCard = document.createElement("div");
-                        miniCard.className = isCurrentJob ? "history-mini-card current-job" : "history-mini-card";
+            if (rawHistoryRecords.length === 0) {
+                scrollZone.innerHTML = '<div style="color:var(--text-muted); font-size:12.5px; text-align:center; padding: 20px 0;">연동된 대상자 이력 내역이 존재하지 않습니다.</div>';
+            } else {
+                rawHistoryRecords.forEach(row => {
+                    const isCurrentJob = ((row.title || "").toString().trim() === targetTitle && (row.th || "").toString().trim() === targetTh);
+                    const miniCard = document.createElement("div");
+                    miniCard.className = isCurrentJob ? "history-mini-card current-job" : "history-mini-card";
 
-                        let prefixTag = isCurrentJob ? `<span style="color:var(--secondary-color); font-weight: 800; margin-right: 4px;">[현재시험]</span>` : `<span style="color:var(--text-muted); font-weight:700; margin-right: 4px;">[과거시험]</span>`;
-                        let currentPayStatus = row.status || "대기";
+                    let prefixTag = isCurrentJob ? `<span style="color:var(--secondary-color); font-weight: 800; margin-right: 4px;">[현재시험]</span>` : `<span style="color:var(--text-muted); font-weight:700; margin-right: 4px;">[과거시험]</span>`;
+                    let currentPayStatus = row.status || "대기";
 
-                        miniCard.innerHTML = `
+                    miniCard.innerHTML = `
                 <div style="text-align:left;">
                     <div style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:2px;">${prefixTag}${row.name || '대상자'} ${row.title || '미지정과제'}</div>
                     <div style="font-size:11px; color:var(--text-muted);">진행기수 : <span style="color:#fff;">${row.th || '-'}</span> | 현재단계: <span style="color: #38bdf8; font-weight:700;">${currentPayStatus}</span></div>
                 </div>
             `;
-                        scrollZone.appendChild(miniCard);
-                    });
+                    scrollZone.appendChild(miniCard);
+                });
+            }
+            const overlay = document.getElementById('detailModalOverlay');
+            if (overlay) overlay.setAttribute('style', 'display: flex !important;');
+        }
+
+        window.closeDetailModal = function () {
+            const overlay = document.getElementById('detailModalOverlay');
+            if (overlay) overlay.setAttribute('style', 'display: none !important;');
+        };
+
+        // ==========================================================================
+        // 🔒 [가변 유저 대응형 최종 완착] 독립 기동 즉시 진짜 내 세션 가로채기 3중 수신소
+        // ==========================================================================
+        window.onload = function () {
+            // [가변 유저 대응형 최종 완착] 독립 기동 즉시 진짜 내 세션 가로채기 3중 수신소
+            let logUserStr = localStorage.getItem('loggedInUser');
+
+            // [정밀 타격 급소 교정 1]: 구형 객체 수색을 파쇄하고 실시간 진짜 로그인 유저명 키값 1순위 직격 가로채기
+            let activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
+            let logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
+
+            if (logUserStr) {
+                try {
+                    // [정밀 타격 급소 교정 2]: JSON parse 오탈자 소독 및 안전 파싱 수술
+                    let parsedLogUser = JSON.parse(logUserStr);
+                    if (parsedLogUser) {
+                        if (parsedLogUser.name && !activeTargetName) {
+                            activeTargetName = parsedLogUser.name.toString().trim();
+                        }
+                        // 주 데이터 원장에 ssn이 존재할 경우 가짜 더미가 끼어들 여지를 완전 차단
+                        if (parsedLogUser.ssn && !logUserSsn) {
+                            logUserSsn = parsedLogUser.ssn.toString().trim();
+                        }
+                    }
+                } catch (e) {
+                    console.error("[전산 오류] 자식 달력 내부 성명 캐시 해독 실패:", e);
                 }
-                const overlay = document.getElementById('detailModalOverlay');
-                if (overlay) overlay.setAttribute('style', 'display: flex !important;');
             }
 
-            window.closeDetailModal = function () {
-                const overlay = document.getElementById('detailModalOverlay');
-                if (overlay) overlay.setAttribute('style', 'display: none !important;');
-            };
+            // [풀백 가드 교정]: 시스템 오인을 유도하던 "홍길동" 단어를 전면 소독하고 유연한 가드로 대체
+            if (!activeTargetName || activeTargetName === "홍길동") {
+                activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "인증 대상자";
+            }
 
-            // ==========================================================================
-            // 🔒 [가변 유저 대응형 최종 완착] 독립 기동 즉시 진짜 내 세션 가로채기 3중 수신소
-            // ==========================================================================
-            window.onload = function () {
-                // [가변 유저 대응형 최종 완착] 독립 기동 즉시 진짜 내 세션 가로채기 3중 수신소
-                let logUserStr = localStorage.getItem('loggedInUser');
+            // 주 데이터 캐시와 개별 스토리지에서 모두 누락되었을 때만 완전히 비워서 비정상 출력을 차단
+            if (!logUserSsn) {
+                logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
+            }
+            sessionStorage.setItem('certifiedUserName', activeTargetName);
 
-                // [정밀 타격 급소 교정 1]: 구형 객체 수색을 파쇄하고 실시간 진짜 로그인 유저명 키값 1순위 직격 가로채기
-                let activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "";
-                let logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
+            // [정밀 수술 완수 구역]: 가짜 데이터(851023)와 뒤집히는 성별 로직을 완전히 청소
+            const cleanSsn = logUserSsn.replace(/[^0-9a-zA-Z]/g, "");
 
-                if (logUserStr) {
-                    try {
-                        // [정밀 타격 급소 교정 2]: JSON parse 오탈자 소독 및 안전 파싱 수술
-                        let parsedLogUser = JSON.parse(logUserStr);
-                        if (parsedLogUser) {
-                            if (parsedLogUser.name && !activeTargetName) {
-                                activeTargetName = parsedLogUser.name.toString().trim();
-                            }
-                            // 주 데이터 원장에 ssn이 존재할 경우 가짜 더미가 끼어들 여지를 완전 차단
-                            if (parsedLogUser.ssn && !logUserSsn) {
-                                logUserSsn = parsedLogUser.ssn.toString().trim();
-                            }
-                        }
-                    } catch (e) {
-                        console.error("[전산 오류] 자식 달력 내부 성명 캐시 해독 실패:", e);
-                    }
+            // 주민번호 원장이 들어와 있을 때만 6자리를 안전하게 자르고, 비어있다면 가짜 숫자 대신 공백("") 처리
+            const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "";
+
+            let genderText = "-";
+            let genderClass = "gender-indicator-badge";
+
+            if (cleanSsn.length >= 7) {
+                // 하이픈이 소독된 상태이므로 정확히 7번째 자리(인덱스 6)의 문자 조각을 고정 래핑 추출
+                const genderMarker = cleanSsn.charAt(6).toUpperCase();
+
+                // 대한민국 표준 주민등록번호 정책 마킹 바인딩 (1, 3, 5, M = 남성 / 2, 4, 6, F = 여성)
+                if (["1", "3", "5", "M"].includes(genderMarker)) {
+                    genderText = "남";
+                    genderClass = "gender-indicator-badge gender-m";
+                } else if (["2", "4", "6", "F"].includes(genderMarker)) {
+                    genderText = "여";
+                    genderClass = "gender-indicator-badge gender-f";
                 }
+            } else if (cleanSsn.length > 0) {
+                // 데이터 전송 타이밍 차이로 생년월일만 먼저 로드된 임시 상태 가드
+                genderText = "확인중";
+                genderClass = "gender-indicator-badge gender-wait";
+            }
 
-                // [풀백 가드 교정]: 시스템 오인을 유도하던 "홍길동" 단어를 전면 소독하고 유연한 가드로 대체
-                if (!activeTargetName || activeTargetName === "홍길동") {
-                    activeTargetName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || "인증 대상자";
-                }
-
-                // 주 데이터 캐시와 개별 스토리지에서 모두 누락되었을 때만 완전히 비워서 비정상 출력을 차단
-                if (!logUserSsn) {
-                    logUserSsn = localStorage.getItem('loggedInUserSsn') || "";
-                }
-                sessionStorage.setItem('certifiedUserName', activeTargetName);
-
-                // [정밀 수술 완수 구역]: 가짜 데이터(851023)와 뒤집히는 성별 로직을 완전히 청소
-                const cleanSsn = logUserSsn.replace(/[^0-9a-zA-Z]/g, "");
-
-                // 주민번호 원장이 들어와 있을 때만 6자리를 안전하게 자르고, 비어있다면 가짜 숫자 대신 공백("") 처리
-                const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "";
-
-                let genderText = "-";
-                let genderClass = "gender-indicator-badge";
-
-                if (cleanSsn.length >= 7) {
-                    // 하이픈이 소독된 상태이므로 정확히 7번째 자리(인덱스 6)의 문자 조각을 고정 래핑 추출
-                    const genderMarker = cleanSsn.charAt(6).toUpperCase();
-
-                    // 대한민국 표준 주민등록번호 정책 마킹 바인딩 (1, 3, 5, M = 남성 / 2, 4, 6, F = 여성)
-                    if (["1", "3", "5", "M"].includes(genderMarker)) {
-                        genderText = "남";
-                        genderClass = "gender-indicator-badge gender-m";
-                    } else if (["2", "4", "6", "F"].includes(genderMarker)) {
-                        genderText = "여";
-                        genderClass = "gender-indicator-badge gender-f";
-                    }
-                } else if (cleanSsn.length > 0) {
-                    // 데이터 전송 타이밍 차이로 생년월일만 먼저 로드된 임시 상태 가드
-                    genderText = "확인중";
-                    genderClass = "gender-indicator-badge gender-wait";
-                }
-
-                // 상단 네온 프로필 팩토리 바인딩 동기화 완료
-                const selfTargetSlot = document.getElementById('lblSetTargetNew') || (window.parent ? window.parent.document.getElementById('lblSetTargetNew') : null);
-                if (selfTargetSlot) {
-                    selfTargetSlot.innerHTML = `
+            // 상단 네온 프로필 팩토리 바인딩 동기화 완료
+            const selfTargetSlot = document.getElementById('lblSetTargetNew') || (window.parent ? window.parent.document.getElementById('lblSetTargetNew') : null);
+            if (selfTargetSlot) {
+                selfTargetSlot.innerHTML = `
             <span style="color:#ffffff; font-weight:800;">${activeTargetName}</span>
             <span style="color:rgba(255, 255, 255, 0.4); font-weight: 500; margin-left:2px;">(${displayBirth6})</span>
             <span class="${genderClass}" style="margin-left: 5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight: 800; display: inline-block; line-height:1.3;">${genderText}</span>
         `;
-                }
+            }
 
-                if (typeof renderCalendar === "function") { renderCalendar(); }
-            };
+            if (typeof renderCalendar === "function") { renderCalendar(); }
+        };
 
     </script>
 </body>

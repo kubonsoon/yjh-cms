@@ -908,32 +908,42 @@
                     card.className = 'trial-manifest-card';
                     card.setAttribute("style", "margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);");
 
-                    /* === [보정 지점 1]: 신규 대상자 분기일 때 기수 영역을 독립된 기존 배지 스타일 마크업으로 분리 사출 === */
+                    /* === [수정 및 보정 지점]: 가독성 극대화를 위해 백슬래시(\)를 소독한 순수 변수 매핑 기반 '두 줄 포맷' 전면 개편 === */
                     let cardTitleHeaderHTML = "";
                     if (isGhostUser) {
+                        // 런타임에 보존된 타겟 스케줄 날짜와 요일 한글 캡션 추출 ("2026년 12월 04일 (금)")
+                        const targetEventDateStr = row.eventDate || item.recDate || "";
                         const refinedStageLabel = currentStageText.replace("방문", "").trim();
                         const targetThClass = (thText || "1기").replace(/\s/g, "");
 
-                        /* === [보정 지점 1]: 중첩 문자열 결합 구조이므로 변수 앞의 백슬래시(\) 가드를 철저히 유지 사수 === */
                         cardTitleHeaderHTML = `
-        <div style="display: flex; align-items: center; gap: 6px; width: 100%;">
-            <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${item.title || "임상과제"}</div>
-            <span class="card-th-badge th-color-${targetThClass}" style="margin: 0 !important;">${thText || "1기"}</span>
-            <div class="card-title-text" style="color: #38bdf8; font-weight: 800; font-size: 14.5px; padding-left: 2px;">${refinedStageLabel}</div>
+        <div style="display: flex; flex-direction: column; gap: 5px; width: 100%; text-align: left;">
+            <!-- 첫 번째 줄: 일자 정보와 단계명(스크리닝 / 1차 채혈 등) 유기적 밀착 결합 -->
+            <div style="font-size: 14px; color: #cbd5e1; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                <span>${targetEventDateStr}</span>
+                <span style="color: #38bdf8; font-size: 13.5px; padding-left: 2px;">${refinedStageLabel}</span>
+            </div>
+            
+            <!-- 두 번째 줄: 시험명과 기수 네온 라운드 배지 수평 조화 배치 -->
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 1px;">
+                <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 15px; letter-spacing: -0.2px;">${item.title || "임상과제"}</div>
+                <span class="card-th-badge th-color-${targetThClass}" style="margin: 0 !important; transform: scale(0.95); font-weight: 800;">${thText || "1기"}</span>
+            </div>
         </div>
     `;
                     } else {
+                        // 기존 정규 사용자용 100% 순정 읽기모드 마크업 (원형 유지)
                         cardTitleHeaderHTML = `
         <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${currentStageText}</div>
     `;
                     }
 
-                    /* === [보정 지점 2]: 하단 3대 행정 단추 카드 인터페이스 내 변수 백슬래시 가드 정밀 락인 === */
+                    /* === [보정 지점]: 두 줄 레이아웃 헤더 및 순수 변수 치환 규격 최종 바인딩 완착 === */
                     card.innerHTML = `
-<div class="card-top-row">
+<div class="card-top-row" style="padding-bottom: 2px;">
     ${cardTitleHeaderHTML}
 </div>
-<div class="card-meta-grid" style="margin-top:6px;">
+<div class="card-meta-grid" style="margin-top:8px; border-top: 1px dashed #1e293b; padding-top: 6px;">
     <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">${item.title || '임상 과제명 미지정'}</span></div>
     <div>배정 정원: <span>${item.count ? item.count + '명' : ''}</span></div>
     <div>임상 기간: <span>${item.period ? item.period + '시간' : ''}</span></div>

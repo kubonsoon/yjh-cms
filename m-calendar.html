@@ -1117,13 +1117,13 @@
             // =========================================================================
             // [예외 가드 블록 1]: 주차 이동 화살표를 눌렀는데 이번 주 전체에 일정이 아예 없을 때 (골드 스킨)
             // =========================================================================
-            if (!hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked) {
+            if (!hasWeeklyScheduleInThisWindow && !window.isDayButtonClicked && !isGhostUser) {
                 cardBoard.innerHTML = `
-                <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
-                <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: #eab308; margin-bottom: 8px; display: block;"></i>
-                <div style="font-size: 12px; color: #eab308; font-weight: 700;">이번주에는 등록된 임상시험 일정이 없습니다</div>
-                </div>`;
-                return;
+    <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
+    <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: #eab308; margin-bottom: 8px; display: block;"></i>
+    <div style="font-size: 12px; color: #eab308; font-weight: 700;">이번주에는 등록된 임상시험 일정이 없습니다</div>
+    </div>`;
+                return; // 기존 참여 유저의 리턴 탈출 가드막은 100% 순정 원형 보존
             }
 
             // =========================================================================

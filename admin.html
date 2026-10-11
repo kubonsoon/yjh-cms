@@ -3993,8 +3993,8 @@
                 else if (currentAppTitleText.includes("하나제약")) pureQuotaNum = "36";
                 else if (currentAppTitleText.includes("경동제약")) pureQuotaNum = "40";
                 else {
-                    // ❶ 타인의 인풋 데이터를 무작정 탈취하던 querySelector 유령 조각을 완전히 소독 처리
-                    // ❷ exactMasterIdx 및 index 조준선을 결합하여 현재 수정 불이 켜진 그 행의 인풋 엘리먼트만 정확히 조준 스캔
+                    // 💡 [치명적 결함 원천 차단]: 범위 해제 셀렉터인 querySelector를 완벽하게 제거소독!
+                    // 상단 조준 축선(exactMasterIdx)을 그대로 주입하여 타인 방 인원수 침범을 물리 영구 파괴
                     const elCount = document.getElementById(`inline-app-count-${exactMasterIdx}`) || document.getElementById(`inline-app-count-${index}`);
                     if (elCount) {
                         let rawCountText = elCount.value.trim();

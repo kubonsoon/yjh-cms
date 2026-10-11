@@ -2237,7 +2237,7 @@
             // [순정 데이터 정화 스캔 기믹] (원본 규칙 100% 보존)
             let isDataCleaned = false;
             db.forEach((user) => {
-                // 신규 대상자 및 180일 만료 대상자(VIRTUAL_) 유입 시 참여상태 초기값을 회색 배지인 '대기'로 강제 동치화
+                /* === [추가 지점]: 가상 티켓 대상자 유입 시 초기 참여상태를 '대기'로 변환 및 커밋 === */
                 if (user && user.uid && user.uid.toString().startsWith("VIRTUAL_")) {
                     if (!user.status || user.status === "신검대기") {
                         user.status = "대기";
@@ -2639,10 +2639,11 @@
                 let stageBadgeStyle = "";
                 let nameLinkActionHTML = "";
 
-                // ❶ [스크리닝 검사 카테고리 4형제] -> 참여비 신청 원천 차단 / 소집전이므로 이름 링크 강력 잠금
-                if (currentStage === "신검대기") {
+                if (currentStage === "신검대기" || currentStage === "대기") {
                     stageBadgeStyle =
-                        "color: #c084fc !important; background: rgba(168, 85, 247, 0.15) !important; border: 1px solid #a855f7 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
+                        currentStage === "대기"
+                            ? "color: #cbd5e1 !important; background: rgba(148, 163, 184, 0.15) !important; border: 1px solid #94a3b8 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;"
+                            : "color: #c084fc !important; background: rgba(168, 85, 247, 0.15) !important; border: 1px solid #a855f7 !important; font-weight: 800 !important; padding: 4px 8px; font-size: 11px; display: inline-block; border-radius: 4px;";
                     nameLinkActionHTML =
                         "<a style='pointer-events: none !important; opacity: 0.65; cursor: not-allowed; text-decoration: none; color: #94a3b8;'>" +
                         (row.name || "-") +
@@ -3376,9 +3377,10 @@
                         <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px; box-sizing: border-box !important;">
                             <div style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
                                 <button type="button" class="btn-inline" onclick="openAppHistoryDetailModal(${masterIndex})" style="background: #0e66e9 !important; color: #ffffff !important; padding: 5px 6px !important; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">이력</button>
-                                <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})" style="padding: 5px 6px !important; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">수정</button>
-                                <button type="button" class="btn-inline delete" onclick="removeApplicantRecord(${row.uid})" style="padding: 5px 6px !important; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">삭제</button>
-                            </div>
+                                <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
+<!-- === [보정 지점]: 문자열 주소 파괴를 차단하기 위해 함수 인자값 양옆에 탈출 따옴표('\\'') 장착 === -->
+<button type="button" class="btn-inline delete" onclick="removeApplicantRecord('\${row.uid}')">삭제</button>
+</div>
                         </td>
                     `;
                 }
@@ -3409,6 +3411,7 @@
                 paginator.innerHTML = paginationHTML;
             }
         }
+
 
         /**
          * 🎯 원본 호출 인터페이스 매칭: 수정 버튼 클릭 처리

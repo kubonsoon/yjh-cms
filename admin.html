@@ -8438,26 +8438,6 @@
             });
         }
 
-        /* 변경 후 반영된 코드 */
-        function refreshApplicantView() {
-            var stored = localStorage.getItem('dataStoreApplicant');
-            if (stored) {
-                adminApplicantDB = JSON.parse(stored);
-            }
-
-            /* === [추가 지점]: 순수 코드로만 구성된 가상 데이터 배열 유실 방지 안전 가드 주입 === */
-            if (Array.isArray(adminApplicantDB)) {
-                adminApplicantDB.forEach(function (item) {
-                    if (item && item.uid && item.uid.toString().startsWith("VIRTUAL_")) {
-                        item.isNewUserGhost = true;
-                    }
-                });
-            }
-
-            renderApplicantTable();
-        }
-
-        refreshApplicantView();
     </script>
 
     <!-- 비밀번호 변경 처리용 통합 오버레이 팝업 모달창 창고 -->

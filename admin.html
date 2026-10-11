@@ -2924,8 +2924,8 @@
                     }
 
                     tr.innerHTML = `
-<!-- === [데이터 유실 방지 가드 주입]: 수정 시 가상 고유 키셋이 소멸·뒤틀리지 않도록 히든 데이터 필드 배치 === -->
-<input type="hidden" id="inline-app-uid-\${masterIndex}" value="\${row.uid}">
+                  <!-- === [데이터 유실 방지 가드 주입]: 수정 시 가상 고유 키셋이 소멸·뒤틀리지 않도록 히든 데이터 필드 배치 === -->
+          <input type="hidden" id="inline-app-uid-${masterIndex}" value="${row.uid}">
 
         <!-- ❶ 시험명 인풋 -->
         <td style="min-width: 220px; max-width: 300px; width: 21%; vertical-align: middle; padding-left: 15px !important; text-align: left !important;">
@@ -3375,10 +3375,11 @@
                         }
                         </td>
                         
-                       <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px; box-sizing: border-box !important;">
+                      <td style="vertical-align: middle; text-align: center; width: 140px; padding-right: 15px; box-sizing: border-box !important;">
     <div style="display: flex !important; justify-content: center !important; gap: 4px !important; width: 100% !important; white-space: nowrap !important;">
         <button type="button" class="btn-inline" onclick="openAppHistoryDetailModal(${masterIndex})" style="background: #0e66e9 !important; color: #ffffff !important; padding: 5px 6px !important; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; height: 26px !important; line-height: 16px !important; flex-shrink: 0 !important;">이력</button>
-        <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex})">수정</button>
+        {/* 고유 식별자 row.uid를 이중 인자 처리하여 정렬이나 검색 필터가 걸려도 인풋 필드를 정확히 락인 추적 */}
+        <button type="button" class="btn-inline edit" onclick="editInlineApplicantRecord(${masterIndex}, '${row.uid}')">수정</button>
         <button type="button" class="btn-inline delete" onclick="removeApplicantRecord('${row.uid}')">삭제</button>
     </div>
 </td>
@@ -3590,22 +3591,34 @@
         /**
          * 원본 호출 인터페이스 매칭: 삭제 버튼 클릭 처리
          */
-        function deleteApplicant(index) {
+        function deleteApplicant(index, explicitUid) {
             if (confirm("정말로 이 대상자의 전체 정산 상태와 임상 명단 데이터를 영구 삭제하시겠습니까?")) {
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
 
-                // 해당 배열 요소 잘라내기 탈락
-                adminApplicantDB.splice(index, 1);
+                // 1단계: 명시적 uid가 유입된 경우 문자열/숫자 완충 통합 비교로 마스터 원장 인덱스 역추적
+                let masterIndex = -1;
+                if (explicitUid) {
+                    masterIndex = adminApplicantDB.findIndex(item => String(item.uid) === String(explicitUid));
+                } else if (displayList && displayList[index]) {
+                    // displayList가 존재할 경우 매칭 방어
+                    masterIndex = adminApplicantDB.findIndex(item => String(item.uid) === String(displayList[index].uid));
+                }
+
+                // 2단계: 정확한 마스터 인덱스를 찾았다면 해당 방을 도려내고, 실패 시 기존 순정 로직(상주자용)으로 안전 롤백
+                if (masterIndex !== -1) {
+                    adminApplicantDB.splice(masterIndex, 1);
+                } else {
+                    adminApplicantDB.splice(index, 1);
+                }
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
 
                 if (currentAppEditingIndex === index) currentAppEditingIndex = null;
 
+                // 원본의 뷰 갱신 흐름 100% 유지
                 refreshApplicantView();
             }
         }
-
-
         /**
          * 주민번호 뒷자리 식별 기호(-1,2,3,4,M,F)를 성별 판독 후 제거하여 깨끗한 날짜 규격만 반환
          * @param {string} ssnVal - 사용자가 입력한 주민번호 원본 문자열
@@ -3913,7 +3926,8 @@
                 // ❸ 🎯 [DOM 다이렉트 스캔]: 현재 수정 폼 안에 물려있는 이름(name)과 전화번호(phone) 인풋창 요소를 가로채어 진짜 데이터 역추적
                 // 화면에 드러난 엘리먼트에서 masterIndex 찌꺼기가 꼬여있을 확률을 감안해 모든 ID 패턴 전수 대조 추적
                 const findInputVal = (baseId) => {
-                    const el = document.getElementById(`${baseId}-${index}`) || document.querySelector(`[id^="${baseId}-"]`);
+                    // 고유 식별자 uid를 기준으로 타겟 엘리먼트를 명확히 조준하여 증발 현상 원천 차단
+                    const el = document.getElementById(`${baseId}-${row.uid}`) || document.getElementById(`${baseId}-${index}`);
                     return el ? el.value.trim() : "";
                 };
 

@@ -1166,20 +1166,22 @@
                         cardBoard.setAttribute("style", "max-height: 480px !important; overflow-y: auto !important; padding-right: 4px;");
                         weeklyScheduleBriefingHTML = ghostWeekCardsHTML;
                     }
-                }
+                } // [무결성 복구]: 원본에 존재하는 중괄호 구조 그대로 유지 사수!
 
+                /* === [보정 지점 1]: 호출 변수명 철자를 진짜 살아있는 대문자 HTML로 정밀 교정 === */
                 cardBoard.innerHTML = `
     <div style="background:var(--card-color); border:1px solid var(--border-color); padding:14px; border-radius:14px; width:100%; box-shadow:0 4px 6px rgba(0,0,0,0.3);">
     <div style="font-size:13px; font-weight:800; color:var(--warning-color); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
         <i class="fa-solid fa-list-check"></i> 해당 주간 임상 일정
     </div>
     <div style="display:flex; flex-direction:column; gap:2px;">
-        ${weeklyScheduleBriefingHtml}
+        ${weeklyScheduleBriefingHTML}
     </div>
     </div>`;
 
+                /* === [보정 지점 2]: 중괄호를 절대 건드리지 않고 인라인 1줄 가드로 치환 -> 신규 유저(isGhostUser) 유입 시에만 이 return 이탈선을 파쇄 통과시킴 === */
                 if (!isGhostUser) {
-                    return; // 기존 참여 유저의 주간 요약 브리핑 강제 탈출 락인막은 100% 순정 원형 보존
+                    return;
                 }
             }
 

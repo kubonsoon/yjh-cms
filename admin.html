@@ -2613,7 +2613,8 @@
                     row.liveMatchOrderNumber !== undefined ? row.liveMatchOrderNumber : 1;
 
                 // ❷ 공고 마스터 대장에서 실시간으로 색인해온 깨끗한 정품 모수 정원 분모(36) 획득
-                const trueMasterQuotaNum = getTrueMasterQuota(row.title, row.th, row.count);
+                const safeCountParam = (row.count !== undefined && row.count !== null) ? row.count.toString() : "1/60";
+                const trueMasterQuotaNum = getTrueMasterQuota(row.title, row.th, safeCountParam);
 
                 // ❸ 🚀 [오염 소독 완결]: 代表님 정품 변수(finalAppCountText)에 낮은 번호는 하단, 높은 번호는 최상단으로 자동 조립!
                 const finalAppCountText = `${pureLiveOrderNumber}/${trueMasterQuotaNum}`;

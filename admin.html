@@ -3923,9 +3923,10 @@
 
                 // ❸ 🎯 [DOM 다이렉트 스캔]: 현재 수정 폼 안에 물려있는 이름(name)과 전화번호(phone) 인풋창 요소를 가로채어 진짜 데이터 역추적
                 // 화면에 드러난 엘리먼트에서 masterIndex 찌꺼기가 꼬여있을 확률을 감안해 모든 ID 패턴 전수 대조 추적
+                // ❸ 🎯 [DOM 다이렉트 스캔]: 현재 수정 폼 안에 물려있는 인풋창 요소를 가로채어 진짜 데이터 역추적
                 const findInputVal = (baseId) => {
-                    // 고유 식별자 uid를 기준으로 타겟 엘리먼트를 명확히 조준하여 증발 현상 원천 차단
-                    const el = document.getElementById(`${baseId}-${row.uid}`) || document.getElementById(`${baseId}-${index}`);
+                    // 유효 스코프를 벗어난 row 객체 대신, 사전에 확보한 고유 targetUid 및 인덱스로 정확히 조준 타격
+                    const el = document.getElementById(`${baseId}-${targetUid}`) || document.getElementById(`${baseId}-${index}`) || document.querySelector(`[id^="${baseId}-"]`);
                     return el ? el.value.trim() : "";
                 };
 
@@ -3934,15 +3935,23 @@
 
                 if (!n || !ph) return alert("알림: 대상자 이름과 전화번호 데이터는 필수 항목이므로 빈칸으로 둘 수 없습니다.");
 
-                // ❹ 🔒 [초정밀 대상자 수색 레이더]: 인덱스 번호를 완전히 배제하고, 원장 배열에서 '이름'과 '전화번호'가 100% 매칭되는 진짜 피험자 방을 직격 색인!!!
-                const idx = applicantDB.findIndex(d => {
-                    const cleanDbName = (d.name || "").toString().replace(/\s/g, "");
-                    const cleanDbPhone = (d.phone || "").toString().replace(/[^0-9]/g, "");
-                    return cleanDbName === n.replace(/\s/g, "") && cleanDbPhone === ph;
-                });
+                // ❹ 🔒 [초정밀 대상자 수색 레이더]: uid 기반 1순위 검색 가드를 탑재하여 이름/번호 수정 시에도 오차 없이 추적
+                let idx = -1;
+                if (targetUid) {
+                    idx = applicantDB.findIndex(d => String(d.uid) === String(targetUid));
+                }
+
+                // uid 색인 실패 혹은 구형 상주 유저 대응용 2순위 이름/전화번호 대조 콤보 레이더 가동
+                if (idx === -1) {
+                    idx = applicantDB.findIndex(d => {
+                        const cleanDbName = (d.name || "").toString().replace(/\s/g, "");
+                        const cleanDbPhone = (d.phone || "").toString().replace(/[^0-9]/g, "");
+                        return cleanDbName === n.replace(/\s/g, "") && cleanDbPhone === ph;
+                    });
+                }
 
                 if (idx === -1) {
-                    return alert(`전산망 원장 패킷 매칭 실패: 입력하신 이름[${n}]과 전화번호[${ph}]에 일치하는 대상자 원본방을 찾을 수 없습니다.`);
+                    return alert(`전산망 원장 패킷 매칭 실패: 일치하는 대상자 원본방을 찾을 수 없습니다.`);
                 }
 
                 // 진짜 매칭된 타겟 원본방 락인

@@ -1038,8 +1038,13 @@
                                     appDB.push(newApplicantRecord);
                                 }
 
+                                // ❶ [실시간 세션 강제 동치 가드]: 원장의 정렬 꼬임에 영향을 받지 않는 실물 로그인 세션 정보 캡처
+                                const globalSessionUser = JSON.parse(localStorage.getItem('loggedInUser')) || {};
+                                const exactCertifiedName = localStorage.getItem('certifiedUserName') || globalSessionUser.name || currentCertifiedUser || "대상자";
+
+                                // ❷ 구축해두신 줄바꿈 및 데이터 적재 구조를 단 1비트도 건드리지 않고 무결성 유지 사출 (백슬래시 전면 제거)
                                 localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
-                                alert(`[신청 접수완료]\n\n${localStorage.getItem('certifiedUserName') || currentCertifiedUser} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
+                                alert(`[신청 접수완료]\n\n${exactCertifiedName} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
                                 renderDailyCards();
                             };
                         }

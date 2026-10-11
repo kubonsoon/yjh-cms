@@ -1178,6 +1178,10 @@
                     }
                     // [교정 완착 1]: 부모 스코프 파괴를 유발하던 중간 가짜 닫는 중괄호(}) 찌꺼기를 깨끗이 전면 삭제!
 
+                    /* === [교정 완착 2]: 1170라인 내부 전용 식별 패스 가드를 한 번 더 직격 매립하여 ReferenceError 원천 소독 === */
+                    const inlineGhostUserCache = JSON.parse(localStorage.getItem('loggedInUser')) || {};
+                    const inlineGhostUserCheck = inlineGhostUserCache.isNew === true || (myLiveJobRecord && (myLiveJobRecord.isNewUserGhost === true || myLiveJobRecord.uid.toString().startsWith("VIRTUAL_")));
+
                     /* === [복구 완착 1]: 진짜 살아있는 대문자 변수 명세(HTML) 연동을 통해 주간 목록 대량 사출 바인딩 === */
                     cardBoard.innerHTML = `
     <div style="background: var(--card-color); padding: 14px; border-radius: 14px; width: 100%; border:1px solid var(--border-color); box-shadow:0 4px 6px rgba(0,0,0,0.3);">
@@ -1216,7 +1220,9 @@
             // =========================================================================
             // [예외 가드 블록 2]: 특정 요일을 직접 클릭해서 들어왔는데 당일 데이터가 비어있을 때 (첫 번째 이미지의 스카이 블루 스킨)
             // =========================================================================
-            if (renderedCardCount === 0 && window.isDayButtonClicked) {
+            const isGhostUserActionCheck = (typeof inlineGhostUserCheck !== "undefined") ? inlineGhostUserCheck : (cachedUserObj.isNew === true || (myLiveJobRecord && (myLiveJobRecord.isNewUserGhost === true || myLiveJobRecord.uid.toString().startsWith("VIRTUAL_"))));
+
+            if (renderedCardCount === 0 && (window.isDayButtonClicked || isGhostUserActionCheck)) {
                 cardBoard.innerHTML = `
                 <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                 <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>

@@ -3092,6 +3092,14 @@
                     calculateLiveDashboardStats();
                 }
 
+                /* === [추가 지점]: 테이블을 다시 그리기 직전, 가상 티켓 대상자가 유실되지 않도록 배열 스키마 상태 락 주입 === */
+                if (Array.isArray(adminApplicantDB)) {
+                    adminApplicantDB.forEach(function (item) {
+                        if (item && item.uid && item.uid.toString().startsWith("VIRTUAL_")) {
+                            item.isNewUserGhost = true;
+                        }
+                    });
+                }
                 // 7. [안전 분기 리렌더링] 대상자 관리 테이블 실시간 리플래시 가동
                 if (typeof refreshApplicantView === 'function') {
                     refreshApplicantView();
@@ -3596,6 +3604,16 @@
                     let authAllowValue = (nextStage === "소집" || nextStage === "투약" || nextStage.includes("방문"));
                     let authStageCode = nextStage === "소집" ? 1 : nextStage === "투약" ? 2 : nextStage.includes("방문") ? 5 : 3;
                     localStorage.setItem('msg_auth_signal', JSON.stringify({ name: currentTargetData.name, isAllow: authAllowValue, stageCode: authStageCode, time: Date.now() }));
+                }
+
+
+                /* === [추가 지점]: 화면 새로고침 가동 함수들이 트리거되기 직전, 동일한 무결성 가드 완착 === */
+                if (Array.isArray(adminApplicantDB)) {
+                    adminApplicantDB.forEach(function (item) {
+                        if (item && item.uid && item.uid.toString().startsWith("VIRTUAL_")) {
+                            item.isNewUserGhost = true;
+                        }
+                    });
                 }
 
                 // 화면 새로고침 가동 (필터링 상태 및 정렬 주파수 고스란히 상속 복원)

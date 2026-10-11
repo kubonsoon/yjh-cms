@@ -3993,7 +3993,9 @@
                 else if (currentAppTitleText.includes("하나제약")) pureQuotaNum = "36";
                 else if (currentAppTitleText.includes("경동제약")) pureQuotaNum = "40";
                 else {
-                    const elCount = document.querySelector('[id^="inline-app-count-"]');
+                    // ❶ 타인의 인풋 데이터를 무작정 탈취하던 querySelector 유령 조각을 완전히 소독 처리
+                    // ❷ exactMasterIdx 및 index 조준선을 결합하여 현재 수정 불이 켜진 그 행의 인풋 엘리먼트만 정확히 조준 스캔
+                    const elCount = document.getElementById(`inline-app-count-${exactMasterIdx}`) || document.getElementById(`inline-app-count-${index}`);
                     if (elCount) {
                         let rawCountText = elCount.value.trim();
                         pureQuotaNum = rawCountText.includes('/') ? rawCountText.split('/').pop().replace(/[^0-9]/g, '') : rawCountText.replace(/[^0-9]/g, '');

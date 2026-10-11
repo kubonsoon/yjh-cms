@@ -2920,7 +2920,7 @@
                         pureQuotaOnly =
                             quotaTokens.length >= 2
                                 ? quotaTokens[quotaTokens.length - 1].replace(/[^0-9]/g, "")
-                                : quotaTokens.replace(/[^0-9]/g, ""); // 💡 원본 에러 유발점: 배열 객체에 replace()를 사용하여 크래시 발생
+                                : quotaTokens[0].replace(/[^0-9]/g, ""); // 💡 배열의 0번째 문자열 원소에서 추출하도록 정밀 교정
                     }
                     tr.innerHTML = `
                   <!-- === [데이터 유실 방지 가드 주입]: 수정 시 가상 고유 키셋이 소멸·뒤틀리지 않도록 히든 데이터 필드 배치 === -->

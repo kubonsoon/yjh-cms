@@ -1119,9 +1119,9 @@
                             const targetThClass = (item.th || "1기").replace(/\s/g, "");
 
                             // 한글 날짜 명세 및 요일 조립 ("2026년 12월 04일 (금)")
-                            const dayIdxNum = new Date(Number(dTokens[0]), Number(dTokens[1]) - 1, Number(dTokens[2])).getDay();
+                            const dayIdxNum = new Date(Number(dTokens), Number(dTokens) - 1, Number(dTokens)).getDay();
                             const weekKorCaption = ["일", "월", "화", "수", "목", "금", "토"][dayIdxNum];
-                            const targetEventDateStr = `${dTokens[0]}년 ${dTokens[1]}월 ${dTokens[2]}일 (${weekKorCaption})`;
+                            const targetEventDateStr = `${dTokens}년 ${dTokens}월 ${dTokens}일 (${weekKorCaption})`;
 
                             // 지정하신 '두 줄 가독성 최적화 스킨'과 [참여 / 미참여 잠금 / 이력조회] 단추 레이아웃 원자적 빌드
                             ghostWeekCardsHTML += `
@@ -1155,16 +1155,16 @@
 
                     // 만약 주간 전체에 실제 공고 일정이 단 1건도 없다면 지시하신 골드 스킨 예외 문구 카드로 대응
                     if (ghostWeekCardsHTML === "") {
-                        weeklyScheduleBriefingHtml = `
+                        weeklyScheduleBriefingHTML = `
             <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 30px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px;">
                 <i class="fa-solid fa-calendar-minus" style="font-size: 22px; color: #eab308; margin-bottom: 6px; display: block;"></i>
                 <div style="font-size: 12px; color: #eab308; font-weight: 700;">이번주에는 등록된 임상시험 일정이 없습니다</div>
             </div>
         `;
                     } else {
-                        // 일정이 상주할 경우 다중 유입 내부 터치 스크롤바 바인딩 및 내용물 최종 수혈
+                        // 일정이 상주할 경우 다중 유입 내부 터치 스크롤바 바인딩 및 진짜 대문자 변수(HTML)에 최종 수혈
                         cardBoard.setAttribute("style", "max-height: 480px !important; overflow-y: auto !important; padding-right: 4px;");
-                        weeklyScheduleBriefingHtml = ghostWeekCardsHTML;
+                        weeklyScheduleBriefingHTML = ghostWeekCardsHTML;
                     }
                 }
 

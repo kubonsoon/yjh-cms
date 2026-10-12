@@ -1014,7 +1014,7 @@
                                 const liveProgressFormat = nextLineNumber + "/60";
                                 const newApplicantRecord = {
                                     uid: (targetIdxNew !== -1 ? appDB[targetIdxNew].uid : (targetIdxStrict !== -1 ? appDB[targetIdxStrict].uid : ("NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000)))),
-                                    name: localStorage.getItem('certifiedUserName') || currentCertifiedUser,
+                                    name: (myLiveJobRecord && myLiveJobRecord.name) ? myLiveJobRecord.name : (localStorage.getItem('certifiedUserName') || currentCertifiedUser),
                                     title: item.title,
                                     th: thText,
                                     count: liveProgressFormat,

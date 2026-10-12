@@ -1029,13 +1029,11 @@
                                 };
 
                                 if (targetIdxNew !== -1) {
-                                    appDB[targetIdxNew] = Object.assign({}, appDB[targetIdxNew], newApplicantRecord);
-                                    appDB[targetIdxNew].stage = "신검대기";
+                                    appDB[targetIdxNew] = Object.assign({}, appDB[targetIdxNew], newApplicantRecord, { stage: "신검대기" });
                                     if (appDB[targetIdxNew].status) appDB[targetIdxNew].status = "신검대기";
                                 }
                                 else if (targetIdxStrict !== -1) {
-                                    appDB[targetIdxStrict] = Object.assign({}, appDB[targetIdxStrict], newApplicantRecord);
-                                    appDB[targetIdxStrict].stage = "신검대기";
+                                    appDB[targetIdxStrict] = Object.assign({}, appDB[targetIdxStrict], newApplicantRecord, { stage: "신검대기" });
                                     if (appDB[targetIdxStrict].status) appDB[targetIdxStrict].status = "신검대기";
                                 }
                                 else {

@@ -1030,11 +1030,16 @@
 
                                 if (targetIdxNew !== -1) {
                                     appDB[targetIdxNew] = Object.assign({}, appDB[targetIdxNew], newApplicantRecord);
+                                    appDB[targetIdxNew].stage = "신검대기";
+                                    if (appDB[targetIdxNew].status) appDB[targetIdxNew].status = "신검대기";
                                 }
-                                else if (targetIdx !== -1) {
-                                    appDB[targetIdx] = Object.assign({}, appDB[targetIdx], newApplicantRecord);
+                                else if (targetIdxStrict !== -1) {
+                                    appDB[targetIdxStrict] = Object.assign({}, appDB[targetIdxStrict], newApplicantRecord);
+                                    appDB[targetIdxStrict].stage = "신검대기";
+                                    if (appDB[targetIdxStrict].status) appDB[targetIdxStrict].status = "신검대기";
                                 }
                                 else {
+                                    newApplicantRecord.stage = "신검대기";
                                     appDB.push(newApplicantRecord);
                                 }
 

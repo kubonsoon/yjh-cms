@@ -1051,7 +1051,25 @@
 
                                 // ❷ 구축해두신 줄바꿈 및 데이터 적재 구조를 단 1비트도 건드리지 않고 무결성 유지 사출 (백슬래시 전면 제거)
                                 localStorage.setItem('dataStoreApplicant', JSON.stringify(appDB));
+                                if (typeof dataStoreApplicant !== "undefined") dataStoreApplicant = appDB;
+
+                                // === [기획 수정 핵심 구간: 기존 참여 대상자 로직 강제 상속 인터록 결착] ===
+                                // 참여 클릭 성공 직후, 신규 상태를 즉시 탈피하고 "기존 시험에 참여중인 대상자"의 규칙과 궤도를 따르도록 세션 플래그 치환
+                                if (typeof isNewUser !== "undefined") {
+                                    isNewUser = false; // 신규 유저 모드 강제 해제 (기존 유저 순정 규칙으로 자동 상속 진입)
+                                }
+                                if (typeof currentCertifiedUserStatus !== "undefined") {
+                                    currentCertifiedUserStatus = "참여중";
+                                }
+
                                 alert(`[신청 접수완료]\n\n${exactCertifiedName} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
+
+                                // [기존 참여중인 대상자의 순정 일정 규칙 화면 리렌더링 가동]
+                                // 위에서 플래그가 기존 참여자로 안전 전환되었으므로, 원래 파일 내부에 잘 빌드되어 상주하고 있던
+                                // "현재 참여중인 대상자 전용의 달력 그리기 및 카드 매핑 소스코드"가 원형 그대로 실행됩니다.
+                                if (typeof renderCalendar === "function") {
+                                    renderCalendar();
+                                }
                                 renderDailyCards();
                             };
                         }

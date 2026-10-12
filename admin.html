@@ -3964,15 +3964,18 @@
 
                 // ❺ 가변 컴포넌트 알맹이 값 강제 수거 (조준 축선 일치화 및 타인 방 데이터 복사 유발점 완전 소독)
                 const getElVal = (baseId, fallback) => {
-                    const el = document.getElementById(`${baseId}-${exactMasterIdx}`) || document.getElementById(`${baseId}-${index}`);
+                    const el =
+                        document.getElementById(`${baseId}-${exactMasterIdx}`) ||
+                        document.getElementById(`${baseId}-${index}`);
                     return el ? el.value : fallback;
                 };
 
                 const t = getElVal("inline-app-title", origin.title).trim();
                 const th = getElVal("inline-app-th", origin.th).trim();
-                const p = getElVal("inline-app-period", origin.period).trim().replace(/[^0-9]/g, '');
+                const p = getElVal("inline-app-period", origin.period)
+                    .trim()
+                    .replace(/[^0-9]/g, "");
                 const s = getElVal("inline-app-ssn", origin.ssn).trim();
-
                 const nextPay1 = getElVal("inline-app-pay1", "대기").toString().trim();
                 const nextPay2 = getElVal("inline-app-pay2", "대기").toString().trim();
                 const nextPay3 = getElVal("inline-app-pay3", "대기").toString().trim();
@@ -3981,7 +3984,12 @@
 
                 const nextDuty = getElVal("inline-app-duty", "대기");
                 const nextCall = getElVal("inline-app-call", "대기");
-                const nextStage = getElVal("inline-app-stage", "신검대기").trim();
+
+                // [기획 수정 핵심 구간]: ID 뒤틀림 간섭을 원천 차단하기 위해 불이 켜진 수정 행(targetRowDOM) 내부에서 드롭다운 셀렉트 박스 다이렉트 수거
+                const stageSelectDOM = targetRowDOM.querySelector('select[id*="inline-app-stage"]') ||
+                    targetRowDOM.querySelector('select[id*="stage"]') ||
+                    targetRowDOM.querySelector('select');
+                const nextStage = stageSelectDOM ? stageSelectDOM.value.trim() : getElVal("inline-app-stage", "신검대기").trim();
 
                 // ==========================================================================
                 // 🎯 [saveInlineApplicantRecord - Part 2] 대표님 특허 정원 소독(40) 및 버퍼 조준 치환 마감

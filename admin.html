@@ -4096,13 +4096,7 @@
                     localStorage.setItem('msg_auth_signal', JSON.stringify({ name: currentTargetData.name, isAllow: authAllowValue, stageCode: authStageCode, time: Date.now() }));
                 }
 
-                // 화면 새로고침 가동 (필터링 상태 및 정렬 주파수 고스란히 상속 복원)
-                if (typeof renderApplicantTable === "function") renderApplicantTable();
-                else if (typeof refreshApplicantView === "function") refreshApplicantView();
-
-                if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
-
-                // 최종수정한 사항 알림창 사출
+                // 최종수정한 사항 알림창 사출을 위한 어레이 빌드 (원본 로직 상속)
                 let alertDetails = [];
                 if (origin.title !== t) alertDetails.push(`시험명 : ${t}`);
                 if (origin.th !== th) alertDetails.push(`기수 : ${th}`);
@@ -4122,12 +4116,18 @@
                 if ((origin.isDutyAgreed || "대기") !== nextDuty) alertDetails.push(`당직동의 : ${nextDuty}`);
                 if ((origin.isCallAgreed || "대기") !== nextCall) alertDetails.push(`소집동의 : ${nextCall}`);
 
-                // 📝 알림창 최종 빌드 사출 (변경된 내용이 있다면 목록화하여 출력, 없으면 기본 완료 안내)
+                // 📝 [알림창 선행 빌드 사출]: 브라우저 렌더 락 간섭을 막기 위해 팝업을 먼저 실행시킵니다.
                 if (alertDetails.length > 0) {
                     alert(`📋 [대상자 목록 수정 완료]\n\n대상자: ${n}\n-------------------------\n${alertDetails.join('\n')}`);
                 } else {
                     alert(`📋 [대상자 목록 수정 완료]\n\n대상자 ${n}님의 변경 사항이 원장에 안전하게 저장되었습니다.`);
                 }
+
+                // 🚀 🎯 [인터록 해제 후 화면 최종 덧칠]: 사용자가 알림창 [확인]을 누른 직후 실제 화면 리렌더러 파이프라인 가동!!
+                if (typeof renderApplicantTable === "function") renderApplicantTable();
+                else if (typeof refreshApplicantView === "function") refreshApplicantView();
+
+                if (typeof calculateLiveDashboardStats === "function") calculateLiveDashboardStats();
 
             } catch (error) {
                 console.error("대상자 인라인 세이브 최종 마비 오류:", error);

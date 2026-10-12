@@ -2226,18 +2226,17 @@
         function refreshApplicantView() {
             const tbody = document.getElementById("dom-applicant-table");
             const paginator = document.getElementById("applicant-pagination"); // 페이징 버튼이 그려질 하단 슬롯 돔
+
             if (!tbody) return;
             tbody.innerHTML = "";
             if (paginator) paginator.innerHTML = ""; // 버튼 초기화
 
-            // ❶ [실시간 버퍼 상속 가드 주입]: 저장 함수가 치환한 최신 db 객체의 메모리 컨텍스트를 불신 리셋하지 않고 안전 보존
+            // [실시간 버퍼 상속 가드 주입]: 저장 함수가 치환한 최신 db 객체의 메모리 컨텍스트를 불신 리셋하지 않고 안전 보존
             // 인라인 수정 컨텍스트가 상주 중이거나 기존 데이터 버퍼가 확보되어 있다면 쌩 스토리지로 덮어쓰지 않고 동치 상태 상속
             if (typeof db === 'undefined' || !db || db.length === 0 || !document.querySelector(".editing-row")) {
                 db = JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
             }
-
-            let recruitmentDB =
-                JSON.parse(localStorage.getItem("dataStoreRecruitment")) || [];
+            let recruitmentDB = JSON.parse(localStorage.getItem("dataStoreRecruitment")) || [];
 
             // [순정 데이터 정화 스캔 기믹] (원본 규칙 100% 보존 계승)
             let isDataCleaned = false;
@@ -2254,6 +2253,7 @@
                         isDataCleaned = true;
                     }
                 }
+
                 if (
                     user.isDutyAgreed === undefined ||
                     user.isDutyAgreed === null ||

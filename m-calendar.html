@@ -1111,16 +1111,17 @@
 
                         if (activeStages.length > 0) hasWeeklyScheduleInThisWindow = true;
 
-                        // [사용자 보정안 싱크 반영]: 자바스크립트 날짜 배열 인덱싱 가공 무결성 확보
+                        // [날짜 배열 인덱싱 수리 완착]: 하이픈 단위 분해 및 배열 첨자 지정 정제
                         const dateParts = cleankey.split("-");
                         const loopDateObj = new Date(
                             parseInt(dateParts[0], 10),
                             parseInt(dateParts[1], 10) - 1,
                             parseInt(dateParts[2], 10)
                         );
-                        const formattedLabel = `${dateParts[0]}년 ${String(dateParts[1]).padStart(2, "0")}월 ${String(dateParts[2]).padStart(2, "0")}일 (${daysMapShort[loopDateObj.getDay()]})`;
 
-                        // [기획 요구사항 반영]: 기존 참여자는 날짜와 공정 단계명이 완벽히 1줄로 나열됨
+                        // [기획 요구사항 반영]: 주간 일정 목록 포맷터의 연, 월, 일을 칼같이 2자리 숫자로 강제 0패딩 정렬
+                        const formattedLabel = `${String(dateParts[0]).padStart(4, "0")}년 ${String(dateParts[1]).padStart(2, "0")}월 ${String(dateParts[2]).padStart(2, "0")}일 (${daysMapShort[loopDateObj.getDay()]})`;
+
                         if (activeStages.length > 0) {
                             const combinedStages = activeStages.join(", ");
                             weeklyScheduleBriefingHtml += `
@@ -1129,16 +1130,25 @@
                         </div>
                     `;
 
-                            // [문제 03 및 변수 정합성 수리 완료]: 자릿수 파편화를 전면 세척하는 고강도 숫자 소독 가드막 내부 정착
-                            const cleanRegularSrcDate = cleankey.replace(/[^0-9]/g, "");
-                            const cleanRegularTargetKey = window.selectedDateStr.replace(/[^0-9]/g, "");
+                            // [문제 완벽 해결 - 4-8 = 04-08 정수형 날짜 일치화 소독 가드막]
+                            const srcParts = cleankey.split("-");
+                            const targetParts = window.selectedDateStr.split("-");
 
-                            if (cleanRegularSrcDate === cleanRegularTargetKey) {
+                            // 각 요소를 정수로 강제 변환하여 앞자리 0패딩(04, 08 등) 찌꺼기 편차를 전면 소멸
+                            const srcYear = parseInt(srcParts[0], 10);
+                            const srcMonth = parseInt(srcParts[1], 10);
+                            const srcDay = parseInt(srcParts[2], 10);
+
+                            const targetYear = parseInt(targetParts[0], 10);
+                            const targetMonth = parseInt(targetParts[1], 10);
+                            const targetDay = parseInt(targetParts[2], 10);
+
+                            // 수학적 크로스 오프셋 비교 게이트 전개
+                            if (srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay) {
                                 activeStages.forEach((stageLabel, sIdx) => {
                                     renderedCardCount++;
                                     const uniqueSubKey = `${matchedRecruitmentItem.uid}_REG_${sIdx}`;
 
-                                    // [문제 해결 - 스크리닝=신검대기 정합성 연동 인터록 완착]
                                     const currentLiveStageToken = (myLiveJobRecord.stage || myLiveJobRecord.status || "").toString().trim();
 
                                     if (stageLabel === "스크리닝" || currentLiveStageToken === "신검대기") {
@@ -1148,9 +1158,7 @@
                                         <div style="font-size: 12.5px; color: #38bdf8; font-weight: 600;">현재 스크리닝 참여중입니다</div>
                                     </div>
                                 `;
-                                    }
-                                    // [소집 및 정규 공정 격리 레일 개방]: 신검대기가 아닐 때, 소집 단계부터 3대 단추 카드가 정순 상단 사출
-                                    else {
+                                    } else {
                                         regularCardsHTML += `
                                     <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align: left; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);">
                                         <div class="card-top-row">

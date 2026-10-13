@@ -1161,36 +1161,42 @@
                         </div>
                     `;
 
+                            // [문제 03 완벽 해결 - 고강도 숫자 소독 가드]: 날짜 포맷의 자릿수 파편화를 전면 세척하여 개별 요일 터치 시 액션 카드 조출 유도
+                            const cleanRegularSrcDate = cleankey.replace(/[^0-9]/g, "");
+                            const cleanRegularTargetKey = window.selectedDateStr.replace(/[^0-9]/g, "");
+
                             if (cleanRegularSrcDate === cleanRegularTargetKey) {
                                 activeStages.forEach((stageLabel, sIdx) => {
                                     renderedCardCount++;
                                     const uniqueSubKey = `${matchedRecruitmentItem.uid}_REG_${sIdx}`;
 
+                                    // [문제 해결 - 상호 배타적 분기 인터록]: 스크리닝과 정규 단계를 if-else 구조로 안전 격리
                                     if (stageLabel === "스크리닝") {
                                         regularCardsHTML += `
                                     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 10px;">
-                                        <i class="fa-solid fa-circle-check" style="font-size: 24px; color: var(--secondary-color); margin-bottom: 8px; display: block;"></i>
+                                        <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #38bdf8; margin-bottom: 8px; display: block;"></i>
                                         <div style="font-size: 12.5px; color: #38bdf8; font-weight: 600;">현재 스크리닝 참여중입니다</div>
                                     </div>
                                 `;
-                                        return;
                                     }
-
-                                    regularCardsHTML += `
-                                <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align:left; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);">
-                                    <div class="card-top-row">
-                                        <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${stageLabel}</div>
+                                    // [소집 및 정규 공정 개방 레일]: 3대 버튼 액션 카드 조출 구역
+                                    else {
+                                        regularCardsHTML += `
+                                    <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align: left; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);">
+                                        <div class="card-top-row">
+                                            <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${stageLabel}</div>
+                                        </div>
+                                        <div class="card-meta-grid" style="margin-top:8px; border-top: 1px dashed #1e293b; padding-top: 6px; font-size:12.5px; color:var(--text-muted);">
+                                            <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">${matchedRecruitmentItem.title}</span></div>
+                                        </div>
+                                        <div class="card-action-bar" id="ui_action_bar_the_unique_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+                                            <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
+                                            <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background: #475569;">미참여</button>
+                                            <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i>이력조회</button>
+                                        </div>
                                     </div>
-                                    <div class="card-meta-grid" style="margin-top:8px; border-top: 1px dashed #1e293b; padding-top: 6px; font-size:12.5px; color:var(--text-muted);">
-                                        <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">${matchedRecruitmentItem.title}</span></div>
-                                    </div>
-                                    <div class="card-action-bar" id="ui_action_bar_the_unique_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
-                                        <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
-                                        <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background: #475569;">미참여</button>
-                                        <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i>이력조회</button>
-                                    </div>
-                                </div>
-                            `;
+                                `;
+                                    }
                                 });
                             }
                         } else {

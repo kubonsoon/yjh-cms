@@ -951,22 +951,32 @@
                 let weeklyScheduleBriefingHTML = "";
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
 
-                weeklyKeys.forEach((dateKey) => {
+                weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
-                    const formattedLabel = `${dateKey.split("-")[0]}년 ${String(dateKey.split("-")[1]).padStart(2, "0")}월 ${String(dateKey.split("-")[2]).padStart(2, "0")}일 (${daysMapShort[dateObj.getDay()]})`;
-                    const matchItem = records.find(
-                        (r) => r.examSchedule && r.examSchedule.trim() === dateKey.trim(),
-                    );
+                    const formattedLabel = `${dateKey.split('-')[0]}년 ${String(dateKey.split('-')[1]).padStart(2, '0')}월 ${String(dateKey.split('-')[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
+
+                    // [정밀 보정 수술]: 모집공고 원장과 달력 주간 키셋의 공백 및 하이픈 정합성을 완전히 소독하여 크로스 매핑 누락 결함을 완천 방어
+                    const matchItem = records.find(r => {
+                        if (!r || !r.examSchedule) return false;
+                        const cleanSrcDate = r.examSchedule.toString().replace(/[^0-9-]/g, "").trim();
+                        const cleanTargetKey = dateKey.toString().replace(/[^0-9-]/g, "").trim();
+                        return cleanSrcDate === cleanTargetKey;
+                    });
 
                     if (matchItem) {
                         weeklyScheduleBriefingHTML += `
                     <div class="briefing-row-item" style="margin-bottom: 12px; line-height: 1.5; text-align: left;">
                         <div>• ${formattedLabel} : <span style="color: #38bdf8; font-weight: bold;">스크리닝</span></div>
-                        <div style="padding-left: 12px; color: #94a3b8; font-size: 13px; font-weight: 700;">${matchItem.title} ${matchItem.th || "1기"}</div>
+                        <div style="padding-left: 12px; color: #94a3b8; font-size: 13px; font-weight: 700;">${matchItem.title} ${(matchItem.th || "1기")}</div>
                     </div>
                 `;
                     } else {
-                        weeklyScheduleBriefingHTML += `<div class="briefing-row-item" style="margin-bottom: 12px; text-align: left; color:rgba(255,255,255,0.35);">• ${formattedLabel} : </div>`;
+                        // 요구 규칙 사수: 신규 대상자는 매칭 과제가 없는 날짜의 경우 우측을 완전 공백 블록으로 마킹 나열
+                        weeklyScheduleBriefingHTML += `
+                    <div class="briefing-row-item" style="margin-bottom: 12px; text-align: left; color:rgba(255,255,255,0.35);">
+                        • ${formattedLabel} : 
+                    </div>
+                `;
                     }
                 });
 
@@ -1222,7 +1232,7 @@
                 }
 
                 let totalOutHTML = "";
-                // [수정 보정 완료]: 요일 버튼을 직접 터치 활성화한 상태(isDayButtonClicked === true)일 때만 카드 미존재 예외 문구를 사출함
+                // [수정 완료]: 사용자가 상단 달력의 요일 단추를 명확하게 직접 클릭했을 때만(window.isDayButtonClicked === true) 개별 일자 경고문 사출. 첫 로드(주간 전체 모드) 시에는 경고 상자 노출을 완전히 삭제 처리함.
                 if (renderedCardCount === 0 && window.isDayButtonClicked === true) {
                     totalOutHTML += `
                 <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 15px; font-weight: 600; color: #38bdf8;">

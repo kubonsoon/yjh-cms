@@ -1252,9 +1252,8 @@
 
                     currentActiveRecords.forEach((item) => {
                         const thText = (item.th || "1기").trim();
-                        const clickUid = item.uid ? item.uid : "UID";
 
-                        // [어드민 고정 옵션 표준 단어 싱크 마일스톤 매핑 리스트 재배치 완착]
+                        // [어드민 고정 옵션 표준 단어 싱크 마일스톤 매핑 리스트 동기화 완착]
                         const originalMilestones = [
                             { label: "스크리닝" },
                             { label: "소집" },
@@ -1266,7 +1265,8 @@
                         ];
 
                         originalMilestones.forEach((schedule, idx) => {
-                            const uniqueSubKey = `${clickUid}_REG_${idx}`;
+                            // [버튼 먹통 완벽 해결 - 고유 ID 단선 수리 완착]: 상단 카드 사출 공장 규격(matchedRecruitmentItem.uid)과 버튼 식별 키셋 매핑 축을 100% 일치 동기화함
+                            const uniqueSubKey = `${matchedRecruitmentItem.uid}_REG_${idx}`;
 
                             // 1. 참여 버튼 클릭 시 출석 전진 업데이트 및 관제탑(admin.html) 참여상태 실시간 연동 변화
                             const btnJoin = document.getElementById(`btn_card_join_${uniqueSubKey}`);
@@ -1279,7 +1279,7 @@
                                     );
 
                                     if (targetIdx !== -1) {
-                                        // [단어 미스매치 수리 완착]: 어드민 셀렉트박스 옵션 규격과 토시 하나 안 틀리게 동기화 전진 처리
+                                        // 어드민 드롭다운 옵션 양식과 토시 하나 안 틀리게 동기화 전진 처리 커밋
                                         let cleanFriendlyStage = schedule.label;
 
                                         appDB[targetIdx].status = cleanFriendlyStage;
@@ -1293,7 +1293,7 @@
 
                                         alert(`인증 성공\n\n대상자님의 참여 상태가 [${cleanFriendlyStage}] 단계로 출석 정상 업데이트 커밋되었습니다.`);
 
-                                        // PC 마스터 관리자 화면(admin.html) 목록 및 #form-app-stage 드롭다운 메뉴 실시간 강제 리프레시 변화
+                                        // PC 마스터 관리자 화면(admin.html) 목록 및 #form-app-stage 드롭다운 메뉴 즉시 실시간 강제 리프레시 변화
                                         if (
                                             window.opener &&
                                             !window.opener.closed &&
@@ -1308,7 +1308,7 @@
                                 };
                             }
 
-                            // 2. 미참여 거절 버튼 처리
+                            // 2. 미참여 거절 버튼 피드백 처리
                             const btnReject = document.getElementById(`btn_card_reject_${uniqueSubKey}`);
                             if (btnReject) {
                                 btnReject.onclick = function (e) {

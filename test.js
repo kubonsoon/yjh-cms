@@ -330,6 +330,19 @@ function renderDailyCards() {
   // [트랙 A : 기존 참여 대상자 전용 가드 체인 - 전반부 목록 팩토리]
   // =============================================================================
   else {
+    if (!myLiveJobRecord) {
+      cardBoard.innerHTML = `
+                <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 24px 16px; border-radius: 14px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+                    <i class="fa-solid fa-calendar-xmark" style="font-size: 26px; color: var(--text-muted); margin-bottom: 10px; display: block;"></i>
+                    <div style="color:var(--text-color); font-weight: 700; font-size: 14px; margin-bottom: 4px;">배정된 임상시험 정보가 없습니다.</div>
+                    <div style="color:var(--text-muted); font-size: 12px; font-weight: 500; line-height: 1.4;">
+                        대상자님은 현재 참여 중이거나 전산 심사 대기 중인 <br> 임상시험 과제 일정이 존재하지 않습니다.
+                    </div>
+                </div>
+            `;
+      return;
+    }
+
     const matchedRecruitmentItem = records.find((item) => {
       if (!item || !item.title || !myLiveJobRecord.title) return false;
       return (
@@ -396,7 +409,6 @@ function renderDailyCards() {
         );
         const formattedLabel = `${dateParts[0]}년 ${String(dateParts[1]).padStart(2, "0")}월 ${String(dateParts[2]).padStart(2, "0")}일 (${daysMapShort[loopDateObj.getDay()]})`;
 
-        // [기획 요구사항 반영]: 기존 참여자는 날짜와 공정 단계명이 칼같이 1줄 레이아웃으로 결착됨
         if (activeStages.length > 0) {
           const combinedStages = activeStages.join(", ");
           weeklyScheduleBriefingHtml += `
@@ -405,7 +417,6 @@ function renderDailyCards() {
                         </div>
                     `;
 
-          // 선택 일자와 마일스톤 싱크 정합 시 개별 활성 조작 카드 HTML 누적
           if (cleankey === window.selectedDateStr) {
             activeStages.forEach((stageLabel, sIdx) => {
               renderedCardCount++;
@@ -422,7 +433,7 @@ function renderDailyCards() {
               }
 
               regularCardsHTML += `
-                                <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align:left;">
+                                <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align:left; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);">
                                     <div class="card-top-row" style="padding-bottom: 2px;">
                                         <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${stageLabel}</div>
                                     </div>
@@ -441,7 +452,6 @@ function renderDailyCards() {
             });
           }
         } else {
-          // [기획 요구사항 반영]: 일정이 없는 날짜는 공백 없이 대기 하이픈 마킹
           weeklyScheduleBriefingHtml += `
                         <div class="briefing-row-item" style="margin-bottom: 12px; padding: 4px 0; font-size: 12px; color: rgba(255,255,255,0.35); text-align:left;">
                             <span>• ${formattedLabel} : </span><span style="font-weight:500; color:rgba(255,255,255,0.2);">-</span>
@@ -451,19 +461,14 @@ function renderDailyCards() {
       });
     }
 
-    // [기획 요구사항 반영 - 고정 예외 텍스트 2종 안착 및 조출 결착]
     if (!hasWeeklyScheduleInThisWindow) {
-      cardBoard.innerHTML = `
-                <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px solid var(--border-color); border-radius: 14px; font-weight: 700;">
-                    <i class="fa-solid fa-calendar-minus" style="font-size: 24px; color: #eab308; margin-bottom: 8px; display: block;"></i>
-                    <div style="font-size: 12px; color: #eab308; font-weight: 700;">이번주에 등록된 임상시험 일정이 없습니다.</div>
-                </div>
-            `;
+      cardBoard.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px solid var(--border-color); border-radius: 14px; font-weight: 700;">이번주에 등록된 임상시험 일정이 없습니다.</div>`;
       return;
     }
 
     let totalOutHTML = "";
-    if (renderedCardCount === 0) {
+    // [수정 보정 완료]: 요일 버튼을 직접 터치 활성화한 상태(isDayButtonClicked === true)일 때만 카드 미존재 예외 문구를 사출함
+    if (renderedCardCount === 0 && window.isDayButtonClicked === true) {
       totalOutHTML += `
                 <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 15px; font-weight: 600; color: #38bdf8;">
                     <i class="fa-solid fa-calendar-xmark" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
@@ -604,4 +609,30 @@ function renderDailyCards() {
       });
     }, 0);
   } // else 블록 최종 마감
+} // function renderDailyCards 부모 크로스 스코프 최종 무결성 마감
+
+// =============================================================================
+// [인프라 복원 매립] 주간 달력 요일 단추 터치 이벤트 리스너 인터록 엔진 (단독 상주)
+// =============================================================================
+function attachCalendarDayClickEvents() {
+  const dayButtons = document.querySelectorAll(
+    ".weekly-day-btn, .calendar-day-item",
+  );
+  if (!dayButtons || dayButtons.length === 0) return;
+
+  dayButtons.forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      // 사용자가 요일을 직접 선택했음을 알리는 플래그를 정밀 각인 (예외 문구 중복 노출 파쇄용)
+      window.isDayButtonClicked = true;
+
+      // 단추에 박혀있는 가상 데이터 속성(data-date="2026-12-04") 추출 및 전역 동기화
+      const targetClickedRawDate = this.getAttribute("data-date") || "";
+      if (targetClickedRawDate && targetClickedRawDate.includes("-")) {
+        window.selectedDateStr = targetClickedRawDate.trim();
+
+        // 액션 카드 섹션 조출 공장 강제 리렌더링 가동 (4일 금요일 카드 정순 사출)
+        renderDailyCards();
+      }
+    });
+  });
 }

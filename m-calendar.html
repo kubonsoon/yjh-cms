@@ -897,11 +897,22 @@
                     const actualRawDate = item.examSchedule ? item.examSchedule.toString().trim() : "";
 
                     if (actualRawDate && actualRawDate.includes("-") && weeklyKeys.includes(actualRawDate)) {
-                        // [문제 03 완결 해결 - 숫자 정제 가드막]: 포맷 자릿수 불일치 오차를 전면 세척하여 3대 단추 카드 정순 사출 유도
-                        const cleanSrcDate = actualRawDate.replace(/[^0-9]/g, "");
-                        const cleanTargetKey = window.selectedDateStr.replace(/[^0-9]/g, "");
 
-                        if (cleanSrcDate === cleanTargetKey) {
+                        // [트랙 B 완벽 해결]: 날짜 문자열을 하이픈 기준으로 해체 분해
+                        const srcParts = actualRawDate.split("-");
+                        const targetParts = window.selectedDateStr.split("-");
+
+                        // parseInt(..., 10)를 통해 앞자리 0패딩(04, 08 등) 변수 파편화를 완천 방어 소독
+                        const srcYear = parseInt(srcParts[0], 10);
+                        const srcMonth = parseInt(srcParts[1], 10);
+                        const srcDay = parseInt(srcParts[2], 10);
+
+                        const targetYear = parseInt(targetParts[0], 10);
+                        const targetMonth = parseInt(targetParts[1], 10);
+                        const targetDay = parseInt(targetParts[2], 10);
+
+                        // 정수 데이터 기반의 마스터 비교 게이트웨이 개방
+                        if (srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay) {
                             renderedCardCount++;
                             const targetThClass = (item.th || "1기").replace(/\s/g, "");
 
@@ -1149,9 +1160,11 @@
                                     renderedCardCount++;
                                     const uniqueSubKey = `${matchedRecruitmentItem.uid}_REG_${sIdx}`;
 
-                                    const currentLiveStageToken = (myLiveJobRecord.stage || myLiveJobRecord.status || "").toString().trim();
+                                    // [인프라 싱크]: 변수 추출 렉 차단 및 대조 문자열 공백 정세 소독 완착
+                                    const currentLiveStageToken = (myLiveJobRecord.stage || myLiveJobRecord.status || "").toString().trim().replace(/\s/g, "");
 
-                                    if (stageLabel === "스크리닝" || currentLiveStageToken === "신검대기") {
+                                    // [문제 완벽 해결]: "스크리닝" 혹은 가상 DB 상의 "신검대기" 중 단 하나만 포획되어도 우회 안내문 강제 조출
+                                    if (stageLabel.includes("스크리닝") || currentLiveStageToken.includes("신검대기")) {
                                         regularCardsHTML += `
                                     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 10px;">
                                         <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #38bdf8; margin-bottom: 8px; display: block;"></i>
@@ -1159,6 +1172,7 @@
                                     </div>
                                 `;
                                     } else {
+                                        // 소집 단계부터 진짜 3대 버튼 액션 카드가 화면 상단에 정순 사출
                                         regularCardsHTML += `
                                     <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align: left; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);">
                                         <div class="card-top-row">
@@ -1178,14 +1192,14 @@
                                 });
                             }
                         } else {
-                            // [기획 요구사항 반영]: 임상 스케줄이 비어있는 빈 날짜는 우측 영역에 깨끗하게 하이픈(: -) 긴급 표기
+                            // [기획 요구사항 완벽 반영]: 임상 스케줄이 비어있는 빈 날짜는 우측 영역에 깨끗하게 하이픈(: -) 마킹 나열
                             weeklyScheduleBriefingHtml += `
                         <div class="briefing-row-item" style="margin-bottom: 12px; padding: 4px 0; font-size: 12px; color: rgba(255,255,255,0.35); text-align:left;">
                             <span>• ${formattedLabel} : </span><span style="font-weight: 500; color: rgba(255,255,255,0.2);">-</span>
                         </div>
                     `;
                         }
-                    });
+                    }); // weeklyKeys.forEach 마감
                 }
 
                 // =============================================================================

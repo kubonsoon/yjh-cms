@@ -1004,10 +1004,13 @@
                 // [항목 03 - 후반부] [트랙 B : 신규 및 180일 만료자] 3대 단추 비동기 액션 바인딩 및 부모 창 인터록 마감
                 // =============================================================================
                 setTimeout(() => {
+                    // [런타임 크래시 예방 가드막 완착]: 비동기 데이터 적재 렉으로 인한 자바스크립트 엔진 정지 결함 원천 파쇄
+                    if (!records || records.length === 0) return;
+
                     records.forEach((item) => {
                         if (!item || !item.uid) return;
 
-                        // 1. 참여 버튼 클릭 시 트랜잭션 및 어드민 표준 단어 '신검대기' 커밋
+                        // 1. 참여 버튼 클릭 시 트랜잭션 및 어드민 표준 단어 '대기' 전진 적재 커밋
                         const btnJoin = document.getElementById(`btn_card_join_${item.uid}`);
                         if (btnJoin) {
                             btnJoin.onclick = function (e) {
@@ -1029,8 +1032,8 @@
                                     gender: genderText === "남" ? "남" : "여",
                                     payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus4: "대기",
                                     result: "대기", isDutyAgreed: "대기", isCallAgreed: "대기", category: "M인증",
-                                    stage: "대기", // 어드민 고정 단어 일치화
-                                    status: "대기", // 어드민 고정 단어 일치화
+                                    stage: "대기",   // 기획 사수 양식: 최초 인증 접수 시 '대기' 상태 커밋
+                                    status: "대기",  // 기획 사수 양식: 최초 인증 접수 시 '대기' 상태 커밋
                                     regDate: new Date().toISOString().split("T")[0]
                                 };
 
@@ -1043,7 +1046,7 @@
 
                                 alert(`[신청 접수완료]\n\n${newApplicantRecord.name} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
 
-                                // 관리자 화면(admin.html) 관제망 실시간 리프레시 동기화 가동
+                                // PC 마스터 관리자 화면(admin.html) 드롭다운 메뉴 및 테이블 참여상태를 순정 "대기" 배지로 실시간 연동 변화
                                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                                     window.opener.refreshApplicantView();
                                 }
@@ -1052,7 +1055,7 @@
                             };
                         }
 
-                        // 2. 미참여 버튼 피드백
+                        // 2. 미참여 거절 버튼 피드백 처리
                         const btnReject = document.getElementById(`btn_card_reject_${item.uid}`);
                         if (btnReject) {
                             btnReject.onclick = function (e) {
@@ -1061,7 +1064,7 @@
                             };
                         }
 
-                        // 3. 이력조회 버튼 모달 융합
+                        // 3. 모바일 전용 개별 이력조회 모달 시스템 호출 결착
                         const btnHist = document.getElementById(`btn_card_hist_${item.uid}`);
                         if (btnHist) {
                             btnHist.onclick = function (e) {
@@ -1246,6 +1249,9 @@
 
                 // [트랙 A 전용 비동기 3대 단추 액션 마스터 바인딩 및 어드민 실시간 상태 연동 커밋반]
                 setTimeout(() => {
+                    // [런타임 크래시 예방 가드막 완착]: 객체 누락 시 예외 필터링을 거치게 유도하여 캘린더 엔진 정지 결함 원천 파쇄
+                    if (!myLiveJobRecord || !myLiveJobRecord.title) return;
+
                     const currentActiveRecords = records.filter(
                         (item) => item && item.title && myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase() === item.title.toString().replace(/\s/g, "").toLowerCase()
                     );
@@ -1265,7 +1271,7 @@
                         ];
 
                         originalMilestones.forEach((schedule, idx) => {
-                            // [버튼 먹통 완벽 해결 - 고유 ID 단선 수리 완착]: 상단 카드 사출 공장 규격(matchedRecruitmentItem.uid)과 버튼 식별 키셋 매핑 축을 100% 일치 동기화함
+                            // [ID 오프셋 단선 결함 수리 완료]: 상단 카드 사출 공장 규격(matchedRecruitmentItem.uid)과 식별 단추 추적 축을 100% 동기화
                             const uniqueSubKey = `${matchedRecruitmentItem.uid}_REG_${idx}`;
 
                             // 1. 참여 버튼 클릭 시 출석 전진 업데이트 및 관제탑(admin.html) 참여상태 실시간 연동 변화

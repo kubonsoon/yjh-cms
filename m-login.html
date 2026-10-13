@@ -388,6 +388,13 @@
 
         /* [3단계: 결과 알림 팝업] */
         .popup-display-zone {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: calc(100% - 40px);
+            box-sizing: border-box;
+            z-index: 9999;
             background: #0f172a;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -415,13 +422,16 @@
             border-radius: 16px !important;
             width: 100% !important;
             text-align: center !important;
-
-
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             border: 2px solid #1e293b !important;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4) !important;
             margin-top: 0px !important;
             /* 위쪽 유령 마진 공백을 원천 소독하여 가이드라인 바로 밑단으로 바짝 밀착 */
             box-sizing: border-box;
+            padding: 20px !important;
         }
 
         /* === [추가 및 보정 지점]: 원본 마크업 흐름을 깨지 않도록 독립형 모달 팝업 가독성 클래스 주입 === */
@@ -496,6 +506,8 @@
 
         .btn-pop-next {
             width: 100%;
+            max-width: 200px;
+            margin: 12px auto 0 auto !important;
             height: 42px;
             /* 44px에서 42px로 콤팩트화 */
             background: #0284c7;
@@ -506,6 +518,7 @@
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
+            display: block;
         }
 
         .trial-list-card {

@@ -1161,10 +1161,6 @@
                         </div>
                     `;
 
-                            // [문제 03 완벽 해결 - 고강도 숫자 소독 가드]: 날짜 포맷의 자릿수 파편화를 전면 세척하여 개별 요일 터치 시 액션 카드 조출 유도
-                            const cleanRegularSrcDate = cleankey.replace(/[^0-9]/g, "");
-                            const cleanRegularTargetKey = window.selectedDateStr.replace(/[^0-9]/g, "");
-
                             if (cleanRegularSrcDate === cleanRegularTargetKey) {
                                 activeStages.forEach((stageLabel, sIdx) => {
                                     renderedCardCount++;

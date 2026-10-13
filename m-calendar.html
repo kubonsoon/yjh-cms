@@ -761,11 +761,11 @@
             const records = getMasterData();
             let applicantDB = getApplicantData() || [];
 
-            // [정밀 동기화]: 브라우저 암호화 패킷 세션명 가로채기
+            // [정밀 동기화]: 브라우저 암호화 저장소로부터 실물 인증 세션명을 최우선으로 가로채기
             let liveCertifiedName = localStorage.getItem('certifiedUserName') || sessionStorage.getItem('certifiedUserName') || currentCertifiedUser || "";
             let targetSsn = localStorage.getItem('loggedInUserSsn') || sessionStorage.getItem('loggedInUserSsn') || "";
 
-            // [문제 01 해결 - 실시간 데이터베이스 역추적 수혈 게이트]: 세션 딜레이로 홍길동 잔상이 남을 경우 DB 원장에서 강제 낚아채기
+            // [실시간 데이터베이스 역추적]: 세션 딜레이로 홍길동 잔상이 남을 경우 DB 원장에서 강제 낚아채기
             let cleanSessionName = liveCertifiedName.replace(/\s/g, "");
             if (cleanSessionName === "" || cleanSessionName === "홍길동") {
                 const activeLiveDbRecord = [...applicantDB].reverse().find(app => app && app.name && !["종료", "탈락", "심사탈락"].includes(app.status || app.stage || ""));
@@ -776,7 +776,7 @@
                 }
             }
 
-            // [잔상 파쇄 수술]: 주민번호 앞 6자리 추출 및 공백 정제
+            // [잔상 파쇄 수술]: 가짜 데이터 잔상을 완전히 소독하고 실물 데이터 포획
             const finalProfileDisplayName = (cleanSessionName && cleanSessionName !== "홍길동") ? liveCertifiedName : "김수지";
             const cleanSsn = targetSsn.replace(/[^0-9a-zA-Z]/g, "");
             const displayBirth6 = cleanSsn.length >= 6 ? cleanSsn.substring(0, 6) : "780406";
@@ -796,9 +796,10 @@
                 }
             }
 
-            // 상단 모바일 디바이스 프레임 프로필 슬롯 강제 바인딩
+            // 스마트폰 최상단 프로필 디스플레이 슬롯 강제 주입 바인딩
             const pIframe = window.parent ? window.parent.document : null;
             const lockProfileSlot = document.getElementById('lblSetTargetNew') || (pIframe ? pIframe.getElementById('lblSetTargetNew') : null);
+
             if (lockProfileSlot) {
                 lockProfileSlot.innerHTML = `
             <span style="color:#ffffff; font-weight:800;">${finalProfileDisplayName}</span>
@@ -818,11 +819,9 @@
             });
 
             const cachedUserObj = JSON.parse(localStorage.getItem("loggedInUser")) || {};
-            let isGhostUser =
-                cachedUserObj.isNew === true ||
-                (myLiveJobRecord && myLiveJobRecord.uid.toString().startsWith("VIRTUAL_"));
+            let isGhostUser = cachedUserObj.isNew === true || (myLiveJobRecord && myLiveJobRecord.uid.toString().startsWith("VIRTUAL_"));
 
-            // [기획 요구사항 - 실시간 트랙 전향]: 참여 이력이 확인되는 순간 신규대상자(트랙B) 장벽을 깨고 기존 유저(트랙A)로 즉시 신분 전향
+            // [실시간 트랙 전향 인터록]: 참여 이력이 확인되는 순간 신규대상자(트랙B) 장벽을 깨고 기존 유저(트랙A)로 즉시 신분 전향
             const continuousHistoryCheck = applicantDB.some((app) => {
                 if (!app || !app.name) return false;
                 return (
@@ -834,7 +833,10 @@
                 isGhostUser = false;
             }
 
-            // [기획 요구사항 - 당일 자동 매핑]: 첫 로드 시 시스템상 오늘 날짜가 자동 선택되어 보이도록 전역 오프셋 동기화
+            // =============================================================================
+            // [항목 02] 실시간 트랙 전향 인터록 및 첫 로드 당일(Today) 강제 매핑 엔진
+            // =============================================================================
+            // [당일 자동 매핑]: 연산자 조건 누락 교정 완료 (첫 로드 시 오늘 날짜 강제 주입)
             if (!window.isDayButtonClicked || !window.selectedDateStr) {
                 const todayObj = new Date();
                 window.selectedDateStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, "0")}-${String(todayObj.getDate()).padStart(2, "0")}`;
@@ -846,38 +848,26 @@
             // [5대 파일 상호 연동 - 백그라운드 크론 데몬 스케줄러]
             if (typeof window.clinicalCronDaemonInterval === "undefined") {
                 window.clinicalCronDaemonInterval = setInterval(() => {
-                    const currentSystemAlarmLogs =
-                        JSON.parse(localStorage.getItem("dataStoreSystemLogs")) || [];
-                    const dispatchedNoticeAlarmKeySet =
-                        JSON.parse(localStorage.getItem("dispatchedNoticeAlarmKeySet")) || [];
+                    const currentSystemAlarmLogs = JSON.parse(localStorage.getItem("dataStoreSystemLogs")) || [];
+                    const dispatchedNoticeAlarmKeySet = JSON.parse(localStorage.getItem("dispatchedNoticeAlarmKeySet")) || [];
                     if (currentSystemAlarmLogs.length === 0) return;
 
                     const rightNow = new Date();
                     const currentTimeMatchKey = `${String(rightNow.getHours()).padStart(2, "0")}:${String(rightNow.getMinutes()).padStart(2, "0")}`;
                     const matchTargetAlarm = currentSystemAlarmLogs.find(
-                        (log) =>
-                            log &&
-                            log.alarmTime &&
-                            log.alarmTime.trim() === currentTimeMatchKey &&
-                            !dispatchedNoticeAlarmKeySet.includes(
-                                `${log.uid}_${currentTimeMatchKey}`,
-                            ),
+                        (log) => log && log.alarmTime && log.alarmTime.trim() === currentTimeMatchKey && !dispatchedNoticeAlarmKeySet.includes(`${log.uid}_${currentTimeMatchKey}`)
                     );
 
                     if (matchTargetAlarm) {
-                        dispatchedNoticeAlarmKeySet.push(
-                            `${matchTargetAlarm.uid}_${currentTimeMatchKey}`,
-                        );
-                        localStorage.setItem(
-                            "dispatchedNoticeAlarmKeySet",
-                            JSON.stringify(dispatchedNoticeAlarmKeySet),
-                        );
+                        dispatchedNoticeAlarmKeySet.push(`${matchTargetAlarm.uid}_${currentTimeMatchKey}`);
+                        localStorage.setItem("dispatchedNoticeAlarmKeySet", JSON.stringify(dispatchedNoticeAlarmKeySet));
 
                         const cronAlarmOverlay = document.createElement("div");
                         cronAlarmOverlay.setAttribute(
                             "style",
-                            "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 21, 40, 0.95); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: blinkEffect 0.5s linear 6; padding: 20px; box-sizing: border-box;",
+                            "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 21, 40, 0.95); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: blinkEffect 0.5s linear 6; padding: 20px; box-sizing: border-box;"
                         );
+
                         cronAlarmOverlay.innerHTML = `
                     <div style="background: #1e293b; border: 2px solid #ef4444; border-radius: 16px; width: 100%; max-width: 320px; padding: 24px 16px; text-align: center; box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);">
                         <i class="fa-solid fa-bell-ring" style="font-size: 36px; color: #ef4444; margin-bottom: 12px; display: block;"></i>
@@ -886,10 +876,9 @@
                         <button type="button" id="btn_cron_alarm_confirm_${matchTargetAlarm.uid}" style="width: 100%; max-width: 150px; height: 38px; background: #ef4444; color: #ffffff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">확인 완료</button>
                     </div>
                 `;
+
                         document.body.appendChild(cronAlarmOverlay);
-                        document.getElementById(
-                            `btn_cron_alarm_confirm_${matchTargetAlarm.uid}`,
-                        ).onclick = function (e) {
+                        document.getElementById(`btn_cron_alarm_confirm_${matchTargetAlarm.uid}`).onclick = function (e) {
                             e.preventDefault();
                             cronAlarmOverlay.remove();
                         };
@@ -898,23 +887,17 @@
             }
 
             // =============================================================================
-            // [트랙 B : 신규 및 180일 만료 대상자 전용 가드 체인]
+            // [항목 03 - 전반부] [트랙 B : 신규 및 180일 만료자] 스크리닝 카드 조출 및 2줄 주간 브리핑
             // =============================================================================
             if (isGhostUser) {
                 let ghostWeekCardsHTML = "";
 
                 records.forEach((item) => {
                     if (!item || !item.title) return;
-                    const actualRawDate = item.examSchedule
-                        ? item.examSchedule.toString().trim()
-                        : "";
+                    const actualRawDate = item.examSchedule ? item.examSchedule.toString().trim() : "";
 
-                    if (
-                        actualRawDate &&
-                        actualRawDate.includes("-") &&
-                        weeklyKeys.includes(actualRawDate)
-                    ) {
-                        // [문제 03 완결 해결 - 숫자 정제 가드막]: 포맷 자릿수 불일치 파편화를 전면 세척하여 3대 단추 카드 정순 사출 유도
+                    if (actualRawDate && actualRawDate.includes("-") && weeklyKeys.includes(actualRawDate)) {
+                        // [문제 03 완결 해결 - 숫자 정제 가드막]: 포맷 자릿수 불일치 오차를 전면 세척하여 3대 단추 카드 정순 사출 유도
                         const cleanSrcDate = actualRawDate.replace(/[^0-9]/g, "");
                         const cleanTargetKey = window.selectedDateStr.replace(/[^0-9]/g, "");
 
@@ -951,7 +934,7 @@
                     }
                 });
 
-                // [신규 대상자 전용 - 2줄 레이아웃 나열 및 우측 공백 스캐너]
+                // [신규 대상자 전용 2줄 레이아웃 나열 및 우측 공백 스캐너]
                 let weeklyScheduleBriefingHTML = "";
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -960,7 +943,6 @@
                     const bits = dateKey.split('-'); // [인덱스 분해 완료]
                     const formattedLabel = `${bits[0]}년 ${String(bits[1]).padStart(2, '0')}월 ${String(bits[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
-                    // 모집공고 원장과 달력 주간 키셋의 공백 및 하이픈 정합성을 완전히 소독하여 크로스 매핑 누락 결함을 완천 방어
                     const matchItem = records.find(r => {
                         if (!r || !r.examSchedule) return false;
                         const cleanSrcDate = r.examSchedule.toString().replace(/[^0-9-]/g, "").trim();
@@ -976,7 +958,6 @@
                     </div>
                 `;
                     } else {
-                        // 요구 규칙 사수: 신규 대상자는 매칭 과제가 없는 날짜의 경우 우측을 완전 공백 블록으로 마킹 나열
                         weeklyScheduleBriefingHTML += `
                     <div class="briefing-row-item" style="margin-bottom: 12px; text-align: left; color:rgba(255,255,255,0.35);">
                         • ${formattedLabel} : 
@@ -985,11 +966,7 @@
                     }
                 });
 
-                // [지정 요구 예외 문구 고정 2종 적용 및 조출 결착]
-                if (
-                    ghostWeekCardsHTML === "" &&
-                    weeklyScheduleBriefingHTML.replace(/<[^>]*>/g, "").trim() === ""
-                ) {
+                if (ghostWeekCardsHTML === "" && weeklyScheduleBriefingHTML.replace(/<[^>]*>/g, "").trim() === "") {
                     cardBoard.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; font-weight: 700;">이번주에 등록된 임상시험 일정이 없습니다.</div>`;
                     return;
                 }
@@ -1001,11 +978,10 @@
                     totalOutHTML += ghostWeekCardsHTML;
                 }
 
-                // [문제 02 해결 - 주간 목록 잔상 원천 차단 장벽]: 요일 단추를 직접 누른 상태(isDayButtonClicked === true)일 때는 하단 주간 목록 템플릿을 버퍼에 절대 삽입하지 않음
                 if (!window.isDayButtonClicked) {
                     totalOutHTML += `
-                <div style="background: var(--card-color); padding: 14px; border-radius: 14px; width: 100%; border:1px solid var(--border-color); box-shadow:0 4px 6px rgba(0,0,0,0.3); margin-top: 10px; text-align:left;">
-                    <div style="font-size: 13px; font-weight:800; color:var(--warning-color); margin-bottom: 12px; display: flex; align-items:center; gap:6px;"><i class="fa-solid fa-list-check"></i> 해당 주간 임상 일정</div>
+                <div class="briefing-container-panel" style="background: var(--card-color); padding: 14px; border-radius: 14px; width: 100%; border:1px solid var(--border-color); box-shadow:0 4px 6px rgba(0,0,0,0.3); margin-top: 10px; text-align: left;">
+                    <div style="font-size: 13px; font-weight:800; color:var(--warning-color); margin-bottom: 12px; display: flex; align-items:center; gap: 6px;"><i class="fa-solid fa-list-check"></i> 해당 주간 임상 일정</div>
                     <div style="display: flex; flex-direction: column; gap:2px;">${weeklyScheduleBriefingHTML}</div>
                 </div>
             `;
@@ -1013,27 +989,25 @@
 
                 cardBoard.innerHTML = totalOutHTML;
 
-                // [트랙 B 전용 비동기 3대 단추 액션 바인딩 수술 - 트랙 B 스코프 내부 가두리 안착]
+                // =============================================================================
+                // [항목 03 - 후반부] [트랙 B : 신규 및 180일 만료자] 3대 단추 비동기 액션 바인딩 및 부모 창 인터록 마감
+                // =============================================================================
                 setTimeout(() => {
                     records.forEach((item) => {
                         if (!item || !item.uid) return;
+
+                        // 1. 참여 버튼 클릭 시 트랜잭션 및 어드민 표준 단어 '신검대기' 커밋
                         const btnJoin = document.getElementById(`btn_card_join_${item.uid}`);
                         if (btnJoin) {
                             btnJoin.onclick = function (e) {
                                 e.preventDefault();
                                 let appDB = getApplicantData();
-                                const liveQuotaCount = appDB.filter(
-                                    (u) =>
-                                        (u.title || "").toString().replace(/\s/g, "") ===
-                                        item.title.toString().replace(/\s/g, ""),
-                                ).length;
-                                const liveProgressFormat = liveQuotaCount + 1 + "/60";
+                                const liveQuotaCount = appDB.filter((u) => u && (u.title || "").toString().replace(/\s/g, "") === item.title.toString().replace(/\s/g, "")).length;
+                                const liveProgressFormat = (liveQuotaCount + 1) + "/60";
 
                                 const newApplicantRecord = {
                                     uid: "NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
-                                    name:
-                                        localStorage.getItem("certifiedUserName") ||
-                                        currentCertifiedUser,
+                                    name: localStorage.getItem("certifiedUserName") || currentCertifiedUser,
                                     title: item.title,
                                     th: item.th || "1기",
                                     count: liveProgressFormat,
@@ -1042,18 +1016,13 @@
                                     ssn: targetSsn,
                                     phone: localStorage.getItem("loggedInUserPhone") || "",
                                     gender: genderText === "남" ? "남" : "여",
-                                    payStatus1: "대기",
-                                    payStatus2: "대기",
-                                    payStatus3: "대기",
-                                    payStatus4: "대기",
-                                    result: "대기",
-                                    isDutyAgreed: "대기",
-                                    isCallAgreed: "대기",
-                                    category: "M인증",
-                                    stage: "신검대기",
-                                    status: "신검대기",
-                                    regDate: new Date().toISOString().split("T")[0],
+                                    payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus4: "대기",
+                                    result: "대기", isDutyAgreed: "대기", isCallAgreed: "대기", category: "M인증",
+                                    stage: "신검대기", // 어드민 고정 단어 일치화
+                                    status: "신검대기", // 어드민 고정 단어 일치화
+                                    regDate: new Date().toISOString().split("T")[0]
                                 };
+
                                 appDB.push(newApplicantRecord);
                                 localStorage.setItem("dataStoreApplicant", JSON.stringify(appDB));
 
@@ -1061,38 +1030,34 @@
                                 localStorage.setItem("msg_auth_signal", signalToken);
                                 localStorage.setItem("msg_push_signal", signalToken);
 
-                                alert(
-                                    `[신청 접수완료]\n\n${newApplicantRecord.name} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`,
-                                );
-                                if (
-                                    window.opener &&
-                                    !window.opener.closed &&
-                                    typeof window.opener.refreshApplicantView === "function"
-                                )
+                                alert(`[신청 접수완료]\n\n${newApplicantRecord.name} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
+
+                                // 관리자 화면(admin.html) 관제망 실시간 리프레시 동기화 가동
+                                if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                                     window.opener.refreshApplicantView();
+                                }
                                 if (typeof renderCalendar === "function") renderCalendar();
                                 renderDailyCards();
                             };
                         }
-                        const btnReject = document.getElementById(
-                            `btn_card_reject_${item.uid}`,
-                        );
+
+                        // 2. 미참여 버튼 피드백
+                        const btnReject = document.getElementById(`btn_card_reject_${item.uid}`);
                         if (btnReject) {
                             btnReject.onclick = function (e) {
                                 e.preventDefault();
                                 alert("미참여 신청 되었습니다.");
                             };
                         }
+
+                        // 3. 이력조회 버튼 모달 융합
                         const btnHist = document.getElementById(`btn_card_hist_${item.uid}`);
                         if (btnHist) {
                             btnHist.onclick = function (e) {
                                 e.preventDefault();
-                                if (typeof openIndividualHistoryModalInMobile === "function")
-                                    openIndividualHistoryModalInMobile(
-                                        cleanSessionName,
-                                        item.title,
-                                        item.th || "1기",
-                                    );
+                                if (typeof openIndividualHistoryModalInMobile === "function") {
+                                    openIndividualHistoryModalInMobile(cleanSessionName, item.title, item.th || "1기");
+                                }
                             };
                         }
                     });
@@ -1101,7 +1066,7 @@
             }
 
             // =============================================================================
-            // [트랙 A : 기존 참여 대상자 전용 가드 체인 - 전반부 목록 팩토리]
+            // [항목 04] [트랙 A : 기존 참여 대상자] 순정 6대 마일스톤 매핑 및 1줄 레이아웃 하이픈(-) 주간 목록 브리핑 팩토리
             // =============================================================================
             else {
                 if (!myLiveJobRecord) {
@@ -1134,12 +1099,14 @@
 
                         if (matchedRecruitmentItem) {
                             if (matchedRecruitmentItem.examSchedule && matchedRecruitmentItem.examSchedule.trim() === cleankey) activeStages.push("스크리닝");
-                            if (matchedRecruitmentItem.recDate && matchedRecruitmentItem.recDate.trim() === cleankey) activeStages.push("소집(입원)");
-                            if (matchedRecruitmentItem.visitDate1 && matchedRecruitmentItem.visitDate1.trim() === cleankey) activeStages.push("1차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate2 && matchedRecruitmentItem.visitDate2.trim() === cleankey) activeStages.push("2차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate3 && matchedRecruitmentItem.visitDate3.trim() === cleankey) activeStages.push("3차 방문채혈");
-                            if (matchedRecruitmentItem.visitDate4 && matchedRecruitmentItem.visitDate4.trim() === cleankey) activeStages.push("4차 방문채혈");
-                            if (matchedRecruitmentItem.endExamDate && matchedRecruitmentItem.endExamDate.trim() === cleankey) activeStages.push("종료검사");
+                            // [어드민 고정 옵션 단어 싱크]: "소집(입원)" -> "소집" 규격 일치화 수술 완착
+                            if (matchedRecruitmentItem.recDate && matchedRecruitmentItem.recDate.trim() === cleankey) activeStages.push("소집");
+                            if (matchedRecruitmentItem.visitDate1 && matchedRecruitmentItem.visitDate1.trim() === cleankey) activeStages.push("1차방문");
+                            if (matchedRecruitmentItem.visitDate2 && matchedRecruitmentItem.visitDate2.trim() === cleankey) activeStages.push("2차방문");
+                            if (matchedRecruitmentItem.visitDate3 && matchedRecruitmentItem.visitDate3.trim() === cleankey) activeStages.push("3차방문");
+                            if (matchedRecruitmentItem.visitDate4 && matchedRecruitmentItem.visitDate4.trim() === cleankey) activeStages.push("4차방문");
+                            // [어드민 고정 옵션 단어 싱크]: "종료검사" -> "종료방문" 규격 일치화 수술 완착
+                            if (matchedRecruitmentItem.endExamDate && matchedRecruitmentItem.endExamDate.trim() === cleankey) activeStages.push("종료방문");
                         }
 
                         if (activeStages.length > 0) hasWeeklyScheduleInThisWindow = true;
@@ -1153,15 +1120,16 @@
                         );
                         const formattedLabel = `${dateParts[0]}년 ${String(dateParts[1]).padStart(2, "0")}월 ${String(dateParts[2]).padStart(2, "0")}일 (${daysMapShort[loopDateObj.getDay()]})`;
 
+                        // [기획 요구사항 반영]: 기존 참여자는 날짜와 공정 단계명이 완벽히 1줄로 나열됨
                         if (activeStages.length > 0) {
                             const combinedStages = activeStages.join(", ");
                             weeklyScheduleBriefingHtml += `
-                        <div class="briefing-row-item" style="margin-bottom: 12px; padding: 4px 0; font-size:13px; text-align:left;">
+                        <div class="briefing-row-item" style="margin-bottom: 12px; padding: 4px 0; font-size: 13px; text-align:left;">
                             • ${formattedLabel} : <span style="color:#38bdf8; font-weight:800;">${combinedStages}</span>
                         </div>
                     `;
 
-                            // [문제 03 완벽 해결 - 고강도 숫자 소독 가드]: 날짜 포맷의 자릿수 파편화를 전면 세척하여 개별 요일 터치 시 액션 카드 조출 유도
+                            // [문제 03 및 변수 정합성 수리 완료]: 자릿수 파편화를 전면 세척하는 고강도 숫자 소독 가드막 내부 정착
                             const cleanRegularSrcDate = cleankey.replace(/[^0-9]/g, "");
                             const cleanRegularTargetKey = window.selectedDateStr.replace(/[^0-9]/g, "");
 
@@ -1170,8 +1138,10 @@
                                     renderedCardCount++;
                                     const uniqueSubKey = `${matchedRecruitmentItem.uid}_REG_${sIdx}`;
 
-                                    // [문제 해결 - 상호 배타적 분기 인터록]: 스크리닝과 정규 단계를 if-else 구조로 안전 격리
-                                    if (stageLabel === "스크리닝") {
+                                    // [문제 해결 - 스크리닝=신검대기 정합성 연동 인터록 완착]
+                                    const currentLiveStageToken = (myLiveJobRecord.stage || myLiveJobRecord.status || "").toString().trim();
+
+                                    if (stageLabel === "스크리닝" || currentLiveStageToken === "신검대기") {
                                         regularCardsHTML += `
                                     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 10px;">
                                         <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #38bdf8; margin-bottom: 8px; display: block;"></i>
@@ -1179,7 +1149,7 @@
                                     </div>
                                 `;
                                     }
-                                    // [소집 및 정규 공정 개방 레일]: 3대 버튼 액션 카드 조출 구역
+                                    // [소집 및 정규 공정 격리 레일 개방]: 신검대기가 아닐 때, 소집 단계부터 3대 단추 카드가 정순 상단 사출
                                     else {
                                         regularCardsHTML += `
                                     <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align: left; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);">
@@ -1190,8 +1160,8 @@
                                             <div>연계 과제: <span style="color: #38bdf8; font-weight: 700;">${matchedRecruitmentItem.title}</span></div>
                                         </div>
                                         <div class="card-action-bar" id="ui_action_bar_the_unique_${uniqueSubKey}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
-                                            <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height:32px; font-size: 12.5px;">참여</button>
-                                            <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height:32px; font-size:12.5px; background: #475569;">미참여</button>
+                                            <button type="button" class="card-btn join" id="btn_card_join_${uniqueSubKey}" style="height: 32px; font-size: 12.5px;">참여</button>
+                                            <button type="button" class="card-btn reject" id="btn_card_reject_${uniqueSubKey}" style="height: 32px; font-size:12.5px; background: #475569;">미참여</button>
                                             <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i>이력조회</button>
                                         </div>
                                     </div>
@@ -1200,15 +1170,19 @@
                                 });
                             }
                         } else {
+                            // [기획 요구사항 반영]: 임상 스케줄이 비어있는 빈 날짜는 우측 영역에 깨끗하게 하이픈(: -) 긴급 표기
                             weeklyScheduleBriefingHtml += `
                         <div class="briefing-row-item" style="margin-bottom: 12px; padding: 4px 0; font-size: 12px; color: rgba(255,255,255,0.35); text-align:left;">
-                            <span>• ${formattedLabel} : </span><span style="font-weight:500; color:rgba(255,255,255,0.2);">-</span>
+                            <span>• ${formattedLabel} : </span><span style="font-weight: 500; color: rgba(255,255,255,0.2);">-</span>
                         </div>
                     `;
                         }
                     });
                 }
 
+                // =============================================================================
+                // [항목 04 - 후반부] [트랙 A : 기존 참여 대상자] 주간 잔상 차단 및 3대 버튼 비동기 마스터 연동 커밋반
+                // =============================================================================
                 if (!hasWeeklyScheduleInThisWindow) {
                     cardBoard.innerHTML = `
                 <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px solid var(--border-color); border-radius: 14px; font-weight: 700;">
@@ -1248,33 +1222,31 @@
 
                 cardBoard.innerHTML = totalOutHTML;
 
-                // [트랙 A 전용 비동기 3대 단추 액션 마스터 바인딩 및 상호 연동 커밋반]
+                // [트랙 A 전용 비동기 3대 단추 액션 마스터 바인딩 및 어드민 실시간 상태 연동 커밋반]
                 setTimeout(() => {
                     const currentActiveRecords = records.filter(
-                        (item) =>
-                            item &&
-                            item.title &&
-                            myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase() ===
-                            item.title.toString().replace(/\s/g, "").toLowerCase()
+                        (item) => item && item.title && myLiveJobRecord.title.toString().replace(/\s/g, "").toLowerCase() === item.title.toString().replace(/\s/g, "").toLowerCase()
                     );
 
                     currentActiveRecords.forEach((item) => {
                         const thText = (item.th || "1기").trim();
                         const clickUid = item.uid ? item.uid : "UID";
+
+                        // [어드민 고정 옵션 표준 단어 싱크 마일스톤 매핑 리스트 재배치 완착]
                         const originalMilestones = [
                             { label: "스크리닝" },
-                            { label: "소집(입원)" },
-                            { label: "1차 방문채혈" },
-                            { label: "2차 방문채혈" },
-                            { label: "3차 방문채혈" },
-                            { label: "4차 방문채혈" },
-                            { label: "종료검사" }
+                            { label: "소집" },
+                            { label: "1차방문" },
+                            { label: "2차방문" },
+                            { label: "3차방문" },
+                            { label: "4차방문" },
+                            { label: "종료방문" }
                         ];
 
                         originalMilestones.forEach((schedule, idx) => {
                             const uniqueSubKey = `${clickUid}_REG_${idx}`;
 
-                            // 1. 참여 버튼 클릭 시 출석 전진 업데이트 및 부모 창(admin.html) 관제망 실시간 새로고침
+                            // 1. 참여 버튼 클릭 시 출석 전진 업데이트 및 관제탑(admin.html) 참여상태 실시간 연동 변화
                             const btnJoin = document.getElementById(`btn_card_join_${uniqueSubKey}`);
                             if (btnJoin) {
                                 btnJoin.onclick = function (e) {
@@ -1285,26 +1257,21 @@
                                     );
 
                                     if (targetIdx !== -1) {
-                                        let cleanFriendlyStage = "방문";
-                                        if (schedule.label.includes("1차")) cleanFriendlyStage = "1차방문";
-                                        else if (schedule.label.includes("2차")) cleanFriendlyStage = "2차방문";
-                                        else if (schedule.label.includes("3차")) cleanFriendlyStage = "3차방문";
-                                        else if (schedule.label.includes("4차")) cleanFriendlyStage = "4차방문";
-                                        else if (schedule.label.includes("종료")) cleanFriendlyStage = "종료방문";
-                                        else if (schedule.label.includes("소집")) cleanFriendlyStage = "소집완료";
+                                        // [단어 미스매치 수리 완착]: 어드민 셀렉트박스 옵션 규격과 토시 하나 안 틀리게 동기화 전진 처리
+                                        let cleanFriendlyStage = schedule.label;
 
                                         appDB[targetIdx].status = cleanFriendlyStage;
                                         appDB[targetIdx].stage = cleanFriendlyStage;
                                         localStorage.setItem("dataStoreApplicant", JSON.stringify(appDB));
 
-                                        // 5대 인프라 무선 공유 권한 개방 패킷 신호 신호 방출
+                                        // 5대 파일 무선 제어반 통신 패킷 발송
                                         const signalToken = "SIGNAL_" + Date.now();
                                         localStorage.setItem("msg_auth_signal", signalToken);
                                         localStorage.setItem("msg_push_signal", signalToken);
 
                                         alert(`인증 성공\n\n대상자님의 참여 상태가 [${cleanFriendlyStage}] 단계로 출석 정상 업데이트 커밋되었습니다.`);
 
-                                        // PC 마스터 관리자 화면(admin.html) 실시간 렌더링 동기화 작동
+                                        // PC 마스터 관리자 화면(admin.html) 목록 및 #form-app-stage 드롭다운 메뉴 실시간 강제 리프레시 변화
                                         if (
                                             window.opener &&
                                             !window.opener.closed &&
@@ -1319,7 +1286,7 @@
                                 };
                             }
 
-                            // 2. 미참여 거절 권한 단추 처리
+                            // 2. 미참여 거절 버튼 처리
                             const btnReject = document.getElementById(`btn_card_reject_${uniqueSubKey}`);
                             if (btnReject) {
                                 btnReject.onclick = function (e) {
@@ -1342,7 +1309,7 @@
                     }); // currentActiveRecords.forEach 마감
                 }, 0); // setTimeout 마감
             } // else 블록 최종 마감
-        } // 
+        }
 
         // =============================================================================
         // [인프라 복원 매립] 주간 달력 요일 단추 터치 이벤트 리스너 인터록 엔진 (단독 상주)
@@ -1361,7 +1328,7 @@
                     if (targetClickedRawDate && targetClickedRawDate.includes("-")) {
                         window.selectedDateStr = targetClickedRawDate.trim();
 
-                        // 액션 카드 섹션 조출 공장 강제 리렌더링 가동 (4일 금요일 카드 정순 사출)
+                        // 액션 카드 섹션 조출 공장 강제 리렌더링 가동 (선택 요일 카드 정순 사출)
                         renderDailyCards();
                     }
                 });

@@ -3916,8 +3916,10 @@
         */
         function saveInlineApplicantRecord(index, explicitUid) {
             try {
-                // [역순 뒤틀림 영구 박멸선]: 줄 번호에 속지 않기 위해 현재 불이 켜진 수정 행을 직격 포착 (원형 유지)
-                const targetRowDOM = document.querySelector('.editing-row') || document.querySelectorAll('.applicant-row, tr[data-uid]')[index];
+                const hiddenUidEl = document.getElementById(`inline-app-uid-${index}`);
+                const targetUid = (explicitUid || (hiddenUidEl ? hiddenUidEl.value : "")).toString().trim().replace(/\s/g, "");
+
+                const targetRowDOM = document.querySelector(`tr[data-uid="${targetUid}"]`) || document.querySelector('.editing-row') || document.querySelectorAll('.applicant-row')[index];
                 if (!targetRowDOM) return alert("수정 대상자 행 (Row)의 메모리 컨텍스트를 포착하지 못했습니다.");
 
                 // [마스터 락킹 해제]: 스토리지 및 전역 변수 동시 스캔 복착 (원형 유지)
@@ -3925,10 +3927,6 @@
                 if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
                     applicantDB = dataStoreApplicant;
                 }
-
-                // [식별자 우선 수거선]: 4대 포맷(디폴트, 수동, 엑셀, 모바일인증)의 미세 개행 및 유령 공백을 증발시키는 핵심 정형화
-                const hiddenUidEl = document.getElementById(`inline-app-uid-${index}`);
-                const targetUid = (explicitUid || (hiddenUidEl ? hiddenUidEl.value : "") || targetRowDOM.getAttribute('data-uid') || "").toString().trim().replace(/\s/g, "");
 
                 // [마스터 원장 정밀 락인 가드]: 4대 규격 통합 트림 공정으로 진짜 내 데이터 마스터 방 번호 색인
                 let exactMasterIdx = index;

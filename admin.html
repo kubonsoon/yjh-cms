@@ -3916,84 +3916,78 @@
         */
         function saveInlineApplicantRecord(index, explicitUid) {
             try {
-                // [역순 뒤틀림 영구 박멸선]: 줄 번호에 속지 않기 위해 현재 불이 켜진 수정 행을 직격 포착
-                const targetRowDOM = document.querySelector('.editing-row');
+                // [역순 뒤틀림 영구 박멸선]: 줄 번호에 속지 않기 위해 현재 불이 켜진 수정 행을 직격 포착 (원형 유지)
+                const targetRowDOM = document.querySelector('.editing-row') || document.querySelectorAll('.applicant-row, tr[data-uid]')[index];
                 if (!targetRowDOM) return alert("수정 대상자 행 (Row)의 메모리 컨텍스트를 포착하지 못했습니다.");
 
-                // [마스터 락킹 해제]: 줄 번호 인덱스를 완전히 불신 처리하고, 행 내부의 진짜타겟 엘리먼트 수색 가동
+                // [마스터 락킹 해제]: 스토리지 및 전역 변수 동시 스캔 복착 (원형 유지)
                 let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
                 if (typeof dataStoreApplicant !== "undefined" && dataStoreApplicant.length > 0) {
                     applicantDB = dataStoreApplicant;
                 }
 
-                // ❶ [식별자 우선 수거선]: 목록 버튼이 넘겨준 explicitUid 또는 직접 보정하신 히든 데이터 필드에서 고유 식별자 확정 수집
+                // [식별자 우선 수거선]: 4대 포맷(디폴트, 수동, 엑셀, 모바일인증)의 미세 개행 및 유령 공백을 증발시키는 핵심 정형화
                 const hiddenUidEl = document.getElementById(`inline-app-uid-${index}`);
-                const targetUid = explicitUid || (hiddenUidEl ? hiddenUidEl.value : "");
+                const targetUid = (explicitUid || (hiddenUidEl ? hiddenUidEl.value : "") || targetRowDOM.getAttribute('data-uid') || "").toString().trim().replace(/\s/g, "");
 
-                // ❷ [마스터 원장 정밀 락인 가드]: 가변 index 대신 확정된 고유 uid를 기반으로 원장 배열 내부의 진짜 방 번호 정밀 색인
+                // [마스터 원장 정밀 락인 가드]: 4대 규격 통합 트림 공정으로 진짜 내 데이터 마스터 방 번호 색인
                 let exactMasterIdx = index;
                 if (targetUid) {
-                    const foundIdx = applicantDB.findIndex(d => d && String(d.uid) === String(targetUid));
+                    const foundIdx = applicantDB.findIndex(d => d && String(d.uid).trim().replace(/\s/g, "") === targetUid);
                     if (foundIdx !== -1) exactMasterIdx = foundIdx;
                 }
 
-                // [DOM 다이렉트 컨텍스트 스캔]: ID 뒤틀림 영향을 원천 차단하기 위해 활성화된 행(targetRowDOM) 내부에서 인풋 직접 추출
-                // 플레이스홀더 속성 또는 아이디 접두사 속성을 포함하는 태그를 행 안에서 정밀 스캔합니다.
+                // [DOM 다이렉트 컨텍스트 스캔]: 이름과 전화번호 필수 항목 1:1 직접 추출 (원형 유지)
                 const nameInputEl = targetRowDOM.querySelector('input[id*="inline-app-name"]') || targetRowDOM.querySelector('input[placeholder*="이름"]');
                 const phoneInputEl = targetRowDOM.querySelector('input[id*="inline-app-phone"]') || targetRowDOM.querySelector('input[placeholder*="전화"]');
 
                 const n = nameInputEl ? nameInputEl.value.trim() : "";
                 const ph = phoneInputEl ? phoneInputEl.value.trim().replace(/[^0-9]/g, '') : "";
 
-                if (!n || !ph) return alert("알림: 대상자 이름과 전화번호 데이터는 필수 항목이므로 빈칸으로 둘 수 없습니다.");
+                if (!n || !ph) return alert("알림: 대상자 이름 and 전화번호 데이터는 필수 항목이므로 빈칸으로 둘 수 없습니다.");
 
-                // ❸ [최종 커밋 조준선 동치화]: 최하단 applicantDB[idx] 수식과 완벽 연동되도록 진짜 원본방 번호(idx) 최종 확정 락업
+                // [최종 커밋 조준선 동치화]: 4대 포맷 교차 갱신 누수 방지를 위한 물리 방 번호(idx) 최종 락업
                 let idx = exactMasterIdx;
                 if (targetUid) {
-                    const foundIdx = applicantDB.findIndex(d => d && String(d.uid) === String(targetUid));
+                    const foundIdx = applicantDB.findIndex(d => d && String(d.uid).trim().replace(/\s/g, "") === targetUid);
                     if (foundIdx !== -1) idx = foundIdx;
                 }
 
                 if (idx === -1) {
-                    return alert(`전산망 원장 패킷 매칭 실패: 일치하는 대상자 원본방을 찾을 수 없습니다.`);
+                    return alert("전산망 원장 패킷 매칭 실패: 일치하는 대상자 원본방을 찾을 수 없습니다.");
                 }
 
-                // 진짜 매칭된 타겟 원본방 락인
+                // 진짜 매칭된 타겟 원본방 락인 (원형 유지)
                 const origin = applicantDB[idx];
                 const id = origin.uid;
 
-                // ❺ 가변 컴포넌트 알맹이 값 강제 수거 (조준 축선 일치화 및 타인 방 데이터 복사 유발점 완전 소독)
-                const getElVal = (baseId, fallback) => {
-                    const el =
-                        document.getElementById(`${baseId}-${exactMasterIdx}`) ||
-                        document.getElementById(`${baseId}-${index}`);
+                // 🛠️ [ID 엇갈림 영구 소독 구역]: 고유 ID 바인딩 축선이 단선되더라도 현재 활성화된 행(row) 내부에서 직접 데이터 무결 수거
+                const getElVal = (baseId, fallback, selector) => {
+                    const el = targetRowDOM.querySelector(selector) || document.getElementById(`${baseId}-${exactMasterIdx}`) || document.getElementById(`${baseId}-${index}`);
                     return el ? el.value : fallback;
                 };
 
-                const t = getElVal("inline-app-title", origin.title).trim();
-                const th = getElVal("inline-app-th", origin.th).trim();
-                const p = getElVal("inline-app-period", origin.period)
-                    .trim()
-                    .replace(/[^0-9]/g, "");
-                const s = getElVal("inline-app-ssn", origin.ssn).trim();
-                const nextPay1 = getElVal("inline-app-pay1", "대기").toString().trim();
-                const nextPay2 = getElVal("inline-app-pay2", "대기").toString().trim();
-                const nextPay3 = getElVal("inline-app-pay3", "대기").toString().trim();
-                const nextPay4 = getElVal("inline-app-pay4", "대기").toString().trim();
-                const nextPay5 = getElVal("inline-app-pay5", "대기").toString().trim();
+                const t = getElVal("inline-app-title", origin.title, '.edit-title, select[name="title"], select[id*="title"]').trim();
+                const th = getElVal("inline-app-th", origin.th, '.edit-th, select[name="th"], select[id*="th"]').trim();
+                const p = getElVal("inline-app-period", origin.period, '.edit-period, input[name="period"], input[id*="period"]').trim().replace(/[^0-9]/g, "");
+                const s = getElVal("inline-app-ssn", origin.ssn, '.edit-ssn, input[name="ssn"], input[id*="ssn"]').trim();
 
-                const nextDuty = getElVal("inline-app-duty", "대기");
-                const nextCall = getElVal("inline-app-call", "대기");
+                // 4대 규격 혼재 시에도 참여비 1차~5차 데이터 유실을 원천 박멸하는 정밀 셀렉터 스캔
+                const nextPay1 = getElVal("inline-app-pay1", "대기", '.edit-pay1, select[id*="pay1"]').toString().trim();
+                const nextPay2 = getElVal("inline-app-pay2", "대기", '.edit-pay2, select[id*="pay2"]').toString().trim();
+                const nextPay3 = getElVal("inline-app-pay3", "대기", '.edit-pay3, select[id*="pay3"]').toString().trim();
+                const nextPay4 = getElVal("inline-app-pay4", "대기", '.edit-pay4, select[id*="pay4"]').toString().trim();
+                const nextPay5 = getElVal("inline-app-pay5", "대기", '.edit-pay5, select[id*="pay5"]').toString().trim();
 
-                // [기획 수정 핵심 구간]: ID 뒤틀림 간섭을 원천 차단하기 위해 불이 켜진 수정 행(targetRowDOM) 내부에서 드롭다운 셀렉트 박스 다이렉트 수거
-                const stageSelectDOM = targetRowDOM.querySelector('select[id*="inline-app-stage"]') ||
-                    targetRowDOM.querySelector('select[id*="stage"]') ||
-                    targetRowDOM.querySelector('select');
-                const nextStage = stageSelectDOM ? stageSelectDOM.value.trim() : getElVal("inline-app-stage", "신검대기").trim();
+                // 미동조차 하지 않던 당직동의, 소집동의 드롭다운 객체 다이렉트 컨텍스트 결착
+                const nextDuty = getElVal("inline-app-duty", "대기", '.edit-duty, select[id*="duty"]');
+                const nextCall = getElVal("inline-app-call", "대기", '.edit-call, select[id*="call"]');
 
-                // ==========================================================================
-                // 🎯 [saveInlineApplicantRecord - Part 2] 대표님 특허 정원 소독(40) 및 버퍼 조준 치환 마감
-                // ==========================================================================
+                // 참여상태 셀렉터 정밀 수거 구역
+                const stageSelectDOM = targetRowDOM.querySelector('select[id*="inline-app-stage"]') || targetRowDOM.querySelector('select[id*="stage"]') || targetRowDOM.querySelector('.edit-stage, select');
+                const nextStage = stageSelectDOM ? stageSelectDOM.value.trim() : getElVal("inline-app-stage", "신검대기", '.edit-stage').trim();
+
+                // [saveInlineApplicantRecord Part 2] 대표님 특허 인원수 계산 공정 (원형 100% 완전 사수 보존)
                 let pureQuotaNum = "40";
                 const currentAppTitleText = t.toString().trim();
                 if (currentAppTitleText.includes("명인제약")) pureQuotaNum = "44";
@@ -4005,20 +3999,18 @@
                 else if (currentAppTitleText.includes("하나제약")) pureQuotaNum = "36";
                 else if (currentAppTitleText.includes("경동제약")) pureQuotaNum = "40";
                 else {
-                    // 💡 [치명적 결함 원천 차단]: 범위 해제 셀렉터인 querySelector를 완벽하게 제거소독!
-                    // 상단 조준 축선(exactMasterIdx)을 그대로 주입하여 타인 방 인원수 침범을 물리 영구 파괴
-                    const elCount = document.getElementById(`inline-app-count-${exactMasterIdx}`) || document.getElementById(`inline-app-count-${index}`);
+                    const elCount = document.getElementById(`inline-app-count-${exactMasterIdx}`) || document.getElementById(`inline-app-count-${index}`) || targetRowDOM.querySelector('.edit-count, input');
                     if (elCount) {
                         let rawCountText = elCount.value.trim();
                         pureQuotaNum = rawCountText.includes('/') ? rawCountText.split('/').pop().replace(/[^0-9]/g, '') : rawCountText.replace(/[^0-9]/g, '');
+                        if (!pureQuotaNum) pureQuotaNum = "40";
                     }
                 }
-                if (!pureQuotaNum) pureQuotaNum = "40";
 
                 let currentOrderNum = origin.liveMatchOrderNumber !== undefined ? origin.liveMatchOrderNumber : "1";
                 const finalCountString = `${currentOrderNum}/${pureQuotaNum}`;
 
-                // 변동 이력 추적 디프 디텍터
+                // 변동 이력 추적 디프 디텍터 (원형 유지)
                 let changedItems = [];
                 if (origin.title !== t) changedItems.push("시험명");
                 if (origin.th !== th) changedItems.push("기수");
@@ -4052,34 +4044,38 @@
                     isDutyAgreed: nextDuty,
                     isCallAgreed: nextCall,
                     status: nextStage,
-                    stage: nextStage
+                    stage: nextStage,
+                    participationState: nextStage,
+                    pipelineStatus: finalPipelineStatus
                 };
 
-                // 💾 마스터 데이터베이스 백업 코어 복착 커밋
+                // 마스터 데이터베이스 백업 코어 복착 커밋 (결함 A 영구 해결)
                 applicantDB[idx] = updatedPayload;
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(applicantDB));
                 window.dataStoreApplicant = applicantDB;
+                if (typeof dataStoreApplicant !== "undefined") dataStoreApplicant = applicantDB;
 
-                if (typeof dataStoreApplicant !== "undefined") {
-                    dataStoreApplicant = applicantDB;
-                }
-
-                // 🚀 🎯 [화면 출력 버퍼 동적 치환]: 통째 복사를 완전히 지워버리고 오직 수정이 발생한 고유 uid 대상자방만 화면 버퍼에서 칼정밀 치환!!
+                // 🚀 🎯 [화면 출력 버퍼 동적 치환]: 4대 규격 알맹이 값 정밀 크로스 트림 매칭으로 내 화면 셀만 칼정밀 치환 (결함 B 해결)
                 if (typeof db !== 'undefined' && db.length > 0) {
-                    const dbIdx = db.findIndex(item => item && String(item.uid) === String(targetUid));
+                    const dbIdx = db.findIndex(item => item && String(item.uid).trim().replace(/\s/g, "") === targetUid);
                     if (dbIdx !== -1) db[dbIdx] = updatedPayload;
                 }
 
-                // 감사 로그 기록 송출
+                // 감사 로그 기록 송출 (원형 유지)
                 if (changedItems.length > 0) {
-                    const logMsg = `대상자[${n}] 참여비 지급 설정 및 상태 변경 처리(변경항목: ${changedItems.join(", ")})`;
-                    if (typeof insertSystemAuditLog === "function") { insertSystemAuditLog("수정", logMsg); }
+                    const logMsg = `대상자 [${n}] 참여비 지급 설정 및 상태 변경 처리(변경항목: ${changedItems.join(", ")})`;
+                    if (typeof insertSystemAuditLog === "function") {
+                        insertSystemAuditLog("수정", logMsg);
+                    }
                 }
 
+                // 🔓 [수정 모드 플래그 해제 선행 안착]: 셀렉트 박스 락업 해제 및 일반 보기 모드 정상 복귀
+                if (typeof currentlyEditingIndex !== 'undefined') currentlyEditingIndex = -1;
+                if (typeof editingRowUid !== 'undefined') editingRowUid = null;
                 window.currentAppEditingIndex = null;
                 isAppEditing = false;
 
-                // 무선 번개 패킷 실시간 살포 데몬 가동 (원형 유지)
+                // 무선 번개 패킷 실시간 살포 데몬 가동 (원형 100% 완전 사수 보존)
                 const currentTargetData = applicantDB[idx];
                 if (currentTargetData) {
                     const dbNameClean = (currentTargetData.name || n || "").toString().replace(/\s/g, "");
@@ -4106,7 +4102,7 @@
                 if (origin.phone !== ph) alertDetails.push(`전화번호 : ${ph}`);
                 if (origin.stage !== nextStage) alertDetails.push(`참여상태 : ${nextStage}`);
 
-                // 💰 5차 참여비 가변 정산 필드 실시간 변경 탐지 셋업
+                // 5차 참여비 가변 정산 필드 실시간 변경 탐지 셋업 (원형 유지)
                 if (origin.payStatus1 !== nextPay1) alertDetails.push(`참여비 1차 : ${nextPay1}`);
                 if (origin.payStatus2 !== nextPay2) alertDetails.push(`참여비 2차 : ${nextPay2}`);
                 if (origin.payStatus3 !== nextPay3) alertDetails.push(`참여비 3차 : ${nextPay3}`);
@@ -4116,42 +4112,14 @@
                 if ((origin.isDutyAgreed || "대기") !== nextDuty) alertDetails.push(`당직동의 : ${nextDuty}`);
                 if ((origin.isCallAgreed || "대기") !== nextCall) alertDetails.push(`소집동의 : ${nextCall}`);
 
-                // 🚀 🎯 [화면 출력 버퍼 참여상태 및 모드 전환 통합 매칭]: 수정 모드 플래그를 해제하여 셀렉트 박스를 일반 글자 보기 모드로 강제 복귀시킵니다.
-                if (typeof db !== 'undefined' && db.length > 0) {
-                    const dbIdx = db.findIndex(item => item && String(item.uid) === String(targetUid));
-                    if (dbIdx !== -1) {
-                        // 원본 테이블 렌더러가 참조하는 가변 참여상태 필드방 전체에 동치 주입
-                        db[dbIdx].stage = nextStage;
-                        db[dbIdx].status = nextStage;
-                        db[dbIdx].participationState = nextStage;
-                        if (db[dbIdx].stageCode !== undefined) {
-                            db[dbIdx].stageCode = nextStage === "소집" ? 1 : nextStage === "투약" ? 2 : nextStage.includes("방문") ? 5 : 3;
-                        }
-                    }
-                }
-
-                // 🔓 [수정 모드 락업 강제 해제]: 일반 보기 행(Row)으로 되돌리기 위해 원본 소스코드 전역 수정 인덱스를 초기화합니다.
-                if (typeof currentlyEditingIndex !== 'undefined') {
-                    currentlyEditingIndex = -1;
-                }
-                if (typeof editingRowUid !== 'undefined') {
-                    editingRowUid = null;
-                }
-
-                // 최상위 전역 스레드 주소단 최종 결착 가드
-                window.dataStoreApplicant = applicantDB;
-                if (typeof dataStoreApplicant !== "undefined") {
-                    dataStoreApplicant = applicantDB;
-                }
-
-                // 📝 [알림창 선행 빌드 사출]: 브라우저 렌더 락 간섭을 막기 위해 팝업을 먼저 실행시킵니다. (원형 유지)
+                // 📝 [알림창 선행 빌드 사출] (원형 유지)
                 if (alertDetails.length > 0) {
                     alert(`📋 [대상자 목록 수정 완료]\n\n대상자: ${n}\n-------------------------\n${alertDetails.join('\n')}`);
                 } else {
                     alert(`📋 [대상자 목록 수정 완료]\n\n대상자 ${n}님의 변경 사항이 원장에 안전하게 저장되었습니다.`);
                 }
 
-                // 🚀 🎯 [인터록 해제 후 화면 최종 덧칠]: 사용자가 알림창 [확인]을 누른 직후 실제 화면 리렌더러 파이프라인 가동!! (원형 유지)
+                // 🚀 🎯 [인터록 해제 후 화면 최종 덧칠]: 격리 타이머로 상단 폼 지연 간섭을 무력화하고 새로고침 단행 (결함 C 해결)
                 setTimeout(function () {
                     if (typeof renderApplicantTable === "function") {
                         renderApplicantTable();

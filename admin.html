@@ -4116,14 +4116,29 @@
                 if ((origin.isDutyAgreed || "대기") !== nextDuty) alertDetails.push(`당직동의 : ${nextDuty}`);
                 if ((origin.isCallAgreed || "대기") !== nextCall) alertDetails.push(`소집동의 : ${nextCall}`);
 
-                // 📝 [알림창 선행 빌드 사출]: 브라우저 렌더 락 간섭을 막기 위해 팝업을 먼저 실행시킵니다.
+                // 🚀 🎯 [화면 출력 버퍼 참여상태 직격 치환]: 페이징/검색 필터와 관계없이 현재 수정 대상의 화면 배지를 nextStage로 강제 동치 (선행 안착)
+                if (typeof db !== 'undefined' && db.length > 0) {
+                    const dbIdx = db.findIndex(item => item && String(item.uid) === String(targetUid));
+                    if (dbIdx !== -1) {
+                        db[dbIdx].stage = nextStage;
+                        if (db[dbIdx].status !== undefined) db[dbIdx].status = nextStage;
+                    }
+                }
+
+                // 최상위 전역 스레드 주소단 최종 결착 가드
+                window.dataStoreApplicant = applicantDB;
+                if (typeof dataStoreApplicant !== "undefined") {
+                    dataStoreApplicant = applicantDB;
+                }
+
+                // 📝 [알림창 선행 빌드 사출]: 브라우저 렌더 락 간섭을 막기 위해 팝업을 먼저 실행시킵니다. (원형 유지)
                 if (alertDetails.length > 0) {
                     alert(`📋 [대상자 목록 수정 완료]\n\n대상자: ${n}\n-------------------------\n${alertDetails.join('\n')}`);
                 } else {
                     alert(`📋 [대상자 목록 수정 완료]\n\n대상자 ${n}님의 변경 사항이 원장에 안전하게 저장되었습니다.`);
                 }
 
-                // 🚀 🎯 [인터록 해제 후 화면 최종 덧칠]: 사용자가 알림창 [확인]을 누른 직후 실제 화면 리렌더러 파이프라인 가동!!
+                // 🚀 🎯 [인터록 해제 후 화면 최종 덧칠]: 사용자가 알림창 [확인]을 누른 직후 실제 화면 리렌더러 파이프라인 가동!! (원형 유지)
                 setTimeout(function () {
                     if (typeof renderApplicantTable === "function") {
                         renderApplicantTable();

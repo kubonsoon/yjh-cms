@@ -1166,13 +1166,19 @@
                                     // [인프라 싱크]: 변수 추출 렉 차단 및 대조 문자열 공백 정세 소독 완착
                                     const currentLiveStageToken = (myLiveJobRecord.stage || myLiveJobRecord.status || "").toString().trim().replace(/\s/g, "");
 
-                                    // [문제 완벽 해결]: "스크리닝" 혹은 가상 DB 상의 "신검대기" 중 단 하나만 포획되어도 우회 안내문 강제 조출
-                                    if (stageLabel.includes("스크리닝") || currentLiveStageToken.includes("신검대기")) {
+                                    if (currentLiveStageToken === "신검대기" || currentLiveStageToken === "스크리닝" || currentLiveStageToken.includes("스크리닝")) {
                                         regularCardsHTML += `
-                                    <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 10px;">
-                                        <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #38bdf8; margin-bottom: 8px; display: block;"></i>
-                                        <div style="font-size: 12.5px; color: #38bdf8; font-weight: 600;">현재 스크리닝 참여중입니다</div>
-                                    </div>
+        <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 10px;">
+            <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #38bdf8; margin-bottom: 8px; display: block;"></i>
+            <div style="font-size: 12.5px; color: #38bdf8; font-weight: 600;">현재 스크리닝 참여중입니다</div>
+        </div>
+    `;
+                                    } else if (currentLiveStageToken === "소집") {
+                                        regularCardsHTML += `
+        <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 10px;">
+            <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #fbbf24; margin-bottom: 8px; display: block;"></i>
+            <div style="font-size: 12.5px; color: #fbbf24; font-weight: 600;">현재 소집 참여중입니다</div>
+        </div>
                                 `;
                                     } else {
                                         // 소집 단계부터 진짜 3대 버튼 액션 카드가 화면 상단에 정순 사출

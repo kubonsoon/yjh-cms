@@ -4116,13 +4116,26 @@
                 if ((origin.isDutyAgreed || "대기") !== nextDuty) alertDetails.push(`당직동의 : ${nextDuty}`);
                 if ((origin.isCallAgreed || "대기") !== nextCall) alertDetails.push(`소집동의 : ${nextCall}`);
 
-                // 🚀 🎯 [화면 출력 버퍼 참여상태 직격 치환]: 페이징/검색 필터와 관계없이 현재 수정 대상의 화면 배지를 nextStage로 강제 동치 (선행 안착)
+                // 🚀 🎯 [화면 출력 버퍼 참여상태 및 모드 전환 통합 매칭]: 수정 모드 플래그를 해제하여 셀렉트 박스를 일반 글자 보기 모드로 강제 복귀시킵니다.
                 if (typeof db !== 'undefined' && db.length > 0) {
                     const dbIdx = db.findIndex(item => item && String(item.uid) === String(targetUid));
                     if (dbIdx !== -1) {
+                        // 원본 테이블 렌더러가 참조하는 가변 참여상태 필드방 전체에 동치 주입
                         db[dbIdx].stage = nextStage;
-                        if (db[dbIdx].status !== undefined) db[dbIdx].status = nextStage;
+                        db[dbIdx].status = nextStage;
+                        db[dbIdx].participationState = nextStage;
+                        if (db[dbIdx].stageCode !== undefined) {
+                            db[dbIdx].stageCode = nextStage === "소집" ? 1 : nextStage === "투약" ? 2 : nextStage.includes("방문") ? 5 : 3;
+                        }
                     }
+                }
+
+                // 🔓 [수정 모드 락업 강제 해제]: 일반 보기 행(Row)으로 되돌리기 위해 원본 소스코드 전역 수정 인덱스를 초기화합니다.
+                if (typeof currentlyEditingIndex !== 'undefined') {
+                    currentlyEditingIndex = -1;
+                }
+                if (typeof editingRowUid !== 'undefined') {
+                    editingRowUid = null;
                 }
 
                 // 최상위 전역 스레드 주소단 최종 결착 가드

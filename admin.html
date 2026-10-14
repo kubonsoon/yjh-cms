@@ -3916,11 +3916,10 @@
         */
         function saveInlineApplicantRecord(index, explicitUid) {
             try {
-                const hiddenUidEl = document.getElementById(`inline-app-uid-${index}`);
-                const targetUid = (explicitUid || (hiddenUidEl ? hiddenUidEl.value : "")).toString().trim().replace(/\s/g, "");
-
-                const targetRowDOM = document.querySelector(`tr[data-uid="${targetUid}"]`) || document.querySelector('.editing-row') || document.querySelectorAll('.applicant-row')[index];
+                const targetRowDOM = (typeof event !== 'undefined' && event.target) ? event.target.closest('.applicant-row, tr') : document.querySelector('.editing-row');
                 if (!targetRowDOM) return alert("수정 대상자 행 (Row)의 메모리 컨텍스트를 포착하지 못했습니다.");
+
+                const targetUid = (explicitUid || targetRowDOM.getAttribute('data-uid') || targetRowDOM.dataset.uid || "").toString().trim().replace(/\s/g, "");
 
                 // [마스터 락킹 해제]: 스토리지 및 전역 변수 동시 스캔 복착 (원형 유지)
                 let applicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];

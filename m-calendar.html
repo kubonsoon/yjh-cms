@@ -1166,23 +1166,35 @@
                                     // [인프라 싱크]: 변수 추출 렉 차단 및 대조 문자열 공백 정세 소독 완착
                                     const currentLiveStageToken = (myLiveJobRecord.stage || myLiveJobRecord.status || "").toString().trim().replace(/\s/g, "");
 
-                                    if (currentLiveStageToken === "신검대기" || currentLiveStageToken === "스크리닝" || currentLiveStageToken.includes("스크리닝") || stageLabel.includes("스크리닝")) {
+                                    if (stageLabel.includes("스크리닝")) {
+                                        const isScreeningDone = !["신검대기", "스크리닝", "text대기"].includes(currentLiveStageToken);
                                         regularCardsHTML += `
-                                            <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 10px;">
-                                                <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #38bdf8; margin-bottom: 8px; display: block;"></i>
-                                                <div style="font-size: 12.5px; color: #38bdf8; font-weight: 600;">현재 스크리닝 참여중입니다</div>
-                                            </div>
-                                        `;
+                                     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed ${isScreeningDone ? 'var(--success-color)' : 'var(--border-color)'}; border-radius: 14px; margin-bottom: 10px;">
+                                     <i class="fa-solid fa-circle-check" style="font-size: 24px; color: ${isScreeningDone ? 'var(--success-color)' : '#38bdf8'}; margin-bottom: 8px; display: block;"></i>
+                                     <div style="font-size: 12.5px; color: ${isScreeningDone ? 'var(--success-color)' : '#38bdf8'}; font-weight: 600;">${isScreeningDone ? '스크리닝 완료' : '현재 스크리닝 참여중입니다'}</div>
+                                     </div>
+                                    `;
                                     } else if (stageLabel === "소집") {
+                                        const isCallDone = !["신검대기", "스크리닝", "text대기", "신검통과", "소집"].includes(currentLiveStageToken);
                                         regularCardsHTML += `
-                                            <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 10px;">
-                                                <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #fbbf24; margin-bottom: 8px; display: block;"></i>
-                                                <div style="font-size: 12.5px; color: #fbbf24; font-weight: 600;">현재 소집 참여중입니다</div>
-                                            </div>
-                                `;
+                                     <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed ${isCallDone ? 'var(--success-color)' : 'var(--border-color)'}; border-radius: 14px; margin-bottom: 10px;">
+                                     <i class="fa-solid fa-circle-check" style="font-size: 24px; color: ${isCallDone ? 'var(--success-color)' : '#fbbf24'}; margin-bottom: 8px; display: block;"></i>
+                                     <div style="font-size: 12.5px; color: ${isCallDone ? 'var(--success-color)' : '#fbbf24'}; font-weight: 600;">${isCallDone ? '소집 완료' : '현재 소집 참여중입니다'}</div>
+                                     </div>
+                                    `;
                                     } else {
-                                        // 소집 단계부터 진짜 3대 버튼 액션 카드가 화면 상단에 정순 사출
-                                        regularCardsHTML += `
+                                        const milestoneSequence = ["신검대기", "스크리닝", "text대기", "신검통과", "소집", "1차방문", "2차방문", "3차방문", "4차방문", "종료방문", "1기종료", "2기종료", "3기종료", "4기종료", "종료"];
+                                        const idxUser = milestoneSequence.indexOf(currentLiveStageToken);
+                                        const idxCard = milestoneSequence.indexOf(stageLabel);
+                                        if (idxUser > idxCard && idxCard !== -1) {
+                                            regularCardsHTML += `
+                                    <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--success-color); border-radius: 14px; margin-bottom: 10px;">
+                                         <i class="fa-solid fa-circle-check" style="font-size: 24px; color: var(--success-color); margin-bottom: 8px; display: block;"></i>
+                                    <div style="font-size: 12.5px; color: var(--success-color); font-weight: 600;">${stageLabel} 완료</div>
+                                    </div>
+                                     `;
+                                        } else {
+                                            regularCardsHTML += `
                                     <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align: left; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);">
                                         <div class="card-top-row">
                                             <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 14.5px;">${stageLabel}</div>
@@ -1196,7 +1208,8 @@
                                             <button type="button" class="card-btn history-sync" id="btn_card_hist_${uniqueSubKey}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i>이력조회</button>
                                         </div>
                                     </div>
-                                `;
+                                    `;
+                                        }
                                     }
                                 });
                             }

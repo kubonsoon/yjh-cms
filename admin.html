@@ -826,6 +826,63 @@
             return "미정";
         }
 
+
+        function openImageModal(imgSrc, modalTitle) {
+            const overlay = document.getElementById("docViewerModalOverlay");
+            const title = document.getElementById("docViewerModalTitle");
+            const imgSlot = document.getElementById("imgDocViewerSlot");
+            if (!overlay || !title || !imgSlot) return;
+            title.innerHTML = `<i class="fa-solid fa-file-image" style="color: var(--secondary-color); margin-right: 6px;"></i> ${modalTitle}`;
+            if (!imgSrc || imgSrc.trim() === "" || imgSrc === "undefined" || imgSrc.includes("object")) {
+                imgSlot.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA4QAAAFKAQMAAABgTo3NAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB3ElEQVR4nO3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8G3vYgABvS3u6gAAAABJRU5ErkJggg==";
+            } else {
+                imgSlot.src = imgSrc;
+            }
+            overlay.style.display = "flex";
+        }
+
+        function closeDocViewerModal() {
+            const overlay = document.getElementById("docViewerModalOverlay");
+            if (overlay) overlay.style.display = "none";
+        }
+
+        function printDocViewerImage() {
+            const imgSlot = document.getElementById("imgDocViewerSlot");
+            if (!imgSlot || !imgSlot.src) return alert("인쇄할 이미지가 존재하지 않습니다.");
+            const printWin = window.open("", "_blank");
+            printWin.document.write("<html><head><title>Print View</title></head><body style='margin:0; display:flex; justify-content:center; align-items:center; height:100vh;'><img src='" + imgSlot.src + "' style='max-width:100%; max-height:100%; object-fit:contain;' onload='window.print(); window.close();'></body></html>");
+            printWin.document.close();
+        }
+
+        function downloadDocViewerImage() {
+            const imgSlot = document.getElementById("imgDocViewerSlot");
+            if (!imgSlot || !imgSlot.src) return alert("다운로드할 이미지가 존재하지 않습니다.");
+            const link = document.createElement("a");
+            link.href = imgSlot.src;
+            link.download = "증빙서류_원본_다운로드.png";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+
+        document.addEventListener("click", function (event) {
+            const targetBadge = event.target.closest(".lvl-badge, span, button");
+            if (!targetBadge) return;
+            const text = targetBadge.innerText.trim();
+            if (text.includes("신분증") || text.includes("통장")) {
+                const tr = targetBadge.closest("tr");
+                let name = "대상자";
+                let idCardImgStr = "";
+                if (tr) {
+                    const nameTd = tr.querySelector("td:nth-child(5)");
+                    if (nameTd) name = nameTd.innerText.trim();
+                }
+                const docTitle = text.includes("신분증") ? `[신분증] ${name}` : `[통장사본] ${name}`;
+                openImageModal(idCardImgStr, docTitle);
+            }
+        });
+
         // 2. 통합 로컬스토리지 파일 시스템 스트림 동기화 로드 [index: 0.1.1]
         let dataStoreRecruitment = JSON.parse(localStorage.getItem('dataStoreRecruitment')) || [];
         let dataStoreApplicant = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];

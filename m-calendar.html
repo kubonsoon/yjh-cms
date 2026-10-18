@@ -951,29 +951,31 @@
 
                 weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
-                    const bits = dateKey.split('-'); // [인덱스 분해 완료]
+                    const bits = dateKey.split('-');
                     const formattedLabel = `${bits[0]}년 ${String(bits[1]).padStart(2, '0')}월 ${String(bits[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
-                    const matchItem = records.find(r => {
+                    const dayMatchedRecords = records.filter(r => {
                         if (!r || !r.examSchedule) return false;
                         const cleanSrcDate = r.examSchedule.toString().replace(/[^0-9-]/g, "").trim();
                         const cleanTargetKey = dateKey.toString().replace(/[^0-9-]/g, "").trim();
                         return cleanSrcDate === cleanTargetKey;
                     });
 
-                    if (matchItem) {
-                        weeklyScheduleBriefingHTML += `
-                    <div class="briefing-row-item" style="margin-bottom: 12px; line-height: 1.5; text-align: left;">
-                        <div>• ${formattedLabel} : <span style="color: #38bdf8; font-weight: bold;">스크리닝</span></div>
-                        <div style="padding-left: 12px; color: #94a3b8; font-size: 13px; font-weight: 700;">${matchItem.title} ${(matchItem.th || "1기")}</div>
-                    </div>
-                `;
+                    if (dayMatchedRecords.length > 0) {
+                        dayMatchedRecords.forEach(matchItem => {
+                            weeklyScheduleBriefingHTML += `
+            <div class="briefing-row-item" style="margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                <div>• ${formattedLabel} : <span style="color: #38bdf8; font-weight: bold;">스크리닝</span></div>
+                <div style="padding-left: 12px; color: #94a3b8; font-size: 13px; font-weight: 700;">${matchItem.title} ${(matchItem.th || "1기")}</div>
+            </div>
+            `;
+                        });
                     } else {
                         weeklyScheduleBriefingHTML += `
-                    <div class="briefing-row-item" style="margin-bottom: 12px; text-align: left; color:rgba(255,255,255,0.35);">
-                        • ${formattedLabel} : 
-                    </div>
-                `;
+        <div class="briefing-row-item" style="margin-bottom: 12px; text-align: left; color:rgba(255,255,255,0.35);">
+            • ${formattedLabel} : <span style="font-weight: 500; color: rgba(255,255,255,0.2);">-</span>
+        </div>
+        `;
                     }
                 });
 

@@ -872,13 +872,23 @@
             if (text.includes("신분증") || text.includes("통장")) {
                 const tr = targetBadge.closest("tr");
                 let name = "대상자";
-                let idCardImgStr = "";
+                let targetImgSrc = "";
                 if (tr) {
                     const nameTd = tr.querySelector("td:nth-child(5)");
                     if (nameTd) name = nameTd.innerText.trim();
                 }
+                try {
+                    const localAppDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                    const foundUser = localAppDB.find(u => u.name && u.name.toString().replace(/\s/g, "") === name.replace(/\s/g, ""));
+                    if (foundUser) {
+                        if (text.includes("신분증") && foundUser.idCardImg) targetImgSrc = foundUser.idCardImg;
+                        else if (text.includes("통장") && foundUser.bankBookImg) targetImgSrc = foundUser.bankBookImg;
+                    }
+                } catch (e) {
+                    console.error("[연동 에러] 로컬스토리지 증빙이미지 추출 실패:", e);
+                }
                 const docTitle = text.includes("신분증") ? `[신분증] ${name}` : `[통장사본] ${name}`;
-                openImageModal(idCardImgStr, docTitle);
+                openImageModal(targetImgSrc, docTitle);
             }
         });
 

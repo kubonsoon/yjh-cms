@@ -1022,10 +1022,10 @@
 
                 <!-- 🎯 [신규 이식]: 평소에는 철저히 숨겨져 있다가 종료 상태 시 고대비 스카이블루 스킨으로 개방되는 독립 액션 단추 -->
                 <button type="button" id="ui_calendar_redirect_btn" class="btn-submit‐form" onclick="navigateToStep(5);
-if(document.getElementById('mobileCalendarFrame')?.contentWindow?.renderCalendar === 'function')
-document.getElementById('mobileCalendarFrame').contentWindow.renderCalendar();"
-                    style="display: none; background-color: #1e293b !important; border: 1px solid #334155 !important; color: #cbd5e1 !important; cursor: pointer !important; margin-top: 10px; box-shadow: none !important;">
-                    📅 임상시험 일정 확인 (과제 완료)
+               if(document.getElementById('mobileCalendarFrame')?.contentWindow?.renderCalendar === 'function')
+               document.getElementById('mobileCalendarFrame').contentWindow.renderCalendar();"
+                    style="display: none; background-color: #4f46e5 !important; color: #ffffff !important; border: none !important; width: 100% !important; height: 44px !important; border-radius: 10px !important; font-size: 13.5px !important; font-weight: 700 !important; cursor: pointer !important; margin-top: 10px !important; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;">
+                    📅 나의 임상시험 일정보기
                 </button>
             </div>
         </div>
@@ -1449,9 +1449,11 @@ document.getElementById('mobileCalendarFrame').contentWindow.renderCalendar();"
 
                     if (calendarRedirectBtn) {
                         calendarRedirectBtn.style.setProperty("display", "block", "important");
-                        calendarRedirectBtn.style.setProperty("background-color", "#1e293b", "important");
-                        calendarRedirectBtn.style.setProperty("border", "1px solid #334155", "important");
-                        calendarRedirectBtn.style.setProperty("color", "#cbd5e1", "important");
+                        calendarRedirectBtn.style.setProperty("background-color", "#4f46e5", "important");
+                        calendarRedirectBtn.style.setProperty("color", "#ffffff", "important");
+                        calendarRedirectBtn.style.setProperty("height", "44px", "important");
+                        calendarRedirectBtn.style.setProperty("border-radius", "10px", "important");
+                        calendarRedirectBtn.style.setProperty("border", "none", "important");
                         calendarRedirectBtn.innerText = "📅 나의 임상시험 일정보기";
                     }
 
@@ -1870,9 +1872,11 @@ document.getElementById('mobileCalendarFrame').contentWindow.renderCalendar();"
                         if (calendarRedirectBtn) {
                             if (liveStatusText === "신검통과") {
                                 calendarRedirectBtn.style.setProperty("display", "block", "important");
-                                calendarRedirectBtn.style.setProperty("background-color", "#1e293b", "important");
-                                calendarRedirectBtn.style.setProperty("border", "1px solid #334155", "important");
-                                calendarRedirectBtn.style.setProperty("color", "#cbd5e1", "important");
+                                calendarRedirectBtn.style.setProperty("background-color", "#4f46e5", "important");
+                                calendarRedirectBtn.style.setProperty("color", "#ffffff", "important");
+                                calendarRedirectBtn.style.setProperty("height", "44px", "important");
+                                calendarRedirectBtn.style.setProperty("border-radius", "10px", "important");
+                                calendarRedirectBtn.style.setProperty("border", "none", "important");
                                 calendarRedirectBtn.innerText = "📅 나의 임상시험 일정보기 (신검 적합)";
                             }
                         }

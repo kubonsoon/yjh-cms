@@ -726,7 +726,7 @@
                 const dayBtn = document.createElement('div');
                 let todayClass = (formattedDateKey === sysTodayStr) ? " today-border today-neon-marker" : "";
 
-                dayBtn.id = `weekly_day_cell_${formattedDateKey}`;
+                dayBtn.setAttribute('data-date', formattedDateKey);
                 dayBtn.className = `weekly-day-btn${todayClass}`;
                 dayBtn.innerHTML = `<div class="day-name">${dayNamesShort[i]}</div><div class="day-date">${loopDate.getDate()}</div>`;
 

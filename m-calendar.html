@@ -896,8 +896,7 @@
                     if (!item || !item.title) return;
                     const actualRawDate = item.examSchedule ? item.examSchedule.toString().trim() : "";
 
-                    if (actualRawDate && actualRawDate.includes("-") && weeklyKeys.includes(actualRawDate)) {
-
+                    if (actualRawDate && actualRawDate.includes("-")) {
                         // [트랙 B 완벽 해결]: 날짜 문자열을 하이픈 기준으로 해체 분해
                         const srcParts = actualRawDate.split("-");
                         const targetParts = window.selectedDateStr.split("-");

@@ -2040,7 +2040,7 @@
                 adminApplicantDB[idx].bankBookImg = finalBankBookImg;
 
                 localStorage.setItem('dataStoreApplicant', JSON.stringify(adminApplicantDB));
-                alert(`[전산 정산 교정 완료] ${adminApplicantDB[idx].name} 대상자님의 참여비 정산 청구서 및 변경 서류가 안전하게 재접수 완결되었습니다.`);
+                alert(`${adminApplicantDB[idx].name} 대상자님의 참여비 청구가 접수되었습니다.`);
 
                 const targetBtn = document.getElementById('ui_submit_btn');
                 if (targetBtn) {

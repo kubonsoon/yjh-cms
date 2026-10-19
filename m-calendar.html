@@ -982,14 +982,14 @@
                 records.forEach(r => {
                     if (r && r.examSchedule && r.examSchedule.toString().includes("-")) {
                         const rParts = r.examSchedule.toString().trim().split("-");
-                        const rYear = parseInt(rParts[0], 10);
-                        const rMonth = parseInt(rParts[1], 10);
-                        const rDay = parseInt(rParts[2], 10);
+                        const rYear = parseInt(rParts, 10);
+                        const rMonth = parseInt(rParts, 10);
+                        const rDay = parseInt(rParts, 10);
 
                         weeklyKeys.forEach(wKey => {
                             if (wKey.includes("-")) {
                                 const wParts = wKey.split("-");
-                                if (rYear === parseInt(wParts[0], 10) && rMonth === parseInt(wParts[1], 10) && rDay === parseInt(wParts[2], 10)) {
+                                if (rYear === parseInt(wParts, 10) && rMonth === parseInt(wParts, 10) && rDay === parseInt(wParts, 10)) {
                                     isAnyWeeklyScheduleExist = true;
                                 }
                             }
@@ -1002,20 +1002,17 @@
                     return;
                 }
 
-                let totalOutHTML = "";
-                if (renderedCardCount === 0 && window.isDayButtonClicked === true) {
-                    totalOutHTML += `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 15px; font-weight: 600; color: #38bdf8;">선택하신 일자에는 임상시험 일정이 없습니다.</div>`;
-                } else {
-                    totalOutHTML += ghostWeekCardsHTML;
+                // [원본 누락 10줄 완벽 복원 복구] 주간 목록 타임라인 레일에 실시간 브리핑 HTML 매운 주입
+                const weeklyTimelineRail = document.getElementById("weeklyTimelineBoard");
+                if (weeklyTimelineRail) {
+                    weeklyTimelineRail.innerHTML = weeklyScheduleBriefingHTML;
                 }
 
-                if (!window.isDayButtonClicked) {
-                    totalOutHTML += `
-    <div class="briefing-container-panel" style="background: var(--card-color); padding: 14px; border-radius: 14px; width: 100%; border:1px solid var(--border-color); box-shadow:0 4px 6px rgba(0,0,0,0.3); margin-top: 10px; text-align: left;">
-        <div style="font-size: 13px; font-weight:800; color:var(--warning-color); margin-bottom: 12px; display: flex; align-items:center; gap: 6px;"><i class="fa-solid fa-list-check"></i> 해당 주간 임상 일정</div>
-        <div style="display: flex; flex-direction: column; gap:2px;">${weeklyScheduleBriefingHTML}</div>
-    </div>
-    `;
+                let totalOutHTML = "";
+                if (renderedCardCount === 0 && window.isDayButtonClicked === true) {
+                    totalOutHTML += `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 15px; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다.</div>`;
+                } else {
+                    totalOutHTML += ghostWeekCardsHTML;
                 }
 
                 cardBoard.innerHTML = totalOutHTML;

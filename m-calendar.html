@@ -936,6 +936,13 @@
                 let weeklyScheduleBriefingHTML = "";
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
 
+                // -------------------------------------------------------------
+                // [디버그 레이더 01] 루프 진입 전 마스터 데이터 스토어 전체 상태 스캔
+                // -------------------------------------------------------------
+                console.log("=== [CTMS 주간 레이더] 트랙 B 마스터 DB 데이터 수신 상태 ===");
+                console.log("로컬 로드된 dataStoreRecruitment 총 개수:", dataStoreRecruitment.length);
+                console.log("현재 화면 selectedDateStr 확인:", window.selectedDateStr);
+
                 weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
                     const bits = dateKey.split('-');
@@ -943,6 +950,16 @@
 
                     // 트랙 A의 1대1 날짜 대조 알고리즘을 그대로 적용하되 대상 데이터만 스위칭
                     const dayMatchedRecords = dataStoreRecruitment.filter(r => r && (r.screeningDate === dateKey || r.hospitalDate === dateKey));
+
+                    // -------------------------------------------------------------
+                    // [디버그 레이더 02] 각 날짜 키값별 실시간 매핑 필터링 결과 사출
+                    // -------------------------------------------------------------
+                    console.log(`[날짜 주파 스캔] 달력 키: ${dateKey} -> 매핑 성공한 과제 수: ${dayMatchedRecords.length}개`);
+                    if (dayMatchedRecords.length > 0) {
+                        dayMatchedRecords.forEach(matchItem => {
+                            console.log(`   └> [연동 일치 과제 발견]: ${matchItem.trialName} (${matchItem.th || "1기"}) | 스크리닝일: ${matchItem.screeningDate} | 소집일: ${matchItem.hospitalDate}`);
+                        });
+                    }
 
                     if (dayMatchedRecords.length > 0) {
                         dayMatchedRecords.forEach(matchItem => {

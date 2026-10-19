@@ -1487,7 +1487,7 @@
                         document.getElementById('ui_target_name_zone').innerHTML = `<span>👤 대상자: ${matchedPatientData.name} (${displayBirth6})</span>${genderBadgeHtml}`;
                     }
 
-                    // 4. 담당 CRC 사원명 실시간 역추적 바인딩
+                    // 4. 담당 CRC 사원명 실시간 역추적 바인딩 (모집공고 마스터 원장 기준 래핑 완착)
                     const realCrcName = realRecData ? realRecData.crc : "이승호";
                     if (document.getElementById('ui_crc_name_zone')) {
                         document.getElementById('ui_crc_name_zone').innerText = `👩‍⚕️ 담당자: ${realCrcName}`;
@@ -1518,9 +1518,10 @@
                 }
             } else {
                 // -------------------------------------------------------------------------
-                // [트랙 B]: 대장에 기존 명의 데이터가 부재한 상태 -> 원장 스캔 보강 후 가상 세션 빌드
+                // [트랙 B]: 대장에 기존 명의 데이터가 부재한 상태 -> popup 식별자 물리 바인딩 및 가상 세션 빌드
                 // -------------------------------------------------------------------------
                 let adminApplicantDB = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+                const popup = document.getElementById('popupEmbedded3');
 
                 const recoveredName = sessionStorage.getItem('certifiedUserName') || temporaryVerifiedName || "대상자";
                 const recoveredBirth = localStorage.getItem('loggedInUserSsn') || "950505";
@@ -1547,7 +1548,9 @@
                 localStorage.setItem("loggedInUser", JSON.stringify({ name: recoveredName, isNew: true }));
 
                 // [트랙 B UI 엔진 기동]
-                popup.parentElement.className = "popup-display-zone pop-theme-pass";
+                if (popup && popup.parentElement) {
+                    popup.parentElement.className = "popup-display-zone pop-theme-pass";
+                }
                 if (document.getElementById("icoPop")) {
                     document.getElementById("icoPop").className = "fa-solid fa-circle-check";
                 }
@@ -1577,9 +1580,11 @@
                     '<p style="margin: 5px 0 0 0; line-height: 1.35; color: #94a3b8; font-size: 14px;">아래 확인 버튼을 클릭하면 정산 페이지 대신 <br><span style="color: #38bdf8; font-weight: 600;">[실시간 일정관리 스케줄러] 화면으로 이동합니다.</span></p>' +
                     '</div>';
 
-                const actionBtn = popup.parentElement.querySelector("button") || document.getElementById("btnNewUserConfirm");
-                if (actionBtn) {
-                    actionBtn.style.setProperty("margin-top", "6px", "important");
+                if (popup && popup.parentElement) {
+                    const actionBtn = popup.parentElement.querySelector("button") || document.getElementById("btnNewUserConfirm");
+                    if (actionBtn) {
+                        actionBtn.style.setProperty("margin-top", "6px", "important");
+                    }
                 }
             }
 

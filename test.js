@@ -1,228 +1,281 @@
-function executeStep2Submit() {
-  const name = document.getElementById("txtUserName").value.trim();
-  const birth = document
-    .getElementById("txtUserBirth")
-    .value.trim()
-    .replace(/[^0-9]/g, "");
-  const phone = document
-    .getElementById("txtUserPhone")
-    .value.trim()
-    .replace(/[^0-9]/g, "");
-  const isAgreed = document.getElementById("chkAgree").checked;
+function executeStep3ConfirmNext() {
+  console.log("=== 🔓 [CTMS 탈출 게이트] 확인 버튼 정방향 주파 가동 ===");
 
-  if (!name || !birth || !phone) {
-    return alert("본인 식별을 위한 입력 필드를 빠짐없이 채워주세요.");
-  }
-  if (!isAgreed) {
-    return alert("개인정보 활용 동의 체크박스 수락이 필요합니다.");
-  }
+  if (matchedPatientData) {
+    const systemCurrentTime = new Date();
+    const lastExamDate = matchedPatientData.recDate
+      ? new Date(matchedPatientData.recDate)
+      : null;
 
-  temporaryVerifiedName = name;
-  let adminApplicantDB =
-    JSON.parse(localStorage.getItem("dataStoreApplicant")) || [];
-  const cleanInputName = name.replace(/\s/g, "");
-  const cleanInputBirth6 = birth.substring(0, 6);
-
-  // 입력 데이터를 가공하여 마스터 대장 내의 대상자 명의 전수 스캔 및 대조
-  let targetIdx = adminApplicantDB.findIndex((user) => {
-    const cleanDbName = (user.name || "").toString().replace(/\s/g, "");
-    const rawDbBirth = (user.ssn || "").toString().replace(/[^0-9]/g, "");
-    const cleanDbBirth6 = rawDbBirth.substring(0, 6);
-    const cleanDbPhone = (user.phone || "")
-      .toString()
-      .replace(/[^0-9]/g, "")
-      .trim();
-    return (
-      cleanDbName === cleanInputName &&
-      cleanDbBirth6 === cleanInputBirth6 &&
-      cleanDbPhone === phone
-    );
-  });
-
-  let adminRecruitmentDB =
-    JSON.parse(localStorage.getItem("dataStoreRecruitment")) || [];
-  let matchedPatientData = null;
-  const popup = document.getElementById("popupEmbedded3");
-
-  if (targetIdx !== -1) {
-    // [조건 일치]: 기존 데이터가 존재할 경우 데이터 보존 및 최신 업데이트 덮어쓰기 실행
-    let matchedUser = adminApplicantDB[targetIdx];
-    matchedUser.regDate = new Date().toISOString().substring(0, 10);
-
-    // 연동 과제의 현재 등록 모집 인원 카운트를 수식화하여 1명 안전하게 증가
-    let matchedRec = adminRecruitmentDB.find((rec) => {
-      const recTitleClean = (rec.title || "")
-        .toString()
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9가-힣]/g, "")
-        .trim();
-      const appTitleClean = (matchedUser.title || "")
-        .toString()
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9가-힣]/g, "")
-        .trim();
-      return (
-        recTitleClean === appTitleClean &&
-        (rec.th || "").toString().replace(/[^0-9]/g, "") ===
-          (matchedUser.th || "").toString().replace(/[^0-9]/g, "")
-      );
-    });
-
-    if (matchedRec) {
-      let currentCount =
-        parseInt((matchedRec.count || "0").split("/")[0], 10) || 0;
-      matchedRec.count = currentCount + 1 + "/60";
+    // [순정 교정 완착]: 확실히 종료된 날짜 데이터가 존재하며 180일 (6개월) 이상 경과했을 때만 만료 판정
+    let isOver6Months = false;
+    if (lastExamDate && !isNaN(lastExamDate.getTime())) {
+      const timeDiff = systemCurrentTime.getTime() - lastExamDate.getTime();
+      const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+      if (dayDiff >= 180) isOver6Months = true;
     }
 
-    matchedPatientData = matchedUser;
-    sessionStorage.setItem("certifiedUserName", name);
-    sessionStorage.setItem("certifiedUserPhone", phone);
-    localStorage.setItem(
-      "loggedInUser",
-      JSON.stringify({ name: name, isNew: false }),
-    );
-    localStorage.setItem("loggedInUserSsn", matchedUser.ssn);
-    localStorage.setItem("loggedInUserPhone", phone);
-    localStorage.setItem(
-      "dataStoreRecruitment",
-      JSON.stringify(adminRecruitmentDB),
-    );
+    // 🚨 [정방향 저격 교정 완착]: 신규/6개월 만료 유저는 navigateToStep(5) 자식 가상 캘린더 레이어로 진입
+    if (matchedPatientData.isNewUserGhost || isOver6Months) {
+      navigateToStep(5);
 
-    // [트랙 A UI 엔진 기동]
-    popup.parentElement.className = "popup-display-zone pop-theme-pass";
-    if (document.getElementById("icoPop")) {
-      document.getElementById("icoPop").className = "fa-solid fa-circle-check";
-    }
-    document.getElementById("txtPopTitle").innerText = "본인인증 승인 (PASS)";
-
-    let finalPayScheduleLog = "지급 일정 정보 없음";
-    if (matchedPatientData && matchedPatientData.paySchedule) {
-      finalPayScheduleLog = matchedPatientData.paySchedule
+      const currentTargetName =
+        matchedPatientData.name || temporaryVerifiedName || "대상자";
+      const rawDbSsn = (matchedPatientData.ssn || "")
         .toString()
-        .split("/")
-        .join("\n");
+        .trim()
+        .replace(/[^0-9]/g, "");
+      const displayBirth6 = rawDbSsn.substring(0, 6) || "950505";
+
+      // 성별 코드 판별 및 네온 클래스 테마 분기
+      let genderText = "여";
+      let genderClass = "gender-indicator-badge gender-f";
+      if (
+        rawDbSsn.endsWith("1") ||
+        rawDbSsn.endsWith("3") ||
+        (matchedPatientData.ssn &&
+          (matchedPatientData.ssn.includes("-M") ||
+            matchedPatientData.ssn.endsWith("M")))
+      ) {
+        genderText = "남";
+        genderClass = "gender-indicator-badge gender-m";
+      }
+
+      const iframe = document.getElementById("mobileCalendarFrame");
+      if (iframe && iframe.contentWindow && iframe.contentWindow.document) {
+        const childDoc = iframe.contentWindow.document;
+
+        // 자식 달력 문서 (m-calendar.html) 내부에 존재하는 자물쇠 프로필 슬롯을 강제 오버라이드
+        const targetSlot =
+          childDoc.getElementById("lblSetTargetNew") ||
+          childDoc.querySelector(".scheduler-profile-bar.user-meta-info");
+        if (targetSlot) {
+          targetSlot.innerHTML =
+            '<span style="color:#ffffff; font-weight:800;">' +
+            currentTargetName +
+            "</span>" +
+            '<span style="color:rgba(255, 255, 255,0.4); font-weight:500; margin-left:2px;">(' +
+            displayBirth6 +
+            ")</span>" +
+            '<span class="' +
+            genderClass +
+            '" style="margin-left:5px; padding:1px 5px; border-radius: 4px; font-size:11px; font-weight:800; display:inline-block; line-height:1.3;">' +
+            genderText +
+            "</span>";
+        }
+
+        // 자식 달력 화면 세션 메모리 락인 동기화 및 캘린더 엔진 리렌더링 작동
+        iframe.contentWindow.sessionStorage.setItem(
+          "certifiedUserName",
+          currentTargetName,
+        );
+        if (typeof iframe.contentWindow.renderCalendar === "function") {
+          iframe.contentWindow.renderCalendar();
+        }
+      }
+      return; // 트랙 B 진입 시 여기서 탈출
     } else {
-      finalPayScheduleLog =
-        "1차: 2026-12-21\n2차: 2026-12-28\n3차: 2027-01-04\n4차: 2027-01-11\n5차: 2027-01-29";
-    }
+      // 🚨 [정방향 저격 교정 완착]: 기존 회원 유효 유저는 navigateToStep(4) 나의 시험정보 화면으로 진입
+      navigateToStep(4);
 
-    const elPopMessage = document.getElementById("txtPopMessage");
-    if (elPopMessage) {
-      elPopMessage.style.textAlign = "left";
-      elPopMessage.style.lineHeight = "1.3";
+      const cmsBadgeSlot = document.getElementById("cms-badge");
+      const currentStage = (
+        matchedPatientData.status ||
+        matchedPatientData.stage ||
+        "신검대기"
+      )
+        .toString()
+        .trim();
 
-      const parentCard =
-        document.getElementById("popupEmbedded3") ||
-        elPopMessage.closest(".embedded-result-popup") ||
-        elPopMessage.parentElement;
-      if (parentCard) {
-        parentCard.style.setProperty(
-          "padding",
-          "4px 14px 4px 14px",
-          "important",
-        );
-        parentCard.style.setProperty("background", "#0b1528", "important");
-        parentCard.style.setProperty(
-          "border",
-          "2px solid #1e293b",
-          "important",
-        );
-        parentCard.style.setProperty("border-radius", "16px", "important");
+      if (cmsBadgeSlot) {
+        if (currentStage === "종료") {
+          cmsBadgeSlot.innerText = "정산\n(종료)";
+          cmsBadgeSlot.style.background = "#64748b";
+        } else if (currentStage === "투약") {
+          cmsBadgeSlot.innerText = "진행\n(투약)";
+          cmsBadgeSlot.style.background = "#2563eb";
+        } else if (currentStage === "text대기" || currentStage === "신검대기") {
+          cmsBadgeSlot.innerText = "신검\n대기";
+          cmsBadgeSlot.style.background = "#7c3aed";
+        } else if (currentStage === "신검통과") {
+          cmsBadgeSlot.innerText = "신검\n적합";
+          cmsBadgeSlot.style.background = "#10b981";
+        } else if (currentStage === "소집" || currentStage.includes("소집")) {
+          cmsBadgeSlot.innerText = "참여\n(소집)";
+          cmsBadgeSlot.style.background = "#2563eb";
+        } else {
+          cmsBadgeSlot.innerText = currentStage.replace("(", "\n(");
+          cmsBadgeSlot.style.background = "#1e3a8a";
+        }
       }
 
-      const icoPop = document.getElementById("icoPop");
-      if (icoPop && icoPop.parentElement) {
-        icoPop.parentElement.style.setProperty(
-          "margin-top",
-          "0px",
+      const calendarRedirectBtn = document.getElementById(
+        "ui_calendar_redirect_btn",
+      );
+      const submitBtn = document.getElementById("ui_submit_btn");
+
+      if (calendarRedirectBtn) {
+        calendarRedirectBtn.style.setProperty("display", "block", "important");
+        calendarRedirectBtn.style.setProperty(
+          "background-color",
+          "#4f46e5",
           "important",
         );
-        icoPop.parentElement.style.setProperty(
-          "margin-bottom",
-          "0px",
+        calendarRedirectBtn.style.setProperty("color", "#ffffff", "important");
+        calendarRedirectBtn.style.setProperty("height", "44px", "important");
+        calendarRedirectBtn.style.setProperty(
+          "border-radius",
+          "10px",
           "important",
         );
-        icoPop.style.setProperty("color", "#10b981", "important");
+        calendarRedirectBtn.style.setProperty("border", "none", "important");
+        calendarRedirectBtn.innerText = " 나의 임상시험 일정보기";
       }
 
-      const txtPopTitle = document.getElementById("txtPopTitle");
-      if (txtPopTitle) {
-        txtPopTitle.style.setProperty("margin-bottom", "2px", "important");
-        txtPopTitle.style.setProperty("font-size", "17.5px", "important");
-        txtPopTitle.style.setProperty("font-weight", "900", "important");
-        txtPopTitle.style.setProperty("color", "#10b981", "important");
+      if (currentStage === "신검통과") {
+        if (submitBtn) {
+          submitBtn.innerText = "신검 통과 승인 (추후 소집 참여 시 신청가능)";
+          submitBtn.disabled = true;
+          submitBtn.style.setProperty(
+            "background-color",
+            "#1e293b",
+            "important",
+          );
+          submitBtn.style.setProperty("cursor", "not-allowed", "important");
+        }
+      } else if (currentStage === "신검대기") {
+        if (submitBtn) {
+          submitBtn.innerText = "관리자 승인 대기 중 (신청 불가)";
+          submitBtn.disabled = true;
+          submitBtn.style.setProperty(
+            "background-color",
+            "#1e293b",
+            "important",
+          );
+          submitBtn.style.setProperty("cursor", "not-allowed", "important");
+        }
+      } else if (currentStage === "종료") {
+        if (calendarRedirectBtn) {
+          calendarRedirectBtn.innerText = " 임상시험 일정 확인 (과제완료)";
+          calendarRedirectBtn.style.setProperty(
+            "background-color",
+            "#475569",
+            "important",
+          );
+        }
+        if (submitBtn) {
+          submitBtn.innerText = "지급 청구 마감 (과제 종료)";
+          submitBtn.disabled = true;
+          submitBtn.style.setProperty(
+            "background-color",
+            "#1e293b",
+            "important",
+          );
+        }
       }
 
+      // =============================================================================
+      // [트랙 A 내부 완착] 4단계 진입 즉시 '로딩 중...' 텍스트를 모집공고 정보로 치환
+      // =============================================================================
+      let adminRecruitmentDB =
+        JSON.parse(localStorage.getItem("dataStoreRecruitment")) || [];
+
+      // 모집공고 마스터 대장 원장에서 진짜 과제 정보 정밀 탐색
+      const realRecData = adminRecruitmentDB.find((rec) => {
+        const recTitle = (rec.title || "")
+          .toString()
+          .toLowerCase()
+          .replace(/[^a-zA-Z0-9가-힣]/g, "")
+          .trim();
+        const appTitle = (matchedPatientData.title || "")
+          .toString()
+          .toLowerCase()
+          .replace(/[^a-zA-Z0-9가-힣]/g, "")
+          .trim();
+        const recTh = (rec.th || "").toString().replace(/[^0-9]/g, "");
+        const appTh = (matchedPatientData.th || "")
+          .toString()
+          .replace(/[^0-9]/g, "");
+        return recTitle === appTitle && recTh === appTh;
+      });
+
+      const finalTrialTitle = realRecData
+        ? realRecData.title
+        : matchedPatientData.title || "참여 과제 정보 없음";
+      const finalTrialTh = realRecData
+        ? realRecData.th
+        : matchedPatientData.th || "1기";
+
+      // 1. 진짜 기수(th) 실시간 주입
+      const trialCategorySlot = document.getElementById("lblTrialCategory");
+      if (trialCategorySlot) {
+        trialCategorySlot.innerText = finalTrialTh
+          ? `${finalTrialTh} 시험`
+          : "과제 기수 미정";
+      }
+
+      // 2. 진짜 시험명 매핑 오버라이드 ("로딩 중..." 문구 완벽 타격 소독)
+      const trialTitleSlot = document.getElementById("lblTrialTitle");
+      if (trialTitleSlot) {
+        trialTitleSlot.innerText = finalTrialTitle;
+      }
+
+      // 3. 성명 및 성별 분리 배지화 공정 가동
       const rawDbSsn = (matchedPatientData.ssn || "").toString().trim();
-      const displayBirth = rawDbSsn.substring(0, 6) || "-";
-      let displayGender = "미정";
+      const displayBirth6 = rawDbSsn.substring(0, 6) || "-";
+      let genderBadgeHtml = "";
+
       if (
         rawDbSsn.includes("-M") ||
         rawDbSsn.endsWith("M") ||
         rawDbSsn.endsWith("1") ||
         rawDbSsn.endsWith("3")
       ) {
-        displayGender = "남";
+        genderBadgeHtml =
+          '<span class="gender-indicator-badge gender-m">남</span>';
       } else if (
         rawDbSsn.includes("-F") ||
         rawDbSsn.endsWith("F") ||
         rawDbSsn.endsWith("2") ||
         rawDbSsn.endsWith("4")
       ) {
-        displayGender = "여";
-      }
-
-      let genderBadgeHtml =
-        '<span class="gender-indicator-badge gender-f" style="padding:1px 5px !important; font-size: 11px !important; font-weight:800 !important; margin-left:4px !important; display:inline-block !important; line-height:1.2 !important; vertical-align:middle !important; ">여</span>';
-      if (displayGender.includes("남") || name.includes("철수")) {
         genderBadgeHtml =
-          '<span class="gender-indicator-badge gender-m" style="padding:1px 5px !important; font-size:11px !important; font-weight:800 !important; margin-left: 4px !important; display:inline-block !important; line-height:1.2 !important; vertical-align:middle !important; ">남</span>';
+          '<span class="gender-indicator-badge gender-f">여</span>';
       }
 
-      elPopMessage.innerHTML = `
-                <div style="background: #070d19 !important; border: 1px solid #1e293b !important; border-radius: 8px !important; padding: 4px 10px !important; margin: 0 !important; box-sizing: border-box !important;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px !important; table-layout: fixed !important;">
-                        <tr style="height: 24px !important;">
-                            <td style="width: 80px !important; min-width: 80px !important; max-width: 80px !important; color: #94a3b8; font-weight: 600; font-size: 13.5px !important; vertical-align: middle !important; padding: 0 !important;">인증기관</td>
-                            <td style="color: #cbd5e1; font-weight: 700; font-size: 13.5px !important; vertical-align: middle !important; padding: 0 0 0 10px !important; text-align: left !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentChannelName || "네이버"} 연동모듈</td>
-                        </tr>
-                        <tr style="height: 24px !important;">
-                            <td style="width: 80px !important; min-width: 80px !important; max-width: 80px !important; color: #94a3b8; font-weight: 600; font-size: 13.5px !important; vertical-align: middle !important; padding: 0 !important;">대상자</td>
-                            <td style="color: #ffffff; font-weight: 800; font-size: 13.5px !important; vertical-align: middle !important; padding: 0 0 0 10px !important; text-align: left !important; white-space: nowrap !important;">
-                                <span style="vertical-align: middle;">${matchedPatientData.name || name}</span>
-                                <span style="color: #cbd5e1; font-weight: 700; vertical-align: middle;">(${displayBirth})</span>
-                                <span style="vertical-align: middle; display: inline-block;">${genderBadgeHtml}</span>
-                                <span style="color: #cbd5e1; font-weight: 700; vertical-align: middle;">)</span>
-                            </td>
-                        </tr>
-                        <tr style="height: 24px !important;">
-                            <td style="width: 80px !important; min-width: 80px !important; max-width: 80px !important; color: #94a3b8; font-weight: 600; font-size: 13.5px !important; vertical-align: middle !important; padding: 0 !important;">시험명</td>
-                            <td style="color: #ffffff; font-weight: 800; font-size: 13.5px !important; vertical-align: middle !important; padding: 0 0 0 10px !important; text-align: left !important; line-height: 1.25 !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                ${matchedPatientData.title || "삼진제약 팔보시클립"}&nbsp;<span style="color: #38bdf8; font-weight: 900;">(${matchedPatientData.th || "3기"})</span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div style="margin-top: 2px !important; margin-bottom: 0px !important; display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 3px; height: 9px; background: #06B6D4; border-radius: 2px;"></div>
-                    <span style="font-size: 13px !important; font-weight: 800 !important; color: #06B6D4 !important;">[참여비 지급 예정일]</span>
-                </div>
-                <div style="background: #070d19 !important; border: 1px solid #1e293b !important; border-radius: 8px !important; padding: 2px 10px !important; box-sizing: border-box !important; margin: 0 !important;">
-                    <div style="font-size: 13.5px !important; color: #38bdf8 !important; font-weight: 700; line-height: 1.55 !important; white-space: pre-line !important;">${finalPayScheduleLog}</div>
-                </div>
-                <div style="margin-top: 2px !important; margin-bottom: 0px !important; padding-left: 2px !important;">
-                    <p style="font-size: 14px !important; color: #cbd5e1 !important; line-height: 1.2; margin: 0 !important; font-weight: 600;">아래 확인 버튼을 클릭하면 참여중인 시험현황으로 <br>이동합니다.</p>
-                </div>`;
+      if (document.getElementById("ui_target_name_zone")) {
+        document.getElementById("ui_target_name_zone").innerHTML =
+          `<span>👤 대상자: ${matchedPatientData.name} (${displayBirth6})</span>${genderBadgeHtml}`;
+      }
 
-      const elConfirmBtn =
-        document.getElementById("btnActionPop") ||
-        document.querySelector('button[onclick*="executeStep3ConfirmNext"]');
-      if (elConfirmBtn) {
-        elConfirmBtn.setAttribute("onclick", "executeStep3ConfirmNext()");
-        elConfirmBtn.style.setProperty("background", "#0284c7", "important");
-        elConfirmBtn.style.setProperty("color", "#ffffff", "important");
-        elConfirmBtn.style.setProperty("height", "34px", "important");
-        elConfirmBtn.style.setProperty("width", "100%", "important");
+      // 4. 담당 CRC 사원명 실시간 역추적 바인딩
+      const realCrcName = realRecData ? realRecData.crc : "이승호";
+      if (document.getElementById("ui_crc_name_zone")) {
+        document.getElementById("ui_crc_name_zone").innerText =
+          `👩‍⚕️ 담당자: ${realCrcName}`;
+      }
+
+      // 5. 계좌 연동 패킷 실시간 매핑
+      const bankInputSlot = document.getElementById("ui_bank_input");
+      if (bankInputSlot && matchedPatientData.accountInfo) {
+        const parts = matchedPatientData.accountInfo.split(" ");
+        if (parts.length > 1) {
+          bankInputSlot.value = parts.slice(1).join("");
+          const bankSelectSlot = document.getElementById("ui_bank_select");
+          if (bankSelectSlot) {
+            for (let opt of bankSelectSlot.options) {
+              if (opt.text.includes(parts) || parts.includes(opt.value)) {
+                bankSelectSlot.value = opt.value;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // 6. 진짜 데이터가 다 주입되었으므로 1초 주기 안테나 레이더 모니터링 엔진 최종 기동
+      if (typeof startAdminApprovalMonitor === "function") {
+        startAdminApprovalMonitor();
       }
     }
   } else {
@@ -233,7 +286,7 @@ function executeStep2Submit() {
       uid: "VIRTUAL_" + Date.now(),
       name: name,
       ssn: birth,
-      phone: phone.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3"),
+      phone: phone.replace(/(\d{3})(\d{4})(\d{4})/, "\$1-\$2-\$3"),
       title: "신규 방문 과제 미배정",
       th: "1기",
       count: "-",
@@ -279,11 +332,11 @@ function executeStep2Submit() {
         : "간편인증";
     const targetName = name || "대상자";
 
-    // JSX/JS 문법 컴파일 오류를 원천 차단하기 위해 문자열 직격 결합 연산으로 전수 교정
+    // JSX/JS 문법 컴파일 오류를 원천 차단하기 위해 문자열 직격 결합 연산 전향 완착
     document.getElementById("txtPopMessage").innerHTML =
       '<div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 6px 12px; margin-top: -6px !important; margin-bottom: 0px !important; text-align: left; font-size: 13px; line-height: 1.2;">' +
       '<div style="margin-bottom: 3px; display: flex; align-items: center;">' +
-      '<span style="color: #64748b; width: 65px; flex-shrink: 0;">인증기관</span>' +
+      '<span style="color: #64748b; width: 65px; flex-shrink: 0;">인증기관 </span>' +
       '<span style="color: #e2e8f0; font-weight: 600;"><span style="color: #34d399 !important; font-weight: 700;">[' +
       targetChannel +
       "]</span> 연동모듈</span>" +
@@ -309,6 +362,6 @@ function executeStep2Submit() {
   }
 
   if (typeof navigateToStep === "function") {
-    navigateToStep(3);
+    navigateToStep(3); // 2단계 폼 제출 성공 완료 후 3단계 승인 팝업 레이어를 띄우는 순정 규격 정상 수렴
   }
 }

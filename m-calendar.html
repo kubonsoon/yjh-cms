@@ -897,29 +897,34 @@
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
                 let isAnyWeeklyScheduleExist = false;
 
-                // [주간 목록 브리핑 전개] 7일간의 주간 목록 포맷터를 요구사항 예제 일치화 처리 및 배열 찌꺼기 제거
+                // 1. [주간 목록 브리핑 전개] 7일간의 날짜 레일을 수색하여 정수형 날짜 정제로 예제 규격 싱크 100% 매핑
                 weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
                     const bits = dateKey.split('-');
                     const formattedLabel = `${bits[0]}년 ${String(bits[1]).padStart(2, '0')}월 ${String(bits[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
+                    // 날짜 파편화 정수 필터 바인딩 (배열 오차 원천 소독)
                     const dayMatchedRecords = records.filter(r => {
                         if (!r || !r.examSchedule) return false;
-                        return r.examSchedule.toString().trim() === dateKey.trim();
+                        const rParts = r.examSchedule.toString().trim().split("-");
+                        const wParts = dateKey.split("-");
+                        return (parseInt(rParts[0], 10) === parseInt(wParts[0], 10) &&
+                            parseInt(rParts[1], 10) === parseInt(wParts[1], 10) &&
+                            parseInt(rParts[2], 10) === parseInt(wParts[2], 10));
                     });
 
                     if (dayMatchedRecords.length > 0) {
                         isAnyWeeklyScheduleExist = true;
                         weeklyScheduleBriefingHTML += `<div class="briefing-row-item" style="margin-bottom: 12px; line-height: 1.5; text-align: left; font-size:13px;">
-                    <div>• ${formattedLabel} : <span style="color: #38bdf8; font-weight: bold;">스크리닝</span></div>`;
+                <div>• ${formattedLabel} : <span style="color: #38bdf8; font-weight: bold;">스크리닝</span></div>`;
                         dayMatchedRecords.forEach(matchItem => {
                             weeklyScheduleBriefingHTML += `<div style="padding-left: 12px; color: #ffffff; font-weight: 700; margin-top:2px;">${matchItem.title} ${(matchItem.th || "1기")}</div>`;
                         });
                         weeklyScheduleBriefingHTML += `</div>`;
                     } else {
                         weeklyScheduleBriefingHTML += `<div class="briefing-row-item" style="margin-bottom: 12px; text-align: left; color: rgba(255, 255, 255, 0.35); font-size:13px;">
-                    • ${formattedLabel} : <span style="color: rgba(255,255,255,0.2);">-</span>
-                </div>`;
+                • ${formattedLabel} : <span style="color: rgba(255,255,255,0.2);">-</span>
+            </div>`;
                     }
                 });
 
@@ -929,25 +934,38 @@
                     return;
                 }
 
-                // [순정 변수 records 기반 카드 사출 - 1단계: 스크리닝 과제 최우선 배치]
+                // 2. [순정 변수 records 기반 카드 사출] 스크리닝이 포함된 일정을 최우선순위 레이어로 사출
                 records.forEach((item) => {
                     if (!item || !item.title) return;
                     const actualRawDate = item.examSchedule ? item.examSchedule.toString().trim() : "";
-                    const isScreeningTask = (item.examSchedule || "").toString().includes("스크리닝") || true;
 
-                    if (actualRawDate === selectedDateStr && isScreeningTask) {
-                        renderedCardCount++;
-                        const targetThClass = (item.th || "1기").replace(/\s/g, "");
-                        ghostWeekCardsHTML += `
+                    if (actualRawDate && actualRawDate.includes("-")) {
+                        const srcParts = actualRawDate.split("-");
+                        const targetParts = window.selectedDateStr.split("-");
+
+                        const srcYear = parseInt(srcParts[0], 10);
+                        const srcMonth = parseInt(srcParts[1], 10);
+                        const srcDay = parseInt(srcParts[2], 10);
+
+                        const targetYear = parseInt(targetParts[0], 10);
+                        const targetMonth = parseInt(targetParts[1], 10);
+                        const targetDay = parseInt(targetParts[2], 10);
+
+                        // 정수 데이터 비교 게이트 통과 시 카드 생성 및 카운터 증가 스위치 정밀 락인
+                        if (srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay) {
+                            renderedCardCount++;
+                            const targetThClass = (item.th || "1기").replace(/\s/g, "");
+
+                            ghostWeekCardsHTML += `
                 <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align: left; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);">
-                    <div class="card-top-row">
+                    <div class="card-top-row" style="padding-bottom: 2px;">
                         <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
                             <div style="font-size: 13px; color: #cbd5e1; font-weight: 700; display: flex; align-items: center; gap: 5px;">
                                 <span>${actualRawDate}</span><span style="color: #38bdf8; font-weight: 800;">스크리닝 참여가능</span>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
-                                <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 15px;">${item.title}</div>
-                                <span class="card-th-badge th-color-${targetThClass}">${item.th || "1기"}</span>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 1px;">
+                                <div class="card-title-text" style="color: #ffffff; font-weight: 800; font-size: 15px; letter-spacing: -0.2px;">${item.title}</div>
+                                <span class="card-th-badge th-color-${targetThClass}" style="margin: 0 !important; transform: scale(0.95); font-weight: 800;">${item.th || "1기"}</span>
                             </div>
                         </div>
                     </div>
@@ -961,53 +979,39 @@
                         <button type="button" class="card-btn history-sync" id="btn_card_hist_${item.uid}" style="height:32px; font-size:12px;"><i class="fa-solid fa-clock-history"></i> 이력조회</button>
                     </div>
                 </div>`;
-                    }
-                });
-
-                // [순정 변수 records 기반 카드 사출 - 2단계: 스크리닝 이외의 일반 과제 후출 배치]
-                records.forEach((item) => {
-                    if (!item || !item.title) return;
-                    const actualRawDate = item.examSchedule ? item.examSchedule.toString().trim() : "";
-                    const isScreeningTask = (item.examSchedule || "").toString().includes("스크리닝") || true;
-
-                    if (actualRawDate === selectedDateStr && !isScreeningTask) {
-                        // 스크리닝 우선 정책에 따라 일반 카드가 당일 매칭될 경우 안전하게 하단 순위로 연속 사출 적재
+                        }
                     }
                 });
 
                 let totalOutHTML = "";
-                // [지정 텍스트 방어막 2] 요일 단추를 직접 눌렀으나 당일 시험 일정이 매칭되지 않을 때
+
+                // [지정 텍스트 방어막 2] 요일 단추를 직접 클릭했으나 당일 시험 일정이 매칭되지 않을 때 완벽 사출
                 if (renderedCardCount === 0 && window.isDayButtonClicked === true) {
                     totalOutHTML += '<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 15px; font-weight: 700;">선택하신 일자에는 임상시험 일정이 없습니다.</div>';
                 } else {
                     totalOutHTML += ghostWeekCardsHTML;
                 }
 
-                // 주간 통합 리스트 안내 상자를 상단 단추 레일 대신 하단 카드 레일 랙 꼬리칸에 결착
+                // 3. [요구사항 주간 목록 결착] 상단 7일 바 대신 우측 메인 카드 랙 하단 꼬리칸에 안전 마킹
                 totalOutHTML += `
-        <div style="background: var(--card-color); padding: 14px; border-radius: 14px; width: 100%; border: 1px solid var(--border-color); box-shadow:0 4px 6px rgba(0,0,0,0.3); margin-top: 10px;">
-            <div style="font-size: 13px; font-weight:800; color:var(--warning-color); margin-bottom: 12px; display: flex; align-items:center; gap: 6px;">
-                <i class="fa-solid fa-list-check"></i> 해당 주간 전체 임상 일정 목록
-            </div>
-            <div style="display: flex; flex-direction: column; gap:2px;">
-                ${weeklyScheduleBriefingHTML}
-            </div>
-        </div>`;
+    <div style="background: var(--card-color); padding: 14px; border-radius: 14px; width: 100%; border: 1px solid var(--border-color); box-shadow:0 4px 6px rgba(0,0,0,0.3); margin-top: 10px;">
+        <div style="font-size: 13px; font-weight:800; color:var(--warning-color); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-list-check"></i> 해당 주간 전체 임상 일정 목록
+        </div>
+        <div style="display: flex; flex-direction: column; gap:2px;">
+            ${weeklyScheduleBriefingHTML}
+        </div>
+    </div>`;
 
                 cardBoard.innerHTML = totalOutHTML;
 
-
-                // =============================================================================
-                // [항목 03 - 후반부] [트랙 B : 신규 및 180일 만료자] 3대 단추 비동기 액션 바인딩 및 부모 창 인터록 마감
-                // =============================================================================
+                // [원본 100% 사수 고정] 비동기 단추 바인딩 및 부모창 실시간 역전향 인터록 마감 세션
                 setTimeout(() => {
-                    // [런타임 크래시 예방 가드막 완착]: 비동기 데이터 적재 렉으로 인한 자바스크립트 엔진 정지 결함 원천 파쇄
                     if (!records || records.length === 0) return;
-
                     records.forEach((item) => {
                         if (!item || !item.uid) return;
 
-                        // 1. 참여 버튼 클릭 시 트랜잭션 및 어드민 표준 단어 '대기' 전진 적재 커밋
+                        // 1. 참여 버튼 클릭 시 트랜잭션 및 기존 참여자(트랙 A) 로직망으로 실시간 신분 전향 커밋
                         const btnJoin = document.getElementById(`btn_card_join_${item.uid}`);
                         if (btnJoin) {
                             btnJoin.onclick = function (e) {
@@ -1015,7 +1019,6 @@
                                 let appDB = getApplicantData();
                                 const liveQuotaCount = appDB.filter((u) => u && (u.title || "").toString().replace(/\s/g, "") === item.title.toString().replace(/\s/g, "")).length;
                                 const liveProgressFormat = (liveQuotaCount + 1) + "/60";
-
                                 const newApplicantRecord = {
                                     uid: "NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
                                     name: localStorage.getItem("certifiedUserName") || currentCertifiedUser,
@@ -1029,11 +1032,10 @@
                                     gender: genderText === "남" ? "남" : "여",
                                     payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus4: "대기",
                                     result: "대기", isDutyAgreed: "대기", isCallAgreed: "대기", category: "M인증",
-                                    stage: "대기",   // 기획 사수 양식: 최초 인증 접수 시 '대기' 상태 커밋
-                                    status: "대기",  // 기획 사수 양식: 최초 인증 접수 시 '대기' 상태 커밋
+                                    stage: "스크리닝", // 참여 전송 완료 즉시 기존 참여자(트랙 A) 로직망으로 실시간 신분 전향 흡수
+                                    status: "스크리닝",
                                     regDate: new Date().toISOString().split("T")[0]
                                 };
-
                                 appDB.push(newApplicantRecord);
                                 localStorage.setItem("dataStoreApplicant", JSON.stringify(appDB));
 
@@ -1043,7 +1045,6 @@
 
                                 alert(`[신청 접수완료]\n\n${newApplicantRecord.name} 대상자님, 선택하신 임상시험 [${item.title}] 과제 참여 신청이 정상 접수되었습니다.`);
 
-                                // PC 마스터 관리자 화면(admin.html) 드롭다운 메뉴 및 테이블 참여상태를 순정 "대기" 배지로 실시간 연동 변화
                                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                                     window.opener.refreshApplicantView();
                                 }

@@ -890,10 +890,47 @@
             // [항목 03 - 전반부] [트랙 B : 신규 및 180일 만료자] 스크리닝 카드 조출 및 2줄 주간 브리핑
             // =============================================================================
             if (isGhostUser) {
+
+                // -------------------------------------------------------------
+                // [전산망 다이렉트 레이더] 조건문 간섭 없이 무조건 콘솔에 다이렉트 프린트
+                // -------------------------------------------------------------
+                console.log("==================================================");
+                console.log("🚨 [CTMS 리얼타임 레이더] 모집공고 시험정보 데이터 유입 여부 검증 가동");
+
+                // 루트 1. 모바일 로컬 저장소 원장 변수 존재 여부 확인
+                if (typeof dataStoreRecruitment !== "undefined") {
+                    console.log("✅ 1. 로컬 dataStoreRecruitment 변수 인식 성공 | 배열 개수:", dataStoreRecruitment.length);
+                    console.log("   └> 실제 내부 데이터 원형 구조 스냅샷:", JSON.stringify(dataStoreRecruitment));
+                } else {
+                    console.log("❌ 1. 로컬 dataStoreRecruitment 변수가 메모리에 존재하지 않음 (undefined)");
+                }
+
+                // 루트 2. 상위 부모 창 전달 인자 records 변수 존재 여부 확인
+                if (typeof records !== "undefined") {
+                    console.log("✅ 2. 매개변수 records 변수 인식 성공 | 배열 개수:", records.length);
+                    console.log("   └> 실제 내부 데이터 원형 구조 스냅샷:", JSON.stringify(records));
+                } else {
+                    console.log("❌ 2. 매개변수 records 변수가 메모리에 존재하지 않음 (undefined)");
+                }
+
+                // 루트 3. 브라우저 전역 최상위 window.records 변수 존재 여부 확인
+                if (typeof window.records !== "undefined") {
+                    console.log("✅ 3. 전역 window.records 변수 인식 성공 | 배열 개수:", window.records.length);
+                    console.log("   └> 실제 내부 데이터 원형 구조 스냅샷:", JSON.stringify(window.records));
+                } else {
+                    console.log("❌ 3. 전역 window.records 변수가 메모리에 존재하지 않음 (undefined)");
+                }
+
+                // 루트 4. 로컬스토리지에 직접 물리적으로 적재된 데이터 검속
+                const rawLocalStorageRecruitment = localStorage.getItem("dataStoreRecruitment");
+                console.log("✅ 4. 브라우저 LocalStorage 물리 적재 상태 문자열:", rawLocalStorageRecruitment);
+                console.log("==================================================");
+
+                // 이하 기존의 달력 뼈대 렌더링 및 2줄 브리핑 랙 구조 원형 100% 완전 보존 유지
                 let ghostWeekCardsHTML = "";
                 let renderedCardCount = 0;
 
-                // [트랙 A 완전 카피]: dataStoreRecruitment 원장에서 선택일(selectedDateStr)과 싱크가 일치하는 카드 랙 조출
+                // dataStoreRecruitment 원장에서 선택일(selectedDateStr)과 싱크가 일치하는 카드 랙 조출
                 dataStoreRecruitment.forEach((item) => {
                     if (!item || !item.trialName) return;
 
@@ -932,7 +969,7 @@
                     }
                 });
 
-                // [트랙 A 완전 카피]: 주간 목록 2줄 브리핑 랙 생성 가동 (dataStoreRecruitment 기반 데이터 스위칭)
+                // 주간 목록 2줄 브리핑 랙 생성 가동 (dataStoreRecruitment 기반 데이터 스위칭)
                 let weeklyScheduleBriefingHTML = "";
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -980,7 +1017,7 @@
                     }
                 });
 
-                // [트랙 A 완전 카피]: 이번 주간 내 시험 일정이 단 하나라도 존재하는지 최종 점검 (1종 가드)
+                // 이번 주간 내 시험 일정이 단 하나라도 존재하는지 최종 점검 (1종 가드)
                 let isAnyWeeklyScheduleExist = dataStoreRecruitment.some(r => r && weeklyKeys.some(wKey => r.screeningDate === wKey || r.hospitalDate === wKey));
 
                 if (!isAnyWeeklyScheduleExist) {

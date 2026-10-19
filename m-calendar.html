@@ -891,41 +891,6 @@
             // =============================================================================
             if (isGhostUser) {
 
-                // -------------------------------------------------------------
-                // [전산망 다이렉트 레이더] 조건문 간섭 없이 무조건 콘솔에 다이렉트 프린트
-                // -------------------------------------------------------------
-                console.log("==================================================");
-                console.log("🚨 [CTMS 리얼타임 레이더] 모집공고 시험정보 데이터 유입 여부 검증 가동");
-
-                // 루트 1. 모바일 로컬 저장소 원장 변수 존재 여부 확인
-                if (typeof dataStoreRecruitment !== "undefined") {
-                    console.log("✅ 1. 로컬 dataStoreRecruitment 변수 인식 성공 | 배열 개수:", dataStoreRecruitment.length);
-                    console.log("   └> 실제 내부 데이터 원형 구조 스냅샷:", JSON.stringify(dataStoreRecruitment));
-                } else {
-                    console.log("❌ 1. 로컬 dataStoreRecruitment 변수가 메모리에 존재하지 않음 (undefined)");
-                }
-
-                // 루트 2. 상위 부모 창 전달 인자 records 변수 존재 여부 확인
-                if (typeof records !== "undefined") {
-                    console.log("✅ 2. 매개변수 records 변수 인식 성공 | 배열 개수:", records.length);
-                    console.log("   └> 실제 내부 데이터 원형 구조 스냅샷:", JSON.stringify(records));
-                } else {
-                    console.log("❌ 2. 매개변수 records 변수가 메모리에 존재하지 않음 (undefined)");
-                }
-
-                // 루트 3. 브라우저 전역 최상위 window.records 변수 존재 여부 확인
-                if (typeof window.records !== "undefined") {
-                    console.log("✅ 3. 전역 window.records 변수 인식 성공 | 배열 개수:", window.records.length);
-                    console.log("   └> 실제 내부 데이터 원형 구조 스냅샷:", JSON.stringify(window.records));
-                } else {
-                    console.log("❌ 3. 전역 window.records 변수가 메모리에 존재하지 않음 (undefined)");
-                }
-
-                // 루트 4. 로컬스토리지에 직접 물리적으로 적재된 데이터 검속
-                const rawLocalStorageRecruitment = localStorage.getItem("dataStoreRecruitment");
-                console.log("✅ 4. 브라우저 LocalStorage 물리 적재 상태 문자열:", rawLocalStorageRecruitment);
-                console.log("==================================================");
-
                 // 이하 기존의 달력 뼈대 렌더링 및 2줄 브리핑 랙 구조 원형 100% 완전 보존 유지
                 let ghostWeekCardsHTML = "";
                 let renderedCardCount = 0;

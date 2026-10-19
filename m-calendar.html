@@ -894,7 +894,7 @@
             // [항목 03 - 전반부] [트랙 B : 신규 및 180일 만료자] 스크리닝 카드 조출 및 2줄 주간 브리핑
             // =============================================================================
             if (isGhostUser) {
-                // [100% 무조건 직격 구동 안테나]: 세션 동기화 타이밍 락을 완전히 깨부수고 신규 판정 진입 시 무조건 팝업 가동
+                // [100% 무조건 직격 구동 안테나]: 격리벽 내부에 안전하게 락인 마운트
                 (function () {
                     const currentTrackingDate = window.selectedDateStr || "날짜 식별 불능";
                     alert(`[트랙B 신규대상자 전용 최초 부팅 얼럿]\n\n인증망을 통과하여 달력 엔진 진입에 성공했습니다.\n현재 엔진이 실시간으로 물고 있는 선택 날짜 (window.selectedDateStr) 변수값은:\n[ ${currentTrackingDate} ] 입니다.`);
@@ -905,20 +905,18 @@
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
                 let isAnyWeeklyScheduleExist = false;
 
-                // 1. [트랙 A 표준 정밀 미러링] 7일간의 날짜 레일을 수색하여 정수형 분해 대조 (배열 오차 100% 소독)
+                // 1. [트랙 B 내부 연산] 7일간의 날짜 레일을 순회하며 하이픈 분해 후 정수형 크로스 매칭 게이트 개방
                 weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
                     const bits = dateKey.split('-');
-
-                    // 날짜 파편화 자음 콤마 찌꺼기 완천 소독 및 포맷 고정
                     const formattedLabel = `${bits[0]}년 ${String(bits[1]).padStart(2, '0')}월 ${String(bits[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
-                    // [트랙 A 원본 라인 1146~1158번 정수형 파싱 완벽 이식]: 포맷 편차로 인한 단선 현상 원천 파쇄
                     const dayMatchedRecords = records.filter(r => {
                         if (!r || !r.examSchedule) return false;
                         const rParts = r.examSchedule.toString().trim().split("-");
                         const wParts = dateKey.split("-");
 
+                        // [정수형 데이터셋 직격 대조]: 앞자리 0패딩 유무에 구애받지 않고 수학적으로 일치화 처리
                         const srcYear = parseInt(rParts[0], 10);
                         const srcMonth = parseInt(rParts[1], 10);
                         const srcDay = parseInt(rParts[2], 10);
@@ -931,7 +929,7 @@
                     });
 
                     if (dayMatchedRecords.length > 0) {
-                        isAnyWeeklyScheduleExist = true; // 대조 성공 시 플래그가 정상적으로 가동되어 하단 락을 해제함
+                        isAnyWeeklyScheduleExist = true; // 대조 성공 시 플래그가 정상 가동되어 주간 리스트 락을 해제함
                         weeklyScheduleBriefingHTML += `<div class="briefing-row-item" style="margin-bottom: 12px; line-height: 1.5; text-align: left; font-size:13px;">
                 <div>• ${formattedLabel} : <span style="color: #38bdf8; font-weight: bold;">스크리닝</span></div>`;
                         dayMatchedRecords.forEach(matchItem => {
@@ -945,13 +943,13 @@
                     }
                 });
 
-                // [지정 텍스트 방어막 1] 해당 주간에 임상시험 일정이 통째로 없을 때 (정수형 필터 통과로 이제 오작동 안 함)
+                // [지정 텍스트 방어막 1] 해당 주간에 임상시험 일정이 통째로 없을 때
                 if (!isAnyWeeklyScheduleExist) {
                     cardBoard.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; font-weight: 700;">이번주에 등록된 임상시험 일정이 없습니다.</div>';
                     return;
                 }
 
-                // 2. [트랙 A 표준 참조] 순정 변수 records 기반 카드 사출 및 선택 일자 실시간 변동 스왑 랙 가동 부위
+                // 2. 순정 변수 records 기반 카드 사출 및 선택 일자 실시간 변동 스왑 랙 구현
                 records.forEach((item) => {
                     if (!item || !item.title) return;
                     const actualRawDate = item.examSchedule ? item.examSchedule.toString().trim() : "";
@@ -968,8 +966,8 @@
                         const targetMonth = parseInt(targetParts[1], 10);
                         const targetDay = parseInt(targetParts[2], 10);
 
-                        // [트랙 B 격리 구역 전용 실시간 디버깅 콘솔]
-                        console.log(`[트랙B 전용 수색] 공고명: ${item.title} | 공고일(정수): ${srcYear}-${srcMonth}-${srcDay} vs 달력선택일(정수): ${targetYear}-${targetMonth}-${targetDay} | 비교결과: ${srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay}`);
+                        // [오직 트랙 B 격리 블록 내부 전용 실시간 콘솔 출력]
+                        console.log(`[트랙B 내부 수색] 공고명: ${item.title} | 공고일(정수): ${srcYear}-${srcMonth}-${srcDay} vs 달력선택일(정수): ${targetYear}-${targetMonth}-${targetDay} | 일치여부: ${srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay}`);
 
                         if (srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay) {
                             renderedCardCount++;

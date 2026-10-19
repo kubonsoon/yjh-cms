@@ -890,62 +890,32 @@
             // [항목 03 - 전반부] [트랙 B : 신규 및 180일 만료자] 스크리닝 카드 조출 및 2줄 주간 브리핑
             // =============================================================================
             if (isGhostUser) {
-
-                // -------------------------------------------------------------
-                // [전산망 다이렉트 레이더] 조건문 간섭 없이 무조건 콘솔에 다이렉트 프린트
-                // -------------------------------------------------------------
-                console.log("==================================================");
-                console.log("🚨 [CTMS 리얼타임 레이더] 모집공고 시험정보 데이터 유입 여부 검증 가동");
-
-                // 루트 1. 모바일 로컬 저장소 원장 변수 존재 여부 확인
-                if (typeof dataStoreRecruitment !== "undefined") {
-                    console.log("✅ 1. 로컬 dataStoreRecruitment 변수 인식 성공 | 배열 개수:", dataStoreRecruitment.length);
-                    console.log("   └> 실제 내부 데이터 원형 구조 스냅샷:", JSON.stringify(dataStoreRecruitment));
-                } else {
-                    console.log("❌ 1. 로컬 dataStoreRecruitment 변수가 메모리에 존재하지 않음 (undefined)");
-                }
-
-                // 루트 2. 상위 부모 창 전달 인자 records 변수 존재 여부 확인
-                if (typeof records !== "undefined") {
-                    console.log("✅ 2. 매개변수 records 변수 인식 성공 | 배열 개수:", records.length);
-                    console.log("   └> 실제 내부 데이터 원형 구조 스냅샷:", JSON.stringify(records));
-                } else {
-                    console.log("❌ 2. 매개변수 records 변수가 메모리에 존재하지 않음 (undefined)");
-                }
-
-                // 루트 3. 브라우저 전역 최상위 window.records 변수 존재 여부 확인
-                if (typeof window.records !== "undefined") {
-                    console.log("✅ 3. 전역 window.records 변수 인식 성공 | 배열 개수:", window.records.length);
-                    console.log("   └> 실제 내부 데이터 원형 구조 스냅샷:", JSON.stringify(window.records));
-                } else {
-                    console.log("❌ 3. 전역 window.records 변수가 메모리에 존재하지 않음 (undefined)");
-                }
-
-                // 루트 4. 로컬스토리지에 직접 물리적으로 적재된 데이터 검속
-                const rawLocalStorageRecruitment = localStorage.getItem("dataStoreRecruitment");
-                console.log("✅ 4. 브라우저 LocalStorage 물리 적재 상태 문자열:", rawLocalStorageRecruitment);
-                console.log("==================================================");
-
-
-
                 let ghostWeekCardsHTML = "";
                 let renderedCardCount = 0;
 
-                // [무선 통신 유실 원천 방어선]: records 패킷이 유실되어 들어올 시 자체 로컬 원장 데이터로 강제 주수
+                // [부모-자식 종속성 데이터 수혈 안전망 가동]
                 let activeRecords = (typeof records !== "undefined" && records && records.length > 0) ? records : [];
-                if (activeRecords.length === 0) {
-                    try {
-                        const localRaw = localStorage.getItem("dataStoreRecruitment");
-                        if (localRaw) {
-                            activeRecords = JSON.parse(localRaw);
-                        }
-                    } catch (e) {
-                        console.error("[CTMS] 로컬 원장 수혈 실패:", e);
+
+                // 외부 인자가 마비되었을 시 연결된 부모 창(window.opener)의 리얼 원장을 직격으로 낚아챔
+                if (activeRecords.length === 0 && window.opener && !window.opener.closed) {
+                    if (typeof window.opener.records !== "undefined" && window.opener.records && window.opener.records.length > 0) {
+                        activeRecords = window.opener.records;
+                    } else if (typeof window.opener.dataStoreRecruitment !== "undefined" && window.opener.dataStoreRecruitment && window.opener.dataStoreRecruitment.length > 0) {
+                        activeRecords = window.opener.dataStoreRecruitment;
                     }
                 }
 
+                // 최후의 방어선: 로컬스토리지 자원 수혈
+                if (activeRecords.length === 0) {
+                    try {
+                        const localRaw = localStorage.getItem("dataStoreRecruitment");
+                        if (localRaw) activeRecords = JSON.parse(localRaw);
+                    } catch (e) { }
+                }
+
+                // 1. 선택 당일 날짜 문자열 정수 해체 분해 대조 후 카드 조출 랙 전개
                 activeRecords.forEach((item) => {
-                    if (!item || !item.title) return;
+                    if (!item || !(item.title || item.trialName)) return;
 
                     const loopDates = [item.examDate || item.screeningDate, item.payDate || item.hospitalDate];
                     let isCurrentDayMatched = false;
@@ -954,12 +924,13 @@
                     loopDates.forEach((rawDate, idx) => {
                         if (isCurrentDayMatched || !rawDate || !rawDate.toString().includes("-")) return;
 
+                        // [문제 완벽 해결 - 정수형 날짜 일치화 소독 가드막 적용]
                         const srcParts = rawDate.toString().trim().split("-");
                         const targetParts = window.selectedDateStr.split("-");
 
                         const srcYear = parseInt(srcParts[0], 10);
-                        const srcMonth = parseInt(srcParts[1], 10);
-                        const srcDay = parseInt(srcParts[2], 10);
+                        const srcMonth = parseInt(srcParts, 10);
+                        const srcDay = parseInt(srcParts, 10);
 
                         const targetYear = parseInt(targetParts, 10);
                         const targetMonth = parseInt(targetParts, 10);
@@ -1004,7 +975,8 @@
                     }
                 });
 
-                console.log(`[선택일 검속 완료] 📅 선택일: ${window.selectedDateStr} -> 🎯 매핑 성공 카드: ${renderedCardCount}개`);
+                // 🔍 [체크 콘솔 01] 선택 일자 카드 데이터 유무 여부 직격 확인
+                console.log(`[선택일 검속 로그] 📅 선택된 날짜: ${window.selectedDateStr} -> 🎯 매핑 성공한 카드 개수: ${renderedCardCount}개`);
 
                 // [신규 대상자 전용 2줄 레이아웃 나열 및 우측 공백 스캐너]
                 let weeklyScheduleBriefingHTML = "";
@@ -1088,12 +1060,12 @@
                         const rParts = rawDate.toString().trim().split("-");
                         const rYear = parseInt(rParts[0], 10);
                         const rMonth = parseInt(rParts[1], 10);
-                        const rDay = parseInt(rParts, 10);
+                        const rDay = parseInt(rParts[2], 10);
 
                         weeklyKeys.forEach(wKey => {
                             if (wKey.includes("-")) {
                                 const wParts = wKey.split("-");
-                                if (rYear === parseInt(wParts[0], 10) && rMonth === parseInt(wParts[1], 10) && rDay === parseInt(wParts, 10)) {
+                                if (rYear === parseInt(wParts[0], 10) && rMonth === parseInt(wParts, 10) && rDay === parseInt(wParts, 10)) {
                                     isAnyWeeklyScheduleExist = true;
                                 }
                             }

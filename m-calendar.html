@@ -894,10 +894,10 @@
                 let renderedCardCount = 0;
 
                 // -------------------------------------------------------------
-                // 📡 [레이더 01] 신규 대상자 전반부 제어반 엔진 초기 부팅 상태 스캔
+                // 📡 [레이더 01] 조건문 진입 직후 무조건 실행되는 최상단 부팅 로그
                 // -------------------------------------------------------------
                 console.log("=== 📡 [STEP 1] 트랙 B 프론트 엔진 부팅 완료 ===");
-                console.log("▶ [수신 원장 피드백] 상위 샌드박스로부터 유입된 records 총 개수 = " + (records ? records.length : 0) + "개");
+                console.log("▶ [수신 원장 피드백] records 총 개수 = " + (records ? records.length : 0) + "개");
                 console.log("▶ [현재 선택 날짜] window.selectedDateStr = " + window.selectedDateStr);
 
                 // 1. 선택 당일 날짜 문자열 정밀 소독 대조 후 카드 조출 랙 전개
@@ -912,14 +912,15 @@
                         renderedCardCount++;
 
                         // -------------------------------------------------------------
-                        // 📡 [레이더 02] 당일 일치 과제 발견 및 카드 빌더 엔진 적치 로그
+                        // 📡 [레이더 02] 당일 일치 과제 발견 로그
                         // -------------------------------------------------------------
-                        console.log(`   └> 🎯 [STEP 2] 당일 카드 매핑 성공! (인덱스: ${idx}) -> 과제명: ${item.title} / 기수: ${item.th}`);
+                        console.log(`   └> 🎯 [STEP 2] 당일 카드 매핑 성공! (인덱스: ${idx}) -> 과제명: ${item.title}`);
 
                         const targetThClass = (item.th || "1기").replace(/\s/g, "");
                         const isScreeningMode = (cleanExamDate === cleanTargetDate);
                         const currentContextType = isScreeningMode ? "스크리닝" : "소집/입원";
 
+                        // 존재하지 않는 item.uid를 실제 리얼 데이터 규격인 item.id로 완벽하게 스위칭 교정 봉합
                         ghostWeekCardsHTML += `
                         <div class="trial-manifest-card" style="margin-bottom: 10px; border: 1px solid var(--border-color); background: #111827; padding: 14px; border-radius: 12px; text-align: left; box-shadow: 0 4px 6px 1px rgba(0, 0, 0, 0.5);">
                             <div class="card-top-row" style="padding-bottom: 2px;">

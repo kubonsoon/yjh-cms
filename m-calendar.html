@@ -1102,35 +1102,36 @@
                 // =============================================================================
                 setTimeout(() => {
                     // [런타임 크래시 예방 가드막 완착]: 비동기 데이터 적재 렉으로 인한 자바스크립트 엔진 정지 결함 원천 파쇄
-                    if (!dataStoreRecruitment || dataStoreRecruitment.length === 0) return;
+                    if (!activeRecords || activeRecords.length === 0) return;
 
-                    dataStoreRecruitment.forEach((item) => {
-                        if (!item || !item.id) return;
+                    activeRecords.forEach((item) => {
+                        if (!item) return;
+                        const currentId = item.id || item.uid || "REC_" + Date.now();
 
                         // 1. 참여 버튼 클릭 시 트랜잭션 및 어드민 표준 단어 '대기' 전진 적재 커밋
-                        const btnJoin = document.getElementById(`btn_card_join_${item.id}`);
+                        const btnJoin = document.getElementById(`btn_card_join_${currentId}`);
                         if (btnJoin) {
                             btnJoin.onclick = function (e) {
                                 e.preventDefault();
                                 let appDB = getApplicantData();
-                                const liveQuotaCount = appDB.filter((u) => u && (u.title || "").toString().replace(/\s/g, "") === item.trialName.toString().replace(/\s/g, "")).length;
+                                const liveQuotaCount = appDB.filter((u) => u && (u.title || "").toString().replace(/\s/g, "") === (item.title || item.trialName || "").toString().replace(/\s/g, "")).length;
                                 const liveProgressFormat = (liveQuotaCount + 1) + "/60";
 
                                 const newApplicantRecord = {
                                     uid: "NEW_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
                                     name: localStorage.getItem("certifiedUserName") || currentCertifiedUser,
-                                    title: item.trialName,
+                                    title: item.title || item.trialName,
                                     th: item.th || "1기",
                                     count: liveProgressFormat,
                                     nCount: 60,
-                                    period: item.duration || "0",
+                                    period: item.period || item.duration || "0",
                                     ssn: targetSsn,
                                     phone: localStorage.getItem("loggedInUserPhone") || "",
                                     gender: genderText === "남" ? "남" : "여",
                                     payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus4: "대기",
                                     result: "대기", isDutyAgreed: "대기", isCallAgreed: "대기", category: "M인증",
-                                    stage: "대기",   // 기획 사수 양식: 최초 인증 접수 시 '대기' 상태 커밋
-                                    status: "대기",  // 기획 사수 양식: 최초 인증 접수 시 '대기' 상태 커밋
+                                    stage: "대기",   // 최초 인증 접수 시 '대기' 상태 커밋
+                                    status: "대기",  // 최초 인증 접수 시 '대기' 상태 커밋
                                     regDate: new Date().toISOString().split("T")[0]
                                 };
 
@@ -1141,9 +1142,9 @@
                                 localStorage.setItem("msg_auth_signal", signalToken);
                                 localStorage.setItem("msg_push_signal", signalToken);
 
-                                alert(`[신청 접수완료]\n\n${newApplicantRecord.name} 대상자님, 선택하신 임상시험 [${item.trialName}] 과제 참여 신청이 정상 접수되었습니다.`);
+                                alert(`[신청 접수완료]\n\n${newApplicantRecord.name} 대상자님, 선택하신 임상시험 [${newApplicantRecord.title}] 과제 참여 신청이 정상 접수되었습니다.`);
 
-                                // PC 마스터 관리자 화면(admin.html) 드롭다운 메뉴 및 테이블 참여상태를 순정 "대기" 배지로 실시간 연동 변화
+                                // PC 마스터 관리자 화면(admin.html) 테이블 자동 동기화 리프레시 호출
                                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                                     window.opener.refreshApplicantView();
                                 }
@@ -1153,7 +1154,7 @@
                         }
 
                         // 2. 미참여 거절 버튼 피드백 처리
-                        const btnReject = document.getElementById(`btn_card_reject_${item.id}`);
+                        const btnReject = document.getElementById(`btn_card_reject_${currentId}`);
                         if (btnReject) {
                             btnReject.onclick = function (e) {
                                 e.preventDefault();
@@ -1162,18 +1163,18 @@
                         }
 
                         // 3. 모바일 전용 개별 이력조회 모달 시스템 호출 결착
-                        const btnHist = document.getElementById(`btn_card_hist_${item.id}`);
+                        const btnHist = document.getElementById(`btn_card_hist_${currentId}`);
                         if (btnHist) {
                             btnHist.onclick = function (e) {
                                 e.preventDefault();
                                 if (typeof openIndividualHistoryModalInMobile === "function") {
-                                    openIndividualHistoryModalInMobile(cleanSessionName, item.trialName, item.th || "1기");
+                                    openIndividualHistoryModalInMobile(cleanSessionName, item.title || item.trialName, item.th || "1기");
                                 }
                             };
                         }
                     });
                 }, 0);
-                return; // 트랙 B 격리 방어선 마감 및 완전 이탈
+                return; // 트랙 B 신규 대상자 격리 방어선 마감 및 완전 이탈
             }
 
             // =============================================================================

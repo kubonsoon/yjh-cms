@@ -893,8 +893,15 @@
                 let ghostWeekCardsHTML = "";
                 let renderedCardCount = 0;
 
+                // -------------------------------------------------------------
+                // 📡 [레이더 01] 신규 대상자 전반부 제어반 엔진 초기 부팅 상태 스캔
+                // -------------------------------------------------------------
+                console.log("=== 📡 [STEP 1] 트랙 B 프론트 엔진 부팅 완료 ===");
+                console.log("▶ [수신 원장 피드백] 상위 샌드박스로부터 유입된 records 총 개수 = " + (records ? records.length : 0) + "개");
+                console.log("▶ [현재 선택 날짜] window.selectedDateStr = " + window.selectedDateStr);
+
                 // 1. 선택 당일 날짜 문자열 정밀 소독 대조 후 카드 조출 랙 전개
-                records.forEach((item) => {
+                records.forEach((item, idx) => {
                     if (!item || !item.title) return;
 
                     const cleanExamDate = item.examDate ? item.examDate.toString().replace(/[^0-9-]/g, "").trim() : "";
@@ -903,6 +910,12 @@
 
                     if (cleanExamDate === cleanTargetDate || cleanPayDate === cleanTargetDate) {
                         renderedCardCount++;
+
+                        // -------------------------------------------------------------
+                        // 📡 [레이더 02] 당일 일치 과제 발견 및 카드 빌더 엔진 적치 로그
+                        // -------------------------------------------------------------
+                        console.log(`   └> 🎯 [STEP 2] 당일 카드 매핑 성공! (인덱스: ${idx}) -> 과제명: ${item.title} / 기수: ${item.th}`);
+
                         const targetThClass = (item.th || "1기").replace(/\s/g, "");
                         const isScreeningMode = (cleanExamDate === cleanTargetDate);
                         const currentContextType = isScreeningMode ? "스크리닝" : "소집/입원";
@@ -939,6 +952,11 @@
                 let weeklyScheduleBriefingHTML = "";
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
 
+                // -------------------------------------------------------------
+                // 📡 [레이더 03] 주간 목록 브리핑 스케줄러 루프 구역 주파 시작
+                // -------------------------------------------------------------
+                console.log("=== 📡 [STEP 3] 주간 7일 날짜 키 주파 연산 개시 ===");
+
                 weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
                     const bits = dateKey.split('-');
@@ -953,6 +971,11 @@
                     });
 
                     if (dayMatchedRecords.length > 0) {
+                        // -------------------------------------------------------------
+                        // 📡 [레이더 04] 7일 중 특정 날짜에 마스터 일정 검출되어 누적 적치된 상태 로그
+                        // -------------------------------------------------------------
+                        console.log(`   └> ⚡ [STEP 4] 주간 목록 적치 완료! 날짜: ${dateKey} -> 검출 수: ${dayMatchedRecords.length}개`);
+
                         dayMatchedRecords.forEach(matchItem => {
                             const cExamDate = matchItem.examDate ? matchItem.examDate.toString().replace(/[^0-9-]/g, "").trim() : "";
                             const cDateKey = dateKey.toString().replace(/[^0-9-]/g, "").trim();
@@ -985,7 +1008,14 @@
                     });
                 });
 
+                // -------------------------------------------------------------
+                // 📡 [레이더 05] 주간 1종 가드막 최종 스캔 연산 도출
+                // -------------------------------------------------------------
+                console.log("=== 📡 [STEP 5] 주간 1종 가드 레일 판정 검속 ===");
+                console.log("▶ 이번 주간 내 일정 실존 여부 (isAnyWeeklyScheduleExist) = " + isAnyWeeklyScheduleExist);
+
                 if (!isAnyWeeklyScheduleExist) {
+                    console.log("❌ [경고] 주간 내 일정이 전무하여 여기서 함수를 조기 종료(return) 탈출합니다.");
                     cardBoard.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; font-weight: 700;">이번주에 등록된 임상시험 일정이 없습니다.</div>`;
                     return;
                 }
@@ -994,6 +1024,7 @@
                 const weeklyTimelineRail = document.getElementById("weeklyTimelineBoard");
                 if (weeklyTimelineRail) {
                     weeklyTimelineRail.innerHTML = weeklyScheduleBriefingHTML;
+                    console.log("▶ [레일 바인딩 완료] 주간 타임라인 브리핑 마크업 주입 성공");
                 }
 
                 // 4. 2종 가드 스캔: 날짜 단추 클릭 시 카드 부재 예외 처리 완벽 봉합
@@ -1003,6 +1034,14 @@
                 } else {
                     totalOutHTML += ghostWeekCardsHTML;
                 }
+
+                // -------------------------------------------------------------
+                // 📡 [레이더 06] 2종 가드막 통과 및 하단 최종 드로잉 데이터 팩트 확인
+                // -------------------------------------------------------------
+                console.log("=== 📡 [STEP 6] 하단 카드 랙 최종 사출 게이트웨이 통과 ===");
+                console.log("▶ 당일 출력 확정된 카드 수량 = " + renderedCardCount + "개");
+                console.log("▶ 최종 마운트 HTML 용량 = " + totalOutHTML.length + " 문자 수");
+                console.log("==================================================");
 
                 cardBoard.innerHTML = totalOutHTML;
 

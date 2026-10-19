@@ -951,7 +951,7 @@
                 weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
                     const bits = dateKey.split('-');
-                    const formattedLabel = `${bits[0]}년 ${String(bits[1]).padStart(2, '0')}월 ${String(bits[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
+                    const formattedLabel = `${bits}년 ${String(bits).padStart(2, '0')}월 ${String(bits).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
                     const dayMatchedRecords = records.filter(r => {
                         if (!r || !r.examSchedule) return false;
@@ -1002,7 +1002,7 @@
                     return;
                 }
 
-                // [원본 누락 10줄 완벽 복원 복구] 주간 목록 타임라인 레일에 실시간 브리핑 HTML 매운 주입
+                // 주간 목록 타임라인 레일에 실시간 브리핑 HTML 주입
                 const weeklyTimelineRail = document.getElementById("weeklyTimelineBoard");
                 if (weeklyTimelineRail) {
                     weeklyTimelineRail.innerHTML = weeklyScheduleBriefingHTML;

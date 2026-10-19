@@ -1311,7 +1311,6 @@
                     period: "-",
                     stage: "대기",
                     payStatus: "대기",
-                    recDate: new Date().toISOString().substring(0, 10),
                     isNewUserGhost: true
                 };
 
@@ -1366,12 +1365,7 @@
 
 
         function executeStep3ConfirmNext() {
-            // [연타 방지]: 누르는 순간 버튼을 즉시 비활성화하여 2번 누르지 못하도록 차단
-            const btnStep3 = document.getElementById('btnStep3Confirm') || document.querySelector('#layer3 button');
-            if (btnStep3) btnStep3.disabled = true;
-
             console.log("=== 🔓 [CTMS 탈출 게이트] 확인 버튼 정방향 주파 가동 ===");
-
 
             if (matchedPatientData) {
                 const systemCurrentTime = new Date();

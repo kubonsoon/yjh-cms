@@ -897,20 +897,27 @@
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
                 let isAnyWeeklyScheduleExist = false;
 
-                // 1. [주간 목록 브리핑 전개] 7일간의 날짜 레일을 수색하여 정수형 날짜 정제로 예제 규격 싱크 100% 매핑
+                // 1. [트랙 A 표준 참조] 7일간의 날짜 레일을 수색하여 정수형 분해 대조 (배열 오차 100% 소독)
                 weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
                     const bits = dateKey.split('-');
                     const formattedLabel = `${bits[0]}년 ${String(bits[1]).padStart(2, '0')}월 ${String(bits[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
-                    // 날짜 파편화 정수 필터 바인딩 (배열 오차 원천 소독)
+                    // [트랙 A 교과서 방식 완벽 이식]: 하이픈 분해 후 정수형 크로스 매칭 게이트 개방
                     const dayMatchedRecords = records.filter(r => {
                         if (!r || !r.examSchedule) return false;
                         const rParts = r.examSchedule.toString().trim().split("-");
                         const wParts = dateKey.split("-");
-                        return (parseInt(rParts[0], 10) === parseInt(wParts[0], 10) &&
-                            parseInt(rParts[1], 10) === parseInt(wParts[1], 10) &&
-                            parseInt(rParts[2], 10) === parseInt(wParts[2], 10));
+
+                        const srcYear = parseInt(rParts[0], 10);
+                        const srcMonth = parseInt(rParts[1], 10);
+                        const srcDay = parseInt(rParts[2], 10);
+
+                        const targetYear = parseInt(wParts[0], 10);
+                        const targetMonth = parseInt(wParts[1], 10);
+                        const targetDay = parseInt(wParts[2], 10);
+
+                        return (srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay);
                     });
 
                     if (dayMatchedRecords.length > 0) {
@@ -934,12 +941,13 @@
                     return;
                 }
 
-                // 2. [순정 변수 records 기반 카드 사출] 스크리닝이 포함된 일정을 최우선순위 레이어로 사출
+                // 2. [트랙 A 표준 참조] 순정 변수 records 기반 카드 사출 및 선택 일자 실시간 변동 스왑 랙 구현
                 records.forEach((item) => {
                     if (!item || !item.title) return;
                     const actualRawDate = item.examSchedule ? item.examSchedule.toString().trim() : "";
 
                     if (actualRawDate && actualRawDate.includes("-")) {
+                        // [트랙 A 교과서 원본 라인 1146~1158번 수식 100% 동일 미러링]
                         const srcParts = actualRawDate.split("-");
                         const targetParts = window.selectedDateStr.split("-");
 
@@ -951,7 +959,7 @@
                         const targetMonth = parseInt(targetParts[1], 10);
                         const targetDay = parseInt(targetParts[2], 10);
 
-                        // 정수 데이터 비교 게이트 통과 시 카드 생성 및 카운터 증가 스위치 정밀 락인
+                        // 정수 데이터 비교 게이트 개방 (0패딩 편차를 완전 소멸시켜 완벽한 카드 변동 보장)
                         if (srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay) {
                             renderedCardCount++;
                             const targetThClass = (item.th || "1기").replace(/\s/g, "");
@@ -983,6 +991,7 @@
                     }
                 });
 
+
                 let totalOutHTML = "";
 
                 // [조건식 전면 개혁]: 첫 로드 및 클릭 시점 불문, 선택 일자에 과제가 없으면 무조건 강제 사출
@@ -1005,7 +1014,7 @@
 
                 cardBoard.innerHTML = totalOutHTML;
 
-                // [원본 100% 사수 고정] 비동기 단추 바인딩 및 부모창 실시간 역전향 인터록 마감 세션
+                // 비동기 단추 바인딩 및 부모창 실시간 역전향 인터록 마감 세션
                 setTimeout(() => {
                     if (!records || records.length === 0) return;
                     records.forEach((item) => {

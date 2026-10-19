@@ -893,11 +893,11 @@
                 let ghostWeekCardsHTML = "";
                 let renderedCardCount = 0;
 
-                // 1. 선택한 당일 날짜에 일치하는 카드를 실제 마스터 DB(dataStoreRecruitment)에서 정밀 추출
+                // [트랙 A 완전 카피]: dataStoreRecruitment 원장에서 선택일(selectedDateStr)과 싱크가 일치하는 카드 랙 조출
                 dataStoreRecruitment.forEach((item) => {
                     if (!item || !item.trialName) return;
 
-                    // 대장 원장의 실리얼 날짜 축인 screeningDate 및 hospitalDate 매핑
+                    // 트랙 A가 사용하던 순정 문자열 1대1 비교식 그대로 미러링 이식
                     if (item.screeningDate === window.selectedDateStr || item.hospitalDate === window.selectedDateStr) {
                         renderedCardCount++;
                         const targetThClass = (item.th || "1기").replace(/\s/g, "");
@@ -932,7 +932,7 @@
                     }
                 });
 
-                // 2. 주간 목록 2줄 브리핑 랙 생성 가동 (실제 dataStoreRecruitment 기반 미러링)
+                // [트랙 A 완전 카피]: 주간 목록 2줄 브리핑 랙 생성 가동 (dataStoreRecruitment 기반 데이터 스위칭)
                 let weeklyScheduleBriefingHTML = "";
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -941,7 +941,7 @@
                     const bits = dateKey.split('-');
                     const formattedLabel = `${bits[0]}년 ${String(bits[1]).padStart(2, '0')}월 ${String(bits[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
-                    // 트랙 A 양식 미러링: 실제 존재하는 원장 필드를 필터링 스캔
+                    // 트랙 A의 1대1 날짜 대조 알고리즘을 그대로 적용하되 대상 데이터만 스위칭
                     const dayMatchedRecords = dataStoreRecruitment.filter(r => r && (r.screeningDate === dateKey || r.hospitalDate === dateKey));
 
                     if (dayMatchedRecords.length > 0) {
@@ -963,7 +963,7 @@
                     }
                 });
 
-                // 3. 1종 가드 스캔: 이번 주간 내 시험 일정이 단 하나라도 존재하는지 최종 점검
+                // [트랙 A 완전 카피]: 이번 주간 내 시험 일정이 단 하나라도 존재하는지 최종 점검 (1종 가드)
                 let isAnyWeeklyScheduleExist = dataStoreRecruitment.some(r => r && weeklyKeys.some(wKey => r.screeningDate === wKey || r.hospitalDate === wKey));
 
                 if (!isAnyWeeklyScheduleExist) {
@@ -971,32 +971,27 @@
                     return;
                 }
 
-                // 주간 목록 타임라인 레일에 실시간 브리핑 HTML 주입 싱크 가동
+                // 주간 목록 타임라인 레일에 실시간 브리핑 HTML 주입
                 const weeklyTimelineRail = document.getElementById("weeklyTimelineBoard");
                 if (weeklyTimelineRail) {
                     weeklyTimelineRail.innerHTML = weeklyScheduleBriefingHTML;
                 }
 
-                // 4. 2종 가드 스캔: 초기 로드 및 날짜 클릭 시 카드 부재 예외 처리 완벽 봉합
+                // [안내 텍스트 2종 가드 봉합]: 선택일 카드 부재 예외 처리 마감
                 let totalOutHTML = "";
-                // renderedCardCount가 0일 때 무조건 안내 문구가 출력되도록 조건식 락업 해제
                 if (renderedCardCount === 0) {
                     totalOutHTML += `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 15px; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다.</div>`;
                 } else {
                     totalOutHTML += ghostWeekCardsHTML;
                 }
 
-                // 모바일 하단 카드 랙 레이아웃에 다이렉트 주입 마운트
                 cardBoard.innerHTML = totalOutHTML;
-
-                // 트랙 A의 성공 공식을 100% 미러링하여 메인 카렌다 및 타임라인 새로고침 함수 동시 사출 호출
-                if (typeof renderCalendar === "function") renderCalendar();
-                if (typeof renderWeeklyTimeline === "function") renderWeeklyTimeline();
 
                 // =============================================================================
                 // [항목 03 - 후반부] [트랙 B : 신규 및 180일 만료자] 3대 단추 비동기 액션 바인딩 및 부모 창 인터록 마감
                 // =============================================================================
                 setTimeout(() => {
+                    // [런타임 크래시 예방 가드막 완착]: 비동기 데이터 적재 렉으로 인한 자바스크립트 엔진 정지 결함 원천 파쇄
                     if (!dataStoreRecruitment || dataStoreRecruitment.length === 0) return;
 
                     dataStoreRecruitment.forEach((item) => {
@@ -1024,8 +1019,8 @@
                                     gender: genderText === "남" ? "남" : "여",
                                     payStatus1: "대기", payStatus2: "대기", payStatus3: "대기", payStatus4: "대기",
                                     result: "대기", isDutyAgreed: "대기", isCallAgreed: "대기", category: "M인증",
-                                    stage: "대기",   // 최초 인증 접수 시 '대기' 상태 커밋
-                                    status: "대기",  // 최초 인증 접수 시 '대기' 상태 커밋
+                                    stage: "대기",   // 기획 사수 양식: 최초 인증 접수 시 '대기' 상태 커밋
+                                    status: "대기",  // 기획 사수 양식: 최초 인증 접수 시 '대기' 상태 커밋
                                     regDate: new Date().toISOString().split("T")[0]
                                 };
 
@@ -1038,6 +1033,7 @@
 
                                 alert(`[신청 접수완료]\n\n${newApplicantRecord.name} 대상자님, 선택하신 임상시험 [${item.trialName}] 과제 참여 신청이 정상 접수되었습니다.`);
 
+                                // PC 마스터 관리자 화면(admin.html) 드롭다운 메뉴 및 테이블 참여상태를 순정 "대기" 배지로 실시간 연동 변화
                                 if (window.opener && !window.opener.closed && typeof window.opener.refreshApplicantView === "function") {
                                     window.opener.refreshApplicantView();
                                 }
@@ -1067,7 +1063,7 @@
                         }
                     });
                 }, 0);
-                return; // 트랙 B 격리 방어선 완전 마감 및 이탈
+                return; // 트랙 B 격리 방어선 마감 및 완전 이탈
             }
 
             // =============================================================================

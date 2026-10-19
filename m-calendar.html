@@ -956,9 +956,20 @@
                     }
                 });
 
+                console.log(`[선택일 검속 로그] 📅 선택된 날짜: ${window.selectedDateStr} -> 🎯 매핑 성공한 카드 개수: ${renderedCardCount}개`);
+                if (renderedCardCount > 0) {
+                    console.log("   └> 결과: 해당 선택 일자에 임상시험 정보가 존재하여 카드를 사출합니다.");
+                } else {
+                    console.log("   └> 결과: 해당 선택 일자에 일치하는 시험 일정이 없습니다.");
+                }
+
                 // [신규 대상자 전용 2줄 레이아웃 나열 및 우측 공백 스캐너]
                 let weeklyScheduleBriefingHTML = "";
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
+
+                // 🔍 [체크 콘솔 02 - 전반부] 주간 반복 연산 진입 신호 출력
+                console.log("=== 🔍 [주간 스캔] 7일 레일 범위 내 마스터 일정 유입 조사 개시 ===");
+
 
                 weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
@@ -994,6 +1005,8 @@
                     });
 
                     if (dayMatchedRecords.length > 0) {
+                        console.log(`   └> ⚡ [유입 확인] 날짜 키: ${dateKey} -> 검출된 시험 정보: ${dayMatchedRecords.length}개 (${dayMatchedRecords.map(m => m.title).join(", ")})`);
+
                         dayMatchedRecords.forEach(matchItem => {
                             // 현재 dateKey가 스크리닝일인지 소집일인지 정수 기반 재판별
                             let typeStr = "소집/입원";
@@ -1046,6 +1059,10 @@
                         });
                     });
                 });
+
+                // 🔍 [체크 콘솔 02 - 후반부] 주간 범위 내 스케줄 실존 최종 여부 리포트
+                console.log(`▶ [주간 결과 리포트] 이번 주간 범위 내 최종 일정 실존 여부 (isAnyWeeklyScheduleExist) = ${isAnyWeeklyScheduleExist}`);
+                console.log("======================================================================");
 
                 if (!isAnyWeeklyScheduleExist) {
                     cardBoard.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; font-weight: 700;">이번주에 등록된 임상시험 일정이 없습니다.</div>`;

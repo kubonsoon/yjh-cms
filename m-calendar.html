@@ -1508,6 +1508,23 @@
         `;
             }
 
+            // [최초 로드 실시간 무선 추적 안테나]: 로컬 원장의 유저 세션을 강제 수색하여 즉시 판정 게이트 개방
+            let appDB_check = JSON.parse(localStorage.getItem('dataStoreApplicant')) || [];
+            let cleanName_check = activeTargetName.replace(/\s/g, "");
+            let myLiveJob_check = [...appDB_check].reverse().find(app => app && app.name && app.name.toString().replace(/\s/g, "") === cleanName_check && !["종료", "탈락", "심사탈락"].includes(app.status || app.stage || ""));
+            let cachedUser_check = JSON.parse(localStorage.getItem("loggedInUser")) || {};
+
+            // 최종 마스터 신규 대상자(트랙 B) 판정 브레이크
+            let isGhost_onload_check = cachedUser_check.isNew === true || (myLiveJob_check && myLiveJob_check.uid.toString().startsWith("VIRTUAL_")) || !myLiveJob_check;
+            if (appDB_check.some(app => app && app.name && app.name.toString().replace(/\s/g, "") === cleanName_check && !["종료", "탈락", "심사탈락"].includes(app.status || app.stage || ""))) {
+                isGhost_onload_check = false;
+            }
+
+            // 오직 신규 대상자(트랙 B) 상태로 첫 부팅 기동될 때만 브라우저 전산 락을 깨고 얼럿 직격 팝업
+            if (isGhost_onload_check) {
+                alert(`[트랙B 최초 로드 성공 신호]\n\n인증 직후 달력이 처음 켜진 시점입니다.\n현재 엔진이 인식한 기본 선택 날짜 (window.selectedDateStr) 변수값은:\n[ ${window.selectedDateStr} ] 입니다.`);
+            }
+
             if (typeof renderCalendar === "function") { renderCalendar(); }
         };
 

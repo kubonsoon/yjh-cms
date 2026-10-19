@@ -954,8 +954,13 @@
                     const formattedLabel = `${bits[0]}년 ${String(bits[1]).padStart(2, '0')}월 ${String(bits[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
                     const dayMatchedRecords = records.filter(r => {
-                        if (!r || !r.examSchedule) return false;
-                        const cleanSrcDate = r.examSchedule.toString().replace(/[^0-9-]/g, "").trim();
+                        if (!r) return false;
+
+                        // 올려주신 원본의 구조와 변수명을 100% 사수하기 위해 가상 examSchedule 매핑 축 빌드
+                        const targetExamSchedule = (r.screeningDate === dateKey) ? r.screeningDate : (r.hospitalDate === dateKey ? r.hospitalDate : "");
+                        if (!targetExamSchedule) return false;
+
+                        const cleanSrcDate = targetExamSchedule.toString().replace(/[^0-9-]/g, "").trim();
                         const cleanTargetKey = dateKey.toString().replace(/[^0-9-]/g, "").trim();
                         return cleanSrcDate === cleanTargetKey;
                     });

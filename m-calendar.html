@@ -890,20 +890,21 @@
             // [항목 03 - 전반부] [트랙 B : 신규 및 180일 만료자] 스크리닝 카드 조출 및 2줄 주간 브리핑
             // =============================================================================
             if (isGhostUser) {
-
-                // 이하 기존의 달력 뼈대 렌더링 및 2줄 브리핑 랙 구조 원형 100% 완전 보존 유지
                 let ghostWeekCardsHTML = "";
                 let renderedCardCount = 0;
 
-                // [리얼 변수 매핑]: 콘솔로 입증된 8개의 리얼 데이터 배열 records를 스캔하여 선택일 카드 랙 조출
+                // 1. 선택 당일 날짜 문자열 정밀 소독 대조 후 카드 조출 랙 전개
                 records.forEach((item) => {
                     if (!item || !item.title) return;
 
-                    // 콘솔 스냅샷 구조에 명시된 리얼 날짜 필드 examDate(스크리닝)와 payDate(소집)를 트랙 A 규격으로 직격 대조
-                    if (item.examDate === window.selectedDateStr || item.payDate === window.selectedDateStr) {
+                    const cleanExamDate = item.examDate ? item.examDate.toString().replace(/[^0-9-]/g, "").trim() : "";
+                    const cleanPayDate = item.payDate ? item.payDate.toString().replace(/[^0-9-]/g, "").trim() : "";
+                    const cleanTargetDate = window.selectedDateStr.toString().replace(/[^0-9-]/g, "").trim();
+
+                    if (cleanExamDate === cleanTargetDate || cleanPayDate === cleanTargetDate) {
                         renderedCardCount++;
                         const targetThClass = (item.th || "1기").replace(/\s/g, "");
-                        const isScreeningMode = (item.examDate === window.selectedDateStr);
+                        const isScreeningMode = (cleanExamDate === cleanTargetDate);
                         const currentContextType = isScreeningMode ? "스크리닝" : "소집/입원";
 
                         ghostWeekCardsHTML += `
@@ -934,7 +935,7 @@
                     }
                 });
 
-                // 주간 목록 2줄 브리핑 랙 생성 가동 (리얼 records 배열 및 리얼 필드 싱크 미러링)
+                // 2. 주간 목록 2줄 브리핑 랙 생성 가동 (주간 날짜 키 정밀 소독 대조)
                 let weeklyScheduleBriefingHTML = "";
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -943,12 +944,20 @@
                     const bits = dateKey.split('-');
                     const formattedLabel = `${bits}년 ${String(bits).padStart(2, '0')}월 ${String(bits).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
-                    // 리얼 필드명 examDate와 payDate가 현재 달력 주간 날짜 키값과 매핑되는지 필터링 스캔
-                    const dayMatchedRecords = records.filter(r => r && (r.examDate === dateKey || r.payDate === dateKey));
+                    const dayMatchedRecords = records.filter(r => {
+                        if (!r) return false;
+                        const cExamDate = r.examDate ? r.examDate.toString().replace(/[^0-9-]/g, "").trim() : "";
+                        const cPayDate = r.payDate ? r.payDate.toString().replace(/[^0-9-]/g, "").trim() : "";
+                        const cDateKey = dateKey.toString().replace(/[^0-9-]/g, "").trim();
+                        return cExamDate === cDateKey || cPayDate === cDateKey;
+                    });
 
                     if (dayMatchedRecords.length > 0) {
                         dayMatchedRecords.forEach(matchItem => {
-                            const typeStr = (matchItem.examDate === dateKey) ? "스크리닝" : "소집/입원";
+                            const cExamDate = matchItem.examDate ? matchItem.examDate.toString().replace(/[^0-9-]/g, "").trim() : "";
+                            const cDateKey = dateKey.toString().replace(/[^0-9-]/g, "").trim();
+                            const typeStr = (cExamDate === cDateKey) ? "스크리닝" : "소집/입원";
+
                             weeklyScheduleBriefingHTML += `
                             <div class="briefing-row-item" style="margin-bottom: 12px; line-height: 1.5; text-align: left;">
                                 <div>• ${formattedLabel} : <span style="color: #38bdf8; font-weight: bold;">${typeStr}</span></div>
@@ -965,8 +974,16 @@
                     }
                 });
 
-                // 1종 가드 스캔: 이번 주간 범위 내에 실제 모집공고 일정이 존재하는지 검속
-                let isAnyWeeklyScheduleExist = records.some(r => r && weeklyKeys.some(wKey => r.examDate === wKey || r.payDate === wKey));
+                // 3. 1종 가드 스캔: 문자열 포맷 파편화 필터를 완벽 우회하여 주간 스케줄 유무 최종 검속
+                let isAnyWeeklyScheduleExist = records.some(r => {
+                    if (!r) return false;
+                    const cExam = r.examDate ? r.examDate.toString().replace(/[^0-9-]/g, "").trim() : "";
+                    const cPay = r.payDate ? r.payDate.toString().replace(/[^0-9-]/g, "").trim() : "";
+                    return weeklyKeys.some(wKey => {
+                        const cWKey = wKey.toString().replace(/[^0-9-]/g, "").trim();
+                        return cExam === cWKey || cPay === cWKey;
+                    });
+                });
 
                 if (!isAnyWeeklyScheduleExist) {
                     cardBoard.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; font-weight: 700;">이번주에 등록된 임상시험 일정이 없습니다.</div>`;
@@ -979,7 +996,7 @@
                     weeklyTimelineRail.innerHTML = weeklyScheduleBriefingHTML;
                 }
 
-                // 2종 가드 스캔: 날짜 단추 클릭 시 카드 부재 예외 처리 봉합
+                // 4. 2종 가드 스캔: 날짜 단추 클릭 시 카드 부재 예외 처리 완벽 봉합
                 let totalOutHTML = "";
                 if (renderedCardCount === 0) {
                     totalOutHTML += `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 15px; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다.</div>`;

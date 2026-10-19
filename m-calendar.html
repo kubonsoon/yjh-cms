@@ -892,6 +892,8 @@
             // [항목 03 - 전반부] [트랙 B : 신규 및 180일 만료자] 스크리닝 카드 조출 및 2줄 주간 브리핑
             // =============================================================================
             if (isGhostUser) {
+                alert(`[트랙B 신규대상자 감지]\n\n현재 달력 엔진이 인식한 선택 날짜 (window.selectedDateStr) 변수값은:\n[ ${window.selectedDateStr} ] 입니다.`);
+
                 let ghostWeekCardsHTML = "";
                 let weeklyScheduleBriefingHTML = "";
                 const daysMapShort = ["일", "월", "화", "수", "목", "금", "토"];
@@ -916,6 +918,9 @@
                         const targetYear = parseInt(wParts[0], 10);
                         const targetMonth = parseInt(wParts[1], 10);
                         const targetDay = parseInt(wParts[2], 10);
+
+                        // [트랙 B 격리 구역 전용 실시간 디버깅 콘솔]: 오직 신규 유저 카드 스케줄러 매핑 연산시에만 로깅 작동
+                        console.log(`[트랙B 전용 수색] 공고명: ${item.title} | 공고일(정수): ${srcYear}-${srcMonth}-${srcDay} vs 달력선택일(정수): ${targetYear}-${targetMonth}-${targetDay} | 비교결과: ${srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay}`);
 
                         return (srcYear === targetYear && srcMonth === targetMonth && srcDay === targetDay);
                     });

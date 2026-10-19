@@ -892,7 +892,12 @@
             // [항목 03 - 전반부] [트랙 B : 신규 및 180일 만료자] 스크리닝 카드 조출 및 2줄 주간 브리핑
             // =============================================================================
             if (isGhostUser) {
-                alert(`[트랙B 신규대상자 감지]\n\n현재 달력 엔진이 인식한 선택 날짜 (window.selectedDateStr) 변수값은:\n[ ${window.selectedDateStr} ] 입니다.`);
+
+                // [100% 무조건 직격 구동 안테나]: 세션 동기화 타이밍 락을 완전히 깨부수고 신규 판정 진입 시 무조건 팝업 가동
+                (function () {
+                    const currentTrackingDate = window.selectedDateStr || "날짜 식별 불능";
+                    alert(`[트랙B 신규대상자 전용 최초 부팅 얼럿]\n\n인증망을 통과하여 달력 엔진 진입에 성공했습니다.\n현재 엔진이 실시간으로 물고 있는 선택 날짜 (window.selectedDateStr) 변수값은:\n[ ${currentTrackingDate} ] 입니다.`);
+                })();
 
                 let ghostWeekCardsHTML = "";
                 let weeklyScheduleBriefingHTML = "";

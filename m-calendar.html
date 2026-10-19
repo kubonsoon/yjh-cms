@@ -977,14 +977,16 @@
                     weeklyTimelineRail.innerHTML = weeklyScheduleBriefingHTML;
                 }
 
-                // 4. 2종 가드 스캔: 날짜 단추 클릭 시 카드 부재 예외 처리 봉합
+                // 4. 2종 가드 스캔: 초기 로드 및 날짜 클릭 시 카드 부재 예외 처리 완벽 봉합
                 let totalOutHTML = "";
-                if (renderedCardCount === 0 && window.isDayButtonClicked === true) {
+                // renderedCardCount가 0일 때 무조건 안내 문구가 출력되도록 조건식 락업 해제
+                if (renderedCardCount === 0) {
                     totalOutHTML += `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 10px; background: var(--card-color); border: 1px dashed var(--border-color); border-radius: 14px; margin-bottom: 15px; font-weight: 600;">선택하신 일자에는 임상시험 일정이 없습니다.</div>`;
                 } else {
                     totalOutHTML += ghostWeekCardsHTML;
                 }
 
+                // 모바일 하단 카드 랙 레이아웃에 다이렉트 주입 마운트
                 cardBoard.innerHTML = totalOutHTML;
 
                 // =============================================================================

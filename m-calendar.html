@@ -985,23 +985,26 @@
 
                 let isAnyWeeklyScheduleExist = false;
                 records.forEach(r => {
-                    if (r && r.examSchedule && r.examSchedule.toString().includes("-")) {
-                        const rParts = r.examSchedule.toString().trim().split("-");
+                    if (!r) return;
+
+                    // 올려주신 원본의 하이픈 해체 분해 및 정수 비교 포맷을 100% 사수하기 위한 가상 대입 축 처리
+                    const targetScheduleStr = r.screeningDate || r.hospitalDate || "";
+                    if (targetScheduleStr && targetScheduleStr.toString().includes("-")) {
+                        const rParts = targetScheduleStr.toString().trim().split("-");
                         const rYear = parseInt(rParts[0], 10);
-                        const rMonth = parseInt(rParts, 10);
-                        const rDay = parseInt(rParts, 10);
+                        const rMonth = parseInt(rParts[1], 10);
+                        const rDay = parseInt(rParts[2], 10);
 
                         weeklyKeys.forEach(wKey => {
                             if (wKey.includes("-")) {
                                 const wParts = wKey.split("-");
-                                if (rYear === parseInt(wParts, 10) && rMonth === parseInt(wParts, 10) && rDay === parseInt(wParts, 10)) {
+                                if (rYear === parseInt(wParts[0], 10) && rMonth === parseInt(wParts[1], 10) && rDay === parseInt(wParts[2], 10)) {
                                     isAnyWeeklyScheduleExist = true;
                                 }
                             }
                         });
                     }
                 });
-
 
                 console.log("이번 주간 내 가용 일정 최종 존재 여부 (isAnyWeeklyScheduleExist):", isAnyWeeklyScheduleExist);
                 console.log("==================================================");

@@ -1365,7 +1365,17 @@
         }
 
 
+        // [중복 클릭 방지 마스터 락] 전역 변수 영역에 배치 혹은 함수 상단에 안전하게 선언
+        let isConfirmSubmittingLock = false;
+
         function executeStep3ConfirmNext() {
+            // [연타 차단 가드막]: 이미 버튼이 눌려 처리 중이라면 즉시 리턴하여 이중 출력을 원천 봉쇄
+            if (isConfirmSubmittingLock) {
+                console.log("=== 🛑 [CTMS 가드] 중복 클릭이 감지되어 실행을 차단합니다 ===");
+                return;
+            }
+            isConfirmSubmittingLock = true;
+
             console.log("=== 🔓 [CTMS 탈출 게이트] 확인 버튼 정방향 주파 가동 ===");
 
             if (matchedPatientData) {

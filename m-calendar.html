@@ -938,10 +938,10 @@
                                 <div>배정 정원: <span>${item.count ? item.count + "명" : ""}</span></div>
                                 <div>임상 기간: <span>${item.period ? item.period + "시간" : ""}</span></div>
                             </div>
-                            <div class="card-action-bar" id="ui_action_bar_the_unique_${item.uid}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
-                                <button type="button" class="card-btn join" id="btn_card_join_${item.uid}" style="height:32px; font-size: 12.5px; background: #0ea5e9 !important; color: #ffffff !important;">참여</button>
-                                <button type="button" class="card-btn reject" id="btn_card_reject_${item.uid}" style="height:32px; font-size:12.5px; background: #475569;">미참여</button>
-                                <button type="button" class="card-btn history-sync" id="btn_card_hist_${item.uid}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i> 이력조회</button>
+                            <div class="card-action-bar" id="ui_action_bar_the_unique_${item.id}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+                                <button type="button" class="card-btn join" id="btn_card_join_${item.id}" style="height:32px; font-size: 12.5px; background: #0ea5e9 !important; color: #ffffff !important;">참여</button>
+                                <button type="button" class="card-btn reject" id="btn_card_reject_${item.id}" style="height:32px; font-size:12.5px; background: #475569;">미참여</button>
+                                <button type="button" class="card-btn history-sync" id="btn_card_hist_${item.id}" style="height:32px; font-size:12.5px;"><i class="fa-solid fa-clock-history"></i> 이력조회</button>
                             </div>
                         </div>
                     `;
@@ -960,7 +960,7 @@
                 weeklyKeys.forEach(dateKey => {
                     const dateObj = new Date(dateKey);
                     const bits = dateKey.split('-');
-                    const formattedLabel = `${bits}년 ${String(bits).padStart(2, '0')}월 ${String(bits).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
+                    const formattedLabel = `${bits[0]}년 ${String(bits[1]).padStart(2, '0')}월 ${String(bits[2]).padStart(2, '0')}일 (${daysMapShort[dateObj.getDay()]})`;
 
                     const dayMatchedRecords = records.filter(r => {
                         if (!r) return false;
